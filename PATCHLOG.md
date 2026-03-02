@@ -53,3 +53,14 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
   - `npm test`
 - Rollback:
   - Revert this patch commit.
+
+### P-AITEHUB-0005
+- Why:
+  - Make git-hosted prepare stable on Node 22+ by forcing OpenSSL legacy provider for webpack-based build scripts.
+- Diff Scope:
+  - `package.json` scripts (`build`, `minify`, `legacy`, `productionLegacy`)
+- Test:
+  - `NODE_OPTIONS=--openssl-legacy-provider npm test`
+  - `npm run build`
+- Rollback:
+  - Revert this patch commit.
