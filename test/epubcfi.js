@@ -2,7 +2,7 @@ import assert from 'assert';
 import EpubCFI from '../src/epubcfi.js';
 // var fs = require('fs');
 if (typeof DOMParser === "undefined") {
-	global.DOMParser = require('xmldom').DOMParser;
+	global.DOMParser = require('@xmldom/xmldom').DOMParser;
 }
 
 describe('EpubCFI', function() {
@@ -418,6 +418,16 @@ describe('EpubCFI', function() {
 			// assert.strictEqual( newRange.startContainer, t1);
 			// assert.equal( newRange.startOffset, 5);
 
+		});
+
+		it('clamps out-of-range offsets from stored cfi to a safe range', function() {
+			var cfi = new EpubCFI("epubcfi(/6/4[chap01ref]!/4/2/10/2[c001p0004]/1:9999)");
+			var newRange = cfi.toRange(doc);
+
+			assert.ok(newRange);
+			assert.ok(newRange.startContainer);
+			assert.ok(newRange.startOffset >= 0);
+			assert.ok(newRange.startOffset <= newRange.startContainer.textContent.length);
 		});
 
 	});

@@ -887,8 +887,36 @@ class EpubCFI {
 		return container;
 	}
 
+	normalizeOffset(container, offset) {
+		var normalized = isNumber(offset) ? offset : 0;
+
+		if (!container) {
+			return 0;
+		}
+
+		if (normalized < 0) {
+			normalized = 0;
+		}
+
+		if (container.nodeType === TEXT_NODE || container.nodeType === COMMENT_NODE) {
+			return Math.min(normalized, container.textContent.length);
+		}
+
+		if (container.childNodes) {
+			return Math.min(normalized, container.childNodes.length);
+		}
+
+		return normalized;
+	}
+
 	fixMiss(steps, offset, _doc, ignoreClass) {
 		var container = this.findNode(steps.slice(0,-1), _doc, ignoreClass);
+		if (!container || !container.childNodes) {
+			return {
+				container: container || null,
+				offset: this.normalizeOffset(container, offset)
+			};
+		}
 		var children = container.childNodes;
 		var map = this.normalizedMap(children, TEXT_NODE, ignoreClass);
 		var child;
@@ -896,7 +924,9 @@ class EpubCFI {
 		var lastStepIndex = steps[steps.length-1].index;
 
 		for (let childIndex in map) {
-			if (!map.hasOwnProperty(childIndex)) return;
+			if (!Object.prototype.hasOwnProperty.call(map, childIndex)) {
+				continue;
+			}
 
 			if(map[childIndex] === lastStepIndex) {
 				child = children[childIndex];
@@ -916,9 +946,43 @@ class EpubCFI {
 
 		return {
 			container: container,
-			offset: offset
+			offset: this.normalizeOffset(container, offset)
 		};
 
+	}
+
+	setRangeBoundary(range, method, container, offset, steps, doc, ignoreClass) {
+		var safeContainer = container;
+		var safeOffset = isNumber(offset) ? offset : 0;
+		var missed;
+
+		if (!safeContainer) {
+			return false;
+		}
+
+		try {
+			range[method](safeContainer, safeOffset);
+			return true;
+		} catch (e) {
+			missed = this.fixMiss(steps, offset, doc, ignoreClass);
+			if (missed && missed.container) {
+				safeContainer = missed.container;
+				safeOffset = missed.offset;
+			}
+
+			if (!safeContainer) {
+				return false;
+			}
+
+			safeOffset = this.normalizeOffset(safeContainer, safeOffset);
+
+			try {
+				range[method](safeContainer, safeOffset);
+				return true;
+			} catch (_e) {
+				return false;
+			}
+		}
 	}
 
 	/**
@@ -934,7 +998,6 @@ class EpubCFI {
 		var cfi = this;
 		var startSteps, endSteps;
 		var needsIgnoring = ignoreClass ? (doc.querySelector("." + ignoreClass) != null) : false;
-		var missed;
 
 		if (typeof(doc.createRange) !== "undefined") {
 			range = doc.createRange();
@@ -956,17 +1019,17 @@ class EpubCFI {
 		}
 
 		if(startContainer) {
-			try {
-
-				if(start.terminal.offset != null) {
-					range.setStart(startContainer, start.terminal.offset);
-				} else {
-					range.setStart(startContainer, 0);
-				}
-
-			} catch (e) {
-				missed = this.fixMiss(startSteps, start.terminal.offset, doc, needsIgnoring ? ignoreClass : null);
-				range.setStart(missed.container, missed.offset);
+			if (!this.setRangeBoundary(
+				range,
+				"setStart",
+				startContainer,
+				start.terminal.offset != null ? start.terminal.offset : 0,
+				startSteps,
+				doc,
+				needsIgnoring ? ignoreClass : null
+			)) {
+				console.log("No valid range start found for", this.toString());
+				return null;
 			}
 		} else {
 			console.log("No startContainer found for", this.toString());
@@ -975,18 +1038,15 @@ class EpubCFI {
 		}
 
 		if (endContainer) {
-			try {
-
-				if(end.terminal.offset != null) {
-					range.setEnd(endContainer, end.terminal.offset);
-				} else {
-					range.setEnd(endContainer, 0);
-				}
-
-			} catch (e) {
-				missed = this.fixMiss(endSteps, cfi.end.terminal.offset, doc, needsIgnoring ? ignoreClass : null);
-				range.setEnd(missed.container, missed.offset);
-			}
+			this.setRangeBoundary(
+				range,
+				"setEnd",
+				endContainer,
+				end.terminal.offset != null ? end.terminal.offset : 0,
+				endSteps,
+				doc,
+				needsIgnoring ? ignoreClass : null
+			);
 		}
 
 

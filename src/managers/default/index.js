@@ -117,9 +117,11 @@ class DefaultViewManager {
 	addEventListeners(){
 		var scroller;
 
-		window.addEventListener("unload", function(e){
+		this._onUnload = function(e){
 			this.destroy();
-		}.bind(this));
+		}.bind(this);
+
+		window.addEventListener("unload", this._onUnload);
 
 		if(!this.settings.fullsize) {
 			scroller = this.container;
@@ -142,6 +144,9 @@ class DefaultViewManager {
 
 		scroller.removeEventListener("scroll", this._onScroll);
 		this._onScroll = undefined;
+
+		window.removeEventListener("unload", this._onUnload);
+		this._onUnload = undefined;
 	}
 
 	destroy(){
@@ -347,13 +352,21 @@ class DefaultViewManager {
 			distX = Math.floor(offset.left / this.layout.delta) * this.layout.delta;
 
 			if (distX + this.layout.delta > this.container.scrollWidth) {
-				distX = this.container.scrollWidth - this.layout.delta;
+				distX = Math.max(0, this.container.scrollWidth - this.layout.delta);
 			}
 
-			distY = Math.floor(offset.top / this.layout.delta) * this.layout.delta;
+			if (this.settings.axis === "vertical") {
+				distY = Math.floor(offset.top / this.layout.height) * this.layout.height;
 
-			if (distY + this.layout.delta > this.container.scrollHeight) {
-				distY = this.container.scrollHeight - this.layout.delta;
+				if (distY + this.layout.height > this.container.scrollHeight) {
+					distY = Math.max(0, this.container.scrollHeight - this.layout.height);
+				}
+			} else {
+				distY = Math.floor(offset.top / this.layout.delta) * this.layout.delta;
+
+				if (distY + this.layout.delta > this.container.scrollHeight) {
+					distY = Math.max(0, this.container.scrollHeight - this.layout.delta);
+				}
 			}
 		}
 		if(this.settings.direction === 'rtl'){
