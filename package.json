@@ -55,7 +55,7 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "@xmldom/xmldom": "^0.7.5",
+    "@xmldom/xmldom": "^0.8.11",
     "core-js": "^3.18.3",
     "event-emitter": "^0.3.5",
     "jszip": "^3.7.1",
