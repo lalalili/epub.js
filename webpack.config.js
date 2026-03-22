@@ -29,10 +29,12 @@ module.exports = {
 		path: path.resolve("./dist"),
 		filename: filename,
 		sourceMapFilename: sourceMapFilename,
-		library: "ePub",
-		libraryTarget: "umd",
-		libraryExport: "default",
-		publicPath: "/dist/"
+		library: {
+			name: "ePub",
+			type: "umd",
+			export: "default",
+		},
+		globalObject: "typeof self !== 'undefined' ? self : this",
 	},
 	optimization: {
 		minimize: MINIMIZE
@@ -50,11 +52,13 @@ module.exports = {
 	devServer: {
 		host: hostname,
 		port: port,
-		inline: true,
 		headers: {
 			"Access-Control-Allow-Origin": "*",
 			"Access-Control-Allow-Methods": "GET,PUT,POST,DELETE",
 			"Access-Control-Allow-Headers": "Content-Type"
+		},
+		static: {
+			publicPath: "/dist/"
 		}
 	},
 	module: {

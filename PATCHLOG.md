@@ -10,6 +10,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 - Test:
 - Rollback:
 
+## 2026-03-22
+
+### P-AITEHUB-0006
+- Why:
+  - Replace webpack 4 + `--openssl-legacy-provider` workaround with webpack 5, which uses xxhash64 (no OpenSSL md4 dependency). Enables clean Node 22+ / Node 24+ builds without any environment flags.
+- Diff Scope:
+  - `package.json`: webpack 4→5, webpack-cli 3→5, webpack-dev-server 3→5, terser-webpack-plugin 3→5, babel-loader 8→9, karma-webpack 4→5; remove `--openssl-legacy-provider` from all build scripts; update `start` to `webpack serve`
+  - `webpack.config.js`: update `output.library` to v5 object form (`{ name, type, export }`); remove deprecated `libraryTarget`/`libraryExport`; add `globalObject` for UMD compatibility; update `devServer` (remove `inline`, use `static.publicPath`)
+- Test:
+  - `npm run compile` (babel)
+  - `npm run build` (main UMD)
+  - `npm run minify` (minified UMD)
+  - `npm run legacy` (legacy UMD)
+  - `npm run productionLegacy` (legacy minified UMD)
+  - All 5 pass on Node 24 without `--openssl-legacy-provider`
+- Rollback:
+  - Revert this patch commit (restore webpack 4 deps + `--openssl-legacy-provider` scripts).
+
 ## 2026-03-03
 
 ### P-AITEHUB-0001
