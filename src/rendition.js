@@ -689,7 +689,14 @@ class Rendition {
 	reportLocation(){
 		return this.q.enqueue(function reportedLocation(){
 			requestAnimationFrame(function reportedLocationAfterRAF() {
-				var location = this.manager.currentLocation();
+				// P-AITEHUB-0008: Guard against destroyed manager (rendition torn down before rAF fires)
+				if (!this.manager) return;
+				var location;
+				try {
+					location = this.manager.currentLocation();
+				} catch (err) {
+					return; // manager may have been destroyed; silently ignore
+				}
 				if (location && location.then && typeof location.then === "function") {
 					location.then(function(result) {
 						let located = this.located(result);

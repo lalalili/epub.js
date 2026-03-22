@@ -12,6 +12,20 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-03-22
 
+### P-AITEHUB-0008
+- Why:
+  - epub.js uses `requestAnimationFrame` callbacks in two critical paths. When the reader is torn down (navigate away, component unmount), rAF callbacks can still fire after the underlying objects are destroyed, causing uncaught "Cannot read properties of null" errors. Application layer had to catch these errors with a global `window.addEventListener('error', ...)` handler.
+  - `Contents.resizeCheck()` calls `this.document.createRange()` — if the iframe is already detached, `this.document` is `null`.
+  - `reportedLocationAfterRAF()` calls `this.manager.currentLocation()` — if the rendition is destroyed before the frame fires, `this.manager` may be `null` or already torn down.
+- Diff Scope:
+  - `src/contents.js`: add `if (!this.document) return;` guard at top of `resizeCheck()`
+  - `src/rendition.js`: add `if (!this.manager) return;` guard and try/catch around `this.manager.currentLocation()` in `reportedLocationAfterRAF`
+- Test:
+  - Build verify: `npm run build`
+  - Regression: open a book, rapidly navigate between chapters / unmount the component — no "Cannot read properties of null" errors in console
+- Rollback:
+  - Revert this patch commit.
+
 ### P-AITEHUB-0007
 - Why:
   - Expose `request` utility from public API so consumers can `import { request } from 'epubjs'` instead of the fragile deep import `epubjs/lib/utils/request`.

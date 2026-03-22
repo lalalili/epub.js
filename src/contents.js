@@ -427,6 +427,8 @@ class Contents {
 	 * @private
 	 */
 	resizeCheck() {
+		// P-AITEHUB-0008: Guard against null document (contents destroyed before rAF fires)
+		if (!this.document) return;
 		let width = this.textWidth();
 		let height = this.textHeight();
 
