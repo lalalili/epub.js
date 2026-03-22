@@ -12,6 +12,17 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-03-22
 
+### P-AITEHUB-0007
+- Why:
+  - Expose `request` utility from public API so consumers can `import { request } from 'epubjs'` instead of the fragile deep import `epubjs/lib/utils/request`.
+- Diff Scope:
+  - `src/index.js`: add `import request from "./utils/request"` and include `request` in named exports
+- Test:
+  - Build verify: `npm run compile && npm run build`
+  - Consumer can do `import { request } from 'epubjs'` or `const { request } = require('epubjs')`
+- Rollback:
+  - Revert this patch commit.
+
 ### P-AITEHUB-0006
 - Why:
   - Replace webpack 4 + `--openssl-legacy-provider` workaround with webpack 5, which uses xxhash64 (no OpenSSL md4 dependency). Enables clean Node 22+ / Node 24+ builds without any environment flags.
