@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      NODE_OPTIONS: --openssl-legacy-provider
       CHROME_BIN: /usr/bin/google-chrome
     steps:
       - name: Checkout
