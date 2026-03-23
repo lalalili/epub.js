@@ -56,12 +56,14 @@
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.8.11",
+    "assert": "^2.1.0",
     "core-js": "^3.18.3",
     "event-emitter": "^0.3.5",
     "jszip": "^3.7.1",
     "localforage": "^1.10.0",
     "lodash": "^4.17.21",
     "marks-pane": "^1.0.9",
-    "path-webpack": "0.0.3"
+    "path-webpack": "0.0.3",
+    "process": "^0.11.10"
   }
 }

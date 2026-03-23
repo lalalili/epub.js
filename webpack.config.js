@@ -43,10 +43,17 @@ module.exports = {
 		"jszip/dist/jszip": "JSZip",
 		"xmldom": "xmldom"
 	},
-	plugins: [],
+	plugins: [
+		new webpack.ProvidePlugin({
+			process: "process/browser"
+		})
+	],
 	resolve: {
 		alias: {
 			path: "path-webpack"
+		},
+		fallback: {
+			assert: require.resolve("assert/")
 		}
 	},
 	devServer: {
