@@ -10,6 +10,21 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 - Test:
 - Rollback:
 
+## 2026-03-28
+
+### P-AITEHUB-0009
+- Why:
+  - Full `locations.generate()` loads every spine section sequentially, which in chunk mode downloads all encrypted content before reading can start. Consumers need a way to refine locations one section at a time as the reader naturally loads content.
+  - `generateForSection(section, chars)` loads a single section, parses precise CFI locations for it, then splices them into `_locations` in the correct sorted position — replacing any coarser (e.g. synthetic) entries that were already there for that section.
+  - This enables progressive refinement: call once per `relocated` event for visited sections, keeping per-section accuracy without the full-book scanning cost.
+- Diff Scope:
+  - `src/locations.js`: add `generateForSection(section, chars)` method
+- Test:
+  - Build verify: `npm run build`
+  - Unit: navigate to a section, call `book.locations.generateForSection(section, 150)`, verify `_locations` contains precise CFIs only for that section and total is updated
+- Rollback:
+  - Revert this patch commit.
+
 ## 2026-03-22
 
 ### P-AITEHUB-0008

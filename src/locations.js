@@ -178,6 +178,65 @@ class Locations {
 
 
 	/**
+	 * Generate precise locations for a single section and splice them into
+	 * the existing locations array, replacing any entries (e.g. synthetic)
+	 * that already belong to that section.
+	 *
+	 * This allows progressive refinement: call once per section as the reader
+	 * navigates through the book without the cost of a full generate().
+	 *
+	 * @param  {Section} section  epub.js Section object (must have .cfiBase, .load(), .unload(), .linear)
+	 * @param  {int}     [chars]  chars per location break (defaults to this.break)
+	 * @return {Promise<Array<string>>} full updated locations array
+	 */
+	generateForSection(section, chars) {
+		if (!section || !section.linear || !section.cfiBase) {
+			return Promise.resolve(this._locations);
+		}
+
+		var breakSize = chars || this.break;
+		var cfiPrefix = "epubcfi(" + section.cfiBase + "!";
+
+		return section.load(this.request)
+			.then(function(contents) {
+				var newLocs = this.parse(contents, section.cfiBase, breakSize);
+				section.unload();
+
+				if (newLocs.length === 0) {
+					return this._locations;
+				}
+
+				// Find the range of existing entries that belong to this section
+				var sectionStart = -1;
+				var sectionCount = 0;
+				for (var i = 0; i < this._locations.length; i++) {
+					if (this._locations[i].startsWith(cfiPrefix)) {
+						if (sectionStart === -1) sectionStart = i;
+						sectionCount++;
+					} else if (sectionStart !== -1) {
+						break; // past this section's block
+					}
+				}
+
+				if (sectionStart !== -1) {
+					// Replace existing entries for this section with precise ones
+					this._locations.splice.apply(this._locations, [sectionStart, sectionCount].concat(newLocs));
+				} else {
+					// No existing entries — find insertion point via CFI binary search
+					var insertIdx = locationOf(
+						new EpubCFI(newLocs[0]),
+						this._locations,
+						this.epubcfi.compare
+					);
+					this._locations.splice.apply(this._locations, [insertIdx, 0].concat(newLocs));
+				}
+
+				this.total = this._locations.length - 1;
+				return this._locations;
+			}.bind(this));
+	}
+
+	/**
 	 * Load all of sections in the book to generate locations
 	 * @param  {string} startCfi start position
 	 * @param  {int} wordCount how many words to split on
