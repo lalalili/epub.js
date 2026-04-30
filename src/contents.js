@@ -1238,6 +1238,37 @@ class Contents {
 			this.documentElement.style[WRITING_MODE] = mode;
 		}
 
+		// Read writing-mode from the body element's own stylesheet rules rather than
+		// computed style, because a shim may set html { writing-mode: horizontal-tb !important }
+		// for geometry correctness — which cascades down and masks a vertical-rl body.
+		// We scan the document's stylesheets for any rule that targets body (or *) and
+		// sets writing-mode, falling back to documentElement computed style.
+		const bodyEl = this.document && this.document.body;
+		if (bodyEl) {
+			// Check body inline style first
+			const inlineWM = bodyEl.style && bodyEl.style.getPropertyValue(WRITING_MODE);
+			if (inlineWM && inlineWM !== "horizontal-tb") {
+				return inlineWM;
+			}
+			// Scan stylesheets for body/html/universal writing-mode rules
+			try {
+				const sheets = Array.from(this.document.styleSheets || []);
+				for (const sheet of sheets) {
+					let rules;
+					try { rules = Array.from(sheet.cssRules || []); } catch(e) { continue; }
+					for (const rule of rules) {
+						if (rule.style && rule.selectorText) {
+							const sel = rule.selectorText.toLowerCase();
+							if (sel === "body" || sel === "html, body" || sel === "body, html") {
+								const wm = rule.style.getPropertyValue(WRITING_MODE);
+								if (wm && wm !== "horizontal-tb") return wm;
+							}
+						}
+					}
+				}
+			} catch(e) { /* ignore */ }
+		}
+
 		return this.window.getComputedStyle(this.documentElement)[WRITING_MODE] || '';
 	}
 
