@@ -323,29 +323,6 @@ class IframeView {
 				}
 			}
 
-			// For vertical-rl content in RTL paginated mode, text columns stack right-to-left
-			// so the content bounding rect extends into negative x (left of x=0).
-			// Shift the body right by the overhang so all columns land in positive x space,
-			// making them visible within the iframe bounds (x: 0 → width).
-			if (this.settings.direction === "rtl") {
-				const bodyEl = this.document && this.document.body;
-				if (bodyEl) {
-					const wm = this.document.defaultView &&
-						this.document.defaultView.getComputedStyle(bodyEl).writingMode;
-					if (wm && wm.includes("vertical")) {
-						const range = this.document.createRange();
-						range.selectNodeContents(bodyEl);
-						const rect = range.getBoundingClientRect();
-						// rect.left may be negative (columns overflowing left).
-						// Shift body right so leftmost column starts at x=0.
-						const overhang = Math.max(0, -Math.round(rect.left));
-						if (overhang > 0) {
-							bodyEl.style.setProperty("margin-left", overhang + "px", "important");
-						}
-					}
-				}
-			}
-
 		} // Expand Vertically
 		else if(this.settings.axis === "vertical") {
 			height = this.contents.textHeight();
@@ -359,6 +336,21 @@ class IframeView {
 		// if Frame is still hidden, so needs reframing
 		if(this._needsReframe || width != this._width || height != this._height){
 			this.reframe(width, height);
+		}
+
+		// For vertical-rl: after reframe the iframe is width px wide.
+		// Columns stack right-to-left so body sits at the right edge.
+		// Push body left by (iframeWidth - colWidth) so col1 is rightmost
+		// and all columns land within the iframe bounds.
+		if (this.settings.axis === "horizontal" && this.document && this.document.body) {
+			const bodyEl = this.document.body;
+			const wm = this.document.defaultView &&
+				this.document.defaultView.getComputedStyle(bodyEl).writingMode;
+			if (wm === "vertical-rl") {
+				const colWidth = parseFloat(this.document.defaultView.getComputedStyle(bodyEl).columnWidth) || this.layout.columnWidth;
+				const marginLeft = Math.max(0, width - colWidth);
+				bodyEl.style.setProperty("margin-left", marginLeft + "px", "important");
+			}
 		}
 
 		this._expanding = false;
