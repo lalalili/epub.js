@@ -154,14 +154,15 @@ class Contents {
 		// For vertical-rl paginated content, column-width is the inline size (height).
 		// Columns extend in the negative x direction so getBoundingClientRect().width
 		// only captures the visible first column.
-		// Derive total iframe width from: colCount × pageWidth (block size = innerWidth).
+		// Derive total iframe width from: colCount × pageWidth (block size).
+		// _layoutWidth and _layoutHeight are stored by columns() before each layout pass.
 		const wm = this.window && this.window.getComputedStyle(content).writingMode;
 		if (wm === "vertical-rl") {
-			const vpHeight = this.window.innerHeight;
-			const vpWidth = this.window.innerWidth;
-			if (vpHeight > 0 && vpWidth > 0) {
-				const colCount = Math.ceil(content.scrollHeight / vpHeight);
-				return Math.round(Math.max(colCount, 1) * vpWidth);
+			const pageHeight = this._layoutHeight || this.window.innerHeight;
+			const pageWidth = this._layoutWidth;
+			if (pageHeight > 0 && pageWidth > 0) {
+				const colCount = Math.ceil(content.scrollHeight / pageHeight);
+				return Math.round(Math.max(colCount, 1) * pageWidth);
 			}
 		}
 
@@ -1064,6 +1065,9 @@ class Contents {
 	 * @param {number} gap
 	 */
 	columns(width, height, columnWidth, gap, dir){
+		// Store layout dimensions for textWidth() to reference in vertical-rl mode.
+		this._layoutWidth = width;
+		this._layoutHeight = height;
 		let COLUMN_AXIS = prefixed("column-axis");
 		let COLUMN_GAP = prefixed("column-gap");
 		let COLUMN_WIDTH = prefixed("column-width");
