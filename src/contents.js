@@ -1102,6 +1102,22 @@ class Contents {
 		// Fix glyph clipping in WebKit
 		// https://github.com/futurepress/epub.js/issues/983
 		this.css("-webkit-line-box-contain", "block glyphs replaced");
+
+		// For vertical-rl content in RTL paginated mode, columns overflow to the left
+		// (negative x). Shift the body right so all columns land in positive x space.
+		// Must run after margin:0 above so the overhang value isn't zeroed out.
+		if (this.document && this.document.body) {
+			const bodyEl = this.document.body;
+			const wm = this.document.defaultView &&
+				this.document.defaultView.getComputedStyle(bodyEl).writingMode;
+			if (wm && wm.includes("vertical")) {
+				const range = this.document.createRange();
+				range.selectNodeContents(bodyEl);
+				const rect = range.getBoundingClientRect();
+				const overhang = Math.max(0, -Math.round(rect.left));
+				bodyEl.style.setProperty("margin-left", overhang + "px", "important");
+			}
+		}
 	}
 
 	/**
