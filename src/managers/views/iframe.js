@@ -170,8 +170,20 @@ class IframeView {
 					axis = (writingMode.indexOf("vertical") === 0) ? "vertical" : "horizontal";
 				}
 
-				if (writingMode.indexOf("vertical") === 0 && this.settings.flow === "paginated") {
+				// vertical-rl uses horizontal paging (columns extend in block direction).
+				// Keep delta = pageWidth (layout.width) so next/prev scroll by one page.
+				// Other vertical writing modes (vertical-lr etc.) keep height-based delta.
+				if (writingMode.indexOf("vertical") === 0 &&
+						writingMode !== "vertical-rl" &&
+						this.settings.flow === "paginated") {
 					this.layout.delta = this.layout.height;
+				}
+
+				// For vertical-rl paginated: force horizontal axis so expand() uses
+				// textWidth() (which reads documentElement.scrollWidth) and reframes
+				// the iframe to the total multi-column width.
+				if (writingMode === "vertical-rl" && this.settings.flow !== "scrolled") {
+					axis = "horizontal";
 				}
 
 				this.setAxis(axis);

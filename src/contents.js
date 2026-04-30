@@ -151,6 +151,14 @@ class Contents {
 		let content = this.content || this.document.body;
 		let border = borders(content);
 
+		// For vertical-rl paginated content the multicol flow root (body) has
+		// overflow:visible and columns extend in the block direction (negative x).
+		// Range bounding box only captures the first column; use documentElement
+		// scrollWidth which reflects the full multi-column paint area.
+		const wm = this.window && this.window.getComputedStyle(content).writingMode;
+		if (wm === "vertical-rl") {
+			return this.documentElement.scrollWidth;
+		}
 
 		// Select the contents of frame
 		range.selectNodeContents(content);
@@ -1071,30 +1079,67 @@ class Contents {
 		// Deal with Mobile trying to scale to viewport
 		this.viewport({ width: width, height: height, scale: 1.0, scalable: "no" });
 
-		this.css("overflow-y", "hidden");
-		this.css("margin", "0", true);
+		if (writingMode === "vertical-rl") {
+			// Two-layer architecture for vertical-rl paginated content:
+			//
+			// Problem: CSS overflow spec §overflow-3 states that when one overflow axis
+			// is not 'visible'/'clip', the other is forced to 'auto'. Setting
+			// overflow-y:hidden on body forces overflow-x:auto, which clips the
+			// multi-column block-direction (horizontal) overflow and prevents columns
+			// from extending into negative x space.
+			//
+			// Solution: separate clipping from flow.
+			//   Outer layer (html/documentElement): overflow:hidden clips the viewport.
+			//   Inner layer (body = multicol flow root): overflow:visible so columns
+			//     can extend freely in the block direction (right-to-left, negative x).
+			//
+			// column-width in vertical-rl is the inline size = physical height.
+			// textWidth() reads documentElement.scrollWidth to get the full paint width.
+			// expand() / reframe() then sets the iframe to that total width so the
+			// RTL container can scroll one pageWidth (= physical width) per page.
 
-		if (axis === "vertical") {
-			this.css("padding-top", (gap / 2) + "px", true);
-			this.css("padding-bottom", (gap / 2) + "px", true);
-			this.css("padding-left", "20px");
-			this.css("padding-right", "20px");
-			this.css(COLUMN_AXIS, "vertical");
-		} else {
+			if (this.documentElement) {
+				this.documentElement.style.setProperty("overflow", "hidden", "important");
+				this.documentElement.style.setProperty("margin", "0", "");
+			}
+
+			this.css("overflow", "visible");
+			this.css("margin", "0", true);
 			this.css("padding-top", "20px");
 			this.css("padding-bottom", "20px");
 			this.css("padding-left", (gap / 2) + "px", true);
 			this.css("padding-right", (gap / 2) + "px", true);
+			this.css("box-sizing", "border-box");
+			this.css("max-width", "none");
+			this.css(COLUMN_FILL, "auto");
+			this.css(COLUMN_GAP, gap + "px");
+			// column-width = inline size = physical height in vertical-rl
+			this.css(COLUMN_WIDTH, height + "px", true);
 			this.css(COLUMN_AXIS, "horizontal");
+		} else {
+			this.css("overflow-y", "hidden");
+			this.css("margin", "0", true);
+
+			if (axis === "vertical") {
+				this.css("padding-top", (gap / 2) + "px", true);
+				this.css("padding-bottom", (gap / 2) + "px", true);
+				this.css("padding-left", "20px");
+				this.css("padding-right", "20px");
+				this.css(COLUMN_AXIS, "vertical");
+			} else {
+				this.css("padding-top", "20px");
+				this.css("padding-bottom", "20px");
+				this.css("padding-left", (gap / 2) + "px", true);
+				this.css("padding-right", (gap / 2) + "px", true);
+				this.css(COLUMN_AXIS, "horizontal");
+			}
+
+			this.css("box-sizing", "border-box");
+			this.css("max-width", "inherit");
+			this.css(COLUMN_FILL, "auto");
+			this.css(COLUMN_GAP, gap + "px");
+			this.css(COLUMN_WIDTH, columnWidth + "px");
 		}
-
-		this.css("box-sizing", "border-box");
-		this.css("max-width", "inherit");
-
-		this.css(COLUMN_FILL, "auto");
-
-		this.css(COLUMN_GAP, gap+"px");
-		this.css(COLUMN_WIDTH, columnWidth+"px");
 
 		// Fix glyph clipping in WebKit
 		// https://github.com/futurepress/epub.js/issues/983
