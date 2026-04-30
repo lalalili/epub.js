@@ -151,13 +151,23 @@ class Contents {
 		let content = this.content || this.document.body;
 		let border = borders(content);
 
-		// For vertical-rl paginated content the multicol flow root (body) has
-		// overflow:visible and columns extend in the block direction (negative x).
+		// For vertical-rl paginated content the multicol flow root is .epubjs-vrl-flow.
 		// html has overflow:hidden so documentElement.scrollWidth is clamped to 1 page.
-		// body.scrollWidth with overflow:visible reflects the full multi-column extent.
+		// The inner flow root's scrollWidth reflects the full multi-column total width.
 		const wm = this.window && this.window.getComputedStyle(content).writingMode;
 		if (wm === "vertical-rl") {
-			return content.scrollWidth || this.documentElement.scrollWidth;
+			const flow = content.querySelector && content.querySelector(":scope > .epubjs-vrl-flow");
+			if (flow) {
+				width = Math.max(
+					flow.scrollWidth || 0,
+					content.scrollWidth || 0,
+					this.documentElement.scrollWidth || 0
+				);
+			} else {
+				width = content.scrollWidth || this.documentElement.scrollWidth;
+			}
+			if (border && border.width) width += border.width;
+			return Math.round(width);
 		}
 
 		// Select the contents of frame
@@ -183,11 +193,14 @@ class Contents {
 		let height;
 		let range = this.document.createRange();
 		let content = this.content || this.document.body;
+		const wm = this.window && this.window.getComputedStyle(content).writingMode;
 
 		range.selectNodeContents(content);
 
 		rect = range.getBoundingClientRect();
-		height = rect.bottom;
+		// vertical writing modes: use rect.height (not bottom, which is viewport-relative
+		// and unreliable for content below the fold)
+		height = (wm && wm.indexOf("vertical") === 0) ? rect.height : rect.bottom;
 
 		return Math.round(height);
 	}
@@ -1082,55 +1095,77 @@ class Contents {
 		this.viewport({ width: width, height: height, scale: 1.0, scalable: "no" });
 
 		if (writingMode === "vertical-rl") {
-			// Two-layer architecture for vertical-rl paginated content:
+			// Three-layer architecture for vertical-rl paginated content:
 			//
-			// Problem 1: CSS overflow spec §overflow-3 states that when one overflow axis
-			// is not 'visible'/'clip', the other is forced to 'auto'. Setting
-			// overflow-y:hidden on body forces overflow-x:auto, which clips the
-			// multi-column block-direction (horizontal) overflow and prevents columns
-			// from extending.
+			// html  = outer clip layer  (overflow:hidden, clips to one page viewport)
+			// body  = canvas layer      (overflow:visible, width set to N×pageWidth by
+			//                            expand() after content is laid out)
+			// .epubjs-vrl-flow = multicol flow root  (position:absolute; right:0; top:0,
+			//                            column-width = availableInline, padding inside)
 			//
-			// Problem 2: epub.js sets body width = pageWidth (e.g. 1062px) before the
-			// multicol branch. In vertical-rl, the block direction is horizontal — columns
-			// extend leftward. Constraining body to pageWidth makes the browser pack ALL
-			// columns into that 1062px box (each column ~300px wide) instead of each
-			// column occupying one full pageWidth.
+			// Separating the multicol root from the canvas avoids two bugs:
+			//   1. body padding reduces the available inline-size for columns(), causing
+			//      column-width to be clamped below the requested value → truncated text.
+			//   2. width:max-content on a multicol container is not reliably computed by
+			//      Chromium for vertical-rl — the browser may under-report scrollWidth.
 			//
-			// Solution:
-			//   Outer layer (html/documentElement): overflow:hidden — clips the viewport.
-			//   Inner layer (body = multicol flow root): overflow:visible + width:max-content
-			//     so the body expands to hold all columns side by side (total = N × pageWidth).
-			//
-			// column-width in vertical-rl is the inline size = physical height.
-			// textWidth() reads body.scrollWidth to get the full multi-column total width.
-			// expand() / reframe() then sets the iframe to that total width so the
-			// RTL container can scroll one pageWidth per page.
+			// column-width = inline size = physical height in vertical-rl.
+			// The key formula: column-width = pageInline - padTop - padBottom
+			//   (padTop/Bottom are on the inner flow root, not on body).
 
+			const pageInline = height;
+			const pageBlock  = width;
+			const padTop     = 20;
+			const padBottom  = 20;
+			const padLeft    = gap / 2;
+			const padRight   = gap / 2;
+			const availableInline = pageInline - padTop - padBottom;
+
+			// outer clip layer
 			if (this.documentElement) {
 				this.documentElement.style.setProperty("overflow", "hidden", "important");
 				this.documentElement.style.setProperty("margin", "0", "");
+				this.documentElement.style.setProperty("padding", "0", "");
 			}
 
-			// body width is intentionally NOT set for vertical-rl (this.width() is skipped
-			// above). Set width:max-content so the body expands past the iframe width to hold
-			// all columns side by side. min-width alone is insufficient because block-level
-			// elements fill their containing block — an explicit width:max-content is needed.
-			// textWidth() reads body.scrollWidth to get the full multi-column total width.
-			this.css("width", "max-content");
-			this.css("min-width", "max-content");
-			this.css("overflow", "visible");
-			this.css("margin", "0", true);
-			this.css("padding-top", "20px");
-			this.css("padding-bottom", "20px");
-			this.css("padding-left", (gap / 2) + "px", true);
-			this.css("padding-right", (gap / 2) + "px", true);
-			this.css("box-sizing", "border-box");
-			this.css("max-width", "none");
-			this.css(COLUMN_FILL, "auto");
-			this.css(COLUMN_GAP, gap + "px");
-			// column-width = inline size = physical height in vertical-rl
-			this.css(COLUMN_WIDTH, height + "px", true);
-			this.css(COLUMN_AXIS, "horizontal");
+			// canvas layer (body) — no multicol, no padding, explicit pixel width
+			const body = this.content || this.document.body;
+			body.style.margin       = "0";
+			body.style.padding      = "0";
+			body.style.position     = "relative";
+			body.style.width        = pageBlock + "px";
+			body.style.height       = pageInline + "px";
+			body.style.overflow     = "visible";
+			body.style.boxSizing    = "border-box";
+			body.style.maxWidth     = "none";
+			body.style.minWidth     = "";
+			// clear any residual multicol properties from previous calls
+			body.style.removeProperty(COLUMN_WIDTH);
+			body.style.removeProperty(COLUMN_GAP);
+			body.style.removeProperty(COLUMN_FILL);
+
+			// multicol flow root (inner wrapper)
+			const flow = this.getVerticalFlowRoot();
+			flow.style.position     = "absolute";
+			flow.style.top          = "0";
+			flow.style.right        = "0";
+			flow.style.writingMode  = "vertical-rl";
+			flow.style.direction    = dir || "rtl";
+			flow.style.width        = pageBlock + "px";
+			flow.style.height       = pageInline + "px";
+			flow.style.margin       = "0";
+			flow.style.paddingTop    = padTop + "px";
+			flow.style.paddingBottom = padBottom + "px";
+			flow.style.paddingLeft   = padLeft + "px";
+			flow.style.paddingRight  = padRight + "px";
+			flow.style.boxSizing    = "border-box";
+			flow.style.maxWidth     = "none";
+			flow.style.overflow     = "visible";
+			flow.style.setProperty(COLUMN_FILL, "auto");
+			flow.style.setProperty(COLUMN_GAP, gap + "px");
+			// column-width = available inline size (height minus top/bottom padding)
+			flow.style.setProperty(COLUMN_WIDTH, availableInline + "px", "important");
+			// Note: -webkit-column-axis is not supported in Chrome; omitted intentionally.
 		} else {
 			this.css("overflow-y", "hidden");
 			this.css("margin", "0", true);
@@ -1247,6 +1282,39 @@ class Contents {
 		replaceLinks(this.content, (href) => {
 			this.emit(EVENTS.CONTENTS.LINK_CLICKED, href);
 		});
+	}
+
+	/**
+	 * Get or create the inner multicol flow root for vertical-rl paginated content.
+	 * All original body children are moved into this wrapper so that body acts as a
+	 * plain canvas layer (no multicol) and the wrapper is the multicol flow root.
+	 */
+	getVerticalFlowRoot() {
+		const body = this.content || this.document.body;
+		let root = body.querySelector(":scope > .epubjs-vrl-flow");
+		if (!root) {
+			root = this.document.createElement("div");
+			root.className = "epubjs-vrl-flow";
+			while (body.firstChild) {
+				root.appendChild(body.firstChild);
+			}
+			body.appendChild(root);
+		}
+		return root;
+	}
+
+	/**
+	 * Explicitly set the canvas (body) width for vertical-rl paginated content.
+	 * Called by iframe.js expand() after snapping to pageWidth multiples.
+	 * @param {number} w - total width (N × pageWidth)
+	 * @returns {number} body.scrollWidth after setting
+	 */
+	setCanvasWidth(w) {
+		const body = this.content || this.document.body;
+		if (w && typeof w === "number") {
+			body.style.width = w + "px";
+		}
+		return body.scrollWidth;
 	}
 
 	/**

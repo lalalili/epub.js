@@ -327,6 +327,19 @@ class IframeView {
 				}
 			}
 
+			// vertical-rl paginated: body canvas width must be explicitly set to the
+			// snapped total width so the absolute-positioned .epubjs-vrl-flow wrapper
+			// can expand into it. textWidth() reads flow.scrollWidth (pre-snap), but
+			// body.style.width needs the post-snap value written back.
+			const isVerticalRlPaginated =
+				this.contents &&
+				typeof this.contents.writingMode === "function" &&
+				this.contents.writingMode() === "vertical-rl" &&
+				this.settings.flow !== "scrolled";
+			if (isVerticalRlPaginated && typeof this.contents.setCanvasWidth === "function") {
+				this.contents.setCanvasWidth(width);
+			}
+
 		} // Expand Vertically
 		else if(this.settings.axis === "vertical") {
 			height = this.contents.textHeight();
