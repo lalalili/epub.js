@@ -170,11 +170,18 @@ class IframeView {
 					axis = (writingMode.indexOf("vertical") === 0) ? "vertical" : "horizontal";
 				}
 
-				// vertical writing modes use vertical axis (scroll down) for paginated mode.
-				// The content is laid out in the physical y-direction (vertical-rl books
-				// stack their pages top-to-bottom). epub.js expand() then uses textHeight()
-				// and reframes the iframe to the total vertical height.
+				// vertical-rl paginated: content is laid out in the physical x-direction
+				// (RTL horizontal). Force horizontal axis so expand() uses textWidth()
+				// and reframes the iframe to the full content width.
+				// layout.delta = pageWidth (layout.width) for one-page-per-advance.
+				if (writingMode === "vertical-rl" && this.settings.flow === "paginated") {
+					axis = "horizontal";
+					// delta defaults to layout.width (= pageWidth), which is correct.
+				}
+
+				// Other vertical writing modes (vertical-lr etc.) use vertical axis.
 				if (writingMode.indexOf("vertical") === 0 &&
+						writingMode !== "vertical-rl" &&
 						this.settings.flow === "paginated") {
 					this.layout.delta = this.layout.height;
 				}

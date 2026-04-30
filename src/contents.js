@@ -151,29 +151,23 @@ class Contents {
 		let content = this.content || this.document.body;
 		let border = borders(content);
 
-		// For vertical-rl paginated content the multicol flow root is .epubjs-vrl-flow
-		// (position:absolute). scrollWidth of absolute elements is unreliable in Chrome
-		// for vertical-rl multicol. Instead, use a Range over the flow's contents to
-		// get the actual bounding rect width, which reflects the full multi-column span.
+		// For vertical-rl paginated content, the book CSS lays out columns extending
+		// in the physical x-direction (RTL, right-to-left). The body has overflow:visible
+		// so content wider than the iframe extends leftward (negative x in viewport coords).
+		// body.scrollWidth is unreliable because body is not a scroll container.
+		// Use Range.getBoundingClientRect() to get the true x-span of all content.
 		const wm = this.window && this.window.getComputedStyle(content).writingMode;
 		if (wm === "vertical-rl") {
-			const flow = content.querySelector && content.querySelector(":scope > .epubjs-vrl-flow");
-			if (flow && flow.hasChildNodes()) {
-				try {
-					const flowRange = this.document.createRange();
-					flowRange.selectNodeContents(flow);
-					const flowRect = flowRange.getBoundingClientRect();
-					// In vertical-rl, columns extend leftward. The bounding rect covers all
-					// columns, so rect.width is the total physical width of all columns.
-					// rect.right is relative to the iframe viewport left edge; the absolute
-					// element is anchored at right:0, so total block extent = rect.right.
-					width = Math.round(Math.max(flowRect.width || 0, flowRect.right || 0));
-				} catch(e) {
-					width = 0;
-				}
-			}
-			// Fallback: body scrollWidth (only reliable when body is the multicol root)
-			if (!width) {
+			try {
+				const vrlRange = this.document.createRange();
+				vrlRange.selectNodeContents(content);
+				const vrlRect = vrlRange.getBoundingClientRect();
+				// rect.right = rightmost column edge (near viewport right = pageWidth)
+				// rect.left  = leftmost column edge (may be < 0 for content beyond iframe)
+				// Total physical x-span = rect.right - rect.left
+				// We want this to be snapped to pageWidth in expand(), so return the span.
+				width = Math.round(vrlRect.right - (vrlRect.left < 0 ? vrlRect.left : 0));
+			} catch(e) {
 				width = content.scrollWidth || this.documentElement.scrollWidth;
 			}
 			if (border && border.width) width += border.width;
@@ -1120,32 +1114,30 @@ class Contents {
 
 		if (writingMode !== "vertical-rl") {
 			this.width(width);
-			this.height(height);
 		}
-		// vertical-rl: body height is left unconstrained so textHeight() can measure
-		// the full content height via Range.getBoundingClientRect.
+		this.height(height);
 
 		// Deal with Mobile trying to scale to viewport
 		this.viewport({ width: width, height: height, scale: 1.0, scalable: "no" });
 
 		if (writingMode === "vertical-rl") {
-			// vertical-rl paginated content uses the vertical axis (y-direction paging).
+			// vertical-rl paginated content uses horizontal RTL paging.
 			//
-			// Books with writing-mode:vertical-rl lay out their content in the block
-			// direction (physical x) as columns of vertical text, but the EPUB itself
-			// stacks logical "pages" in the physical y direction — each spine section is
-			// one or more pages tall, and epub.js paginates by scrolling down (vertical
-			// axis), clipping one viewport-height slice at a time.
+			// Books with writing-mode:vertical-rl lay out columns of vertical text
+			// extending in the block direction (physical x, right-to-left). The full
+			// content is wider than one page; epub.js RTL-scrolls the iframe one
+			// pageWidth at a time.
 			//
 			// Architecture:
-			//   html = clip layer   (overflow:hidden in both axes)
-			//   body = canvas       (overflow:visible, height unconstrained so textHeight()
-			//                        reads the true total content height; width = pageWidth
-			//                        so the book CSS horizontal layout is preserved)
+			//   html = clip layer   (overflow:hidden — clips to the page viewport)
+			//   body = canvas       (overflow:visible, height = pageHeight, width
+			//                        unconstrained so the book CSS x-layout is preserved)
 			//
-			// textHeight() then returns the full scrollHeight (via Range or body.scrollHeight),
-			// expand() snaps it to pageHeight multiples and reframes the iframe vertically.
-			// layout.delta is set to layout.height so next/prev advances one page.
+			// textWidth() uses Range.getBoundingClientRect() on body contents to measure
+			// the true physical x-span (right-to-left, so rect.right is the rightmost
+			// column, rect.left may be negative for columns beyond the iframe left edge).
+			// expand() snaps to pageWidth multiples and reframes the iframe width.
+			// layout.delta = pageWidth so next/prev advances one page.
 
 			// outer clip layer
 			if (this.documentElement) {
@@ -1154,12 +1146,12 @@ class Contents {
 				this.documentElement.style.setProperty("padding", "0", "");
 			}
 
-			// canvas layer — constrain width to pageWidth but leave height unconstrained
+			// canvas layer — fixed height (= one page), unconstrained width
 			const body = this.content || this.document.body;
 			body.style.margin    = "0";
 			body.style.padding   = "0";
-			body.style.width     = width + "px";
-			body.style.height    = "";          // let content determine height
+			body.style.width     = "";          // let book CSS determine x-extent
+			body.style.height    = height + "px";
 			body.style.overflow  = "visible";
 			body.style.maxWidth  = "none";
 			body.style.minWidth  = "";
