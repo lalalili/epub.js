@@ -1288,6 +1288,15 @@ class Contents {
 			} catch(e) { /* ignore */ }
 		}
 
+		// Fallback: prefer body computed style over documentElement, because a shim
+		// may set html { writing-mode: horizontal-tb !important } which would mask
+		// a vertical-rl body when reading documentElement computed style.
+		if (bodyEl) {
+			const bodyComputedWM = this.window.getComputedStyle(bodyEl)[WRITING_MODE];
+			if (bodyComputedWM && bodyComputedWM !== "horizontal-tb") {
+				return bodyComputedWM;
+			}
+		}
 		return this.window.getComputedStyle(this.documentElement)[WRITING_MODE] || '';
 	}
 
