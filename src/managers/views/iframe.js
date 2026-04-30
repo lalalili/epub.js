@@ -338,6 +338,19 @@ class IframeView {
 			this.reframe(width, height);
 		}
 
+		// For vertical-rl: body width must match the expanded iframe width so that
+		// multi-column layout fills all columns within the iframe bounds.
+		// epub.js sets body width = pageWidth in columns(), but after reframe the
+		// iframe is N×pageWidth. Without this, columns overflow into the html element.
+		if (this.settings.axis === "horizontal" && this.document && this.document.body) {
+			const bodyEl = this.document.body;
+			const wm = this.document.defaultView &&
+				this.document.defaultView.getComputedStyle(bodyEl).writingMode;
+			if (wm === "vertical-rl") {
+				bodyEl.style.setProperty("width", width + "px", "important");
+			}
+		}
+
 		this._expanding = false;
 	}
 
