@@ -1108,7 +1108,17 @@ class Contents {
 		// Fixes Safari column cut offs, but causes RTL issues
 		// this.css("display", "inline-block");
 
-		this.css("overflow-y", "hidden");
+		// For vertical-rl: overflow-y is the block axis (columns extend left/right).
+		// Setting overflow-y:hidden would clip multi-column overflow in the block direction.
+		// Instead set overflow-x:hidden (inline axis = vertical) to clip inline overflow,
+		// and leave overflow-y:visible so columns can extend in the block direction.
+		// For other writing modes, overflow-y:hidden is the correct choice.
+		if (writingMode === "vertical-rl") {
+			this.css("overflow-x", "hidden");
+			this.css("overflow-y", "visible");
+		} else {
+			this.css("overflow-y", "hidden");
+		}
 		this.css("margin", "0", true);
 
 		if (axis === "vertical") {
