@@ -1058,11 +1058,11 @@ class Contents {
 		let writingMode = this.writingMode();
 		let axis = (writingMode.indexOf("vertical") === 0) ? "vertical" : "horizontal";
 
-		// vertical-rl books in RTL paginated mode must use horizontal pagination:
+		// vertical-rl books must use horizontal pagination regardless of dir parameter:
 		// columns expand rightward, epub-container RTL-scrolls to navigate pages.
-		// Forcing axis="horizontal" here keeps the same code path as LTR books.
-		const isVerticalRtl = (writingMode === "vertical-rl" && dir === "rtl");
-		if (isVerticalRtl) {
+		// Forcing axis="horizontal" keeps the same code path as LTR books so that
+		// expand() measures textWidth() correctly and iframeWidth = N × pageWidth.
+		if (writingMode === "vertical-rl") {
 			axis = "horizontal";
 		}
 
