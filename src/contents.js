@@ -153,11 +153,11 @@ class Contents {
 
 		// For vertical-rl paginated content the multicol flow root (body) has
 		// overflow:visible and columns extend in the block direction (negative x).
-		// Range bounding box only captures the first column; use documentElement
-		// scrollWidth which reflects the full multi-column paint area.
+		// html has overflow:hidden so documentElement.scrollWidth is clamped to 1 page.
+		// body.scrollWidth with overflow:visible reflects the full multi-column extent.
 		const wm = this.window && this.window.getComputedStyle(content).writingMode;
 		if (wm === "vertical-rl") {
-			return this.documentElement.scrollWidth;
+			return content.scrollWidth || this.documentElement.scrollWidth;
 		}
 
 		// Select the contents of frame
