@@ -338,18 +338,6 @@ class IframeView {
 			this.reframe(width, height);
 		}
 
-		// For vertical-rl paginated content: after the iframe expands to N×colWidth,
-		// set body width to match so the multi-column layout fills the full iframe width.
-		// Without this, body stays at colWidth and columns overflow into negative x space.
-		if (this.settings.axis === "horizontal" && this.document && this.document.body) {
-			const bodyEl = this.document.body;
-			const wm = this.document.defaultView &&
-				this.document.defaultView.getComputedStyle(bodyEl).writingMode;
-			if (wm === "vertical-rl") {
-				bodyEl.style.setProperty("width", width + "px", "important");
-			}
-		}
-
 		this._expanding = false;
 	}
 

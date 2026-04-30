@@ -151,16 +151,17 @@ class Contents {
 		let content = this.content || this.document.body;
 		let border = borders(content);
 
-		// For vertical-rl paginated content, columns extend in the negative x direction
-		// so getBoundingClientRect().width only captures the visible first column.
-		// Derive total width from scrollHeight / viewport height × column width instead.
+		// For vertical-rl paginated content, column-width is the inline size (height).
+		// Columns extend in the negative x direction so getBoundingClientRect().width
+		// only captures the visible first column.
+		// Derive total iframe width from: colCount × pageWidth (block size = innerWidth).
 		const wm = this.window && this.window.getComputedStyle(content).writingMode;
 		if (wm === "vertical-rl") {
-			const colWidth = parseFloat(this.window.getComputedStyle(content).columnWidth);
 			const vpHeight = this.window.innerHeight;
-			if (colWidth > 0 && vpHeight > 0) {
+			const vpWidth = this.window.innerWidth;
+			if (vpHeight > 0 && vpWidth > 0) {
 				const colCount = Math.ceil(content.scrollHeight / vpHeight);
-				return Math.round(Math.max(colCount, 1) * colWidth);
+				return Math.round(Math.max(colCount, 1) * vpWidth);
 			}
 		}
 
@@ -1118,7 +1119,15 @@ class Contents {
 		this.css(COLUMN_FILL, "auto");
 
 		this.css(COLUMN_GAP, gap+"px");
-		this.css(COLUMN_WIDTH, columnWidth+"px");
+
+		// In vertical-rl writing mode, column-width is the inline size (= column height).
+		// epub.js passes pageWidth as columnWidth, but vertical-rl needs pageHeight here
+		// so the browser correctly measures column height and wraps content into new columns.
+		if (writingMode === "vertical-rl") {
+			this.css(COLUMN_WIDTH, height+"px");
+		} else {
+			this.css(COLUMN_WIDTH, columnWidth+"px");
+		}
 
 		// Fix glyph clipping in WebKit
 		// https://github.com/futurepress/epub.js/issues/983
