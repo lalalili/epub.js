@@ -1127,8 +1127,9 @@ class Contents {
 		// In vertical-rl writing mode, column-width is the inline size (= column height).
 		// epub.js passes pageWidth as columnWidth, but vertical-rl needs pageHeight here
 		// so the browser correctly measures column height and wraps content into new columns.
+		// Use !important to override any column-width set by the book's own CSS.
 		if (writingMode === "vertical-rl") {
-			this.css(COLUMN_WIDTH, height+"px");
+			this.css(COLUMN_WIDTH, height+"px", true);
 		} else {
 			this.css(COLUMN_WIDTH, columnWidth+"px");
 		}
