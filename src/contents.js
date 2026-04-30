@@ -205,12 +205,34 @@ class Contents {
 		let content = this.content || this.document.body;
 		const wm = this.window && this.window.getComputedStyle(content).writingMode;
 
-		range.selectNodeContents(content);
+		// For vertical-rl paginated content, the book CSS stacks logical pages in the
+		// physical y direction. Use a Range over all body children to get the true
+		// bounding height — this works even when body has overflow:visible (scrollHeight
+		// may clamp) and even when html has overflow:hidden (viewport clips rendering
+		// but Range.getBoundingClientRect reflects layout positions, not clipped view).
+		if (wm === "vertical-rl") {
+			try {
+				const r2 = this.document.createRange();
+				r2.selectNodeContents(content);
+				const rect2 = r2.getBoundingClientRect();
+				// rect.bottom is viewport-relative; for content below the fold it can
+				// be larger than the iframe height. This is the true total height.
+				if (rect2.bottom > 0) {
+					return Math.round(rect2.bottom);
+				}
+			} catch(e) { /* ignore, fall through */ }
+			// Fallback: scrollHeight chain
+			const de = this.documentElement;
+			const h = Math.max(
+				(content.scrollHeight || 0),
+				(de ? de.scrollHeight : 0)
+			);
+			if (h > 0) return h;
+		}
 
+		range.selectNodeContents(content);
 		rect = range.getBoundingClientRect();
-		// vertical writing modes: use rect.height (not bottom, which is viewport-relative
-		// and unreliable for content below the fold)
-		height = (wm && wm.indexOf("vertical") === 0) ? rect.height : rect.bottom;
+		height = rect.bottom;
 
 		return Math.round(height);
 	}
@@ -1098,38 +1120,32 @@ class Contents {
 
 		if (writingMode !== "vertical-rl") {
 			this.width(width);
+			this.height(height);
 		}
-		this.height(height);
+		// vertical-rl: body height is left unconstrained so textHeight() can measure
+		// the full content height via Range.getBoundingClientRect.
 
 		// Deal with Mobile trying to scale to viewport
 		this.viewport({ width: width, height: height, scale: 1.0, scalable: "no" });
 
 		if (writingMode === "vertical-rl") {
-			// Three-layer architecture for vertical-rl paginated content:
+			// vertical-rl paginated content uses the vertical axis (y-direction paging).
 			//
-			// html  = outer clip layer  (overflow:hidden, clips to one page viewport)
-			// body  = canvas layer      (overflow:visible, width set to N×pageWidth by
-			//                            expand() after content is laid out)
-			// .epubjs-vrl-flow = multicol flow root  (position:absolute; right:0; top:0,
-			//                            column-width = availableInline, padding inside)
+			// Books with writing-mode:vertical-rl lay out their content in the block
+			// direction (physical x) as columns of vertical text, but the EPUB itself
+			// stacks logical "pages" in the physical y direction — each spine section is
+			// one or more pages tall, and epub.js paginates by scrolling down (vertical
+			// axis), clipping one viewport-height slice at a time.
 			//
-			// Separating the multicol root from the canvas avoids two bugs:
-			//   1. body padding reduces the available inline-size for columns(), causing
-			//      column-width to be clamped below the requested value → truncated text.
-			//   2. width:max-content on a multicol container is not reliably computed by
-			//      Chromium for vertical-rl — the browser may under-report scrollWidth.
+			// Architecture:
+			//   html = clip layer   (overflow:hidden in both axes)
+			//   body = canvas       (overflow:visible, height unconstrained so textHeight()
+			//                        reads the true total content height; width = pageWidth
+			//                        so the book CSS horizontal layout is preserved)
 			//
-			// column-width = inline size = physical height in vertical-rl.
-			// The key formula: column-width = pageInline - padTop - padBottom
-			//   (padTop/Bottom are on the inner flow root, not on body).
-
-			const pageInline = height;
-			const pageBlock  = width;
-			const padTop     = 20;
-			const padBottom  = 20;
-			const padLeft    = gap / 2;
-			const padRight   = gap / 2;
-			const availableInline = pageInline - padTop - padBottom;
+			// textHeight() then returns the full scrollHeight (via Range or body.scrollHeight),
+			// expand() snaps it to pageHeight multiples and reframes the iframe vertically.
+			// layout.delta is set to layout.height so next/prev advances one page.
 
 			// outer clip layer
 			if (this.documentElement) {
@@ -1138,54 +1154,20 @@ class Contents {
 				this.documentElement.style.setProperty("padding", "0", "");
 			}
 
-			// canvas layer (body) — no multicol, no padding.
-			// body.width starts at pageBlock so the viewport is correct initially.
-			// After expand(), setCanvasWidth() writes the final N×pageWidth value.
+			// canvas layer — constrain width to pageWidth but leave height unconstrained
 			const body = this.content || this.document.body;
-			body.style.margin       = "0";
-			body.style.padding      = "0";
-			body.style.position     = "relative";
-			body.style.width        = pageBlock + "px";
-			body.style.height       = pageInline + "px";
-			body.style.overflow     = "visible";
-			body.style.boxSizing    = "border-box";
-			body.style.maxWidth     = "none";
-			body.style.minWidth     = "";
-			// clear any residual multicol properties from previous calls
+			body.style.margin    = "0";
+			body.style.padding   = "0";
+			body.style.width     = width + "px";
+			body.style.height    = "";          // let content determine height
+			body.style.overflow  = "visible";
+			body.style.maxWidth  = "none";
+			body.style.minWidth  = "";
+			body.style.boxSizing = "border-box";
+			// clear any residual multicol properties
 			body.style.removeProperty(COLUMN_WIDTH);
 			body.style.removeProperty(COLUMN_GAP);
 			body.style.removeProperty(COLUMN_FILL);
-
-			// multicol flow root (inner wrapper, position:absolute so it does not
-			// constrain body width). Columns extend leftward in vertical-rl; the
-			// first column anchors at right:0 and additional columns grow to the left.
-			//
-			// textWidth() measures the actual rendered width via Range.getBoundingClientRect
-			// on the flow's contents, which works correctly for absolute elements.
-			// setCanvasWidth() then locks both body.width and flow.width to N×pageWidth.
-			const flow = this.getVerticalFlowRoot();
-			flow.style.position     = "absolute";
-			flow.style.top          = "0";
-			flow.style.right        = "0";
-			flow.style.writingMode  = "vertical-rl";
-			flow.style.direction    = dir || "rtl";
-			// Start at pageBlock wide; expands after textWidth() measurement in expand().
-			flow.style.width        = pageBlock + "px";
-			flow.style.minWidth     = "";
-			flow.style.height       = pageInline + "px";
-			flow.style.margin       = "0";
-			flow.style.paddingTop    = padTop + "px";
-			flow.style.paddingBottom = padBottom + "px";
-			flow.style.paddingLeft   = padLeft + "px";
-			flow.style.paddingRight  = padRight + "px";
-			flow.style.boxSizing    = "border-box";
-			flow.style.maxWidth     = "none";
-			flow.style.overflow     = "visible";
-			flow.style.setProperty(COLUMN_FILL, "auto");
-			flow.style.setProperty(COLUMN_GAP, gap + "px");
-			// column-width = available inline size (height minus top/bottom padding)
-			flow.style.setProperty(COLUMN_WIDTH, availableInline + "px", "important");
-			// Note: -webkit-column-axis is not supported in Chrome; omitted intentionally.
 		} else {
 			this.css("overflow-y", "hidden");
 			this.css("margin", "0", true);

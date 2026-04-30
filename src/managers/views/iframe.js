@@ -170,20 +170,13 @@ class IframeView {
 					axis = (writingMode.indexOf("vertical") === 0) ? "vertical" : "horizontal";
 				}
 
-				// vertical-rl uses horizontal paging (columns extend in block direction).
-				// Keep delta = pageWidth (layout.width) so next/prev scroll by one page.
-				// Other vertical writing modes (vertical-lr etc.) keep height-based delta.
+				// vertical writing modes use vertical axis (scroll down) for paginated mode.
+				// The content is laid out in the physical y-direction (vertical-rl books
+				// stack their pages top-to-bottom). epub.js expand() then uses textHeight()
+				// and reframes the iframe to the total vertical height.
 				if (writingMode.indexOf("vertical") === 0 &&
-						writingMode !== "vertical-rl" &&
 						this.settings.flow === "paginated") {
 					this.layout.delta = this.layout.height;
-				}
-
-				// For vertical-rl paginated: force horizontal axis so expand() uses
-				// textWidth() (which reads documentElement.scrollWidth) and reframes
-				// the iframe to the total multi-column width.
-				if (writingMode === "vertical-rl" && this.settings.flow !== "scrolled") {
-					axis = "horizontal";
 				}
 
 				this.setAxis(axis);
@@ -327,18 +320,6 @@ class IframeView {
 				}
 			}
 
-			// vertical-rl paginated: body canvas width must be explicitly set to the
-			// snapped total width so the absolute-positioned .epubjs-vrl-flow wrapper
-			// can expand into it. textWidth() reads flow.scrollWidth (pre-snap), but
-			// body.style.width needs the post-snap value written back.
-			const isVerticalRlPaginated =
-				this.contents &&
-				typeof this.contents.writingMode === "function" &&
-				this.contents.writingMode() === "vertical-rl" &&
-				this.settings.flow !== "scrolled";
-			if (isVerticalRlPaginated && typeof this.contents.setCanvasWidth === "function") {
-				this.contents.setCanvasWidth(width);
-			}
 
 		} // Expand Vertically
 		else if(this.settings.axis === "vertical") {
