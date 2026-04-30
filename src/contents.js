@@ -151,28 +151,6 @@ class Contents {
 		let content = this.content || this.document.body;
 		let border = borders(content);
 
-		// For vertical-rl paginated content, columns extend in the negative x direction
-		// (block-start = right, block-end = left for vertical-rl).
-		// getBoundingClientRect().width only captures the visible first column.
-		// We derive total iframe width from colCount × pageWidth, and shift the body
-		// right by (colCount-1)×pageWidth so all columns land in positive x space.
-		// _layoutWidth/_layoutHeight are stored by columns() before each layout pass.
-		const wm = this.window && this.window.getComputedStyle(content).writingMode;
-		if (wm === "vertical-rl" && this._layoutWidth) {
-			const pageHeight = this._layoutHeight || this.window.innerHeight;
-			const pageWidth = this._layoutWidth;
-			if (pageHeight > 0 && pageWidth > 0) {
-				// column-width is already set to pageHeight by columns() with !important.
-				// scrollHeight now reflects the correctly columned content.
-				const colCount = Math.ceil(content.scrollHeight / pageHeight);
-				const totalWidth = Math.max(colCount, 1) * pageWidth;
-				// Shift body right so col1 is at iframe x=(totalWidth-pageWidth),
-				// col2..N extend leftward to x=0, all within the iframe bounds.
-				const marginLeft = totalWidth - pageWidth;
-				content.style.setProperty("margin-left", marginLeft + "px", "important");
-				return Math.round(totalWidth);
-			}
-		}
 
 		// Select the contents of frame
 		range.selectNodeContents(content);
@@ -1073,9 +1051,6 @@ class Contents {
 	 * @param {number} gap
 	 */
 	columns(width, height, columnWidth, gap, dir){
-		// Store layout dimensions for textWidth() to reference in vertical-rl mode.
-		this._layoutWidth = width;
-		this._layoutHeight = height;
 		let COLUMN_AXIS = prefixed("column-axis");
 		let COLUMN_GAP = prefixed("column-gap");
 		let COLUMN_WIDTH = prefixed("column-width");
@@ -1083,14 +1058,6 @@ class Contents {
 
 		let writingMode = this.writingMode();
 		let axis = (writingMode.indexOf("vertical") === 0) ? "vertical" : "horizontal";
-
-		// vertical-rl books must use horizontal pagination regardless of dir parameter:
-		// columns expand rightward, epub-container RTL-scrolls to navigate pages.
-		// Forcing axis="horizontal" keeps the same code path as LTR books so that
-		// expand() measures textWidth() correctly and iframeWidth = N × pageWidth.
-		if (writingMode === "vertical-rl") {
-			axis = "horizontal";
-		}
 
 		this.layoutStyle("paginated");
 
@@ -1104,21 +1071,7 @@ class Contents {
 		// Deal with Mobile trying to scale to viewport
 		this.viewport({ width: width, height: height, scale: 1.0, scalable: "no" });
 
-		// TODO: inline-block needs more testing
-		// Fixes Safari column cut offs, but causes RTL issues
-		// this.css("display", "inline-block");
-
-		// For vertical-rl: overflow-y is the block axis (columns extend left/right).
-		// Setting overflow-y:hidden would clip multi-column overflow in the block direction.
-		// Instead set overflow-x:hidden (inline axis = vertical) to clip inline overflow,
-		// and leave overflow-y:visible so columns can extend in the block direction.
-		// For other writing modes, overflow-y:hidden is the correct choice.
-		if (writingMode === "vertical-rl") {
-			this.css("overflow-x", "hidden");
-			this.css("overflow-y", "visible");
-		} else {
-			this.css("overflow-y", "hidden");
-		}
+		this.css("overflow-y", "hidden");
 		this.css("margin", "0", true);
 
 		if (axis === "vertical") {
@@ -1141,16 +1094,7 @@ class Contents {
 		this.css(COLUMN_FILL, "auto");
 
 		this.css(COLUMN_GAP, gap+"px");
-
-		// In vertical-rl writing mode, column-width is the inline size (= column height).
-		// epub.js passes pageWidth as columnWidth but vertical-rl needs pageHeight so the
-		// browser breaks content into columns at every viewport-height boundary.
-		// !important overrides any book CSS setting column-width to pageWidth.
-		if (writingMode === "vertical-rl") {
-			this.css(COLUMN_WIDTH, height+"px", true);
-		} else {
-			this.css(COLUMN_WIDTH, columnWidth+"px");
-		}
+		this.css(COLUMN_WIDTH, columnWidth+"px");
 
 		// Fix glyph clipping in WebKit
 		// https://github.com/futurepress/epub.js/issues/983
