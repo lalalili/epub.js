@@ -338,18 +338,15 @@ class IframeView {
 			this.reframe(width, height);
 		}
 
-		// For vertical-rl: after reframe the iframe is width px wide.
-		// Columns stack right-to-left so body sits at the right edge.
-		// Push body left by (iframeWidth - colWidth) so col1 is rightmost
-		// and all columns land within the iframe bounds.
+		// For vertical-rl paginated content: after the iframe expands to N×colWidth,
+		// set body width to match so the multi-column layout fills the full iframe width.
+		// Without this, body stays at colWidth and columns overflow into negative x space.
 		if (this.settings.axis === "horizontal" && this.document && this.document.body) {
 			const bodyEl = this.document.body;
 			const wm = this.document.defaultView &&
 				this.document.defaultView.getComputedStyle(bodyEl).writingMode;
 			if (wm === "vertical-rl") {
-				const colWidth = parseFloat(this.document.defaultView.getComputedStyle(bodyEl).columnWidth) || this.layout.columnWidth;
-				const marginLeft = Math.max(0, width - colWidth);
-				bodyEl.style.setProperty("margin-left", marginLeft + "px", "important");
+				bodyEl.style.setProperty("width", width + "px", "important");
 			}
 		}
 
