@@ -1082,27 +1082,36 @@ class Contents {
 		if (writingMode === "vertical-rl") {
 			// Two-layer architecture for vertical-rl paginated content:
 			//
-			// Problem: CSS overflow spec §overflow-3 states that when one overflow axis
+			// Problem 1: CSS overflow spec §overflow-3 states that when one overflow axis
 			// is not 'visible'/'clip', the other is forced to 'auto'. Setting
 			// overflow-y:hidden on body forces overflow-x:auto, which clips the
 			// multi-column block-direction (horizontal) overflow and prevents columns
-			// from extending into negative x space.
+			// from extending.
 			//
-			// Solution: separate clipping from flow.
-			//   Outer layer (html/documentElement): overflow:hidden clips the viewport.
-			//   Inner layer (body = multicol flow root): overflow:visible so columns
-			//     can extend freely in the block direction (right-to-left, negative x).
+			// Problem 2: epub.js sets body width = pageWidth (e.g. 1062px) before the
+			// multicol branch. In vertical-rl, the block direction is horizontal — columns
+			// extend leftward. Constraining body to pageWidth makes the browser pack ALL
+			// columns into that 1062px box (each column ~300px wide) instead of each
+			// column occupying one full pageWidth.
+			//
+			// Solution:
+			//   Outer layer (html/documentElement): overflow:hidden — clips the viewport.
+			//   Inner layer (body = multicol flow root): overflow:visible + width:max-content
+			//     so the body expands to hold all columns side by side (total = N × pageWidth).
 			//
 			// column-width in vertical-rl is the inline size = physical height.
-			// textWidth() reads documentElement.scrollWidth to get the full paint width.
+			// textWidth() reads body.scrollWidth to get the full multi-column total width.
 			// expand() / reframe() then sets the iframe to that total width so the
-			// RTL container can scroll one pageWidth (= physical width) per page.
+			// RTL container can scroll one pageWidth per page.
 
 			if (this.documentElement) {
 				this.documentElement.style.setProperty("overflow", "hidden", "important");
 				this.documentElement.style.setProperty("margin", "0", "");
 			}
 
+			// Override the body width set above: body must expand to full multi-column
+			// block-direction extent (N columns × pageWidth), not be capped at pageWidth.
+			this.css("width", "max-content", true);
 			this.css("overflow", "visible");
 			this.css("margin", "0", true);
 			this.css("padding-top", "20px");
