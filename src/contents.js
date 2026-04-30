@@ -151,18 +151,26 @@ class Contents {
 		let content = this.content || this.document.body;
 		let border = borders(content);
 
-		// For vertical-rl paginated content, column-width is the inline size (height).
-		// Columns extend in the negative x direction so getBoundingClientRect().width
-		// only captures the visible first column.
-		// Derive total iframe width from: colCount × pageWidth (block size).
-		// _layoutWidth and _layoutHeight are stored by columns() before each layout pass.
+		// For vertical-rl paginated content, columns extend in the negative x direction
+		// (block-start = right, block-end = left for vertical-rl).
+		// getBoundingClientRect().width only captures the visible first column.
+		// We derive total iframe width from colCount × pageWidth, and shift the body
+		// right by (colCount-1)×pageWidth so all columns land in positive x space.
+		// _layoutWidth/_layoutHeight are stored by columns() before each layout pass.
 		const wm = this.window && this.window.getComputedStyle(content).writingMode;
-		if (wm === "vertical-rl") {
+		if (wm === "vertical-rl" && this._layoutWidth) {
 			const pageHeight = this._layoutHeight || this.window.innerHeight;
 			const pageWidth = this._layoutWidth;
 			if (pageHeight > 0 && pageWidth > 0) {
+				// column-width is already set to pageHeight by columns() with !important.
+				// scrollHeight now reflects the correctly columned content.
 				const colCount = Math.ceil(content.scrollHeight / pageHeight);
-				return Math.round(Math.max(colCount, 1) * pageWidth);
+				const totalWidth = Math.max(colCount, 1) * pageWidth;
+				// Shift body right so col1 is at iframe x=(totalWidth-pageWidth),
+				// col2..N extend leftward to x=0, all within the iframe bounds.
+				const marginLeft = totalWidth - pageWidth;
+				content.style.setProperty("margin-left", marginLeft + "px", "important");
+				return Math.round(totalWidth);
 			}
 		}
 
@@ -1125,9 +1133,9 @@ class Contents {
 		this.css(COLUMN_GAP, gap+"px");
 
 		// In vertical-rl writing mode, column-width is the inline size (= column height).
-		// epub.js passes pageWidth as columnWidth, but vertical-rl needs pageHeight here
-		// so the browser correctly measures column height and wraps content into new columns.
-		// Use !important to override any column-width set by the book's own CSS.
+		// epub.js passes pageWidth as columnWidth but vertical-rl needs pageHeight so the
+		// browser breaks content into columns at every viewport-height boundary.
+		// !important overrides any book CSS setting column-width to pageWidth.
 		if (writingMode === "vertical-rl") {
 			this.css(COLUMN_WIDTH, height+"px", true);
 		} else {
