@@ -1128,12 +1128,19 @@ class Contents {
 				this.documentElement.style.setProperty("padding", "0", "");
 			}
 
-			// canvas layer (body) — no multicol, no padding, explicit pixel width
+			// canvas layer (body) — no multicol, no padding.
+			// body.width is intentionally left unconstrained here (set to a large sentinel
+			// value) so that the in-flow .epubjs-vrl-flow wrapper can expand freely.
+			// After columns() returns, expand() calls textWidth() to read flow.scrollWidth,
+			// snaps it to pageWidth multiples, then calls setCanvasWidth() to lock both
+			// body.width and flow.width to the final value.
 			const body = this.content || this.document.body;
 			body.style.margin       = "0";
 			body.style.padding      = "0";
 			body.style.position     = "relative";
-			body.style.width        = pageBlock + "px";
+			// Large sentinel: lets the in-flow flow root expand without constraint.
+			// Will be overwritten by setCanvasWidth() after expand().
+			body.style.width        = "999999px";
 			body.style.height       = pageInline + "px";
 			body.style.overflow     = "visible";
 			body.style.boxSizing    = "border-box";
@@ -1144,14 +1151,19 @@ class Contents {
 			body.style.removeProperty(COLUMN_GAP);
 			body.style.removeProperty(COLUMN_FILL);
 
-			// multicol flow root (inner wrapper)
+			// multicol flow root (inner wrapper, in-flow so body.scrollWidth reflects it)
+			// position:relative keeps it in the normal flow so body is stretched by it.
+			// width is initially unconstrained; setCanvasWidth() will snap it after expand().
 			const flow = this.getVerticalFlowRoot();
-			flow.style.position     = "absolute";
-			flow.style.top          = "0";
-			flow.style.right        = "0";
+			flow.style.position     = "relative";
+			flow.style.top          = "";
+			flow.style.right        = "";
 			flow.style.writingMode  = "vertical-rl";
 			flow.style.direction    = dir || "rtl";
-			flow.style.width        = pageBlock + "px";
+			// Unconstrained width: allows all multicol columns to lay out freely.
+			// setCanvasWidth() will write the snapped total width back here.
+			flow.style.width        = "max-content";
+			flow.style.minWidth     = pageBlock + "px";
 			flow.style.height       = pageInline + "px";
 			flow.style.margin       = "0";
 			flow.style.paddingTop    = padTop + "px";
@@ -1304,15 +1316,22 @@ class Contents {
 	}
 
 	/**
-	 * Explicitly set the canvas (body) width for vertical-rl paginated content.
-	 * Called by iframe.js expand() after snapping to pageWidth multiples.
-	 * @param {number} w - total width (N × pageWidth)
+	 * Lock the canvas (body) and flow root widths for vertical-rl paginated content.
+	 * Called by iframe.js expand() after snapping textWidth() to pageWidth multiples.
+	 * Both body and .epubjs-vrl-flow are set to the same final total width so that
+	 * the RTL container can scroll exactly one pageWidth per page.
+	 * @param {number} w - snapped total width (N × pageWidth)
 	 * @returns {number} body.scrollWidth after setting
 	 */
 	setCanvasWidth(w) {
 		const body = this.content || this.document.body;
 		if (w && typeof w === "number") {
 			body.style.width = w + "px";
+			const flow = body.querySelector(":scope > .epubjs-vrl-flow");
+			if (flow) {
+				flow.style.width    = w + "px";
+				flow.style.minWidth = w + "px";
+			}
 		}
 		return body.scrollWidth;
 	}
