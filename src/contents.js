@@ -151,6 +151,19 @@ class Contents {
 		let content = this.content || this.document.body;
 		let border = borders(content);
 
+		// For vertical-rl paginated content, columns extend in the negative x direction
+		// so getBoundingClientRect().width only captures the visible first column.
+		// Derive total width from scrollHeight / viewport height × column width instead.
+		const wm = this.window && this.window.getComputedStyle(content).writingMode;
+		if (wm === "vertical-rl") {
+			const colWidth = parseFloat(this.window.getComputedStyle(content).columnWidth);
+			const vpHeight = this.window.innerHeight;
+			if (colWidth > 0 && vpHeight > 0) {
+				const colCount = Math.ceil(content.scrollHeight / vpHeight);
+				return Math.round(Math.max(colCount, 1) * colWidth);
+			}
+		}
+
 		// Select the contents of frame
 		range.selectNodeContents(content);
 

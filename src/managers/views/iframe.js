@@ -170,7 +170,15 @@ class IframeView {
 					axis = (writingMode.indexOf("vertical") === 0) ? "vertical" : "horizontal";
 				}
 
-				if (writingMode.indexOf("vertical") === 0 && this.settings.flow === "paginated") {
+				// vertical-rl books paginate horizontally (columns extend left in negative x).
+				// Force horizontal axis so expand() uses textWidth() path and reframes correctly.
+				if (writingMode === "vertical-rl" && this.settings.flow !== "scrolled") {
+					axis = "horizontal";
+				}
+
+				// vertical-tb-rl (non-RTL vertical) needs height-based delta for vertical scrolling.
+				// vertical-rl uses horizontal pagination, so keep default pageWidth delta.
+				if (writingMode.indexOf("vertical") === 0 && writingMode !== "vertical-rl" && this.settings.flow === "paginated") {
 					this.layout.delta = this.layout.height;
 				}
 
