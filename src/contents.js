@@ -1279,46 +1279,6 @@ class Contents {
 	}
 
 	/**
-	 * Get or create the inner multicol flow root for vertical-rl paginated content.
-	 * All original body children are moved into this wrapper so that body acts as a
-	 * plain canvas layer (no multicol) and the wrapper is the multicol flow root.
-	 */
-	getVerticalFlowRoot() {
-		const body = this.content || this.document.body;
-		let root = body.querySelector(":scope > .epubjs-vrl-flow");
-		if (!root) {
-			root = this.document.createElement("div");
-			root.className = "epubjs-vrl-flow";
-			while (body.firstChild) {
-				root.appendChild(body.firstChild);
-			}
-			body.appendChild(root);
-		}
-		return root;
-	}
-
-	/**
-	 * Lock the canvas (body) and flow root widths for vertical-rl paginated content.
-	 * Called by iframe.js expand() after snapping textWidth() to pageWidth multiples.
-	 * Both body and .epubjs-vrl-flow are set to the same final total width so that
-	 * the RTL container can scroll exactly one pageWidth per page.
-	 * @param {number} w - snapped total width (N × pageWidth)
-	 * @returns {number} body.scrollWidth after setting
-	 */
-	setCanvasWidth(w) {
-		const body = this.content || this.document.body;
-		if (w && typeof w === "number") {
-			body.style.width = w + "px";
-			const flow = body.querySelector(":scope > .epubjs-vrl-flow");
-			if (flow) {
-				flow.style.width    = w + "px";
-				flow.style.minWidth = w + "px";
-			}
-		}
-		return body.scrollWidth;
-	}
-
-	/**
 	 * Set the writingMode of the text
 	 * @param {string} [mode="horizontal-tb"] "horizontal-tb" | "vertical-rl" | "vertical-lr"
 	 */
