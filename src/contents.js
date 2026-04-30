@@ -151,19 +151,29 @@ class Contents {
 		let content = this.content || this.document.body;
 		let border = borders(content);
 
-		// For vertical-rl paginated content the multicol flow root is .epubjs-vrl-flow.
-		// html has overflow:hidden so documentElement.scrollWidth is clamped to 1 page.
-		// The inner flow root's scrollWidth reflects the full multi-column total width.
+		// For vertical-rl paginated content the multicol flow root is .epubjs-vrl-flow
+		// (position:absolute). scrollWidth of absolute elements is unreliable in Chrome
+		// for vertical-rl multicol. Instead, use a Range over the flow's contents to
+		// get the actual bounding rect width, which reflects the full multi-column span.
 		const wm = this.window && this.window.getComputedStyle(content).writingMode;
 		if (wm === "vertical-rl") {
 			const flow = content.querySelector && content.querySelector(":scope > .epubjs-vrl-flow");
-			if (flow) {
-				width = Math.max(
-					flow.scrollWidth || 0,
-					content.scrollWidth || 0,
-					this.documentElement.scrollWidth || 0
-				);
-			} else {
+			if (flow && flow.hasChildNodes()) {
+				try {
+					const flowRange = this.document.createRange();
+					flowRange.selectNodeContents(flow);
+					const flowRect = flowRange.getBoundingClientRect();
+					// In vertical-rl, columns extend leftward. The bounding rect covers all
+					// columns, so rect.width is the total physical width of all columns.
+					// rect.right is relative to the iframe viewport left edge; the absolute
+					// element is anchored at right:0, so total block extent = rect.right.
+					width = Math.round(Math.max(flowRect.width || 0, flowRect.right || 0));
+				} catch(e) {
+					width = 0;
+				}
+			}
+			// Fallback: body scrollWidth (only reliable when body is the multicol root)
+			if (!width) {
 				width = content.scrollWidth || this.documentElement.scrollWidth;
 			}
 			if (border && border.width) width += border.width;
@@ -1129,18 +1139,13 @@ class Contents {
 			}
 
 			// canvas layer (body) — no multicol, no padding.
-			// body.width is intentionally left unconstrained here (set to a large sentinel
-			// value) so that the in-flow .epubjs-vrl-flow wrapper can expand freely.
-			// After columns() returns, expand() calls textWidth() to read flow.scrollWidth,
-			// snaps it to pageWidth multiples, then calls setCanvasWidth() to lock both
-			// body.width and flow.width to the final value.
+			// body.width starts at pageBlock so the viewport is correct initially.
+			// After expand(), setCanvasWidth() writes the final N×pageWidth value.
 			const body = this.content || this.document.body;
 			body.style.margin       = "0";
 			body.style.padding      = "0";
 			body.style.position     = "relative";
-			// Large sentinel: lets the in-flow flow root expand without constraint.
-			// Will be overwritten by setCanvasWidth() after expand().
-			body.style.width        = "999999px";
+			body.style.width        = pageBlock + "px";
 			body.style.height       = pageInline + "px";
 			body.style.overflow     = "visible";
 			body.style.boxSizing    = "border-box";
@@ -1151,19 +1156,22 @@ class Contents {
 			body.style.removeProperty(COLUMN_GAP);
 			body.style.removeProperty(COLUMN_FILL);
 
-			// multicol flow root (inner wrapper, in-flow so body.scrollWidth reflects it)
-			// position:relative keeps it in the normal flow so body is stretched by it.
-			// width is initially unconstrained; setCanvasWidth() will snap it after expand().
+			// multicol flow root (inner wrapper, position:absolute so it does not
+			// constrain body width). Columns extend leftward in vertical-rl; the
+			// first column anchors at right:0 and additional columns grow to the left.
+			//
+			// textWidth() measures the actual rendered width via Range.getBoundingClientRect
+			// on the flow's contents, which works correctly for absolute elements.
+			// setCanvasWidth() then locks both body.width and flow.width to N×pageWidth.
 			const flow = this.getVerticalFlowRoot();
-			flow.style.position     = "relative";
-			flow.style.top          = "";
-			flow.style.right        = "";
+			flow.style.position     = "absolute";
+			flow.style.top          = "0";
+			flow.style.right        = "0";
 			flow.style.writingMode  = "vertical-rl";
 			flow.style.direction    = dir || "rtl";
-			// Unconstrained width: allows all multicol columns to lay out freely.
-			// setCanvasWidth() will write the snapped total width back here.
-			flow.style.width        = "max-content";
-			flow.style.minWidth     = pageBlock + "px";
+			// Start at pageBlock wide; expands after textWidth() measurement in expand().
+			flow.style.width        = pageBlock + "px";
+			flow.style.minWidth     = "";
 			flow.style.height       = pageInline + "px";
 			flow.style.margin       = "0";
 			flow.style.paddingTop    = padTop + "px";
