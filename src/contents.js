@@ -1073,7 +1073,9 @@ class Contents {
 			this.direction(dir);
 		}
 
-		this.width(width);
+		if (writingMode !== "vertical-rl") {
+			this.width(width);
+		}
 		this.height(height);
 
 		// Deal with Mobile trying to scale to viewport
@@ -1109,9 +1111,10 @@ class Contents {
 				this.documentElement.style.setProperty("margin", "0", "");
 			}
 
-			// Override the body width set above: body must expand to full multi-column
-			// block-direction extent (N columns × pageWidth), not be capped at pageWidth.
-			this.css("width", "max-content", true);
+			// body width is intentionally NOT set for vertical-rl (this.width() is skipped
+			// above). Instead, set min-width: max-content so the body expands past the iframe
+			// width to hold all columns side by side. textWidth() reads body.scrollWidth.
+			this.css("min-width", "max-content");
 			this.css("overflow", "visible");
 			this.css("margin", "0", true);
 			this.css("padding-top", "20px");
