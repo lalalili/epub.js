@@ -1112,8 +1112,11 @@ class Contents {
 			}
 
 			// body width is intentionally NOT set for vertical-rl (this.width() is skipped
-			// above). Instead, set min-width: max-content so the body expands past the iframe
-			// width to hold all columns side by side. textWidth() reads body.scrollWidth.
+			// above). Set width:max-content so the body expands past the iframe width to hold
+			// all columns side by side. min-width alone is insufficient because block-level
+			// elements fill their containing block — an explicit width:max-content is needed.
+			// textWidth() reads body.scrollWidth to get the full multi-column total width.
+			this.css("width", "max-content");
 			this.css("min-width", "max-content");
 			this.css("overflow", "visible");
 			this.css("margin", "0", true);
