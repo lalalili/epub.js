@@ -176,7 +176,6 @@ class IframeView {
 				// layout.delta = pageWidth (layout.width) for one-page-per-advance.
 				if (writingMode === "vertical-rl" && this.settings.flow === "paginated") {
 					axis = "horizontal";
-					// delta defaults to layout.width (= pageWidth), which is correct.
 				}
 
 				// Other vertical writing modes (vertical-lr etc.) use vertical axis.
@@ -312,18 +311,43 @@ class IframeView {
 		else if(this.settings.axis === "horizontal") {
 			// Get the width of the text
 			width = this.contents.textWidth();
+			let pageAdvance = this.layout.pageWidth;
+			let visiblePageWidth = this.layout.pageWidth;
 
-			if (width % this.layout.pageWidth > 0) {
+			if (
+				this.settings.flow === "paginated" &&
+				this.contents.writingMode &&
+				this.contents.writingMode() === "vertical-rl" &&
+				this.contents.verticalRlPageMetrics
+			) {
+				const pageMetrics = this.contents.verticalRlPageMetrics(visiblePageWidth);
+				if (pageMetrics.effectivePageAdvance > 0) {
+					pageAdvance = pageMetrics.effectivePageAdvance;
+					this.layout.effectivePageAdvance = pageAdvance;
+					this.layout.delta = pageAdvance;
+					this.layout.update({
+						delta: pageAdvance,
+						effectivePageAdvance: pageAdvance
+					});
+				}
+			}
+
+			if (pageAdvance > 0 && visiblePageWidth > 0) {
+				const pages = Math.max(1, Math.ceil(Math.max(0, width - visiblePageWidth) / pageAdvance) + 1);
+				width = ((pages - 1) * pageAdvance) + visiblePageWidth;
+			} else if (width % this.layout.pageWidth > 0) {
 				width = Math.ceil(width / this.layout.pageWidth) * this.layout.pageWidth;
 			}
 
 			if (this.settings.forceEvenPages) {
-				columns = (width / this.layout.pageWidth);
+				columns = this.layout.effectivePageAdvance && this.layout.effectivePageAdvance !== this.layout.pageWidth
+					? this.layout.count(width).pages
+					: (width / this.layout.pageWidth);
 				if ( this.layout.divisor > 1 &&
 						 this.layout.name === "reflowable" &&
 						(columns % 2 > 0)) {
 					// add a blank page
-					width += this.layout.pageWidth;
+					width += this.layout.effectivePageAdvance || this.layout.pageWidth;
 				}
 			}
 

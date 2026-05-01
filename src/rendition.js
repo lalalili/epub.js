@@ -546,6 +546,41 @@ class Rendition {
 			.then(this.reportLocation.bind(this));
 	}
 
+	debugVerticalRlPage(){
+		const manager = this.manager;
+		const view = manager && manager.views && (manager.views.first() || manager.views.last());
+		const contents = view && view.contents;
+		const container = manager && manager.container;
+		const pageWidth = manager && manager.layout ? manager.layout.pageWidth : null;
+		const metrics = contents && contents.debugVerticalRlMetrics
+			? contents.debugVerticalRlMetrics(pageWidth)
+			: {};
+		const pageAdvance = manager && manager.getPageAdvance ? manager.getPageAdvance() : pageWidth;
+		const totalPages = manager && manager.getTotalPagesForCurrentView
+			? manager.getTotalPagesForCurrentView()
+			: null;
+		const currentPageIndex = manager && manager.getCurrentPageIndex
+			? manager.getCurrentPageIndex()
+			: null;
+		const result = Object.assign({}, metrics, {
+			containerClientWidth: container ? container.clientWidth : null,
+			containerScrollWidth: container ? container.scrollWidth : null,
+			containerScrollLeft: container ? container.scrollLeft : null,
+			iframeOffsetWidth: view && view.iframe ? view.iframe.offsetWidth : null,
+			iframeClientWidth: view && view.iframe ? view.iframe.clientWidth : null,
+			pageWidth,
+			effectivePageAdvance: pageAdvance,
+			totalPages,
+			currentPageIndex
+		});
+
+		if (typeof console !== "undefined" && console.debug) {
+			console.debug("[epubjs:vertical-rl-page]", result);
+		}
+
+		return result;
+	}
+
 	//-- http://www.idpf.org/epub/301/spec/epub-publications.html#meta-properties-rendering
 	/**
 	 * Determine the Layout properties from metadata and settings

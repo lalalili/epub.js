@@ -461,6 +461,108 @@ class DefaultViewManager {
 	//
 	// };
 
+	isRtlVerticalPaginated(){
+		if (!(this.isPaginated && this.settings.axis === "horizontal" && this.settings.direction === "rtl")) {
+			return false;
+		}
+
+		let view = this.views && (this.views.first() || this.views.last());
+		let writingMode = view && view.contents && view.contents.writingMode ? view.contents.writingMode() : this.settings.writingMode;
+
+		return writingMode === "vertical-rl";
+	}
+
+	getPageAdvance(){
+		return this.layout && (this.layout.effectivePageAdvance || this.layout.delta || this.layout.pageWidth || this.layout.width);
+	}
+
+	getTotalPagesForCurrentView(){
+		let view = this.views && (this.views.first() || this.views.last());
+		if (!view) {
+			return 1;
+		}
+
+		let width = view.width();
+		let advance = this.getPageAdvance();
+		let pageWidth = this.layout.pageWidth || this.layout.width || advance;
+
+		if (this.layout.effectivePageAdvance && this.layout.effectivePageAdvance !== this.layout.pageWidth) {
+			return Math.max(1, Math.ceil(Math.max(0, width - pageWidth) / advance) + 1);
+		}
+
+		return this.layout.count(width, advance).pages;
+	}
+
+	getCurrentPageIndex(){
+		let advance = this.getPageAdvance();
+		if (!advance || advance <= 0 || !this.container) {
+			return 0;
+		}
+
+		if (this.settings.direction === "rtl") {
+			if (this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0) {
+				return Math.max(0, Math.round(Math.abs(this.container.scrollLeft) / advance));
+			}
+
+			if (this.settings.rtlScrollType === "default") {
+				let maxScroll = Math.max(0, this.container.scrollWidth - this.container.clientWidth);
+				return Math.max(0, Math.round((maxScroll - this.container.scrollLeft) / advance));
+			}
+		}
+
+		return Math.max(0, Math.round(this.container.scrollLeft / advance));
+	}
+
+	scrollToLogicalPage(pageIndex){
+		let advance = this.getPageAdvance();
+		let totalPages = this.getTotalPagesForCurrentView();
+		let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
+		let maxScroll = Math.max(0, this.container.scrollWidth - this.container.clientWidth);
+		let left = targetIndex * advance;
+
+		if (this.settings.direction === "rtl") {
+			if (this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0) {
+				left = -Math.min(maxScroll, left);
+			} else if (this.settings.rtlScrollType === "default") {
+				left = Math.max(0, maxScroll - left);
+			}
+		} else {
+			left = Math.min(maxScroll, left);
+		}
+
+		this.scrollTo(left, 0, true);
+	}
+
+	displaySpineItemAtEnd(section, forceRight){
+		return this.prepend(section, forceRight)
+			.then(function(){
+				var left;
+				if (this.layout.name === "pre-paginated" && this.layout.divisor > 1) {
+					left = section.prev();
+					if (left) {
+						return this.prepend(left);
+					}
+				}
+			}.bind(this))
+			.then(function(){
+				if(this.isPaginated && this.settings.axis === "horizontal") {
+					if (this.isRtlVerticalPaginated()) {
+						this.scrollToLogicalPage(this.getTotalPagesForCurrentView() - 1);
+					} else if (this.settings.direction === "rtl") {
+						if (this.settings.rtlScrollType === "default"){
+							this.scrollTo(0, 0, true);
+						}
+						else{
+							this.scrollTo((this.container.scrollWidth * -1) + this.layout.delta, 0, true);
+						}
+					} else {
+						this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
+					}
+				}
+				this.views.show();
+			}.bind(this));
+	}
+
 	next(){
 		var next;
 		var left;
@@ -469,7 +571,19 @@ class DefaultViewManager {
 
 		if(!this.views.length) return;
 
-		if(this.isPaginated && this.settings.axis === "horizontal" && (!dir || dir === "ltr")) {
+		if (this.isRtlVerticalPaginated()) {
+			let pageIndex = this.getCurrentPageIndex();
+			let totalPages = this.getTotalPagesForCurrentView();
+
+			if (pageIndex < totalPages - 1) {
+				this.scrollToLogicalPage(pageIndex + 1);
+				return;
+			} else {
+				next = this.views.last().section.next();
+			}
+		}
+
+		if(!next && this.isPaginated && this.settings.axis === "horizontal" && (!dir || dir === "ltr")) {
 
 			this.scrollLeft = this.container.scrollLeft;
 
@@ -480,7 +594,7 @@ class DefaultViewManager {
 			} else {
 				next = this.views.last().section.next();
 			}
-		} else if (this.isPaginated && this.settings.axis === "horizontal" && dir === "rtl") {
+		} else if (!next && this.isPaginated && this.settings.axis === "horizontal" && dir === "rtl") {
 
 			this.scrollLeft = this.container.scrollLeft;
 
@@ -502,7 +616,7 @@ class DefaultViewManager {
 				}
 			}
 
-		} else if (this.isPaginated && this.settings.axis === "vertical") {
+		} else if (!next && this.isPaginated && this.settings.axis === "vertical") {
 
 			this.scrollTop = this.container.scrollTop;
 
@@ -514,7 +628,7 @@ class DefaultViewManager {
 				next = this.views.last().section.next();
 			}
 
-		} else {
+		} else if (!next) {
 			next = this.views.last().section.next();
 		}
 
@@ -558,7 +672,18 @@ class DefaultViewManager {
 
 		if(!this.views.length) return;
 
-		if(this.isPaginated && this.settings.axis === "horizontal" && (!dir || dir === "ltr")) {
+		if (this.isRtlVerticalPaginated()) {
+			let pageIndex = this.getCurrentPageIndex();
+
+			if (pageIndex > 0) {
+				this.scrollToLogicalPage(pageIndex - 1);
+				return;
+			} else {
+				prev = this.views.first().section.prev();
+			}
+		}
+
+		if(!prev && this.isPaginated && this.settings.axis === "horizontal" && (!dir || dir === "ltr")) {
 
 			this.scrollLeft = this.container.scrollLeft;
 
@@ -570,7 +695,7 @@ class DefaultViewManager {
 				prev = this.views.first().section.prev();
 			}
 
-		} else if (this.isPaginated && this.settings.axis === "horizontal" && dir === "rtl") {
+		} else if (!prev && this.isPaginated && this.settings.axis === "horizontal" && dir === "rtl") {
 
 			this.scrollLeft = this.container.scrollLeft;
 
@@ -593,7 +718,7 @@ class DefaultViewManager {
 				}
 			}
 
-		} else if (this.isPaginated && this.settings.axis === "vertical") {
+		} else if (!prev && this.isPaginated && this.settings.axis === "vertical") {
 
 			this.scrollTop = this.container.scrollTop;
 
@@ -605,7 +730,7 @@ class DefaultViewManager {
 				prev = this.views.first().section.prev();
 			}
 
-		} else {
+		} else if (!prev) {
 
 			prev = this.views.first().section.prev();
 
@@ -621,33 +746,10 @@ class DefaultViewManager {
 				forceRight = true;
 			}
 
-			return this.prepend(prev, forceRight)
-				.then(function(){
-					var left;
-					if (this.layout.name === "pre-paginated" && this.layout.divisor > 1) {
-						left = prev.prev();
-						if (left) {
-							return this.prepend(left);
-						}
-					}
-				}.bind(this), (err) => {
+			return this.displaySpineItemAtEnd(prev, forceRight)
+				.catch((err) => {
 					return err;
-				})
-				.then(function(){
-					if(this.isPaginated && this.settings.axis === "horizontal") {
-						if (this.settings.direction === "rtl") {
-							if (this.settings.rtlScrollType === "default"){
-								this.scrollTo(0, 0, true);
-							}
-							else{
-								this.scrollTo((this.container.scrollWidth * -1) + this.layout.delta, 0, true);
-							}
-						} else {
-							this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
-						}
-					}
-					this.views.show();
-				}.bind(this));
+				});
 		}
 	}
 
@@ -788,10 +890,11 @@ class DefaultViewManager {
 
 			let mapping = this.mapping.page(view.contents, view.section.cfiBase, start, end);
 
-			let totalPages = this.layout.count(width).pages;
-			let startPage = Math.floor(start / this.layout.pageWidth);
+			let pageAdvance = this.getPageAdvance();
+			let totalPages = this.layout.count(width, pageAdvance).pages;
+			let startPage = Math.floor(start / pageAdvance);
 			let pages = [];
-			let endPage = Math.floor(end / this.layout.pageWidth);
+			let endPage = Math.floor(end / pageAdvance);
 			
 			// start page should not be negative
 			if (startPage < 0) {

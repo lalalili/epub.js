@@ -32,6 +32,7 @@ class Layout {
 		this.height = 0;
 		this.spreadWidth = 0;
 		this.delta = 0;
+		this.effectivePageAdvance = 0;
 
 		this.columnWidth = 0;
 		this.gap = 0;
@@ -45,6 +46,7 @@ class Layout {
 			height: 0,
 			spreadWidth: 0,
 			delta: 0,
+			effectivePageAdvance: 0,
 			columnWidth: 0,
 			gap: 0,
 			divisor: 1
@@ -156,6 +158,7 @@ class Layout {
 		this.spreadWidth = spreadWidth;
 		this.pageWidth = pageWidth;
 		this.delta = delta;
+		this.effectivePageAdvance = delta;
 
 		this.columnWidth = columnWidth;
 		this.gap = gap;
@@ -177,6 +180,7 @@ class Layout {
 			spreadWidth,
 			pageWidth,
 			delta,
+			effectivePageAdvance: this.effectivePageAdvance,
 			columnWidth,
 			gap,
 			divisor
@@ -214,14 +218,24 @@ class Layout {
 	count(totalLength, pageLength) {
 
 		let spreads, pages;
+		let effectivePageAdvance = this.effectivePageAdvance || this.delta;
 
 		if (this.name === "pre-paginated") {
 			spreads = 1;
 			pages = 1;
 		} else if (this._flow === "paginated") {
-			pageLength = pageLength || this.delta;
-			spreads = Math.ceil( totalLength / pageLength);
-			pages = spreads * this.divisor;
+			pageLength = pageLength || effectivePageAdvance;
+			if (
+				this.effectivePageAdvance &&
+				this.effectivePageAdvance !== this.pageWidth &&
+				this.pageWidth > this.effectivePageAdvance
+			) {
+				pages = Math.ceil(Math.max(0, totalLength - this.pageWidth) / this.effectivePageAdvance) + 1;
+				spreads = Math.ceil(pages / this.divisor);
+			} else {
+				spreads = Math.ceil( totalLength / pageLength);
+				pages = spreads * this.divisor;
+			}
 		} else { // scrolled
 			pageLength = pageLength || this.height;
 			spreads = Math.ceil( totalLength / pageLength);
