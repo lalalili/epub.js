@@ -15,6 +15,12 @@ const TEXT_NODE = 3;
 const VERTICAL_RL_WIDTH_GUARD = 2;
 const VERTICAL_RL_EDGE_GUARD = 12;
 
+const median = (values) => {
+	if (!values.length) return null;
+	const sorted = values.slice().sort((a, b) => a - b);
+	return sorted[Math.floor(sorted.length / 2)];
+};
+
 /**
 	* Handles DOM manipulation, queries and events for View contents
 	* @class
@@ -40,6 +46,7 @@ class Contents {
 
 		this.sectionIndex = sectionIndex || 0;
 		this.cfiBase = cfiBase || "";
+		this._verticalRlMetricsCache = null;
 
 		this.epubReadingSystem("epub.js", EPUBJS_VERSION);
 		this.called = 0;
@@ -160,22 +167,32 @@ class Contents {
 		// Use Range.getBoundingClientRect() to get the true x-span of all content.
 		const wm = this.window && this.window.getComputedStyle(content).writingMode;
 		if (wm === "vertical-rl") {
+			const cacheKey = this.verticalRlMetricsCacheKey();
+			if (this._verticalRlMetricsCache && this._verticalRlMetricsCache.key === cacheKey) {
+				return this._verticalRlMetricsCache.width;
+			}
+
 			try {
 				const vrlRange = this.document.createRange();
 				vrlRange.selectNodeContents(content);
 				const vrlRect = vrlRange.getBoundingClientRect();
-				const left = Math.min(vrlRect.left, 0);
-				const right = Math.max(
-					vrlRect.right,
+				width = vrlRect.width;
+			} catch(e) {
+				width = 0;
+			}
+			if (!Number.isFinite(width) || width <= 0) {
+				width = Math.max(
 					content.scrollWidth || 0,
 					this.documentElement ? this.documentElement.scrollWidth || 0 : 0
 				);
-				width = right - left;
-			} catch(e) {
-				width = content.scrollWidth || this.documentElement.scrollWidth;
 			}
 			if (border && border.width) width += border.width;
-			return Math.ceil(width + VERTICAL_RL_WIDTH_GUARD);
+			width = Math.ceil(width + VERTICAL_RL_WIDTH_GUARD);
+			this._verticalRlMetricsCache = {
+				key: cacheKey,
+				width
+			};
+			return width;
 		}
 
 		// Select the contents of frame
@@ -255,6 +272,22 @@ class Contents {
 		return height;
 	}
 
+	verticalRlMetricsCacheKey() {
+		const content = this.content || this.document.body;
+		const docEl = this.documentElement;
+		return [
+			docEl ? docEl.clientWidth : 0,
+			docEl ? docEl.clientHeight : 0,
+			content ? content.clientWidth : 0,
+			content ? content.clientHeight : 0,
+			content ? content.childElementCount : 0
+		].join(":");
+	}
+
+	invalidateVerticalRlMetricsCache() {
+		this._verticalRlMetricsCache = null;
+	}
+
 	/**
 		* Set overflow css style of the contents
 		* @param {string} [overflow]
@@ -302,6 +335,8 @@ class Contents {
 		*/
 	css(property, value, priority) {
 		var content = this.content || this.document.body;
+
+		this.invalidateVerticalRlMetricsCache();
 
 		if (value) {
 			content.style.setProperty(property, value, priority ? "important" : "");
@@ -481,6 +516,7 @@ class Contents {
 	resizeCheck() {
 		// P-AITEHUB-0008: Guard against null document (contents destroyed before rAF fires)
 		if (!this.document) return;
+		this.invalidateVerticalRlMetricsCache();
 		let width = this.textWidth();
 		let height = this.textHeight();
 
@@ -804,6 +840,8 @@ class Contents {
 	addStylesheetCss(serializedCss, key) {
 		if(!this.document || !serializedCss) return false;
 
+		this.invalidateVerticalRlMetricsCache();
+
 		var styleEl;
 		styleEl = this._getStylesheetNode(key);
 		styleEl.innerHTML = serializedCss;
@@ -822,6 +860,8 @@ class Contents {
 		var styleSheet;
 
 		if(!this.document || !rules || rules.length === 0) return;
+
+		this.invalidateVerticalRlMetricsCache();
 
 		// Grab style sheet
 		styleSheet = this._getStylesheetNode(key).sheet;
@@ -1102,6 +1142,8 @@ class Contents {
 	 * @param {number} gap
 	 */
 	columns(width, height, columnWidth, gap, dir){
+		this.invalidateVerticalRlMetricsCache();
+
 		let COLUMN_AXIS = prefixed("column-axis");
 		let COLUMN_GAP = prefixed("column-gap");
 		let COLUMN_WIDTH = prefixed("column-width");
@@ -1199,7 +1241,7 @@ class Contents {
 	estimateVerticalRlLineMetrics() {
 		const content = this.content || this.document.body;
 		if (!content || !this.document || !this.window) {
-			return { linePitch: null, lineWidth: null };
+			return { linePitch: null, lineWidth: null, sampleCount: 0, gapMad: null, stable: false };
 		}
 
 		const nodes = Array.from(content.querySelectorAll("p, div, span, li"))
@@ -1228,15 +1270,24 @@ class Contents {
 			}
 		}
 
-		const median = (values) => {
-			if (!values.length) return null;
-			const sorted = values.slice().sort((a, b) => a - b);
-			return sorted[Math.floor(sorted.length / 2)];
-		};
+		const linePitch = median(gaps);
+		const lineWidth = median(widths.filter((width) => width >= 4 && width <= 80));
+		const gapMad = Number.isFinite(linePitch)
+			? median(gaps.map((gap) => Math.abs(gap - linePitch)))
+			: null;
+		const stable = Boolean(
+			gaps.length >= 4 &&
+			Number.isFinite(linePitch) &&
+			Number.isFinite(gapMad) &&
+			gapMad <= Math.max(3, linePitch * 0.08)
+		);
 
 		return {
-			linePitch: median(gaps),
-			lineWidth: median(widths.filter((width) => width >= 4 && width <= 80))
+			linePitch,
+			lineWidth,
+			sampleCount: gaps.length,
+			gapMad,
+			stable
 		};
 	}
 
@@ -1244,6 +1295,11 @@ class Contents {
 		const safePageWidth = Number(pageWidth);
 		const metrics = this.estimateVerticalRlLineMetrics();
 		const linePitch = Number(metrics.linePitch);
+		const lineWidth = Number(metrics.lineWidth);
+		const edgeGuard = Math.max(
+			VERTICAL_RL_EDGE_GUARD,
+			Number.isFinite(lineWidth) && lineWidth > 0 ? Math.ceil(lineWidth / 2) + 2 : VERTICAL_RL_EDGE_GUARD
+		);
 		let effectivePageAdvance = Number.isFinite(safePageWidth) && safePageWidth > 0 ? safePageWidth : null;
 		let hasUnsafePageModulo = false;
 
@@ -1252,14 +1308,15 @@ class Contents {
 			safePageWidth > 0 &&
 			Number.isFinite(linePitch) &&
 			linePitch >= 30 &&
-			linePitch <= 100
+			linePitch <= 100 &&
+			metrics.stable
 		) {
 			const remainder = safePageWidth % linePitch;
 			const unsafeRemainder = remainder > 2 && remainder < linePitch - 2;
 			hasUnsafePageModulo = unsafeRemainder;
 
 			if (unsafeRemainder) {
-				const guardedWidth = Math.max(linePitch, safePageWidth - (VERTICAL_RL_EDGE_GUARD * 2));
+				const guardedWidth = Math.max(linePitch, safePageWidth - (edgeGuard * 2));
 				effectivePageAdvance = Math.max(linePitch, Math.floor(guardedWidth / linePitch) * linePitch);
 			}
 		}
@@ -1269,6 +1326,10 @@ class Contents {
 			effectivePageAdvance,
 			linePitch: metrics.linePitch,
 			lineWidth: metrics.lineWidth,
+			edgeGuard,
+			sampleCount: metrics.sampleCount,
+			gapMad: metrics.gapMad,
+			stable: metrics.stable,
 			hasUnsafePageModulo
 		};
 	}
@@ -1317,6 +1378,10 @@ class Contents {
 			effectivePageAdvance: pageMetrics.effectivePageAdvance,
 			linePitch: pageMetrics.linePitch,
 			lineWidth: pageMetrics.lineWidth,
+			edgeGuard: pageMetrics.edgeGuard,
+			sampleCount: pageMetrics.sampleCount,
+			gapMad: pageMetrics.gapMad,
+			stable: pageMetrics.stable,
 			totalPages,
 			hasUnsafePageModulo: pageMetrics.hasUnsafePageModulo
 		};

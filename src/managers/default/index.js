@@ -47,6 +47,8 @@ class DefaultViewManager {
 		};
 
 		this.rendered = false;
+		this._layoutDirty = true;
+		this._lastLayoutStageSize = null;
 
 	}
 
@@ -349,10 +351,11 @@ class DefaultViewManager {
 		if(!this.isPaginated) {
 			distY = offset.top;
 		} else {
-			distX = Math.floor(offset.left / this.layout.delta) * this.layout.delta;
+			let pageAdvance = this.getPageAdvance() || this.layout.delta || this.layout.width || 1;
+			distX = Math.floor(offset.left / pageAdvance) * pageAdvance;
 
-			if (distX + this.layout.delta > this.container.scrollWidth) {
-				distX = Math.max(0, this.container.scrollWidth - this.layout.delta);
+			if (distX + pageAdvance > this.container.scrollWidth) {
+				distX = Math.max(0, this.container.scrollWidth - pageAdvance);
 			}
 
 			if (this.settings.axis === "vertical") {
@@ -362,10 +365,10 @@ class DefaultViewManager {
 					distY = Math.max(0, this.container.scrollHeight - this.layout.height);
 				}
 			} else {
-				distY = Math.floor(offset.top / this.layout.delta) * this.layout.delta;
+				distY = Math.floor(offset.top / pageAdvance) * pageAdvance;
 
-				if (distY + this.layout.delta > this.container.scrollHeight) {
-					distY = Math.max(0, this.container.scrollHeight - this.layout.delta);
+				if (distY + pageAdvance > this.container.scrollHeight) {
+					distY = Math.max(0, this.container.scrollHeight - pageAdvance);
 				}
 			}
 		}
@@ -375,7 +378,7 @@ class DefaultViewManager {
 				to distX or use `Math.ceil` function, or multiply offset.left by -1
 				before `Math.floor`
 			*/
-			distX = distX + this.layout.delta
+			distX = distX + this.getPageAdvance()
 			distX = distX - width
 		}
 		this.scrollTo(distX, distY, true);
@@ -774,7 +777,9 @@ class DefaultViewManager {
 	}
 
 	currentLocation(){
-		this.updateLayout();
+		if (this.shouldUpdateLayoutForLocation()) {
+			this.updateLayout();
+		}
 		if (this.isPaginated && this.settings.axis === "horizontal") {
 			this.location = this.paginatedLocation();
 		} else {
@@ -855,6 +860,7 @@ class DefaultViewManager {
 	paginatedLocation(){
 		let visible = this.visible();
 		let container = this.container.getBoundingClientRect();
+		let isRtlVerticalPaginated = this.isRtlVerticalPaginated();
 
 		let left = 0;
 		let used = 0;
@@ -895,6 +901,23 @@ class DefaultViewManager {
 			let startPage = Math.floor(start / pageAdvance);
 			let pages = [];
 			let endPage = Math.floor(end / pageAdvance);
+
+			if (isRtlVerticalPaginated) {
+				let currentPageIndex = this.getCurrentPageIndex();
+				totalPages = this.getTotalPagesForCurrentView();
+				pages = [currentPageIndex + 1];
+				start = currentPageIndex * pageAdvance;
+				end = start + (this.layout.pageWidth || this.layout.width || pageAdvance);
+				mapping = this.mapping.page(view.contents, view.section.cfiBase, start, end);
+
+				return {
+					index,
+					href,
+					pages,
+					totalPages,
+					mapping
+				};
+			}
 			
 			// start page should not be negative
 			if (startPage < 0) {
@@ -1046,11 +1069,28 @@ class DefaultViewManager {
 	applyLayout(layout) {
 
 		this.layout = layout;
+		this._layoutDirty = true;
 		this.updateLayout();
 		if (this.views && this.views.length > 0 && this.layout.name === "pre-paginated") {
 			this.display(this.views.first().section);
 		}
 		 // this.manager.layout(this.layout.format);
+	}
+
+	shouldUpdateLayoutForLocation() {
+		if (!this.stage || !this.layout) {
+			return false;
+		}
+
+		if (this._layoutDirty || !this._lastLayoutStageSize) {
+			return true;
+		}
+
+		let stageSize = this.stage.size();
+		return (
+			stageSize.width !== this._lastLayoutStageSize.width ||
+			stageSize.height !== this._lastLayoutStageSize.height
+		);
 	}
 
 	updateLayout() {
@@ -1060,6 +1100,11 @@ class DefaultViewManager {
 		}
 
 		this._stageSize = this.stage.size();
+		this._lastLayoutStageSize = {
+			width: this._stageSize.width,
+			height: this._stageSize.height
+		};
+		this._layoutDirty = false;
 
 		if(!this.isPaginated) {
 			this.layout.calculate(this._stageSize.width, this._stageSize.height);
@@ -1113,6 +1158,7 @@ class DefaultViewManager {
 		}
 
 		this.settings.axis = axis;
+		this._layoutDirty = true;
 
 		this.stage && this.stage.axis(axis);
 
@@ -1135,6 +1181,7 @@ class DefaultViewManager {
 		let isPaginated = (flow === "paginated" || flow === "auto");
 
 		this.isPaginated = isPaginated;
+		this._layoutDirty = true;
 
 		if (flow === "scrolled-doc" ||
 				flow === "scrolled-continuous" ||
