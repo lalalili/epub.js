@@ -218,7 +218,8 @@ class Layout {
 	count(totalLength, pageLength) {
 
 		let spreads, pages;
-		let effectivePageAdvance = this.effectivePageAdvance || this.delta;
+		let visiblePageWidth = this.pageWidth || this.width || pageLength;
+		let effectivePageAdvance = this.effectivePageAdvance || this.delta || pageLength;
 
 		if (this.name === "pre-paginated") {
 			spreads = 1;
@@ -226,11 +227,11 @@ class Layout {
 		} else if (this._flow === "paginated") {
 			pageLength = pageLength || effectivePageAdvance;
 			if (
-				this.effectivePageAdvance &&
-				this.effectivePageAdvance !== this.pageWidth &&
-				this.pageWidth > this.effectivePageAdvance
+				effectivePageAdvance &&
+				visiblePageWidth &&
+				visiblePageWidth > effectivePageAdvance
 			) {
-				pages = Math.ceil(Math.max(0, totalLength - this.pageWidth) / this.effectivePageAdvance) + 1;
+				pages = Math.ceil(Math.max(0, totalLength - visiblePageWidth) / effectivePageAdvance) + 1;
 				spreads = Math.ceil(pages / this.divisor);
 			} else {
 				spreads = Math.ceil( totalLength / pageLength);

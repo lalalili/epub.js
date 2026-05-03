@@ -47,6 +47,7 @@ class Contents {
 		this.sectionIndex = sectionIndex || 0;
 		this.cfiBase = cfiBase || "";
 		this._verticalRlMetricsCache = null;
+		this._verticalRlPageMetricsCache = null;
 
 		this.epubReadingSystem("epub.js", EPUBJS_VERSION);
 		this.called = 0;
@@ -160,11 +161,6 @@ class Contents {
 		let content = this.content || this.document.body;
 		let border = borders(content);
 
-		// For vertical-rl paginated content, the book CSS lays out columns extending
-		// in the physical x-direction (RTL, right-to-left). The body has overflow:visible
-		// so content wider than the iframe extends leftward (negative x in viewport coords).
-		// body.scrollWidth is unreliable because body is not a scroll container.
-		// Use Range.getBoundingClientRect() to get the true x-span of all content.
 		const wm = this.window && this.window.getComputedStyle(content).writingMode;
 		if (wm === "vertical-rl") {
 			const cacheKey = this.verticalRlMetricsCacheKey();
@@ -172,14 +168,8 @@ class Contents {
 				return this._verticalRlMetricsCache.width;
 			}
 
-			try {
-				const vrlRange = this.document.createRange();
-				vrlRange.selectNodeContents(content);
-				const vrlRect = vrlRange.getBoundingClientRect();
-				width = vrlRect.width;
-			} catch(e) {
-				width = 0;
-			}
+			const rect = this.measureVerticalRlRect();
+			width = rect.rawWidth;
 			if (!Number.isFinite(width) || width <= 0) {
 				width = Math.max(
 					content.scrollWidth || 0,
@@ -220,22 +210,11 @@ class Contents {
 		let content = this.content || this.document.body;
 		const wm = this.window && this.window.getComputedStyle(content).writingMode;
 
-		// For vertical-rl paginated content, the book CSS stacks logical pages in the
-		// physical y direction. Use a Range over all body children to get the true
-		// bounding height — this works even when body has overflow:visible (scrollHeight
-		// may clamp) and even when html has overflow:hidden (viewport clips rendering
-		// but Range.getBoundingClientRect reflects layout positions, not clipped view).
 		if (wm === "vertical-rl") {
-			try {
-				const r2 = this.document.createRange();
-				r2.selectNodeContents(content);
-				const rect2 = r2.getBoundingClientRect();
-				// rect.bottom is viewport-relative; for content below the fold it can
-				// be larger than the iframe height. This is the true total height.
-				if (rect2.bottom > 0) {
-					return Math.ceil(rect2.bottom);
-				}
-			} catch(e) { /* ignore, fall through */ }
+			const rect = this.measureVerticalRlRect();
+			if (Number.isFinite(rect.rawHeight) && rect.rawHeight > 0) {
+				return Math.ceil(rect.rawHeight);
+			}
 			// Fallback: scrollHeight chain
 			const de = this.documentElement;
 			const h = Math.max(
@@ -272,20 +251,29 @@ class Contents {
 		return height;
 	}
 
-	verticalRlMetricsCacheKey() {
+	verticalRlMetricsCacheKey(visiblePageWidth) {
 		const content = this.content || this.document.body;
 		const docEl = this.documentElement;
+		const bodyStyle = content && this.window ? this.window.getComputedStyle(content) : null;
+		const docFonts = this.document && this.document.fonts ? this.document.fonts : null;
 		return [
+			Number.isFinite(Number(visiblePageWidth)) ? Number(visiblePageWidth) : "",
 			docEl ? docEl.clientWidth : 0,
 			docEl ? docEl.clientHeight : 0,
 			content ? content.clientWidth : 0,
 			content ? content.clientHeight : 0,
-			content ? content.childElementCount : 0
+			content ? content.childElementCount : 0,
+			bodyStyle ? bodyStyle.fontSize : "",
+			bodyStyle ? bodyStyle.lineHeight : "",
+			bodyStyle ? bodyStyle.letterSpacing : "",
+			bodyStyle ? bodyStyle.fontFamily : "",
+			docFonts ? docFonts.status : ""
 		].join(":");
 	}
 
 	invalidateVerticalRlMetricsCache() {
 		this._verticalRlMetricsCache = null;
+		this._verticalRlPageMetricsCache = null;
 	}
 
 	/**
@@ -1238,34 +1226,78 @@ class Contents {
 
 	}
 
-	estimateVerticalRlLineMetrics() {
+	measureVerticalRlRect() {
 		const content = this.content || this.document.body;
-		if (!content || !this.document || !this.window) {
-			return { linePitch: null, lineWidth: null, sampleCount: 0, gapMad: null, stable: false };
+		if (!content || !this.document) {
+			return {
+				left: 0,
+				right: 0,
+				top: 0,
+				bottom: 0,
+				rawWidth: 0,
+				rawHeight: 0
+			};
 		}
 
-		const nodes = Array.from(content.querySelectorAll("p, div, span, li"))
-			.filter((node) => String(node.textContent || "").trim().length > 0)
-			.slice(0, 80);
-		const centers = [];
+		try {
+			const range = this.document.createRange();
+			range.selectNodeContents(content);
+			const rect = range.getBoundingClientRect();
+			return {
+				left: rect.left,
+				right: rect.right,
+				top: rect.top,
+				bottom: rect.bottom,
+				rawWidth: rect.width,
+				rawHeight: Math.max(rect.height || 0, rect.bottom - Math.min(rect.top, 0))
+			};
+		} catch(e) {
+			return {
+				left: 0,
+				right: 0,
+				top: 0,
+				bottom: 0,
+				rawWidth: 0,
+				rawHeight: 0
+			};
+		}
+	}
+
+	detectFixedColumnPitch(visiblePageWidth) {
+		const content = this.content || this.document.body;
+		if (!content || !this.document || !this.window) {
+			return null;
+		}
+
+		let rects = [];
+		try {
+			const range = this.document.createRange();
+			range.selectNodeContents(content);
+			rects = Array.from(range.getClientRects ? range.getClientRects() : []);
+		} catch(e) {
+			rects = [];
+		}
+
+		const safePageWidth = Number(visiblePageWidth);
+		const maxGap = Number.isFinite(safePageWidth) && safePageWidth > 0
+			? safePageWidth * 0.75
+			: 140;
+		const xs = [];
 		const widths = [];
 
-		for (const node of nodes) {
-			const rects = Array.from(node.getClientRects ? node.getClientRects() : []);
-			for (const rect of rects) {
-				if (rect.width >= 4 && rect.height >= 8) {
-					centers.push(rect.left + (rect.width / 2));
-					widths.push(rect.width);
-				}
+		for (const rect of rects) {
+			if (rect.width > 0 && rect.height > 0) {
+				xs.push(Math.round(rect.left * 2) / 2);
+				widths.push(rect.width);
 			}
 		}
 
-		const uniqueCenters = Array.from(new Set(centers.map((center) => Math.round(center * 2) / 2)))
+		const uniqueXs = Array.from(new Set(xs))
 			.sort((a, b) => a - b);
 		const gaps = [];
-		for (let i = 1; i < uniqueCenters.length; i += 1) {
-			const gap = Math.abs(uniqueCenters[i] - uniqueCenters[i - 1]);
-			if (gap >= 8 && gap <= 140) {
+		for (let i = 1; i < uniqueXs.length; i += 1) {
+			const gap = Math.abs(uniqueXs[i] - uniqueXs[i - 1]);
+			if (gap > 2 && gap < maxGap) {
 				gaps.push(gap);
 			}
 		}
@@ -1282,6 +1314,10 @@ class Contents {
 			gapMad <= Math.max(3, linePitch * 0.08)
 		);
 
+		if (!Number.isFinite(linePitch) || !stable) {
+			return null;
+		}
+
 		return {
 			linePitch,
 			lineWidth,
@@ -1291,9 +1327,43 @@ class Contents {
 		};
 	}
 
+	estimateVerticalRlLineMetrics(visiblePageWidth) {
+		return this.detectFixedColumnPitch(visiblePageWidth) || {
+			linePitch: null,
+			lineWidth: null,
+			sampleCount: 0,
+			gapMad: null,
+			stable: false
+		};
+	}
+
 	verticalRlPageMetrics(pageWidth) {
 		const safePageWidth = Number(pageWidth);
-		const metrics = this.estimateVerticalRlLineMetrics();
+		const cacheKey = this.verticalRlMetricsCacheKey(safePageWidth);
+		if (this._verticalRlPageMetricsCache && this._verticalRlPageMetricsCache.key === cacheKey) {
+			return this._verticalRlPageMetricsCache.metrics;
+		}
+
+		const rect = this.measureVerticalRlRect();
+		let rawWidth = rect.rawWidth;
+		let rawHeight = rect.rawHeight;
+		const content = this.content || this.document.body;
+		if (!Number.isFinite(rawWidth) || rawWidth <= 0) {
+			rawWidth = Math.max(
+				content ? content.scrollWidth || 0 : 0,
+				this.documentElement ? this.documentElement.scrollWidth || 0 : 0
+			);
+		}
+		if (!Number.isFinite(rawHeight) || rawHeight <= 0) {
+			rawHeight = Math.max(
+				content ? content.scrollHeight || 0 : 0,
+				this.documentElement ? this.documentElement.scrollHeight || 0 : 0
+			);
+		}
+		rawWidth = Math.ceil(rawWidth + VERTICAL_RL_WIDTH_GUARD);
+		rawHeight = Math.ceil(rawHeight);
+
+		const metrics = this.estimateVerticalRlLineMetrics(safePageWidth);
 		const linePitch = Number(metrics.linePitch);
 		const lineWidth = Number(metrics.lineWidth);
 		const edgeGuard = Math.max(
@@ -1307,8 +1377,6 @@ class Contents {
 			Number.isFinite(safePageWidth) &&
 			safePageWidth > 0 &&
 			Number.isFinite(linePitch) &&
-			linePitch >= 30 &&
-			linePitch <= 100 &&
 			metrics.stable
 		) {
 			const remainder = safePageWidth % linePitch;
@@ -1321,7 +1389,14 @@ class Contents {
 			}
 		}
 
-		return {
+		const pageLength = effectivePageAdvance || safePageWidth || 1;
+		const totalPages = pageLength < safePageWidth
+			? Math.max(1, Math.ceil(Math.max(0, rawWidth - safePageWidth) / pageLength) + 1)
+			: Math.max(1, Math.ceil(rawWidth / (safePageWidth || pageLength)));
+		const snappedContentWidth = ((totalPages - 1) * pageLength) + (safePageWidth || pageLength);
+		const result = {
+			rawWidth,
+			rawHeight,
 			pageWidth: safePageWidth,
 			effectivePageAdvance,
 			linePitch: metrics.linePitch,
@@ -1330,8 +1405,15 @@ class Contents {
 			sampleCount: metrics.sampleCount,
 			gapMad: metrics.gapMad,
 			stable: metrics.stable,
-			hasUnsafePageModulo
+			hasUnsafePageModulo,
+			totalPages,
+			snappedContentWidth
 		};
+		this._verticalRlPageMetricsCache = {
+			key: cacheKey,
+			metrics: result
+		};
+		return result;
 	}
 
 	debugVerticalRlMetrics(pageWidth) {
@@ -1350,13 +1432,9 @@ class Contents {
 
 		const bodyRect = content && content.getBoundingClientRect ? content.getBoundingClientRect() : null;
 		const pageMetrics = this.verticalRlPageMetrics(pageWidth);
-		const rawContentWidth = this.textWidth();
-		const advance = pageMetrics.effectivePageAdvance || pageMetrics.pageWidth || 1;
-		const totalPages = Math.max(
-			1,
-			Math.ceil(Math.max(0, rawContentWidth - (pageMetrics.pageWidth || advance)) / advance) + 1
-		);
-		const snappedContentWidth = ((totalPages - 1) * advance) + (pageMetrics.pageWidth || advance);
+		const rawContentWidth = pageMetrics.rawWidth;
+		const snappedContentWidth = pageMetrics.snappedContentWidth;
+		const totalPages = pageMetrics.totalPages;
 
 		const result = {
 			userAgent: this.window.navigator.userAgent,
@@ -1373,6 +1451,7 @@ class Contents {
 			rangeRectRight: rangeRect ? rangeRect.right : null,
 			rangeRectWidth: rangeRect ? rangeRect.width : null,
 			rawContentWidth,
+			rawContentHeight: pageMetrics.rawHeight,
 			snappedContentWidth,
 			pageWidth: pageMetrics.pageWidth,
 			effectivePageAdvance: pageMetrics.effectivePageAdvance,

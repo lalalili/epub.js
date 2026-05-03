@@ -313,6 +313,7 @@ class IframeView {
 			width = this.contents.textWidth();
 			let pageAdvance = this.layout.pageWidth;
 			let visiblePageWidth = this.layout.pageWidth;
+			let pageMetrics = null;
 
 			if (
 				this.settings.flow === "paginated" &&
@@ -320,19 +321,27 @@ class IframeView {
 				this.contents.writingMode() === "vertical-rl" &&
 				this.contents.verticalRlPageMetrics
 			) {
-				const pageMetrics = this.contents.verticalRlPageMetrics(visiblePageWidth);
+				pageMetrics = this.contents.verticalRlPageMetrics(visiblePageWidth);
+				width = pageMetrics.rawWidth;
 				if (pageMetrics.effectivePageAdvance > 0) {
 					pageAdvance = pageMetrics.effectivePageAdvance;
-					this.layout.effectivePageAdvance = pageAdvance;
-					this.layout.delta = pageAdvance;
-					this.layout.update({
-						delta: pageAdvance,
-						effectivePageAdvance: pageAdvance
-					});
+					if (
+						this.layout.effectivePageAdvance !== pageAdvance ||
+						this.layout.delta !== pageAdvance
+					) {
+						this.layout.effectivePageAdvance = pageAdvance;
+						this.layout.delta = pageAdvance;
+						this.layout.update({
+							delta: pageAdvance,
+							effectivePageAdvance: pageAdvance
+						});
+					}
 				}
 			}
 
-			if (pageAdvance > 0 && visiblePageWidth > 0) {
+			if (pageMetrics && pageMetrics.snappedContentWidth > 0) {
+				width = pageMetrics.snappedContentWidth;
+			} else if (pageAdvance > 0 && visiblePageWidth > 0) {
 				const pages = Math.max(1, Math.ceil(Math.max(0, width - visiblePageWidth) / pageAdvance) + 1);
 				width = ((pages - 1) * pageAdvance) + visiblePageWidth;
 			} else if (width % this.layout.pageWidth > 0) {

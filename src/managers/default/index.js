@@ -352,6 +352,17 @@ class DefaultViewManager {
 			distY = offset.top;
 		} else {
 			let pageAdvance = this.getPageAdvance() || this.layout.delta || this.layout.width || 1;
+			if (this.isRtlVerticalPaginated()) {
+				let view = this.views && (this.views.first() || this.views.last());
+				let contentWidth = width || (view && view.width ? view.width() : 0) || this.container.scrollWidth || 0;
+				let visiblePageWidth = this.layout.pageWidth || this.layout.width || pageAdvance;
+				let maxPhysicalStart = Math.max(0, contentWidth - visiblePageWidth);
+				let physicalStart = Math.max(0, Math.min(maxPhysicalStart, offset.left || 0));
+				let logicalOffset = Math.max(0, maxPhysicalStart - physicalStart);
+				let logicalIndex = Math.floor((logicalOffset + 0.5) / pageAdvance);
+				this.scrollToLogicalPage(logicalIndex);
+				return;
+			}
 			distX = Math.floor(offset.left / pageAdvance) * pageAdvance;
 
 			if (distX + pageAdvance > this.container.scrollWidth) {
@@ -479,6 +490,26 @@ class DefaultViewManager {
 		return this.layout && (this.layout.effectivePageAdvance || this.layout.delta || this.layout.pageWidth || this.layout.width);
 	}
 
+	getNormalizedLogicalScrollLeft(){
+		if (!this.container) {
+			return 0;
+		}
+
+		let scrollLeft = this.container.scrollLeft || 0;
+		if (this.settings.direction === "rtl") {
+			if (this.settings.rtlScrollType === "negative" || scrollLeft < 0) {
+				return Math.abs(scrollLeft);
+			}
+
+			if (this.settings.rtlScrollType === "default") {
+				let maxScroll = Math.max(0, this.container.scrollWidth - this.container.clientWidth);
+				return Math.max(0, maxScroll - scrollLeft);
+			}
+		}
+
+		return Math.max(0, scrollLeft);
+	}
+
 	getTotalPagesForCurrentView(){
 		let view = this.views && (this.views.first() || this.views.last());
 		if (!view) {
@@ -502,18 +533,10 @@ class DefaultViewManager {
 			return 0;
 		}
 
-		if (this.settings.direction === "rtl") {
-			if (this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0) {
-				return Math.max(0, Math.round(Math.abs(this.container.scrollLeft) / advance));
-			}
-
-			if (this.settings.rtlScrollType === "default") {
-				let maxScroll = Math.max(0, this.container.scrollWidth - this.container.clientWidth);
-				return Math.max(0, Math.round((maxScroll - this.container.scrollLeft) / advance));
-			}
-		}
-
-		return Math.max(0, Math.round(this.container.scrollLeft / advance));
+		let totalPages = this.getTotalPagesForCurrentView();
+		let normalized = this.getNormalizedLogicalScrollLeft();
+		let pageIndex = Math.floor((normalized + 0.5) / advance);
+		return Math.max(0, Math.min(totalPages - 1, pageIndex));
 	}
 
 	scrollToLogicalPage(pageIndex){
@@ -536,6 +559,27 @@ class DefaultViewManager {
 		this.scrollTo(left, 0, true);
 	}
 
+	waitForVerticalRlLayoutReady(){
+		let view = this.views && (this.views.first() || this.views.last());
+		let doc = view && view.contents && view.contents.document;
+		let fontsReady = doc && doc.fonts && doc.fonts.ready
+			? doc.fonts.ready.catch(function(){})
+			: Promise.resolve();
+		let nextFrame = () => new Promise((resolve) => {
+			if (typeof requestAnimationFrame === "function") {
+				requestAnimationFrame(function(){
+					requestAnimationFrame(resolve);
+				});
+			} else {
+				setTimeout(resolve, 0);
+			}
+		});
+
+		return nextFrame().then(function(){
+			return fontsReady;
+		}).then(nextFrame);
+	}
+
 	displaySpineItemAtEnd(section, forceRight){
 		return this.prepend(section, forceRight)
 			.then(function(){
@@ -545,6 +589,11 @@ class DefaultViewManager {
 					if (left) {
 						return this.prepend(left);
 					}
+				}
+			}.bind(this))
+			.then(function(){
+				if (this.isRtlVerticalPaginated()) {
+					return this.waitForVerticalRlLayoutReady();
 				}
 			}.bind(this))
 			.then(function(){
@@ -904,11 +953,19 @@ class DefaultViewManager {
 
 			if (isRtlVerticalPaginated) {
 				let currentPageIndex = this.getCurrentPageIndex();
+				let visiblePageWidth = this.layout.pageWidth || this.layout.width || pageAdvance;
+				let contentWidth = width;
+				let maxPhysicalStart = Math.max(0, contentWidth - visiblePageWidth);
+				let physicalStart = Math.max(
+					0,
+					Math.min(maxPhysicalStart, maxPhysicalStart - (currentPageIndex * pageAdvance))
+				);
+				let physicalEnd = Math.min(contentWidth, physicalStart + visiblePageWidth);
 				totalPages = this.getTotalPagesForCurrentView();
 				pages = [currentPageIndex + 1];
-				start = currentPageIndex * pageAdvance;
-				end = start + (this.layout.pageWidth || this.layout.width || pageAdvance);
-				mapping = this.mapping.page(view.contents, view.section.cfiBase, start, end);
+				start = physicalStart;
+				end = physicalEnd;
+				mapping = this.mapping.page(view.contents, view.section.cfiBase, physicalStart, physicalEnd);
 
 				return {
 					index,

@@ -562,12 +562,39 @@ class Rendition {
 		const currentPageIndex = manager && manager.getCurrentPageIndex
 			? manager.getCurrentPageIndex()
 			: null;
+		const normalizedLogicalScrollLeft = manager && manager.getNormalizedLogicalScrollLeft
+			? manager.getNormalizedLogicalScrollLeft()
+			: null;
+		const visiblePageWidth = manager && manager.layout
+			? (manager.layout.pageWidth || manager.layout.width || pageAdvance)
+			: pageAdvance;
+		const contentWidth = view && view.width ? view.width() : null;
+		const maxPhysicalStart = Number.isFinite(contentWidth) && Number.isFinite(visiblePageWidth)
+			? Math.max(0, contentWidth - visiblePageWidth)
+			: null;
+		const physicalStart = (
+			Number.isFinite(maxPhysicalStart) &&
+			Number.isFinite(currentPageIndex) &&
+			Number.isFinite(pageAdvance)
+		)
+			? Math.max(0, Math.min(maxPhysicalStart, maxPhysicalStart - (currentPageIndex * pageAdvance)))
+			: null;
+		const physicalEnd = (
+			Number.isFinite(contentWidth) &&
+			Number.isFinite(physicalStart) &&
+			Number.isFinite(visiblePageWidth)
+		)
+			? Math.min(contentWidth, physicalStart + visiblePageWidth)
+			: null;
 		const result = Object.assign({}, metrics, {
 			containerClientWidth: container ? container.clientWidth : null,
 			containerScrollWidth: container ? container.scrollWidth : null,
 			containerScrollLeft: container ? container.scrollLeft : null,
 			iframeOffsetWidth: view && view.iframe ? view.iframe.offsetWidth : null,
 			iframeClientWidth: view && view.iframe ? view.iframe.clientWidth : null,
+			normalizedLogicalScrollLeft,
+			physicalStart,
+			physicalEnd,
 			pageWidth,
 			effectivePageAdvance: pageAdvance,
 			totalPages,
@@ -579,6 +606,32 @@ class Rendition {
 		}
 
 		return result;
+	}
+
+	remeasure({ preserveLocation = true, waitForFonts = true } = {}){
+		let savedCfi = preserveLocation && this.location && this.location.start
+			? this.location.start.cfi
+			: null;
+		const manager = this.manager;
+		const view = manager && manager.views && (manager.views.first() || manager.views.last());
+		const doc = view && view.contents && view.contents.document;
+		const fontsReady = waitForFonts && doc && doc.fonts && doc.fonts.ready
+			? doc.fonts.ready.catch(function(){})
+			: Promise.resolve();
+
+		return fontsReady
+			.then(function(){
+				if (manager && typeof manager.updateLayout === "function") {
+					manager._layoutDirty = true;
+					manager.updateLayout();
+				}
+			})
+			.then(function(){
+				if (savedCfi) {
+					return this.display(savedCfi);
+				}
+				return this.reportLocation();
+			}.bind(this));
 	}
 
 	//-- http://www.idpf.org/epub/301/spec/epub-publications.html#meta-properties-rendering
