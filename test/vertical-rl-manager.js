@@ -138,6 +138,88 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getVerticalRlEdgeMaskWidths().right, 0);
 	});
 
+	it("caps right edge snapping to the previous visible page overlap", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "議題、學術研究與發現，不會給出簡單的答案",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			getBoundingClientRect: function() {
+				return {
+					left: 342,
+					right: 1404
+				};
+			}
+		};
+		manager.views = {
+			first: function() {
+				return {
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: 0
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 1378,
+											right: 1422,
+											width: 44,
+											height: 680
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let maskWidths = manager.snapVerticalRlEdgeMaskWidths({
+			left: 18,
+			right: 2
+		}, 120, {
+			rightMaxMask: 2
+		});
+
+		assert.equal(maskWidths.left, 18);
+		assert.equal(maskWidths.right, 2);
+	});
+
 	it("shrinks the left vertical-rl edge mask to preserve a full line box", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {

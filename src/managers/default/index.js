@@ -557,7 +557,9 @@ class DefaultViewManager {
 		return this.snapVerticalRlEdgeMaskWidths({
 			left: Math.min(left, maxMask),
 			right
-		}, maxMask);
+		}, maxMask, {
+			rightMaxMask: Math.min(right, maxMask)
+		});
 	}
 
 	getVerticalRlEdgeMaskWidth(){
@@ -589,7 +591,7 @@ class DefaultViewManager {
 		return step > 0 ? step : advance;
 	}
 
-	snapVerticalRlEdgeMaskWidths(widths, maxMask){
+	snapVerticalRlEdgeMaskWidths(widths, maxMask, limits = {}){
 		if (!this.container || !widths || maxMask <= 0) {
 			return widths;
 		}
@@ -608,8 +610,10 @@ class DefaultViewManager {
 		let iframeRect = iframe.getBoundingClientRect();
 		let rawLeft = containerRect.left - iframeRect.left;
 		let rawRight = containerRect.right - iframeRect.left;
-		let left = Math.max(0, Number(widths.left) || 0);
-		let right = Math.max(0, Number(widths.right) || 0);
+		let leftMaxMask = Math.max(0, Number(limits.leftMaxMask ?? maxMask) || 0);
+		let rightMaxMask = Math.max(0, Number(limits.rightMaxMask ?? maxMask) || 0);
+		let left = Math.max(0, Math.min(Number(widths.left) || 0, leftMaxMask));
+		let right = Math.max(0, Math.min(Number(widths.right) || 0, rightMaxMask));
 		let nextPageStep = Number(this.getLogicalPageStepToNextPage()) || 0;
 		let edgeTolerance = Math.max(1, Math.min(4, Math.round((this.layout && this.layout.edgeGuardPx) || 1)));
 		let rects = [];
@@ -698,7 +702,7 @@ class DefaultViewManager {
 				}
 			}
 			if (shift !== 0) {
-				left = Math.max(0, Math.min(maxMask, left + shift));
+				left = Math.max(0, Math.min(leftMaxMask, left + shift));
 			}
 			return shift;
 		};
@@ -711,7 +715,7 @@ class DefaultViewManager {
 				}
 			}
 			if (shift > 0) {
-				right = Math.min(maxMask, right + shift);
+				right = Math.min(rightMaxMask, right + shift);
 			}
 			return shift;
 		};
