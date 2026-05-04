@@ -543,16 +543,16 @@ class DefaultViewManager {
 
 		let totalPages = this.getTotalPagesForCurrentView();
 		let currentPageIndex = this.getCurrentPageIndex();
-		if (currentPageIndex > 0) {
-			let maxScroll = this.getMaxLogicalScrollLeft();
-			let currentOffset = this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll);
-			let previousOffset = this.getLogicalOffsetForPageIndex(currentPageIndex - 1, totalPages, maxScroll);
-			let previousPageStep = Math.abs(currentOffset - previousOffset);
-			let previousPageLeftMask = Math.min(left, maxMask);
-			let overlap = Math.max(0, visibleWidth - previousPageStep - previousPageLeftMask);
+			if (currentPageIndex > 0) {
+				let maxScroll = this.getMaxLogicalScrollLeft();
+				let currentOffset = this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll);
+				let previousOffset = this.getLogicalOffsetForPageIndex(currentPageIndex - 1, totalPages, maxScroll);
+				let previousPageStep = Math.abs(currentOffset - previousOffset);
+				let previousPageLeftMask = this.getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask);
+				let overlap = Math.max(0, visibleWidth - previousPageStep - previousPageLeftMask);
 
-			right = Math.min(Math.ceil(overlap), maxMask);
-		}
+				right = Math.min(Math.ceil(overlap), maxMask);
+			}
 
 		return this.snapVerticalRlEdgeMaskWidths({
 			left: Math.min(left, maxMask),
@@ -560,6 +560,34 @@ class DefaultViewManager {
 		}, maxMask, {
 			rightMaxMask: Math.min(right, maxMask)
 		});
+	}
+
+	getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask){
+		if (!previousPageStep || !this.container || !this.views) {
+			return Math.min(left, maxMask);
+		}
+
+		let view = this.views.first() || this.views.last();
+		let iframe = view && view.iframe;
+		if (!iframe) {
+			return Math.min(left, maxMask);
+		}
+
+		let containerRect = this.container.getBoundingClientRect();
+		let iframeRect = iframe.getBoundingClientRect();
+		let rawLeft = containerRect.left - iframeRect.left + previousPageStep;
+		let rawRight = containerRect.right - iframeRect.left + previousPageStep;
+		let snapped = this.snapVerticalRlEdgeMaskWidths({
+			left: Math.min(left, maxMask),
+			right: 0
+		}, maxMask, {
+			rawLeft,
+			rawRight,
+			nextPageStep: previousPageStep,
+			rightMaxMask: 0
+		});
+
+		return Math.min(Number(snapped && snapped.left) || 0, maxMask);
 	}
 
 	getVerticalRlEdgeMaskWidth(){
@@ -608,13 +636,13 @@ class DefaultViewManager {
 
 		let containerRect = this.container.getBoundingClientRect();
 		let iframeRect = iframe.getBoundingClientRect();
-		let rawLeft = containerRect.left - iframeRect.left;
-		let rawRight = containerRect.right - iframeRect.left;
+		let rawLeft = Number.isFinite(Number(limits.rawLeft)) ? Number(limits.rawLeft) : containerRect.left - iframeRect.left;
+		let rawRight = Number.isFinite(Number(limits.rawRight)) ? Number(limits.rawRight) : containerRect.right - iframeRect.left;
 		let leftMaxMask = Math.max(0, Number(limits.leftMaxMask ?? maxMask) || 0);
 		let rightMaxMask = Math.max(0, Number(limits.rightMaxMask ?? maxMask) || 0);
 		let left = Math.max(0, Math.min(Number(widths.left) || 0, leftMaxMask));
 		let right = Math.max(0, Math.min(Number(widths.right) || 0, rightMaxMask));
-		let nextPageStep = Number(this.getLogicalPageStepToNextPage()) || 0;
+		let nextPageStep = Number(limits.nextPageStep ?? this.getLogicalPageStepToNextPage()) || 0;
 		let edgeTolerance = Math.max(1, Math.min(4, Math.round((this.layout && this.layout.edgeGuardPx) || 1)));
 		let rects = [];
 		let walker = doc.createTreeWalker(body, 4, {

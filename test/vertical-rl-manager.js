@@ -220,6 +220,108 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(maskWidths.right, 2);
 	});
 
+	it("uses the snapped previous page left mask when calculating current right overlap", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "議題、學術研究與發現，不會給出簡單的答案",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			clientWidth: 1062,
+			getBoundingClientRect: function() {
+				return {
+					left: 342,
+					right: 1404
+				};
+			}
+		};
+		manager.layout = {
+			edgeGuardPx: 2
+		};
+		manager.views = {
+			first: function() {
+				return {
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: -726
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 2106.3,
+											right: 2126.3,
+											width: 20,
+											height: 680
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+		manager.isRtlVerticalPaginated = function() {
+			return true;
+		};
+		manager.getPageAdvance = function() {
+			return 1044;
+		};
+		manager.getTotalPagesForCurrentView = function() {
+			return 3;
+		};
+		manager.getCurrentPageIndex = function() {
+			return 1;
+		};
+		manager.getMaxLogicalScrollLeft = function() {
+			return 2040;
+		};
+		manager.getLogicalOffsetForPageIndex = function(pageIndex) {
+			return pageIndex * 1020;
+		};
+		manager.getLogicalPageStepToNextPage = function() {
+			return 1020;
+		};
+
+		let maskWidths = manager.getVerticalRlEdgeMaskWidths();
+
+		assert.equal(maskWidths.left, 18);
+		assert.equal(maskWidths.right, 2);
+	});
+
 	it("shrinks the left vertical-rl edge mask to preserve a full line box", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {
