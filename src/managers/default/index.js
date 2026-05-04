@@ -620,11 +620,17 @@ class DefaultViewManager {
 			let shift = 0;
 			for (const rect of rects) {
 				if (rect.left < boundary && rect.right > boundary) {
-					shift = Math.max(shift, Math.ceil(rect.right - boundary + 1));
+					let expand = Math.ceil(rect.right - boundary + 1);
+					let shrink = Math.ceil(boundary - rect.left + 1);
+					if (shrink > 0 && left - shrink >= 0 && shrink <= expand) {
+						shift = Math.min(shift, -shrink);
+					} else {
+						shift = Math.max(shift, expand);
+					}
 				}
 			}
-			if (shift > 0) {
-				left = Math.min(maxMask, left + shift);
+			if (shift !== 0) {
+				left = Math.max(0, Math.min(maxMask, left + shift));
 			}
 			return shift;
 		};
