@@ -103,7 +103,33 @@ describe("Vertical RL manager pagination", function() {
 		let maskWidths = manager.getVerticalRlEdgeMaskWidths();
 
 		assert.equal(maskWidths.left, 60);
-		assert.equal(maskWidths.right, 60);
+		assert.equal(maskWidths.right, 20);
+	});
+
+	it("does not right-mask content that was hidden by the previous page left edge mask", function() {
+		let manager = createManagerAtLogicalOffset(0);
+
+		manager.layout.effectivePageAdvance = 260;
+		manager.layout.delta = 260;
+		manager.layout.pageBoundaryShift = 0;
+		manager.views.first = function() {
+			return {
+				width: function() {
+					return 820;
+				},
+				contents: {
+					writingMode: function() {
+						return "vertical-rl";
+					}
+				}
+			};
+		};
+		manager.scrollToLogicalPage(1);
+
+		let maskWidths = manager.getVerticalRlEdgeMaskWidths();
+
+		assert.equal(maskWidths.left, 40);
+		assert.equal(maskWidths.right, 0);
 	});
 
 	it("does not add a right edge mask on the first vertical-rl page", function() {

@@ -548,7 +548,8 @@ class DefaultViewManager {
 			let currentOffset = this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll);
 			let previousOffset = this.getLogicalOffsetForPageIndex(currentPageIndex - 1, totalPages, maxScroll);
 			let previousPageStep = Math.abs(currentOffset - previousOffset);
-			let overlap = Math.max(0, visibleWidth - previousPageStep);
+			let previousPageLeftMask = Math.min(left, maxMask);
+			let overlap = Math.max(0, visibleWidth - previousPageStep - previousPageLeftMask);
 
 			right = Math.min(Math.ceil(overlap), maxMask);
 		}
