@@ -46,7 +46,7 @@ const calculateVerticalRlPageBoundaryShift = (boundary, lineLefts, lineWidth, li
 		}
 
 		const lineRight = lineLeft + safeLineWidth;
-		if (boundary >= lineLeft - guard && boundary <= lineRight + guard) {
+		if (boundary >= lineLeft - linePitch && boundary <= lineRight + guard) {
 			shift = Math.max(shift, (lineRight + guard) - boundary);
 		}
 	}
@@ -55,7 +55,7 @@ const calculateVerticalRlPageBoundaryShift = (boundary, lineLefts, lineWidth, li
 		return 0;
 	}
 
-	return Math.min(Math.ceil(shift), Math.max(0, Math.floor(linePitch - guard)));
+	return Math.min(Math.ceil(shift), Math.max(0, Math.floor(linePitch + safeLineWidth + guard)));
 };
 
 /**

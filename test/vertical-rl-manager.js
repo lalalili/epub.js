@@ -125,7 +125,7 @@ describe("Vertical RL manager pagination", function() {
 			return {
 				linePitch: 36,
 				lineWidth: 20,
-				lineLefts: [280],
+				lineLefts: [280, 316],
 				sampleCount: 8,
 				gapMad: 0,
 				stable: true
@@ -135,6 +135,6 @@ describe("Vertical RL manager pagination", function() {
 		let metrics = contents.verticalRlPageMetrics(300);
 
 		assert.equal(metrics.effectivePageAdvance, 288);
-		assert.equal(metrics.pageBoundaryShift, 16);
+		assert.equal(metrics.pageBoundaryShift, 52);
 	});
 });
