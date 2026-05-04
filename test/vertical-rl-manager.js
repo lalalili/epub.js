@@ -23,7 +23,8 @@ describe("Vertical RL manager pagination", function() {
 			delta: 240,
 			pageWidth: 300,
 			width: 300,
-			edgeGuardPx: 4
+			edgeGuardPx: 4,
+			pageBoundaryShift: 20
 		};
 		manager.views = {
 			first: function() {
@@ -63,5 +64,14 @@ describe("Vertical RL manager pagination", function() {
 
 		assert.equal(manager.container.scrollLeft, -445);
 		assert.equal(manager.getCurrentPageIndex(), 2);
+	});
+
+	it("nudges interior vertical-rl pages away from a detected line boundary", function() {
+		let manager = createManagerAtLogicalOffset(0);
+
+		manager.scrollToLogicalPage(1);
+
+		assert.equal(manager.container.scrollLeft, -260);
+		assert.equal(manager.getCurrentPageIndex(), 1);
 	});
 });

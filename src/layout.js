@@ -33,6 +33,7 @@ class Layout {
 		this.spreadWidth = 0;
 		this.delta = 0;
 		this.effectivePageAdvance = 0;
+		this.pageBoundaryShift = 0;
 
 		this.columnWidth = 0;
 		this.gap = 0;
@@ -47,6 +48,7 @@ class Layout {
 			spreadWidth: 0,
 			delta: 0,
 			effectivePageAdvance: 0,
+			pageBoundaryShift: 0,
 			columnWidth: 0,
 			gap: 0,
 			divisor: 1
@@ -159,6 +161,7 @@ class Layout {
 		this.pageWidth = pageWidth;
 		this.delta = delta;
 		this.effectivePageAdvance = delta;
+		this.pageBoundaryShift = 0;
 
 		this.columnWidth = columnWidth;
 		this.gap = gap;
@@ -181,6 +184,7 @@ class Layout {
 			pageWidth,
 			delta,
 			effectivePageAdvance: this.effectivePageAdvance,
+			pageBoundaryShift: this.pageBoundaryShift,
 			columnWidth,
 			gap,
 			divisor

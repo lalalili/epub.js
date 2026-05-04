@@ -490,6 +490,21 @@ class DefaultViewManager {
 		return this.layout && (this.layout.effectivePageAdvance || this.layout.delta || this.layout.pageWidth || this.layout.width);
 	}
 
+	getPageBoundaryShift(){
+		if (!this.isRtlVerticalPaginated() || !this.layout) {
+			return 0;
+		}
+
+		let shift = Number(this.layout.pageBoundaryShift || 0);
+		let advance = this.getPageAdvance() || 0;
+
+		if (!Number.isFinite(shift) || shift <= 0 || !advance) {
+			return 0;
+		}
+
+		return Math.min(shift, Math.max(0, Math.floor(advance / 3)));
+	}
+
 	getNormalizedLogicalScrollLeft(){
 		if (!this.container) {
 			return 0;
@@ -567,16 +582,22 @@ class DefaultViewManager {
 		let totalPages = this.getTotalPagesForCurrentView();
 		let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
 		let maxScroll = this.getMaxLogicalScrollLeft();
-		let left = targetIndex * advance;
+		let logicalOffset = targetIndex * advance;
+
+		if (targetIndex > 0) {
+			logicalOffset += this.getPageBoundaryShift();
+		}
+		logicalOffset = Math.min(maxScroll, logicalOffset);
+		let left = logicalOffset;
 
 		if (this.settings.direction === "rtl") {
 			if (this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0) {
-				left = -Math.min(maxScroll, left);
+				left = -logicalOffset;
 			} else if (this.settings.rtlScrollType === "default") {
-				left = Math.max(0, maxScroll - left);
+				left = Math.max(0, maxScroll - logicalOffset);
 			}
 		} else {
-			left = Math.min(maxScroll, left);
+			left = logicalOffset;
 		}
 
 		this.scrollTo(left, 0, true);

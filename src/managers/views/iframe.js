@@ -335,9 +335,16 @@ class IframeView {
 					) {
 						this.layout.effectivePageAdvance = pageAdvance;
 						this.layout.delta = pageAdvance;
+						this.layout.pageBoundaryShift = pageMetrics.pageBoundaryShift || 0;
 						this.layout.update({
 							delta: pageAdvance,
-							effectivePageAdvance: pageAdvance
+							effectivePageAdvance: pageAdvance,
+							pageBoundaryShift: this.layout.pageBoundaryShift
+						});
+					} else if (this.layout.pageBoundaryShift !== (pageMetrics.pageBoundaryShift || 0)) {
+						this.layout.pageBoundaryShift = pageMetrics.pageBoundaryShift || 0;
+						this.layout.update({
+							pageBoundaryShift: this.layout.pageBoundaryShift
 						});
 					}
 				}
@@ -373,7 +380,8 @@ class IframeView {
 					pageAdvance,
 					pageCount: pageMetrics.totalPages,
 					linePitch: pageMetrics.linePitch,
-					edgeGuardPx: pageMetrics.edgeGuardPx
+					edgeGuardPx: pageMetrics.edgeGuardPx,
+					pageBoundaryShift: pageMetrics.pageBoundaryShift
 				});
 			}
 

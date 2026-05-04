@@ -21,6 +21,43 @@ const median = (values) => {
 	return sorted[Math.floor(sorted.length / 2)];
 };
 
+const calculateVerticalRlPageBoundaryShift = (boundary, lineLefts, lineWidth, linePitch, edgeGuardPx) => {
+	if (
+		!Number.isFinite(boundary) ||
+		!Array.isArray(lineLefts) ||
+		!lineLefts.length ||
+		!Number.isFinite(linePitch) ||
+		linePitch <= 0
+	) {
+		return 0;
+	}
+
+	const guard = Number.isFinite(edgeGuardPx) && edgeGuardPx > 0
+		? edgeGuardPx
+		: VERTICAL_RL_MIN_EDGE_GUARD;
+	const safeLineWidth = Number.isFinite(lineWidth) && lineWidth > 0
+		? Math.min(lineWidth, linePitch)
+		: Math.min(24, Math.max(1, linePitch * 0.4));
+	let shift = 0;
+
+	for (const lineLeft of lineLefts) {
+		if (!Number.isFinite(lineLeft)) {
+			continue;
+		}
+
+		const lineRight = lineLeft + safeLineWidth;
+		if (boundary >= lineLeft - guard && boundary <= lineRight + guard) {
+			shift = Math.max(shift, boundary - (lineLeft - guard));
+		}
+	}
+
+	if (!Number.isFinite(shift) || shift <= 0) {
+		return 0;
+	}
+
+	return Math.min(Math.ceil(shift), Math.max(0, Math.floor(linePitch - guard)));
+};
+
 /**
 	* Handles DOM manipulation, queries and events for View contents
 	* @class
@@ -1321,6 +1358,7 @@ class Contents {
 		return {
 			linePitch,
 			lineWidth,
+			lineLefts: uniqueXs,
 			sampleCount: gaps.length,
 			gapMad,
 			stable
@@ -1331,6 +1369,7 @@ class Contents {
 		return this.detectFixedColumnPitch(visiblePageWidth) || {
 			linePitch: null,
 			lineWidth: null,
+			lineLefts: [],
 			sampleCount: 0,
 			gapMad: null,
 			stable: false
@@ -1383,6 +1422,16 @@ class Contents {
 		const pageLength = effectivePageAdvance || safePageWidth || 1;
 		const totalPages = Math.max(1, Math.ceil(Math.max(0, rawWidth - (safePageWidth || pageLength)) / pageLength) + 1);
 		const snappedContentWidth = ((totalPages - 1) * pageLength) + (safePageWidth || pageLength);
+		const firstInteriorBoundary = totalPages > 1
+			? snappedContentWidth - (safePageWidth || pageLength) - pageLength
+			: null;
+		const pageBoundaryShift = calculateVerticalRlPageBoundaryShift(
+			firstInteriorBoundary,
+			metrics.lineLefts,
+			metrics.lineWidth,
+			metrics.linePitch,
+			edgeGuardPx
+		);
 		const result = {
 			rawWidth,
 			rawPaintWidth: rawWidth,
@@ -1393,6 +1442,7 @@ class Contents {
 			lineWidth: metrics.lineWidth,
 			edgeGuardPx,
 			edgeGuard: edgeGuardPx,
+			pageBoundaryShift,
 			sampleCount: metrics.sampleCount,
 			gapMad: metrics.gapMad,
 			stable: metrics.stable,
