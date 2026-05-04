@@ -540,19 +540,17 @@ class DefaultViewManager {
 		let left = Math.ceil(bleed);
 		let right = 0;
 		let maxMask = Math.max(0, Math.floor(advance / 4));
-		let boundaryShift = this.getPageBoundaryShift();
 
-		if (boundaryShift > 0) {
-			let totalPages = this.getTotalPagesForCurrentView();
-			let currentPageIndex = this.getCurrentPageIndex();
+		let totalPages = this.getTotalPagesForCurrentView();
+		let currentPageIndex = this.getCurrentPageIndex();
+		if (currentPageIndex > 0) {
 			let maxScroll = this.getMaxLogicalScrollLeft();
-			let logicalOffset = this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll);
-			let unshiftedOffset = currentPageIndex * advance;
-			let edgeGuard = Math.max(0, Math.ceil((this.layout && this.layout.edgeGuardPx) || 0));
+			let currentOffset = this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll);
+			let previousOffset = this.getLogicalOffsetForPageIndex(currentPageIndex - 1, totalPages, maxScroll);
+			let previousPageStep = Math.abs(currentOffset - previousOffset);
+			let overlap = Math.max(0, visibleWidth - previousPageStep);
 
-			if (currentPageIndex > 0 && currentPageIndex < totalPages - 1 && logicalOffset < unshiftedOffset) {
-				right = Math.min(Math.ceil(boundaryShift + edgeGuard), maxMask);
-			}
+			right = Math.min(Math.ceil(overlap), maxMask);
 		}
 
 		return this.snapVerticalRlEdgeMaskWidths({

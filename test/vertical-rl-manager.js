@@ -95,7 +95,7 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getLogicalPageStepToNextPage(), 225);
 	});
 
-	it("adds a right edge mask on a shifted interior vertical-rl page", function() {
+	it("adds a right edge mask for overlap with the previous vertical-rl page", function() {
 		let manager = createManagerAtLogicalOffset(0);
 
 		manager.scrollToLogicalPage(1);
@@ -103,15 +103,11 @@ describe("Vertical RL manager pagination", function() {
 		let maskWidths = manager.getVerticalRlEdgeMaskWidths();
 
 		assert.equal(maskWidths.left, 60);
-		assert.equal(maskWidths.right, 24);
+		assert.equal(maskWidths.right, 60);
 	});
 
-	it("does not add a right edge mask on the first or last vertical-rl page", function() {
+	it("does not add a right edge mask on the first vertical-rl page", function() {
 		let manager = createManagerAtLogicalOffset(0);
-
-		assert.equal(manager.getVerticalRlEdgeMaskWidths().right, 0);
-
-		manager.scrollToLogicalPage(2);
 
 		assert.equal(manager.getVerticalRlEdgeMaskWidths().right, 0);
 	});
