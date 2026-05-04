@@ -160,6 +160,8 @@ class DefaultViewManager {
 
 		this.removeEventListeners();
 
+		this.removeVerticalRlViewportClip();
+
 		this.stage.destroy();
 
 		this.rendered = false;
@@ -657,25 +659,78 @@ class DefaultViewManager {
 
 		let maskWidths = this.getVerticalRlEdgeMaskWidths();
 		if (!maskWidths.left && !maskWidths.right) {
+			this.removeVerticalRlViewportClip();
 			if (this.container.dataset && this.container.dataset.epubVrlEdgeMask) {
-				this.container.style.boxShadow = this._verticalRlPreviousBoxShadow || "";
 				delete this.container.dataset.epubVrlEdgeMask;
 				delete this.container.dataset.epubVrlEdgeMaskLeft;
 				delete this.container.dataset.epubVrlEdgeMaskRight;
-				this._verticalRlPreviousBoxShadow = undefined;
 			}
 			return;
 		}
 
-		if (this._verticalRlPreviousBoxShadow === undefined) {
-			this._verticalRlPreviousBoxShadow = this.container.style.boxShadow || "";
+		let overlay = this.getVerticalRlViewportClipOverlay();
+		if (!overlay) {
+			return;
 		}
 
+		let parentRect = overlay.parentElement.getBoundingClientRect();
+		let containerRect = this.container.getBoundingClientRect();
 		let color = this.getVerticalRlEdgeMaskColor();
-		this.container.style.boxShadow = `inset ${maskWidths.left}px 0 0 ${color}, inset -${maskWidths.right}px 0 0 ${color}`;
+		overlay.style.left = `${containerRect.left - parentRect.left}px`;
+		overlay.style.top = `${containerRect.top - parentRect.top}px`;
+		overlay.style.width = `${this.container.clientWidth}px`;
+		overlay.style.height = `${this.container.clientHeight}px`;
+		overlay.style.boxShadow = `inset ${maskWidths.left}px 0 0 ${color}, inset -${maskWidths.right}px 0 0 ${color}`;
 		this.container.dataset.epubVrlEdgeMask = String(Math.max(maskWidths.left, maskWidths.right));
 		this.container.dataset.epubVrlEdgeMaskLeft = String(maskWidths.left);
 		this.container.dataset.epubVrlEdgeMaskRight = String(maskWidths.right);
+	}
+
+	getVerticalRlViewportClipOverlay(){
+		let parent = this.container && this.container.parentElement;
+		if (!parent || !parent.style) {
+			return null;
+		}
+
+		if (this._verticalRlViewportClipOverlay && this._verticalRlViewportClipOverlay.parentElement === parent) {
+			return this._verticalRlViewportClipOverlay;
+		}
+
+		if (this._verticalRlViewportClipOverlay) {
+			this._verticalRlViewportClipOverlay.remove();
+		}
+
+		let parentStyle = window.getComputedStyle(parent);
+		if (parentStyle.position === "static") {
+			this._verticalRlPreviousParentPosition = parent.style.position || "";
+			parent.style.position = "relative";
+		}
+
+		let overlay = document.createElement("div");
+		overlay.className = "epub-vrl-edge-mask";
+		overlay.setAttribute("aria-hidden", "true");
+		overlay.style.position = "absolute";
+		overlay.style.pointerEvents = "none";
+		overlay.style.zIndex = "2147483647";
+		overlay.style.background = "transparent";
+		overlay.style.contain = "strict";
+		parent.appendChild(overlay);
+		this._verticalRlViewportClipOverlay = overlay;
+
+		return overlay;
+	}
+
+	removeVerticalRlViewportClip(){
+		if (this._verticalRlViewportClipOverlay) {
+			this._verticalRlViewportClipOverlay.remove();
+			this._verticalRlViewportClipOverlay = undefined;
+		}
+
+		let parent = this.container && this.container.parentElement;
+		if (parent && this._verticalRlPreviousParentPosition !== undefined) {
+			parent.style.position = this._verticalRlPreviousParentPosition;
+			this._verticalRlPreviousParentPosition = undefined;
+		}
 	}
 
 	getPageBoundaryShift(){
