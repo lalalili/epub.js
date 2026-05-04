@@ -21,6 +21,11 @@ const median = (values) => {
 	return sorted[Math.floor(sorted.length / 2)];
 };
 
+const cssPixelValue = (value) => {
+	const parsed = parseFloat(value);
+	return Number.isFinite(parsed) ? parsed : 0;
+};
+
 const calculateVerticalRlPageBoundaryShift = (boundary, lineLefts, lineWidth, linePitch, edgeGuardPx) => {
 	if (
 		!Number.isFinite(boundary) ||
@@ -288,13 +293,14 @@ class Contents {
 		return height;
 	}
 
-	verticalRlMetricsCacheKey(visiblePageWidth) {
+	verticalRlMetricsCacheKey(visiblePageWidth, visiblePageHeight) {
 		const content = this.content || this.document.body;
 		const docEl = this.documentElement;
 		const bodyStyle = content && this.window ? this.window.getComputedStyle(content) : null;
 		const docFonts = this.document && this.document.fonts ? this.document.fonts : null;
 		return [
 			Number.isFinite(Number(visiblePageWidth)) ? Number(visiblePageWidth) : "",
+			Number.isFinite(Number(visiblePageHeight)) ? Number(visiblePageHeight) : "",
 			docEl ? docEl.clientWidth : 0,
 			docEl ? docEl.clientHeight : 0,
 			content ? content.clientWidth : 0,
@@ -1376,9 +1382,10 @@ class Contents {
 		};
 	}
 
-	verticalRlPageMetrics(pageWidth) {
+	verticalRlPageMetrics(pageWidth, pageHeight) {
 		const safePageWidth = Number(pageWidth);
-		const cacheKey = this.verticalRlMetricsCacheKey(safePageWidth);
+		const safePageHeight = Number(pageHeight);
+		const cacheKey = this.verticalRlMetricsCacheKey(safePageWidth, safePageHeight);
 		if (this._verticalRlPageMetricsCache && this._verticalRlPageMetricsCache.key === cacheKey) {
 			return this._verticalRlPageMetricsCache.metrics;
 		}
@@ -1420,7 +1427,21 @@ class Contents {
 		}
 
 		const pageLength = effectivePageAdvance || safePageWidth || 1;
-		const totalPages = Math.max(1, Math.ceil(Math.max(0, rawWidth - (safePageWidth || pageLength)) / pageLength) + 1);
+		let totalPages = Math.max(1, Math.ceil(Math.max(0, rawWidth - (safePageWidth || pageLength)) / pageLength) + 1);
+		let verticalFragmentPages = 1;
+		if (
+			totalPages <= 1 &&
+			Number.isFinite(safePageHeight) &&
+			safePageHeight > 0 &&
+			Number.isFinite(rawHeight) &&
+			rawHeight > safePageHeight + VERTICAL_RL_MIN_EDGE_GUARD
+		) {
+			const contentStyle = content && this.window ? this.window.getComputedStyle(content) : null;
+			const columnGap = contentStyle ? cssPixelValue(contentStyle.columnGap) : 0;
+			const blockAdvance = Math.max(1, safePageHeight + Math.max(0, columnGap));
+			verticalFragmentPages = Math.max(1, Math.ceil(Math.max(0, rawHeight - safePageHeight) / blockAdvance) + 1);
+			totalPages = Math.max(totalPages, verticalFragmentPages);
+		}
 		const snappedContentWidth = ((totalPages - 1) * pageLength) + (safePageWidth || pageLength);
 		const firstInteriorBoundary = totalPages > 1
 			? snappedContentWidth - (safePageWidth || pageLength) - pageLength
@@ -1446,6 +1467,7 @@ class Contents {
 			sampleCount: metrics.sampleCount,
 			gapMad: metrics.gapMad,
 			stable: metrics.stable,
+			verticalFragmentPages,
 			totalPages,
 			snappedContentWidth
 		};

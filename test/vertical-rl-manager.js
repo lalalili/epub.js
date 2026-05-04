@@ -138,4 +138,59 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(metrics.pageBoundaryShift, 16);
 		assert.ok(metrics.effectivePageAdvance >= metrics.pageWidth);
 	});
+
+	it("materializes pages when vertical-rl content overflows along the block axis", function() {
+		let contents = Object.create(Contents.prototype);
+		contents._verticalRlPageMetricsCache = null;
+		contents.content = {
+			clientWidth: 1062,
+			clientHeight: 709,
+			childElementCount: 1,
+			scrollWidth: 1062,
+			scrollHeight: 2203
+		};
+		contents.documentElement = {
+			clientWidth: 1062,
+			clientHeight: 709,
+			scrollWidth: 1062,
+			scrollHeight: 2203
+		};
+		contents.document = {
+			body: contents.content,
+			fonts: null
+		};
+		contents.window = {
+			getComputedStyle: function() {
+				return {
+					fontSize: "20px",
+					lineHeight: "36px",
+					letterSpacing: "0px",
+					fontFamily: "serif",
+					columnGap: "88px"
+				};
+			}
+		};
+		contents.measureVerticalRlRect = function() {
+			return {
+				rawWidth: 974,
+				rawHeight: 2183
+			};
+		};
+		contents.estimateVerticalRlLineMetrics = function() {
+			return {
+				linePitch: 36,
+				lineWidth: 20,
+				lineLefts: [],
+				sampleCount: 8,
+				gapMad: 0,
+				stable: true
+			};
+		};
+
+		let metrics = contents.verticalRlPageMetrics(1062, 709);
+
+		assert.equal(metrics.totalPages, 3);
+		assert.equal(metrics.verticalFragmentPages, 3);
+		assert.ok(metrics.snappedContentWidth > metrics.pageWidth);
+	});
 });

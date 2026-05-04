@@ -325,7 +325,7 @@ class IframeView {
 				this.contents.writingMode() === "vertical-rl" &&
 				this.contents.verticalRlPageMetrics
 			) {
-				pageMetrics = this.contents.verticalRlPageMetrics(visiblePageWidth);
+				pageMetrics = this.contents.verticalRlPageMetrics(visiblePageWidth, height);
 				width = pageMetrics.rawWidth;
 				if (pageMetrics.effectivePageAdvance > 0) {
 					pageAdvance = pageMetrics.effectivePageAdvance;
