@@ -627,6 +627,16 @@ class DefaultViewManager {
 					} else {
 						shift = Math.max(shift, expand);
 					}
+				} else if (
+					left > 0 &&
+					rect.left >= rawLeft &&
+					rect.left < boundary &&
+					rect.right <= boundary
+				) {
+					let targetLeft = Math.max(0, Math.floor(rect.left - rawLeft - 1));
+					if (targetLeft < left) {
+						shift = Math.min(shift, targetLeft - left);
+					}
 				}
 			}
 			if (shift !== 0) {
