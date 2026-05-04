@@ -754,6 +754,19 @@ class DefaultViewManager {
 		return Math.min(shift, Math.max(0, Math.floor(advance / 3)));
 	}
 
+	getLogicalOffsetForPageIndex(pageIndex, totalPages, maxScroll){
+		let advance = this.getPageAdvance() || 0;
+		let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
+		let logicalOffset = targetIndex * advance;
+		let boundaryShift = this.getPageBoundaryShift();
+
+		if (this.isRtlVerticalPaginated() && boundaryShift > 0 && targetIndex > 0 && targetIndex < totalPages - 1) {
+			logicalOffset = Math.max(0, logicalOffset - boundaryShift);
+		}
+
+		return Math.min(maxScroll, logicalOffset);
+	}
+
 	getNormalizedLogicalScrollLeft(){
 		if (!this.container) {
 			return 0;
@@ -822,6 +835,22 @@ class DefaultViewManager {
 			return totalPages - 1;
 		}
 
+		if (this.isRtlVerticalPaginated()) {
+			let nearestPageIndex = 0;
+			let nearestDistance = Infinity;
+
+			for (let i = 0; i < totalPages; i++) {
+				let targetOffset = this.getLogicalOffsetForPageIndex(i, totalPages, maxLogicalScroll);
+				let distance = Math.abs(normalized - targetOffset);
+				if (distance < nearestDistance) {
+					nearestDistance = distance;
+					nearestPageIndex = i;
+				}
+			}
+
+			return nearestPageIndex;
+		}
+
 		let pageIndex = Math.floor((normalized + 0.5) / advance);
 		return Math.max(0, Math.min(totalPages - 1, pageIndex));
 	}
@@ -832,13 +861,7 @@ class DefaultViewManager {
 		let totalPages = this.getTotalPagesForCurrentView();
 		let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
 		let maxScroll = this.getMaxLogicalScrollLeft();
-		let logicalOffset = targetIndex * advance;
-		let boundaryShift = this.getPageBoundaryShift();
-
-		if (boundaryShift > 0 && totalPages > 1) {
-			logicalOffset += boundaryShift;
-		}
-		logicalOffset = Math.min(maxScroll, logicalOffset);
+		let logicalOffset = this.getLogicalOffsetForPageIndex(targetIndex, totalPages, maxScroll);
 		let left = logicalOffset;
 
 		if (this.settings.direction === "rtl") {

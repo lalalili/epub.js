@@ -51,7 +51,7 @@ const calculateVerticalRlPageBoundaryShift = (boundary, lineLefts, lineWidth, li
 		}
 
 		const lineRight = lineLeft + safeLineWidth;
-		if (boundary >= lineLeft - linePitch && boundary <= lineRight + guard) {
+		if (boundary >= lineLeft - guard && boundary <= lineRight + guard) {
 			shift = Math.max(shift, (lineRight + guard) - boundary);
 		}
 	}
@@ -1445,7 +1445,7 @@ class Contents {
 		}
 		const snappedContentWidth = ((totalPages - 1) * pageLength) + (safePageWidth || pageLength);
 		const firstInteriorBoundary = totalPages > 1
-			? snappedContentWidth - (safePageWidth || pageLength) - pageLength
+			? snappedContentWidth - pageLength
 			: null;
 		const pageBoundaryShift = calculateVerticalRlPageBoundaryShift(
 			firstInteriorBoundary,

@@ -67,21 +67,21 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getCurrentPageIndex(), 2);
 	});
 
-	it("nudges the first vertical-rl page away from a detected line boundary", function() {
+	it("keeps the first vertical-rl page at the chapter start", function() {
 		let manager = createManagerAtLogicalOffset(0);
 
 		manager.scrollToLogicalPage(0);
 
-		assert.equal(manager.container.scrollLeft, -20);
+		assert.equal(manager.container.scrollLeft, 0);
 		assert.equal(manager.getCurrentPageIndex(), 0);
 	});
 
-	it("nudges interior vertical-rl pages away from a detected line boundary", function() {
+	it("pulls interior vertical-rl pages back from a detected right edge boundary", function() {
 		let manager = createManagerAtLogicalOffset(0);
 
 		manager.scrollToLogicalPage(1);
 
-		assert.equal(manager.container.scrollLeft, -260);
+		assert.equal(manager.container.scrollLeft, -220);
 		assert.equal(manager.getCurrentPageIndex(), 1);
 	});
 
@@ -125,7 +125,7 @@ describe("Vertical RL manager pagination", function() {
 			return {
 				linePitch: 36,
 				lineWidth: 20,
-				lineLefts: [280, 316],
+				lineLefts: [612, 648],
 				sampleCount: 8,
 				gapMad: 0,
 				stable: true
@@ -135,7 +135,7 @@ describe("Vertical RL manager pagination", function() {
 		let metrics = contents.verticalRlPageMetrics(300);
 
 		assert.equal(metrics.effectivePageAdvance, 324);
-		assert.equal(metrics.pageBoundaryShift, 16);
+		assert.equal(metrics.pageBoundaryShift, 12);
 		assert.ok(metrics.effectivePageAdvance >= metrics.pageWidth);
 	});
 
