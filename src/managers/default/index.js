@@ -552,6 +552,29 @@ class DefaultViewManager {
 		return Math.max(widths.left, widths.right);
 	}
 
+	getLogicalPageStepToNextPage(){
+		let advance = this.getPageAdvance() || 0;
+
+		if (!advance || !this.container || !this.isRtlVerticalPaginated()) {
+			return advance;
+		}
+
+		let totalPages = this.getTotalPagesForCurrentView();
+		let currentPageIndex = this.getCurrentPageIndex();
+		let nextPageIndex = Math.min(totalPages - 1, currentPageIndex + 1);
+
+		if (nextPageIndex <= currentPageIndex) {
+			return 0;
+		}
+
+		let maxScroll = this.getMaxLogicalScrollLeft();
+		let currentOffset = this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll);
+		let nextOffset = this.getLogicalOffsetForPageIndex(nextPageIndex, totalPages, maxScroll);
+		let step = Math.abs(nextOffset - currentOffset);
+
+		return step > 0 ? step : advance;
+	}
+
 	snapVerticalRlEdgeMaskWidths(widths, maxMask){
 		if (!this.container || !widths || maxMask <= 0) {
 			return widths;
@@ -573,12 +596,8 @@ class DefaultViewManager {
 		let rawRight = containerRect.right - iframeRect.left;
 		let left = Math.max(0, Number(widths.left) || 0);
 		let right = Math.max(0, Number(widths.right) || 0);
-		let advance = this.layout && Number(
-			this.layout.effectivePageAdvance ||
-			this.layout.delta ||
-			this.layout.pageWidth ||
-			0
-		);
+		let nextPageStep = Number(this.getLogicalPageStepToNextPage()) || 0;
+		let edgeTolerance = Math.max(1, Math.min(4, Math.round((this.layout && this.layout.edgeGuardPx) || 1)));
 		let rects = [];
 		let walker = doc.createTreeWalker(body, 4, {
 			acceptNode(node) {
@@ -626,7 +645,9 @@ class DefaultViewManager {
 			let shift = 0;
 			for (const rect of rects) {
 				let rawLeftStraddler = rect.left < rawLeft && rect.right > rawLeft;
-				let clippedAtNextRight = advance > 0 && rect.right + advance > rawRight;
+				let hasNextPage = nextPageStep > 0;
+				let clippedAtNextRight = !hasNextPage || rect.right + nextPageStep > rawRight;
+				let visibleAtNextRight = hasNextPage && rect.right + nextPageStep <= rawRight;
 				if (left <= 0 && rawLeftStraddler && clippedAtNextRight) {
 					continue;
 				}
@@ -643,11 +664,22 @@ class DefaultViewManager {
 					rect.right > rawLeft &&
 					rect.left < boundary &&
 					rect.right <= boundary &&
+					!visibleAtNextRight &&
 					(!rawLeftStraddler || clippedAtNextRight)
 				) {
 					let targetLeft = Math.max(0, Math.floor(Math.max(rect.left, rawLeft) - rawLeft - 1));
 					if (targetLeft < left) {
 						shift = Math.min(shift, targetLeft - left);
+					}
+				} else if (
+					left > 0 &&
+					visibleAtNextRight &&
+					rect.left >= boundary &&
+					rect.left - boundary <= edgeTolerance
+				) {
+					let targetLeft = Math.ceil(rect.right - rawLeft + 1);
+					if (targetLeft > left) {
+						shift = Math.max(shift, targetLeft - left);
 					}
 				}
 			}

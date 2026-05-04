@@ -85,6 +85,16 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getCurrentPageIndex(), 1);
 	});
 
+	it("uses the actual logical page step when a boundary shift changes the next offset", function() {
+		let manager = createManagerAtLogicalOffset(0);
+
+		assert.equal(manager.getLogicalPageStepToNextPage(), 220);
+
+		manager.scrollToLogicalPage(1);
+
+		assert.equal(manager.getLogicalPageStepToNextPage(), 225);
+	});
+
 	it("shrinks the left vertical-rl edge mask to preserve a full line box", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {
@@ -408,6 +418,92 @@ describe("Vertical RL manager pagination", function() {
 		}, 120);
 
 		assert.equal(maskWidths.left, 20);
+		assert.equal(maskWidths.right, 0);
+	});
+
+	it("expands a left mask for a near-boundary line visible on the next page", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "議題、學術研究與發現，不會給出簡單的答案",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			getBoundingClientRect: function() {
+				return {
+					left: 341.9602,
+					right: 1404.4033
+				};
+			}
+		};
+		manager.layout = {
+			edgeGuardPx: 2
+		};
+		manager.getLogicalPageStepToNextPage = function() {
+			return 1020;
+		};
+		manager.views = {
+			first: function() {
+				return {
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: 0
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 360.2699,
+											right: 380.2699,
+											width: 20,
+											height: 680
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let maskWidths = manager.snapVerticalRlEdgeMaskWidths({
+			left: 18,
+			right: 0
+		}, 120);
+
+		assert.equal(maskWidths.left, 40);
 		assert.equal(maskWidths.right, 0);
 	});
 
