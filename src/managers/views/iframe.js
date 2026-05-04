@@ -164,7 +164,9 @@ class IframeView {
 			.then(function(){
 
 				// find and report the writingMode axis
-				let writingMode = this.contents.writingMode();
+				let writingMode = this.settings.writingMode
+					? this.contents.writingMode(this.settings.writingMode)
+					: this.contents.writingMode();
 
 				// Set the axis based on the flow and writing mode
 				let axis;

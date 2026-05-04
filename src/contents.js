@@ -90,6 +90,7 @@ class Contents {
 		this.cfiBase = cfiBase || "";
 		this._verticalRlMetricsCache = null;
 		this._verticalRlPageMetricsCache = null;
+		this._forcedWritingMode = "";
 
 		this.epubReadingSystem("epub.js", EPUBJS_VERSION);
 		this.called = 0;
@@ -1671,7 +1672,20 @@ class Contents {
 				return bodyComputedWM;
 			}
 		}
-		return this.window.getComputedStyle(this.documentElement)[WRITING_MODE] || '';
+		const documentComputedWM = this.window.getComputedStyle(this.documentElement)[WRITING_MODE] || '';
+		if (documentComputedWM && documentComputedWM !== "horizontal-tb") {
+			return documentComputedWM;
+		}
+
+		return this._forcedWritingMode || documentComputedWM;
+	}
+
+	forceWritingMode(mode) {
+		if (mode === "vertical-rl" || mode === "vertical-lr" || mode === "horizontal-tb") {
+			this._forcedWritingMode = mode;
+		}
+
+		return this._forcedWritingMode;
 	}
 
 	/**

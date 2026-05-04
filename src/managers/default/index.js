@@ -484,7 +484,8 @@ class DefaultViewManager {
 		}
 
 		let view = this.views && (this.views.first() || this.views.last());
-		let writingMode = view && view.contents && view.contents.writingMode ? view.contents.writingMode() : this.settings.writingMode;
+		let contentWritingMode = view && view.contents && view.contents.writingMode ? view.contents.writingMode() : "";
+		let writingMode = this.settings.writingMode || contentWritingMode;
 
 		return writingMode === "vertical-rl";
 	}
