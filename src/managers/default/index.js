@@ -538,11 +538,26 @@ class DefaultViewManager {
 		}
 
 		let left = Math.ceil(bleed);
+		let right = 0;
 		let maxMask = Math.max(0, Math.floor(advance / 4));
+		let boundaryShift = this.getPageBoundaryShift();
+
+		if (boundaryShift > 0) {
+			let totalPages = this.getTotalPagesForCurrentView();
+			let currentPageIndex = this.getCurrentPageIndex();
+			let maxScroll = this.getMaxLogicalScrollLeft();
+			let logicalOffset = this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll);
+			let unshiftedOffset = currentPageIndex * advance;
+			let edgeGuard = Math.max(0, Math.ceil((this.layout && this.layout.edgeGuardPx) || 0));
+
+			if (currentPageIndex > 0 && currentPageIndex < totalPages - 1 && logicalOffset < unshiftedOffset) {
+				right = Math.min(Math.ceil(boundaryShift + edgeGuard), maxMask);
+			}
+		}
 
 		return this.snapVerticalRlEdgeMaskWidths({
 			left: Math.min(left, maxMask),
-			right: 0
+			right
 		}, maxMask);
 	}
 

@@ -95,6 +95,27 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getLogicalPageStepToNextPage(), 225);
 	});
 
+	it("adds a right edge mask on a shifted interior vertical-rl page", function() {
+		let manager = createManagerAtLogicalOffset(0);
+
+		manager.scrollToLogicalPage(1);
+
+		let maskWidths = manager.getVerticalRlEdgeMaskWidths();
+
+		assert.equal(maskWidths.left, 60);
+		assert.equal(maskWidths.right, 24);
+	});
+
+	it("does not add a right edge mask on the first or last vertical-rl page", function() {
+		let manager = createManagerAtLogicalOffset(0);
+
+		assert.equal(manager.getVerticalRlEdgeMaskWidths().right, 0);
+
+		manager.scrollToLogicalPage(2);
+
+		assert.equal(manager.getVerticalRlEdgeMaskWidths().right, 0);
+	});
+
 	it("shrinks the left vertical-rl edge mask to preserve a full line box", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {
