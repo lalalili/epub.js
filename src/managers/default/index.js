@@ -510,6 +510,22 @@ class DefaultViewManager {
 		return Math.max(0, scrollLeft);
 	}
 
+	getMaxLogicalScrollLeft(){
+		if (!this.container) {
+			return 0;
+		}
+
+		return Math.max(0, this.container.scrollWidth - this.container.clientWidth);
+	}
+
+	getPageSnapTolerance(){
+		let advance = this.getPageAdvance() || 0;
+		let edgeGuard = this.layout && this.layout.edgeGuardPx ? this.layout.edgeGuardPx : 0;
+		let tolerance = Math.max(2, edgeGuard, Math.round(advance * 0.08));
+
+		return advance > 0 ? Math.min(Math.max(2, Math.round(advance / 4)), tolerance) : 2;
+	}
+
 	getTotalPagesForCurrentView(){
 		let view = this.views && (this.views.first() || this.views.last());
 		if (!view) {
@@ -535,6 +551,13 @@ class DefaultViewManager {
 
 		let totalPages = this.getTotalPagesForCurrentView();
 		let normalized = this.getNormalizedLogicalScrollLeft();
+		let maxLogicalScroll = this.getMaxLogicalScrollLeft();
+		let snapTolerance = this.getPageSnapTolerance();
+
+		if (this.isRtlVerticalPaginated() && totalPages > 1 && maxLogicalScroll > 0 && normalized >= maxLogicalScroll - snapTolerance) {
+			return totalPages - 1;
+		}
+
 		let pageIndex = Math.floor((normalized + 0.5) / advance);
 		return Math.max(0, Math.min(totalPages - 1, pageIndex));
 	}
@@ -543,7 +566,7 @@ class DefaultViewManager {
 		let advance = this.getPageAdvance();
 		let totalPages = this.getTotalPagesForCurrentView();
 		let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
-		let maxScroll = Math.max(0, this.container.scrollWidth - this.container.clientWidth);
+		let maxScroll = this.getMaxLogicalScrollLeft();
 		let left = targetIndex * advance;
 
 		if (this.settings.direction === "rtl") {
