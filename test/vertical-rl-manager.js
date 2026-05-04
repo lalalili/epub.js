@@ -125,7 +125,7 @@ describe("Vertical RL manager pagination", function() {
 			return {
 				linePitch: 36,
 				lineWidth: 20,
-				lineLefts: [612, 648],
+				lineLefts: [584, 620],
 				sampleCount: 8,
 				gapMad: 0,
 				stable: true
@@ -134,9 +134,9 @@ describe("Vertical RL manager pagination", function() {
 
 		let metrics = contents.verticalRlPageMetrics(300);
 
-		assert.equal(metrics.effectivePageAdvance, 324);
-		assert.equal(metrics.pageBoundaryShift, 12);
-		assert.ok(metrics.effectivePageAdvance >= metrics.pageWidth);
+		assert.equal(metrics.effectivePageAdvance, 288);
+		assert.equal(metrics.pageBoundaryShift, 20);
+		assert.ok(metrics.effectivePageAdvance < metrics.pageWidth);
 	});
 
 	it("materializes pages when vertical-rl content overflows along the block axis", function() {
@@ -189,6 +189,7 @@ describe("Vertical RL manager pagination", function() {
 
 		let metrics = contents.verticalRlPageMetrics(1062, 709);
 
+		assert.equal(metrics.effectivePageAdvance, 1044);
 		assert.equal(metrics.totalPages, 3);
 		assert.equal(metrics.verticalFragmentPages, 3);
 		assert.ok(metrics.snappedContentWidth > metrics.pageWidth);

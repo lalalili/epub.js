@@ -1423,8 +1423,8 @@ class Contents {
 			Number.isFinite(linePitch) &&
 			linePitch > 0
 		) {
-			const guardedWidth = Math.max(1, safePageWidth + edgeGuardPx);
-			effectivePageAdvance = Math.max(linePitch, Math.ceil(guardedWidth / linePitch) * linePitch);
+			const usableWidth = Math.max(1, safePageWidth - edgeGuardPx);
+			effectivePageAdvance = Math.max(linePitch, Math.floor(usableWidth / linePitch) * linePitch);
 		}
 
 		const pageLength = effectivePageAdvance || safePageWidth || 1;
