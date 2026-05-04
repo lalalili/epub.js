@@ -622,7 +622,7 @@ class DefaultViewManager {
 				if (rect.left < boundary && rect.right > boundary) {
 					let expand = Math.ceil(rect.right - boundary + 1);
 					let shrink = Math.ceil(boundary - rect.left + 1);
-					if (shrink > 0 && left - shrink >= 0 && shrink <= expand) {
+					if (shrink > 0 && left - shrink >= 0) {
 						shift = Math.min(shift, -shrink);
 					} else {
 						shift = Math.max(shift, expand);
