@@ -66,6 +66,15 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getCurrentPageIndex(), 2);
 	});
 
+	it("nudges the first vertical-rl page away from a detected line boundary", function() {
+		let manager = createManagerAtLogicalOffset(0);
+
+		manager.scrollToLogicalPage(0);
+
+		assert.equal(manager.container.scrollLeft, -20);
+		assert.equal(manager.getCurrentPageIndex(), 0);
+	});
+
 	it("nudges interior vertical-rl pages away from a detected line boundary", function() {
 		let manager = createManagerAtLogicalOffset(0);
 

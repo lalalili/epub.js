@@ -323,6 +323,9 @@ class DefaultViewManager {
 			.then(function(){
 
 				this.views.show();
+				if (this.isRtlVerticalPaginated() && !target) {
+					this.scrollToLogicalPage(0);
+				}
 
 				displaying.resolve();
 
@@ -583,9 +586,10 @@ class DefaultViewManager {
 		let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
 		let maxScroll = this.getMaxLogicalScrollLeft();
 		let logicalOffset = targetIndex * advance;
+		let boundaryShift = this.getPageBoundaryShift();
 
-		if (targetIndex > 0) {
-			logicalOffset += this.getPageBoundaryShift();
+		if (boundaryShift > 0 && totalPages > 1) {
+			logicalOffset += boundaryShift;
 		}
 		logicalOffset = Math.min(maxScroll, logicalOffset);
 		let left = logicalOffset;
