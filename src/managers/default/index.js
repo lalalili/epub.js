@@ -619,6 +619,9 @@ class DefaultViewManager {
 			let boundary = rawLeft + left;
 			let shift = 0;
 			for (const rect of rects) {
+				if (left <= 0) {
+					continue;
+				}
 				if (rect.left < boundary && rect.right > boundary) {
 					let expand = Math.ceil(rect.right - boundary + 1);
 					let shrink = Math.ceil(boundary - rect.left + 1);
@@ -629,11 +632,11 @@ class DefaultViewManager {
 					}
 				} else if (
 					left > 0 &&
-					rect.left >= rawLeft &&
+					rect.right > rawLeft &&
 					rect.left < boundary &&
 					rect.right <= boundary
 				) {
-					let targetLeft = Math.max(0, Math.floor(rect.left - rawLeft - 1));
+					let targetLeft = Math.max(0, Math.floor(Math.max(rect.left, rawLeft) - rawLeft - 1));
 					if (targetLeft < left) {
 						shift = Math.min(shift, targetLeft - left);
 					}

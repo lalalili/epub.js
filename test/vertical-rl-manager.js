@@ -245,6 +245,86 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(maskWidths.right, 0);
 	});
 
+	it("shrinks a left mask for a line box that straddles the raw left edge", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "那樣，我的姊妹、朋友、家人來看我",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			getBoundingClientRect: function() {
+				return {
+					left: 342,
+					right: 1404
+				};
+			}
+		};
+		manager.views = {
+			first: function() {
+				return {
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: 0
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 340.8,
+											right: 360.8,
+											width: 20,
+											height: 680
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let maskWidths = manager.snapVerticalRlEdgeMaskWidths({
+			left: 20,
+			right: 0
+		}, 120);
+
+		assert.equal(maskWidths.left, 0);
+		assert.equal(maskWidths.right, 0);
+	});
+
 	it("moves a vertical-rl page boundary past the clipped line box", function() {
 		let contents = Object.create(Contents.prototype);
 		contents._verticalRlPageMetricsCache = null;
