@@ -13,7 +13,7 @@ const isWebkit = hasNavigator && !isChrome && /AppleWebKit/.test(navigator.userA
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
 const VERTICAL_RL_WIDTH_GUARD = 2;
-const VERTICAL_RL_EDGE_GUARD = 12;
+const VERTICAL_RL_MIN_EDGE_GUARD = 2;
 
 const median = (values) => {
 	if (!values.length) return null;
@@ -1365,47 +1365,37 @@ class Contents {
 
 		const metrics = this.estimateVerticalRlLineMetrics(safePageWidth);
 		const linePitch = Number(metrics.linePitch);
-		const lineWidth = Number(metrics.lineWidth);
-		const edgeGuard = Math.max(
-			VERTICAL_RL_EDGE_GUARD,
-			Number.isFinite(lineWidth) && lineWidth > 0 ? Math.ceil(lineWidth / 2) + 2 : VERTICAL_RL_EDGE_GUARD
-		);
+		const edgeGuardPx = Number.isFinite(linePitch) && linePitch > 0
+			? Math.max(VERTICAL_RL_MIN_EDGE_GUARD, Math.round(linePitch * 0.12))
+			: 0;
 		let effectivePageAdvance = Number.isFinite(safePageWidth) && safePageWidth > 0 ? safePageWidth : null;
-		let hasUnsafePageModulo = false;
 
 		if (
 			Number.isFinite(safePageWidth) &&
 			safePageWidth > 0 &&
 			Number.isFinite(linePitch) &&
-			metrics.stable
+			linePitch > 0
 		) {
-			const remainder = safePageWidth % linePitch;
-			const unsafeRemainder = remainder > 2 && remainder < linePitch - 2;
-			hasUnsafePageModulo = unsafeRemainder;
-
-			if (unsafeRemainder) {
-				const guardedWidth = Math.max(linePitch, safePageWidth - (edgeGuard * 2));
-				effectivePageAdvance = Math.max(linePitch, Math.floor(guardedWidth / linePitch) * linePitch);
-			}
+			const usableWidth = Math.max(1, safePageWidth - edgeGuardPx);
+			effectivePageAdvance = Math.max(linePitch, Math.floor(usableWidth / linePitch) * linePitch);
 		}
 
 		const pageLength = effectivePageAdvance || safePageWidth || 1;
-		const totalPages = pageLength < safePageWidth
-			? Math.max(1, Math.ceil(Math.max(0, rawWidth - safePageWidth) / pageLength) + 1)
-			: Math.max(1, Math.ceil(rawWidth / (safePageWidth || pageLength)));
+		const totalPages = Math.max(1, Math.ceil(Math.max(0, rawWidth - (safePageWidth || pageLength)) / pageLength) + 1);
 		const snappedContentWidth = ((totalPages - 1) * pageLength) + (safePageWidth || pageLength);
 		const result = {
 			rawWidth,
+			rawPaintWidth: rawWidth,
 			rawHeight,
 			pageWidth: safePageWidth,
 			effectivePageAdvance,
 			linePitch: metrics.linePitch,
 			lineWidth: metrics.lineWidth,
-			edgeGuard,
+			edgeGuardPx,
+			edgeGuard: edgeGuardPx,
 			sampleCount: metrics.sampleCount,
 			gapMad: metrics.gapMad,
 			stable: metrics.stable,
-			hasUnsafePageModulo,
 			totalPages,
 			snappedContentWidth
 		};
@@ -1457,12 +1447,11 @@ class Contents {
 			effectivePageAdvance: pageMetrics.effectivePageAdvance,
 			linePitch: pageMetrics.linePitch,
 			lineWidth: pageMetrics.lineWidth,
-			edgeGuard: pageMetrics.edgeGuard,
+			edgeGuardPx: pageMetrics.edgeGuardPx,
 			sampleCount: pageMetrics.sampleCount,
 			gapMad: pageMetrics.gapMad,
 			stable: pageMetrics.stable,
-			totalPages,
-			hasUnsafePageModulo: pageMetrics.hasUnsafePageModulo
+			totalPages
 		};
 
 		if (this.window.console && this.window.console.debug) {

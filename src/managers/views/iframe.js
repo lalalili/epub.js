@@ -5,6 +5,10 @@ import Contents from "../../contents";
 import { EVENTS } from "../../utils/constants";
 import { Pane, Highlight, Underline } from "marks-pane";
 
+const shouldDebugVerticalRl = () => {
+	return typeof window !== "undefined" && window.__EPUB_VRL_DEBUG__ === true;
+};
+
 class IframeView {
 	constructor(section, options) {
 		this.settings = extend({
@@ -358,6 +362,19 @@ class IframeView {
 					// add a blank page
 					width += this.layout.effectivePageAdvance || this.layout.pageWidth;
 				}
+			}
+
+			if (pageMetrics && shouldDebugVerticalRl() && window.console && window.console.debug) {
+				window.console.debug("[epubjs:vertical-rl:expand]", {
+					href: this.section && this.section.href,
+					rawWidth: pageMetrics.rawWidth,
+					rawPaintWidth: pageMetrics.rawPaintWidth,
+					snappedContentWidth: pageMetrics.snappedContentWidth,
+					pageAdvance,
+					pageCount: pageMetrics.totalPages,
+					linePitch: pageMetrics.linePitch,
+					edgeGuardPx: pageMetrics.edgeGuardPx
+				});
 			}
 
 

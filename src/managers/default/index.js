@@ -598,6 +598,7 @@ class DefaultViewManager {
 			}.bind(this))
 			.then(function(){
 				if(this.isPaginated && this.settings.axis === "horizontal") {
+					let pageAdvance = this.getPageAdvance();
 					if (this.isRtlVerticalPaginated()) {
 						this.scrollToLogicalPage(this.getTotalPagesForCurrentView() - 1);
 					} else if (this.settings.direction === "rtl") {
@@ -605,10 +606,10 @@ class DefaultViewManager {
 							this.scrollTo(0, 0, true);
 						}
 						else{
-							this.scrollTo((this.container.scrollWidth * -1) + this.layout.delta, 0, true);
+							this.scrollTo((this.container.scrollWidth * -1) + pageAdvance, 0, true);
 						}
 					} else {
-						this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
+						this.scrollTo(this.container.scrollWidth - pageAdvance, 0, true);
 					}
 				}
 				this.views.show();
@@ -636,17 +637,19 @@ class DefaultViewManager {
 		}
 
 		if(!next && this.isPaginated && this.settings.axis === "horizontal" && (!dir || dir === "ltr")) {
+			let pageAdvance = this.getPageAdvance();
 
 			this.scrollLeft = this.container.scrollLeft;
 
-			left = this.container.scrollLeft + this.container.offsetWidth + this.layout.delta;
+			left = this.container.scrollLeft + this.container.offsetWidth + pageAdvance;
 
 			if(left <= this.container.scrollWidth) {
-				this.scrollBy(this.layout.delta, 0, true);
+				this.scrollBy(pageAdvance, 0, true);
 			} else {
 				next = this.views.last().section.next();
 			}
 		} else if (!next && this.isPaginated && this.settings.axis === "horizontal" && dir === "rtl") {
+			let pageAdvance = this.getPageAdvance();
 
 			this.scrollLeft = this.container.scrollLeft;
 
@@ -654,15 +657,15 @@ class DefaultViewManager {
 				left = this.container.scrollLeft;
 
 				if (left > 0) {
-					this.scrollBy(this.layout.delta, 0, true);
+					this.scrollBy(pageAdvance, 0, true);
 				} else {
 					next = this.views.last().section.next();
 				}
 			} else {
-				left = this.container.scrollLeft + ( this.layout.delta * -1 );
+				left = this.container.scrollLeft + ( pageAdvance * -1 );
 
 				if (left > this.container.scrollWidth * -1){
-					this.scrollBy(this.layout.delta, 0, true);
+					this.scrollBy(pageAdvance, 0, true);
 				} else {
 					next = this.views.last().section.next();
 				}
@@ -736,18 +739,20 @@ class DefaultViewManager {
 		}
 
 		if(!prev && this.isPaginated && this.settings.axis === "horizontal" && (!dir || dir === "ltr")) {
+			let pageAdvance = this.getPageAdvance();
 
 			this.scrollLeft = this.container.scrollLeft;
 
 			left = this.container.scrollLeft;
 
 			if(left > 0) {
-				this.scrollBy(-this.layout.delta, 0, true);
+				this.scrollBy(-pageAdvance, 0, true);
 			} else {
 				prev = this.views.first().section.prev();
 			}
 
 		} else if (!prev && this.isPaginated && this.settings.axis === "horizontal" && dir === "rtl") {
+			let pageAdvance = this.getPageAdvance();
 
 			this.scrollLeft = this.container.scrollLeft;
 
@@ -755,7 +760,7 @@ class DefaultViewManager {
 				left = this.container.scrollLeft + this.container.offsetWidth;
 
 				if (left < this.container.scrollWidth) {
-					this.scrollBy(-this.layout.delta, 0, true);
+					this.scrollBy(-pageAdvance, 0, true);
 				} else {
 					prev = this.views.first().section.prev();
 				}
@@ -764,7 +769,7 @@ class DefaultViewManager {
 				left = this.container.scrollLeft;
 
 				if (left < 0) {
-					this.scrollBy(-this.layout.delta, 0, true);
+					this.scrollBy(-pageAdvance, 0, true);
 				} else {
 					prev = this.views.first().section.prev();
 				}
@@ -1173,7 +1178,7 @@ class DefaultViewManager {
 			);
 
 			// Set the look ahead offset for what is visible
-			this.settings.offset = this.layout.delta / this.layout.divisor;
+			this.settings.offset = this.getPageAdvance() / this.layout.divisor;
 
 			// this.stage.addStyleRules("iframe", [{"margin-right" : this.layout.gap + "px"}]);
 
