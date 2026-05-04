@@ -344,6 +344,7 @@ class DefaultViewManager {
 	}
 
 	afterResized(view){
+		this.syncVerticalRlViewportClip();
 		this.emit(EVENTS.MANAGERS.RESIZE, view.section);
 	}
 
@@ -494,6 +495,189 @@ class DefaultViewManager {
 		return this.layout && (this.layout.effectivePageAdvance || this.layout.delta || this.layout.pageWidth || this.layout.width);
 	}
 
+	getVerticalRlEdgeMaskColor(){
+		let view = this.views && (this.views.first() || this.views.last());
+		let doc = view && view.contents && view.contents.document;
+		let win = view && view.contents && view.contents.window;
+		let candidates = [];
+
+		if (doc && win) {
+			candidates.push(doc.body, doc.documentElement);
+		}
+		if (this.container && typeof window !== "undefined") {
+			candidates.push(this.container);
+		}
+
+		for (const element of candidates) {
+			if (!element) {
+				continue;
+			}
+
+			let style = (element.ownerDocument && element.ownerDocument.defaultView)
+				? element.ownerDocument.defaultView.getComputedStyle(element)
+				: window.getComputedStyle(element);
+			let color = style && style.backgroundColor;
+
+			if (color && color !== "transparent" && color !== "rgba(0, 0, 0, 0)") {
+				return color;
+			}
+		}
+
+		return "rgb(255, 255, 255)";
+	}
+
+	getVerticalRlEdgeMaskWidths(){
+		let advance = this.getPageAdvance() || 0;
+		let visibleWidth = this.container ? this.container.clientWidth || 0 : 0;
+		let bleed = visibleWidth - advance;
+
+		if (!this.isRtlVerticalPaginated() || !advance || !visibleWidth || bleed <= 1) {
+			return { left: 0, right: 0 };
+		}
+
+		let left = Math.ceil(bleed);
+		let maxMask = Math.max(0, Math.floor(advance / 4));
+
+		return this.snapVerticalRlEdgeMaskWidths({
+			left: Math.min(left, maxMask),
+			right: 0
+		}, maxMask);
+	}
+
+	getVerticalRlEdgeMaskWidth(){
+		let widths = this.getVerticalRlEdgeMaskWidths();
+
+		return Math.max(widths.left, widths.right);
+	}
+
+	snapVerticalRlEdgeMaskWidths(widths, maxMask){
+		if (!this.container || !widths || maxMask <= 0) {
+			return widths;
+		}
+
+		let view = this.views && (this.views.first() || this.views.last());
+		let iframe = view && view.iframe;
+		let doc = view && view.contents && view.contents.document;
+		let win = view && view.contents && view.contents.window;
+		let body = doc && doc.body;
+
+		if (!iframe || !doc || !win || !body || typeof doc.createTreeWalker !== "function") {
+			return widths;
+		}
+
+		let containerRect = this.container.getBoundingClientRect();
+		let iframeRect = iframe.getBoundingClientRect();
+		let rawLeft = containerRect.left - iframeRect.left;
+		let rawRight = containerRect.right - iframeRect.left;
+		let left = Math.max(0, Number(widths.left) || 0);
+		let right = Math.max(0, Number(widths.right) || 0);
+		let rects = [];
+		let walker = doc.createTreeWalker(body, 4, {
+			acceptNode(node) {
+				let text = String(node.nodeValue || "").replace(/\s+/g, "");
+				if (text.length < 2) {
+					return 2;
+				}
+
+				let parent = node.parentElement;
+				if (!parent) {
+					return 2;
+				}
+
+				let style = win.getComputedStyle(parent);
+				if (style.display === "none" || style.visibility === "hidden") {
+					return 2;
+				}
+
+				return 1;
+			}
+		});
+		let node;
+
+		while ((node = walker.nextNode()) && rects.length < 1000) {
+			let range = doc.createRange();
+			range.selectNodeContents(node);
+
+			for (const rect of Array.from(range.getClientRects())) {
+				if (rect.width > 0 && rect.height > 0) {
+					rects.push(rect);
+				}
+
+				if (rects.length >= 1000) {
+					break;
+				}
+			}
+
+			if (range.detach) {
+				range.detach();
+			}
+		}
+
+		const snapLeft = () => {
+			let boundary = rawLeft + left;
+			let shift = 0;
+			for (const rect of rects) {
+				if (rect.left < boundary && rect.right > boundary) {
+					shift = Math.max(shift, Math.ceil(rect.right - boundary + 1));
+				}
+			}
+			if (shift > 0) {
+				left = Math.min(maxMask, left + shift);
+			}
+			return shift;
+		};
+		const snapRight = () => {
+			let boundary = rawRight - right;
+			let shift = 0;
+			for (const rect of rects) {
+				if (rect.left < boundary && rect.right > boundary) {
+					shift = Math.max(shift, Math.ceil(boundary - rect.left + 1));
+				}
+			}
+			if (shift > 0) {
+				right = Math.min(maxMask, right + shift);
+			}
+			return shift;
+		};
+
+		for (let i = 0; i < 4; i++) {
+			let shifted = snapLeft() + snapRight();
+			if (!shifted) {
+				break;
+			}
+		}
+
+		return { left, right };
+	}
+
+	syncVerticalRlViewportClip(){
+		if (!this.container || !this.container.style) {
+			return;
+		}
+
+		let maskWidths = this.getVerticalRlEdgeMaskWidths();
+		if (!maskWidths.left && !maskWidths.right) {
+			if (this.container.dataset && this.container.dataset.epubVrlEdgeMask) {
+				this.container.style.boxShadow = this._verticalRlPreviousBoxShadow || "";
+				delete this.container.dataset.epubVrlEdgeMask;
+				delete this.container.dataset.epubVrlEdgeMaskLeft;
+				delete this.container.dataset.epubVrlEdgeMaskRight;
+				this._verticalRlPreviousBoxShadow = undefined;
+			}
+			return;
+		}
+
+		if (this._verticalRlPreviousBoxShadow === undefined) {
+			this._verticalRlPreviousBoxShadow = this.container.style.boxShadow || "";
+		}
+
+		let color = this.getVerticalRlEdgeMaskColor();
+		this.container.style.boxShadow = `inset ${maskWidths.left}px 0 0 ${color}, inset -${maskWidths.right}px 0 0 ${color}`;
+		this.container.dataset.epubVrlEdgeMask = String(Math.max(maskWidths.left, maskWidths.right));
+		this.container.dataset.epubVrlEdgeMaskLeft = String(maskWidths.left);
+		this.container.dataset.epubVrlEdgeMaskRight = String(maskWidths.right);
+	}
+
 	getPageBoundaryShift(){
 		if (!this.isRtlVerticalPaginated() || !this.layout) {
 			return 0;
@@ -582,6 +766,7 @@ class DefaultViewManager {
 	}
 
 	scrollToLogicalPage(pageIndex){
+		this.syncVerticalRlViewportClip();
 		let advance = this.getPageAdvance();
 		let totalPages = this.getTotalPagesForCurrentView();
 		let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
@@ -606,6 +791,7 @@ class DefaultViewManager {
 		}
 
 		this.scrollTo(left, 0, true);
+		this.syncVerticalRlViewportClip();
 	}
 
 	waitForVerticalRlLayoutReady(){
@@ -1238,6 +1424,7 @@ class DefaultViewManager {
 		this.viewSettings.height = this.layout.height;
 
 		this.setLayout(this.layout);
+		this.syncVerticalRlViewportClip();
 	}
 
 	setLayout(layout){
