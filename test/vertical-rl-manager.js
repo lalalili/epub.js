@@ -261,6 +261,9 @@ describe("Vertical RL manager pagination", function() {
 				};
 			}
 		};
+		manager.layout = {
+			effectivePageAdvance: 1044
+		};
 		manager.views = {
 			first: function() {
 				return {
@@ -322,6 +325,89 @@ describe("Vertical RL manager pagination", function() {
 		}, 120);
 
 		assert.equal(maskWidths.left, 0);
+		assert.equal(maskWidths.right, 0);
+	});
+
+	it("keeps a left mask when the straddling line is visible on the next page", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "「這是很普通的事情，」他說",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			getBoundingClientRect: function() {
+				return {
+					left: 342,
+					right: 1404
+				};
+			}
+		};
+		manager.layout = {
+			effectivePageAdvance: 1000
+		};
+		manager.views = {
+			first: function() {
+				return {
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: 0
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 340.8,
+											right: 360.8,
+											width: 20,
+											height: 680
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let maskWidths = manager.snapVerticalRlEdgeMaskWidths({
+			left: 20,
+			right: 0
+		}, 120);
+
+		assert.equal(maskWidths.left, 20);
 		assert.equal(maskWidths.right, 0);
 	});
 

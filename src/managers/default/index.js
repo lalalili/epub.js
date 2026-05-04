@@ -573,6 +573,12 @@ class DefaultViewManager {
 		let rawRight = containerRect.right - iframeRect.left;
 		let left = Math.max(0, Number(widths.left) || 0);
 		let right = Math.max(0, Number(widths.right) || 0);
+		let advance = this.layout && Number(
+			this.layout.effectivePageAdvance ||
+			this.layout.delta ||
+			this.layout.pageWidth ||
+			0
+		);
 		let rects = [];
 		let walker = doc.createTreeWalker(body, 4, {
 			acceptNode(node) {
@@ -619,7 +625,9 @@ class DefaultViewManager {
 			let boundary = rawLeft + left;
 			let shift = 0;
 			for (const rect of rects) {
-				if (left <= 0) {
+				let rawLeftStraddler = rect.left < rawLeft && rect.right > rawLeft;
+				let clippedAtNextRight = advance > 0 && rect.right + advance > rawRight;
+				if (left <= 0 && rawLeftStraddler && clippedAtNextRight) {
 					continue;
 				}
 				if (rect.left < boundary && rect.right > boundary) {
@@ -634,7 +642,8 @@ class DefaultViewManager {
 					left > 0 &&
 					rect.right > rawLeft &&
 					rect.left < boundary &&
-					rect.right <= boundary
+					rect.right <= boundary &&
+					(!rawLeftStraddler || clippedAtNextRight)
 				) {
 					let targetLeft = Math.max(0, Math.floor(Math.max(rect.left, rawLeft) - rawLeft - 1));
 					if (targetLeft < left) {
