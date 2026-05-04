@@ -1,4 +1,5 @@
 import assert from "assert";
+import Contents from "../src/contents";
 import DefaultViewManager from "../src/managers/default";
 
 describe("Vertical RL manager pagination", function() {
@@ -82,5 +83,58 @@ describe("Vertical RL manager pagination", function() {
 
 		assert.equal(manager.container.scrollLeft, -260);
 		assert.equal(manager.getCurrentPageIndex(), 1);
+	});
+
+	it("moves a vertical-rl page boundary past the clipped line box", function() {
+		let contents = Object.create(Contents.prototype);
+		contents._verticalRlPageMetricsCache = null;
+		contents.content = {
+			clientWidth: 300,
+			clientHeight: 700,
+			childElementCount: 1,
+			scrollWidth: 700,
+			scrollHeight: 700
+		};
+		contents.documentElement = {
+			clientWidth: 300,
+			clientHeight: 700,
+			scrollWidth: 700,
+			scrollHeight: 700
+		};
+		contents.document = {
+			body: contents.content,
+			fonts: null
+		};
+		contents.window = {
+			getComputedStyle: function() {
+				return {
+					fontSize: "20px",
+					lineHeight: "36px",
+					letterSpacing: "0px",
+					fontFamily: "serif"
+				};
+			}
+		};
+		contents.measureVerticalRlRect = function() {
+			return {
+				rawWidth: 700,
+				rawHeight: 700
+			};
+		};
+		contents.estimateVerticalRlLineMetrics = function() {
+			return {
+				linePitch: 36,
+				lineWidth: 20,
+				lineLefts: [280],
+				sampleCount: 8,
+				gapMad: 0,
+				stable: true
+			};
+		};
+
+		let metrics = contents.verticalRlPageMetrics(300);
+
+		assert.equal(metrics.effectivePageAdvance, 288);
+		assert.equal(metrics.pageBoundaryShift, 16);
 	});
 });
