@@ -353,7 +353,11 @@ class DefaultViewManager {
 	getVerticalRlPageIndexForOffset(offset, width){
 		let advance = this.getPageAdvance() || 0;
 		let view = this.views && (this.views.first() || this.views.last());
-		let contentWidth = width || (view && view.width ? view.width() : 0) || this.container.scrollWidth || 0;
+		let contentWidth = Math.max(
+			width || 0,
+			(view && view.width ? view.width() : 0) || 0,
+			this.container.scrollWidth || 0
+		);
 		let visiblePageWidth = this.layout.pageWidth || this.layout.width || advance;
 		let totalPages = this.getTotalPagesForCurrentView();
 		let maxPhysicalStart = Math.max(0, contentWidth - visiblePageWidth);

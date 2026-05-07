@@ -173,6 +173,37 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getCurrentPageIndex(), 2);
 	});
 
+	it("uses the scrollable width when vertical-rl anchor offsets exceed the view width", function() {
+		let manager = createManagerAtLogicalOffset(0);
+
+		manager.container.clientWidth = 1062;
+		manager.container.scrollWidth = 19854;
+		manager.layout.effectivePageAdvance = 1044;
+		manager.layout.delta = 1044;
+		manager.layout.pageWidth = 1062;
+		manager.layout.width = 1062;
+		manager.layout.pageBoundaryShift = 15;
+		manager.views.first = function() {
+			return {
+				width: function() {
+					return 19053;
+				},
+				contents: {
+					writingMode: function() {
+						return "vertical-rl";
+					}
+				}
+			};
+		};
+
+		manager.moveTo({
+			left: 18487,
+			top: 0
+		}, 19053);
+
+		assert.equal(manager.getCurrentPageIndex(), 1);
+	});
+
 	it("uses the actual logical page step when a boundary shift changes the next offset", function() {
 		let manager = createManagerAtLogicalOffset(0);
 
