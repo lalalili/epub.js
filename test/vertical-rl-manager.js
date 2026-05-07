@@ -1,6 +1,7 @@
 import assert from "assert";
 import Contents from "../src/contents";
 import DefaultViewManager from "../src/managers/default";
+import Rendition from "../src/rendition";
 import { replaceLinks } from "../src/utils/replacements";
 
 describe("Vertical RL manager pagination", function() {
@@ -92,6 +93,31 @@ describe("Vertical RL manager pagination", function() {
 		link.onclick();
 
 		assert.equal(clickedHref, "OEBPS/Text/Section0005.xhtml#footnote-1");
+	});
+
+	it("keeps spine-relative hash targets from being normalized twice", function() {
+		let rendition = Object.create(Rendition.prototype);
+
+		rendition.book = {
+			path: {
+				relative: function(href) {
+					return "relative:" + href;
+				}
+			}
+		};
+
+		assert.equal(
+			rendition.resolveLinkHref("OEBPS/Text/Section0005.xhtml#footnote-1"),
+			"OEBPS/Text/Section0005.xhtml#footnote-1"
+		);
+		assert.equal(
+			rendition.resolveLinkHref("#footnote-1", { sectionHref: "OEBPS/Text/Section0005.xhtml" }),
+			"OEBPS/Text/Section0005.xhtml#footnote-1"
+		);
+		assert.equal(
+			rendition.resolveLinkHref("/epub-reader/manifest/book/OEBPS/Text/Section0005.xhtml#footnote-1"),
+			"relative:/epub-reader/manifest/book/OEBPS/Text/Section0005.xhtml#footnote-1"
+		);
 	});
 
 	it("falls back to a measurable element for empty hash targets", function() {

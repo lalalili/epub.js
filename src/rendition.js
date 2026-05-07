@@ -1103,10 +1103,26 @@ class Rendition {
 	handleLinks(contents) {
 		if (contents) {
 			contents.on(EVENTS.CONTENTS.LINK_CLICKED, (href) => {
-				let relative = this.book.path.relative(href);
+				let relative = this.resolveLinkHref(href, contents);
 				this.display(relative);
 			});
 		}
+	}
+
+	resolveLinkHref(href, contents) {
+		if (!href) {
+			return href;
+		}
+
+		if (href.indexOf("#") === 0 && contents && contents.sectionHref) {
+			return contents.sectionHref + href;
+		}
+
+		if (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.indexOf("/") === 0) {
+			return this.book.path.relative(href);
+		}
+
+		return href;
 	}
 
 	/**
