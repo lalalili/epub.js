@@ -1,6 +1,7 @@
 import assert from "assert";
 import Contents from "../src/contents";
 import DefaultViewManager from "../src/managers/default";
+import { replaceLinks } from "../src/utils/replacements";
 
 describe("Vertical RL manager pagination", function() {
 	function createManagerAtLogicalOffset(logicalOffset) {
@@ -76,6 +77,68 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getCurrentPageIndex(), 0);
 	});
 
+	it("keeps same-document hash links scoped to the current section href", function() {
+		let content = document.createElement("div");
+		let link = document.createElement("a");
+		let clickedHref;
+
+		link.setAttribute("href", "#footnote-1");
+		content.appendChild(link);
+
+		replaceLinks(content, function(href) {
+			clickedHref = href;
+		}, "OEBPS/Text/Section0005.xhtml");
+
+		link.onclick();
+
+		assert.equal(clickedHref, "OEBPS/Text/Section0005.xhtml#footnote-1");
+	});
+
+	it("falls back to a measurable element for empty hash targets", function() {
+		let contents = Object.create(Contents.prototype);
+		let body = document.createElement("div");
+		let anchor = document.createElement("a");
+		let parent = document.createElement("aside");
+
+		anchor.id = "footnote-1";
+		parent.appendChild(anchor);
+		body.appendChild(parent);
+
+		anchor.getBoundingClientRect = function() {
+			return {
+				left: 0,
+				top: 0,
+				width: 0,
+				height: 0
+			};
+		};
+		parent.getBoundingClientRect = function() {
+			return {
+				left: 240,
+				top: 12,
+				width: 80,
+				height: 24
+			};
+		};
+
+		contents.document = {
+			body: body,
+			getElementById: function(id) {
+				return id === "footnote-1" ? anchor : null;
+			}
+		};
+		contents.epubcfi = {
+			isCfiString: function() {
+				return false;
+			}
+		};
+
+		let offset = contents.locationOf("OEBPS/Text/Section0005.xhtml#footnote-1");
+
+		assert.equal(offset.left, 240);
+		assert.equal(offset.top, 12);
+	});
+
 	it("pulls interior vertical-rl pages back from a detected right edge boundary", function() {
 		let manager = createManagerAtLogicalOffset(0);
 
@@ -83,6 +146,31 @@ describe("Vertical RL manager pagination", function() {
 
 		assert.equal(manager.container.scrollLeft, -220);
 		assert.equal(manager.getCurrentPageIndex(), 1);
+	});
+
+	it("moves to the vertical-rl logical page that contains an anchor target", function() {
+		let manager = createManagerAtLogicalOffset(0);
+
+		manager.moveTo({
+			left: 610,
+			top: 0
+		}, 780);
+
+		assert.equal(manager.getCurrentPageIndex(), 0);
+
+		manager.moveTo({
+			left: 300,
+			top: 0
+		}, 780);
+
+		assert.equal(manager.getCurrentPageIndex(), 1);
+
+		manager.moveTo({
+			left: 20,
+			top: 0
+		}, 780);
+
+		assert.equal(manager.getCurrentPageIndex(), 2);
 	});
 
 	it("uses the actual logical page step when a boundary shift changes the next offset", function() {

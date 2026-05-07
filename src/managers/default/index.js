@@ -350,6 +350,41 @@ class DefaultViewManager {
 		this.emit(EVENTS.MANAGERS.RESIZE, view.section);
 	}
 
+	getVerticalRlPageIndexForOffset(offset, width){
+		let advance = this.getPageAdvance() || 0;
+		let view = this.views && (this.views.first() || this.views.last());
+		let contentWidth = width || (view && view.width ? view.width() : 0) || this.container.scrollWidth || 0;
+		let visiblePageWidth = this.layout.pageWidth || this.layout.width || advance;
+		let totalPages = this.getTotalPagesForCurrentView();
+		let maxPhysicalStart = Math.max(0, contentWidth - visiblePageWidth);
+		let maxLogicalScroll = this.getMaxLogicalScrollLeft();
+		let targetLeft = Math.max(0, Math.min(contentWidth, Number(offset.left) || 0));
+		let tolerance = this.getPageSnapTolerance();
+		let nearestIndex = 0;
+		let nearestDistance = Infinity;
+
+		for (let i = 0; i < totalPages; i++) {
+			let logicalOffset = this.getLogicalOffsetForPageIndex(i, totalPages, maxLogicalScroll);
+			let physicalStart = Math.max(0, Math.min(maxPhysicalStart, maxPhysicalStart - logicalOffset));
+			let physicalEnd = Math.min(contentWidth, physicalStart + visiblePageWidth);
+
+			if (targetLeft >= physicalStart - tolerance && targetLeft <= physicalEnd + tolerance) {
+				return i;
+			}
+
+			let distance = targetLeft < physicalStart
+				? physicalStart - targetLeft
+				: targetLeft - physicalEnd;
+
+			if (distance < nearestDistance) {
+				nearestDistance = distance;
+				nearestIndex = i;
+			}
+		}
+
+		return nearestIndex;
+	}
+
 	moveTo(offset, width){
 		var distX = 0,
 				distY = 0;
@@ -359,14 +394,7 @@ class DefaultViewManager {
 		} else {
 			let pageAdvance = this.getPageAdvance() || this.layout.delta || this.layout.width || 1;
 			if (this.isRtlVerticalPaginated()) {
-				let view = this.views && (this.views.first() || this.views.last());
-				let contentWidth = width || (view && view.width ? view.width() : 0) || this.container.scrollWidth || 0;
-				let visiblePageWidth = this.layout.pageWidth || this.layout.width || pageAdvance;
-				let maxPhysicalStart = Math.max(0, contentWidth - visiblePageWidth);
-				let physicalStart = Math.max(0, Math.min(maxPhysicalStart, offset.left || 0));
-				let logicalOffset = Math.max(0, maxPhysicalStart - physicalStart);
-				let logicalIndex = Math.floor((logicalOffset + 0.5) / pageAdvance);
-				this.scrollToLogicalPage(logicalIndex);
+				this.scrollToLogicalPage(this.getVerticalRlPageIndexForOffset(offset, width));
 				return;
 			}
 			distX = Math.floor(offset.left / pageAdvance) * pageAdvance;

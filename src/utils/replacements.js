@@ -72,7 +72,7 @@ export function replaceMeta(doc, section){
 }
 
 // TODO: move me to Contents
-export function replaceLinks(contents, fn) {
+export function replaceLinks(contents, fn, sectionHref) {
 
 	var links = contents.querySelectorAll("a[href]");
 
@@ -105,7 +105,9 @@ export function replaceLinks(contents, fn) {
 
 			link.onclick = function(){
 
-				if(linkUrl && linkUrl.hash) {
+				if(sectionHref && href && href.indexOf("#") === 0) {
+					fn(sectionHref + href);
+				} else if(linkUrl && linkUrl.hash) {
 					fn(linkUrl.Path.path + linkUrl.hash);
 				} else if(linkUrl){
 					fn(linkUrl.Path.path);

@@ -70,9 +70,10 @@ const calculateVerticalRlPageBoundaryShift = (boundary, lineLefts, lineWidth, li
 	* @param {element} content Parent Element (typically Body)
 	* @param {string} cfiBase Section component of CFIs
 	* @param {number} sectionIndex Index in Spine of Conntent's Section
+	* @param {string} sectionHref Section href
 	*/
 class Contents {
-	constructor(doc, content, cfiBase, sectionIndex) {
+	constructor(doc, content, cfiBase, sectionIndex, sectionHref) {
 		// Blank Cfi for Parsing
 		this.epubcfi = new EpubCFI();
 
@@ -88,6 +89,7 @@ class Contents {
 
 		this.sectionIndex = sectionIndex || 0;
 		this.cfiBase = cfiBase || "";
+		this.sectionHref = sectionHref || "";
 		this._verticalRlMetricsCache = null;
 		this._verticalRlPageMetricsCache = null;
 		this._forcedWritingMode = "";
@@ -796,6 +798,10 @@ class Contents {
 				} else {
 					position = el.getBoundingClientRect();
 				}
+
+				if (!position || (!position.width && !position.height)) {
+					position = this.locationOfElement(el);
+				}
 			}
 		}
 
@@ -805,6 +811,24 @@ class Contents {
 		}
 
 		return targetPos;
+	}
+
+	locationOfElement(el) {
+		let candidate = el;
+		let position;
+
+		while (candidate && candidate !== this.document.body) {
+			if (candidate.getBoundingClientRect) {
+				position = candidate.getBoundingClientRect();
+				if (position && (position.width || position.height)) {
+					return position;
+				}
+			}
+
+			candidate = candidate.firstElementChild || candidate.nextElementSibling || candidate.parentElement;
+		}
+
+		return position;
 	}
 
 	/**
@@ -1618,7 +1642,7 @@ class Contents {
 	linksHandler() {
 		replaceLinks(this.content, (href) => {
 			this.emit(EVENTS.CONTENTS.LINK_CLICKED, href);
-		});
+		}, this.sectionHref);
 	}
 
 	/**
