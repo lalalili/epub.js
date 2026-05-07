@@ -814,10 +814,12 @@ class DefaultViewManager {
 		let parentRect = overlay.parentElement.getBoundingClientRect();
 		let containerRect = this.container.getBoundingClientRect();
 		let color = this.getVerticalRlEdgeMaskColor();
+		let overlayWidth = Math.ceil(containerRect.width || this.container.clientWidth || 0) + 1;
+		let overlayHeight = Math.ceil(containerRect.height || this.container.clientHeight || 0) + 1;
 		overlay.style.left = `${containerRect.left - parentRect.left}px`;
 		overlay.style.top = `${containerRect.top - parentRect.top}px`;
-		overlay.style.width = `${this.container.clientWidth}px`;
-		overlay.style.height = `${this.container.clientHeight}px`;
+		overlay.style.width = `${overlayWidth}px`;
+		overlay.style.height = `${overlayHeight}px`;
 		overlay.style.boxShadow = `inset ${maskWidths.left}px 0 0 ${color}, inset -${maskWidths.right}px 0 0 ${color}`;
 		this.container.dataset.epubVrlEdgeMask = String(Math.max(maskWidths.left, maskWidths.right));
 		this.container.dataset.epubVrlEdgeMaskLeft = String(maskWidths.left);

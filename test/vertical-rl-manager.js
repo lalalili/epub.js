@@ -283,6 +283,51 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getVerticalRlEdgeMaskWidths().right, 0);
 	});
 
+	it("covers sub-pixel vertical-rl viewport edges with the mask overlay", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let parent = document.createElement("div");
+		let container = document.createElement("div");
+
+		parent.appendChild(container);
+		document.body.appendChild(parent);
+
+		parent.getBoundingClientRect = function() {
+			return {
+				left: 341.9602,
+				top: 67.9971,
+				width: 1062.4431,
+				height: 708.7358
+			};
+		};
+		container.getBoundingClientRect = function() {
+			return {
+				left: 341.9602,
+				top: 67.9971,
+				width: 1062.4431,
+				height: 708.7358
+			};
+		};
+		manager.container = container;
+		manager.getVerticalRlEdgeMaskWidths = function() {
+			return {
+				left: 16,
+				right: 14
+			};
+		};
+		manager.getVerticalRlEdgeMaskColor = function() {
+			return "rgb(255, 255, 255)";
+		};
+
+		manager.syncVerticalRlViewportClip();
+
+		let overlay = parent.querySelector(".epub-vrl-edge-mask");
+		assert.equal(overlay.style.width, "1064px");
+		assert.equal(overlay.style.height, "710px");
+		assert.equal(container.dataset.epubVrlEdgeMaskRight, "14");
+
+		parent.remove();
+	});
+
 	it("caps right edge snapping to the previous visible page overlap", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {
