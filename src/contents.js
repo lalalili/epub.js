@@ -63,6 +63,53 @@ const calculateVerticalRlPageBoundaryShift = (boundary, lineLefts, lineWidth, li
 	return Math.min(Math.ceil(shift), Math.max(0, Math.floor(linePitch + safeLineWidth + guard)));
 };
 
+const resolveHorizontalTextWidth = (range, rangeRect, content) => {
+	const width = Number(rangeRect && rangeRect.width);
+	const scrollWidth = Number(content && content.scrollWidth);
+	const clientWidth = Number(content && content.clientWidth);
+	const ownerDocument = content && content.ownerDocument;
+	const bodyScrollWidth = Number(ownerDocument && ownerDocument.body && ownerDocument.body.scrollWidth);
+	const visibleScrollWidth = Math.max(
+		Number.isFinite(clientWidth) ? clientWidth : 0,
+		Number.isFinite(bodyScrollWidth) ? bodyScrollWidth : 0
+	);
+	const viewportWidth = Number.isFinite(clientWidth) && clientWidth > 0
+		? clientWidth
+		: (visibleScrollWidth || (Number.isFinite(scrollWidth) ? scrollWidth : 0));
+	const pollutedByOffscreenContent = (
+		Number.isFinite(width) &&
+		width > 0 &&
+		rangeRect.left < -Math.max(1, viewportWidth) &&
+		width > Math.max(1, visibleScrollWidth || viewportWidth) * 2
+	);
+
+	if (!pollutedByOffscreenContent || !range || typeof range.getClientRects !== "function") {
+		return width;
+	}
+
+	const rects = Array.from(range.getClientRects()).filter((rect) => {
+		return (
+			Number.isFinite(rect.left) &&
+			Number.isFinite(rect.right) &&
+			Number.isFinite(rect.bottom) &&
+			rect.width > 0 &&
+			rect.height > 0 &&
+			rect.right > 0 &&
+			rect.bottom > 0
+		);
+	});
+
+	if (!rects.length) {
+		return visibleScrollWidth || scrollWidth;
+	}
+
+	const minLeft = Math.min(...rects.map((rect) => rect.left));
+	const maxRight = Math.max(...rects.map((rect) => rect.right));
+	const filteredWidth = Math.max(0, maxRight - minLeft);
+
+	return Math.max(filteredWidth, visibleScrollWidth);
+};
+
 /**
 	* Handles DOM manipulation, queries and events for View contents
 	* @class
@@ -235,7 +282,7 @@ class Contents {
 
 		// get the width of the text content
 		rect = range.getBoundingClientRect();
-		width = rect.width;
+		width = resolveHorizontalTextWidth(range, rect, content);
 
 		if (border && border.width) {
 			width += border.width;
