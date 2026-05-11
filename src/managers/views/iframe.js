@@ -361,6 +361,8 @@ class IframeView {
 				width = Math.ceil(width / this.layout.pageWidth) * this.layout.pageWidth;
 			}
 
+			this._contentWidth = width;
+
 			if (this.settings.forceEvenPages) {
 				columns = this.layout.effectivePageAdvance && this.layout.effectivePageAdvance !== this.layout.pageWidth
 					? this.layout.count(width).pages

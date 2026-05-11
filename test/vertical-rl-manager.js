@@ -5,6 +5,118 @@ import Rendition from "../src/rendition";
 import { replaceLinks } from "../src/utils/replacements";
 
 describe("Vertical RL manager pagination", function() {
+	function createHorizontalManager({ contentWidth, iframeWidth, scrollLeft = 0, nextSection = null }) {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let container = {
+			clientWidth: 1062,
+			offsetWidth: 1062,
+			scrollWidth: iframeWidth,
+			scrollLeft
+		};
+		let view = {
+			_contentWidth: contentWidth,
+			width: function() {
+				return iframeWidth;
+			},
+			section: {
+				next: function() {
+					return nextSection;
+				},
+				prev: function() {
+					return null;
+				}
+			},
+			contents: {
+				writingMode: function() {
+					return "horizontal-tb";
+				}
+			}
+		};
+
+		manager.container = container;
+		manager.isPaginated = true;
+		manager.settings = {
+			axis: "horizontal",
+			direction: "ltr"
+		};
+		manager.layout = {
+			name: "reflowable",
+			pageWidth: 1062,
+			width: 1062,
+			effectivePageAdvance: 1062,
+			delta: 1062,
+			count: function(totalLength, pageLength) {
+				let pages = Math.max(1, Math.ceil(totalLength / pageLength));
+				return { pages, spreads: pages };
+			}
+		};
+		manager.views = {
+			length: 1,
+			first: function() {
+				return view;
+			},
+			last: function() {
+				return view;
+			},
+			show: function() {}
+		};
+		manager.scrollTo = function(left) {
+			container.scrollLeft = left;
+		};
+		manager.scrollBy = function() {
+			throw new Error("scrollBy should not be used for horizontal paginated navigation");
+		};
+
+		return manager;
+	}
+
+	it("does not count force-even blank spread pages as navigable horizontal content", function() {
+		let manager = createHorizontalManager({
+			contentWidth: 1062,
+			iframeWidth: 2124
+		});
+
+		assert.equal(manager.getTotalPagesForCurrentView(), 1);
+		assert.equal(manager.getCurrentPageIndex(), 0);
+	});
+
+	it("rounds near-snapped horizontal scroll offsets to the intended page index", function() {
+		let manager = createHorizontalManager({
+			contentWidth: 3186,
+			iframeWidth: 3186,
+			scrollLeft: 1060.9
+		});
+
+		assert.equal(manager.getTotalPagesForCurrentView(), 3);
+		assert.equal(manager.getCurrentPageIndex(), 1);
+	});
+
+	it("moves to the next spine item instead of scrolling into a force-even blank page", async function() {
+		let appended = false;
+		let manager = createHorizontalManager({
+			contentWidth: 1062,
+			iframeWidth: 2124,
+			nextSection: {
+				properties: []
+			}
+		});
+
+		manager.clear = function() {};
+		manager.updateLayout = function() {};
+		manager.append = function() {
+			appended = true;
+			return Promise.resolve();
+		};
+		manager.handleNextPrePaginated = function() {
+			return Promise.resolve();
+		};
+
+		await manager.next();
+
+		assert.equal(manager.container.scrollLeft, 0);
+		assert.equal(appended, true);
+	});
+
 	function createManagerAtLogicalOffset(logicalOffset) {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let container = {

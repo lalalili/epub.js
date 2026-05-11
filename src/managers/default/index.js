@@ -929,6 +929,25 @@ class DefaultViewManager {
 		return Math.max(0, this.container.scrollWidth - this.container.clientWidth);
 	}
 
+	getNavigableWidthForView(view){
+		let width = view && view.width ? view.width() : 0;
+
+		if (
+			view &&
+			!this.isRtlVerticalPaginated() &&
+			this.isPaginated &&
+			this.settings.axis === "horizontal" &&
+			this.layout &&
+			this.layout.name === "reflowable" &&
+			Number.isFinite(view._contentWidth) &&
+			view._contentWidth > 0
+		) {
+			return view._contentWidth;
+		}
+
+		return width;
+	}
+
 	getPageSnapTolerance(){
 		let advance = this.getPageAdvance() || 0;
 		let edgeGuard = this.layout && this.layout.edgeGuardPx ? this.layout.edgeGuardPx : 0;
@@ -943,7 +962,7 @@ class DefaultViewManager {
 			return 1;
 		}
 
-		let width = view.width();
+		let width = this.getNavigableWidthForView(view);
 		let advance = this.getPageAdvance();
 		let pageWidth = this.layout.pageWidth || this.layout.width || advance;
 
@@ -983,6 +1002,11 @@ class DefaultViewManager {
 			}
 
 			return nearestPageIndex;
+		}
+
+		let nearestPageIndex = Math.round(normalized / advance);
+		if (Math.abs(normalized - (nearestPageIndex * advance)) <= snapTolerance) {
+			return Math.max(0, Math.min(totalPages - 1, nearestPageIndex));
 		}
 
 		let pageIndex = Math.floor((normalized + 0.5) / advance);
@@ -1090,14 +1114,13 @@ class DefaultViewManager {
 		}
 
 		if(!next && this.isPaginated && this.settings.axis === "horizontal" && (!dir || dir === "ltr")) {
-			let pageAdvance = this.getPageAdvance();
+			let pageIndex = this.getCurrentPageIndex();
+			let totalPages = this.getTotalPagesForCurrentView();
 
 			this.scrollLeft = this.container.scrollLeft;
 
-			left = this.container.scrollLeft + this.container.offsetWidth + pageAdvance;
-
-			if(left <= this.container.scrollWidth) {
-				this.scrollBy(pageAdvance, 0, true);
+			if(pageIndex < totalPages - 1) {
+				this.scrollToLogicalPage(pageIndex + 1);
 			} else {
 				next = this.views.last().section.next();
 			}
@@ -1192,14 +1215,12 @@ class DefaultViewManager {
 		}
 
 		if(!prev && this.isPaginated && this.settings.axis === "horizontal" && (!dir || dir === "ltr")) {
-			let pageAdvance = this.getPageAdvance();
+			let pageIndex = this.getCurrentPageIndex();
 
 			this.scrollLeft = this.container.scrollLeft;
 
-			left = this.container.scrollLeft;
-
-			if(left > 0) {
-				this.scrollBy(-pageAdvance, 0, true);
+			if(pageIndex > 0) {
+				this.scrollToLogicalPage(pageIndex - 1);
 			} else {
 				prev = this.views.first().section.prev();
 			}
