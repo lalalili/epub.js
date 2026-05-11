@@ -106,4 +106,55 @@ describe("Contents textWidth", function() {
 			document.createRange = originalCreateRange;
 		}
 	});
+
+	it("uses body scroll width when range width only exceeds a one-page viewport by body sizing", function() {
+		let content = appendFixture(document.createElement("div"));
+		content.style.width = "1062px";
+		content.style.height = "709px";
+
+		let originalCreateRange = document.createRange.bind(document);
+		let descriptors = [
+			[content, "clientWidth", Object.getOwnPropertyDescriptor(content, "clientWidth")],
+			[content, "scrollWidth", Object.getOwnPropertyDescriptor(content, "scrollWidth")],
+			[document.body, "scrollWidth", Object.getOwnPropertyDescriptor(document.body, "scrollWidth")],
+			[document.documentElement, "clientWidth", Object.getOwnPropertyDescriptor(document.documentElement, "clientWidth")]
+		];
+
+		Object.defineProperty(content, "clientWidth", { configurable: true, value: 1150 });
+		Object.defineProperty(content, "scrollWidth", { configurable: true, value: 1062 });
+		Object.defineProperty(document.body, "scrollWidth", { configurable: true, value: 1062 });
+		Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: 1062 });
+		document.createRange = function() {
+			return {
+				selectNodeContents: function() {},
+				getBoundingClientRect: function() {
+					return {
+						left: 0,
+						right: 1150,
+						width: 1150,
+						height: 709,
+						bottom: 709
+					};
+				},
+				getClientRects: function() {
+					return [];
+				}
+			};
+		};
+
+		try {
+			let contents = new Contents(document, content);
+
+			assert.equal(contents.textWidth(), 1062);
+		} finally {
+			document.createRange = originalCreateRange;
+			descriptors.forEach(function([target, property, descriptor]) {
+				if (descriptor) {
+					Object.defineProperty(target, property, descriptor);
+				} else {
+					delete target[property];
+				}
+			});
+		}
+	});
 });

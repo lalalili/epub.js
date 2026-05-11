@@ -68,20 +68,43 @@ const resolveHorizontalTextWidth = (range, rangeRect, content) => {
 	const scrollWidth = Number(content && content.scrollWidth);
 	const clientWidth = Number(content && content.clientWidth);
 	const ownerDocument = content && content.ownerDocument;
+	const documentElementClientWidth = Number(ownerDocument && ownerDocument.documentElement && ownerDocument.documentElement.clientWidth);
 	const bodyScrollWidth = Number(ownerDocument && ownerDocument.body && ownerDocument.body.scrollWidth);
+	const viewportScrollWidth = Math.max(
+		Number.isFinite(scrollWidth) ? scrollWidth : 0,
+		Number.isFinite(bodyScrollWidth) ? bodyScrollWidth : 0
+	);
 	const visibleScrollWidth = Math.max(
 		Number.isFinite(clientWidth) ? clientWidth : 0,
 		Number.isFinite(bodyScrollWidth) ? bodyScrollWidth : 0
 	);
+	const visibleBodyWidth = Math.max(
+		Number.isFinite(bodyScrollWidth) ? bodyScrollWidth : 0,
+		Number.isFinite(scrollWidth) ? scrollWidth : 0
+	);
+	const frameViewportWidth = Number.isFinite(documentElementClientWidth) && documentElementClientWidth > 0
+		? documentElementClientWidth
+		: visibleScrollWidth;
 	const viewportWidth = Number.isFinite(clientWidth) && clientWidth > 0
 		? clientWidth
-		: (visibleScrollWidth || (Number.isFinite(scrollWidth) ? scrollWidth : 0));
+		: (visibleScrollWidth || viewportScrollWidth);
 	const pollutedByOffscreenContent = (
 		Number.isFinite(width) &&
 		width > 0 &&
 		rangeRect.left < -Math.max(1, viewportWidth) &&
 		width > Math.max(1, visibleScrollWidth || viewportWidth) * 2
 	);
+
+	if (
+		Number.isFinite(width) &&
+		width > 0 &&
+		visibleBodyWidth > 0 &&
+		frameViewportWidth > 0 &&
+		visibleBodyWidth <= frameViewportWidth + 1 &&
+		width > visibleBodyWidth + 1
+	) {
+		return visibleBodyWidth;
+	}
 
 	if (
 		Number.isFinite(width) &&
