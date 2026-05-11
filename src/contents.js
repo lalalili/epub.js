@@ -144,6 +144,34 @@ const resolveHorizontalTextWidth = (range, rangeRect, content) => {
 	return Math.max(filteredWidth, visibleScrollWidth);
 };
 
+const clampOnePageHorizontalTextWidth = (width, content) => {
+	const safeWidth = Number(width);
+	const scrollWidth = Number(content && content.scrollWidth);
+	const ownerDocument = content && content.ownerDocument;
+	const documentElementClientWidth = Number(ownerDocument && ownerDocument.documentElement && ownerDocument.documentElement.clientWidth);
+	const bodyScrollWidth = Number(ownerDocument && ownerDocument.body && ownerDocument.body.scrollWidth);
+	const visibleBodyWidth = Math.max(
+		Number.isFinite(bodyScrollWidth) ? bodyScrollWidth : 0,
+		Number.isFinite(scrollWidth) ? scrollWidth : 0
+	);
+	const frameViewportWidth = Number.isFinite(documentElementClientWidth) && documentElementClientWidth > 0
+		? documentElementClientWidth
+		: visibleBodyWidth;
+
+	if (
+		Number.isFinite(safeWidth) &&
+		safeWidth > 0 &&
+		visibleBodyWidth > 0 &&
+		frameViewportWidth > 0 &&
+		visibleBodyWidth <= frameViewportWidth + 1 &&
+		safeWidth > visibleBodyWidth + 1
+	) {
+		return visibleBodyWidth;
+	}
+
+	return safeWidth;
+};
+
 /**
 	* Handles DOM manipulation, queries and events for View contents
 	* @class
@@ -321,6 +349,7 @@ class Contents {
 		if (border && border.width) {
 			width += border.width;
 		}
+		width = clampOnePageHorizontalTextWidth(width, content);
 
 		return Math.round(width);
 	}

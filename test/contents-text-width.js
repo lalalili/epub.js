@@ -157,4 +157,55 @@ describe("Contents textWidth", function() {
 			});
 		}
 	});
+
+	it("does not add horizontal body padding as a second page when content fits one page", function() {
+		let content = appendFixture(document.createElement("div"));
+		content.style.width = "1062px";
+		content.style.height = "709px";
+		content.style.paddingLeft = "44px";
+		content.style.paddingRight = "44px";
+
+		let originalCreateRange = document.createRange.bind(document);
+		let descriptors = [
+			[content, "scrollWidth", Object.getOwnPropertyDescriptor(content, "scrollWidth")],
+			[document.body, "scrollWidth", Object.getOwnPropertyDescriptor(document.body, "scrollWidth")],
+			[document.documentElement, "clientWidth", Object.getOwnPropertyDescriptor(document.documentElement, "clientWidth")]
+		];
+
+		Object.defineProperty(content, "scrollWidth", { configurable: true, value: 1062 });
+		Object.defineProperty(document.body, "scrollWidth", { configurable: true, value: 1062 });
+		Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: 1062 });
+		document.createRange = function() {
+			return {
+				selectNodeContents: function() {},
+				getBoundingClientRect: function() {
+					return {
+						left: 0,
+						right: 1062,
+						width: 1062,
+						height: 709,
+						bottom: 709
+					};
+				},
+				getClientRects: function() {
+					return [];
+				}
+			};
+		};
+
+		try {
+			let contents = new Contents(document, content);
+
+			assert.equal(contents.textWidth(), 1062);
+		} finally {
+			document.createRange = originalCreateRange;
+			descriptors.forEach(function([target, property, descriptor]) {
+				if (descriptor) {
+					Object.defineProperty(target, property, descriptor);
+				} else {
+					delete target[property];
+				}
+			});
+		}
+	});
 });
