@@ -126,6 +126,7 @@ class Packaging {
 					href = item.getAttribute("href") || "",
 					type = item.getAttribute("media-type") || "",
 					overlay = item.getAttribute("media-overlay") || "",
+					fallback = item.getAttribute("fallback") || "",
 					properties = item.getAttribute("properties") || "";
 
 			manifest[id] = {
@@ -133,6 +134,8 @@ class Packaging {
 				// "url" : href,
 				"type" : type,
 				"overlay" : overlay,
+				"mediaOverlay" : overlay,
+				"fallback" : fallback,
 				"properties" : properties.length ? properties.split(" ") : []
 			};
 

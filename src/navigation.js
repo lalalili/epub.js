@@ -82,18 +82,22 @@ class Navigation {
 	 */
 	get(target) {
 		var index;
+		var lookupTarget = target;
 
 		if(!target) {
 			return this.toc;
 		}
 
 		if(target.indexOf("#") === 0) {
-			index = this.tocById[target.substring(1)];
+			lookupTarget = target.substring(1);
+			index = this.tocById[lookupTarget];
 		} else if(target in this.tocByHref){
 			index = this.tocByHref[target];
+		} else if(target in this.tocById){
+			index = this.tocById[target];
 		}
 
-		return this.getByIndex(target, index, this.toc);
+		return this.getByIndex(lookupTarget, index, this.toc);
 	}
 
 	/**

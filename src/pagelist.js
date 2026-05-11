@@ -15,6 +15,9 @@ class PageList {
 	constructor(xml) {
 		this.pages = [];
 		this.locations = [];
+		this.hrefs = [];
+		this.hrefByPage = {};
+		this.pageByHref = {};
 		this.epubcfi = new EpubCFI();
 
 		this.firstPage = 0;
@@ -106,7 +109,7 @@ class PageList {
 		var content = qs(item, "content");
 
 		var href = content.getAttribute("src");
-		var page = parseInt(pageText, 10);
+		var page = pageText;
 
 		return {
 			"href": href,
@@ -124,7 +127,7 @@ class PageList {
 		var content = qs(item, "a"),
 				href = content.getAttribute("href") || "",
 				text = content.textContent || "",
-				page = parseInt(text),
+				page = text,
 				isCfi = href.indexOf("epubcfi"),
 				split,
 				packageUrl,
@@ -156,19 +159,24 @@ class PageList {
 	process(pageList){
 		pageList.forEach(function(item){
 			this.pages.push(item.page);
+			if (item.href) {
+				this.hrefs.push(item.href);
+				this.hrefByPage[item.page] = item.href;
+				this.pageByHref[item.href] = item.page;
+			}
 			if (item.cfi) {
 				this.locations.push(item.cfi);
 			}
 		}, this);
 		this.firstPage = parseInt(this.pages[0]);
 		this.lastPage = parseInt(this.pages[this.pages.length-1]);
-		this.totalPages = this.lastPage - this.firstPage;
+		this.totalPages = isNaN(this.firstPage) || isNaN(this.lastPage) ? this.pages.length : this.lastPage - this.firstPage;
 	}
 
 	/**
 	 * Get a PageList result from a EpubCFI
 	 * @param  {string} cfi EpubCFI String
-	 * @return {number} page
+	 * @return {string | number} page
 	 */
 	pageFromCfi(cfi){
 		var pg = -1;
@@ -210,10 +218,6 @@ class PageList {
 	 */
 	cfiFromPage(pg){
 		var cfi = -1;
-		// check that pg is an int
-		if(typeof pg != "number"){
-			pg = parseInt(pg);
-		}
 
 		// check if the cfi is in the page list
 		// Pages could be unsorted.
@@ -223,6 +227,24 @@ class PageList {
 		}
 		// TODO: handle pages not in the list
 		return cfi;
+	}
+
+	/**
+	 * Get an href from a Page List Item
+	 * @param  {string | number} pg
+	 * @return {string | undefined} href
+	 */
+	hrefFromPage(pg){
+		return this.hrefByPage[pg];
+	}
+
+	/**
+	 * Get a Page List Item from an href
+	 * @param  {string} href
+	 * @return {string | number | undefined} page
+	 */
+	pageFromHref(href){
+		return this.pageByHref[href];
 	}
 
 	/**
@@ -262,6 +284,9 @@ class PageList {
 	destroy() {
 		this.pages = undefined;
 		this.locations = undefined;
+		this.hrefs = undefined;
+		this.hrefByPage = undefined;
+		this.pageByHref = undefined;
 		this.epubcfi = undefined;
 
 		this.pageList = undefined;

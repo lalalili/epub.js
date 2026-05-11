@@ -173,7 +173,29 @@ class Locations {
 			counter = 0;
 		}
 
+		if (locations.length === 0 && body) {
+			let fallback = this.fallbackCfi(body, cfiBase);
+			if (fallback) {
+				locations.push(fallback);
+			}
+		}
+
 		return locations;
+	}
+
+	fallbackCfi(body, cfiBase) {
+		var fallbackNode = body;
+		var children = body.children || [];
+
+		if (children.length) {
+			fallbackNode = children[0];
+		}
+
+		try {
+			return new EpubCFI(fallbackNode, cfiBase).toString();
+		} catch (error) {
+			return "";
+		}
 	}
 
 

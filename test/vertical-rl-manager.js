@@ -117,6 +117,108 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(appended, true);
 	});
 
+	it("treats sub-pixel vertical scroll bottom offsets as the end of the section", async function() {
+		let appended = false;
+		let scrolled = false;
+		let manager = Object.create(DefaultViewManager.prototype);
+		let nextSection = { properties: [] };
+
+		manager.container = {
+			scrollTop: 99.6,
+			offsetHeight: 100,
+			clientHeight: 100,
+			scrollHeight: 200
+		};
+		manager.isPaginated = true;
+		manager.settings = {
+			axis: "vertical",
+			direction: "ltr"
+		};
+		manager.layout = {
+			height: 100,
+			name: "reflowable"
+		};
+		manager.views = {
+			length: 1,
+			last: function() {
+				return {
+					section: {
+						next: function() {
+							return nextSection;
+						}
+					}
+				};
+			},
+			show: function() {}
+		};
+		manager.clear = function() {};
+		manager.updateLayout = function() {};
+		manager.handleNextPrePaginated = function() {
+			return Promise.resolve();
+		};
+		manager.append = function(section) {
+			appended = section === nextSection;
+			return Promise.resolve();
+		};
+		manager.scrollBy = function() {
+			scrolled = true;
+		};
+
+		await manager.next();
+
+		assert.equal(scrolled, false);
+		assert.equal(appended, true);
+	});
+
+	it("keeps the initial display target available for resize before first location", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let emittedCfi;
+
+		manager.target = "chapter.xhtml#frag";
+		manager.stage = {
+			size: function() {
+				return {
+					width: 320,
+					height: 480
+				};
+			}
+		};
+		manager._stageSize = {
+			width: 300,
+			height: 480
+		};
+		manager.viewSettings = {};
+		manager.bounds = function() {
+			return {};
+		};
+		manager.clear = function() {};
+		manager.updateLayout = function() {};
+		manager.emit = function(eventName, size, epubcfi) {
+			emittedCfi = epubcfi;
+		};
+
+		manager.resize();
+
+		assert.equal(emittedCfi, "chapter.xhtml#frag");
+	});
+
+	it("redisplays resize target even before rendition has a current location", function() {
+		let rendition = Object.create(Rendition.prototype);
+		let displayedTarget;
+
+		rendition.emit = function() {};
+		rendition.display = function(target) {
+			displayedTarget = target;
+		};
+
+		rendition.onResized({
+			width: 320,
+			height: 480
+		}, "chapter.xhtml#frag");
+
+		assert.equal(displayedTarget, "chapter.xhtml#frag");
+	});
+
 	function createManagerAtLogicalOffset(logicalOffset) {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let container = {
