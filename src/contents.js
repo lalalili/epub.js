@@ -83,6 +83,17 @@ const resolveHorizontalTextWidth = (range, rangeRect, content) => {
 		width > Math.max(1, visibleScrollWidth || viewportWidth) * 2
 	);
 
+	if (
+		Number.isFinite(width) &&
+		width > 0 &&
+		visibleScrollWidth > 0 &&
+		viewportWidth > 0 &&
+		visibleScrollWidth <= viewportWidth + 1 &&
+		width > viewportWidth + 1
+	) {
+		return visibleScrollWidth;
+	}
+
 	if (!pollutedByOffscreenContent || !range || typeof range.getClientRects !== "function") {
 		return width;
 	}

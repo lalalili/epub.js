@@ -73,4 +73,37 @@ describe("Contents textWidth", function() {
 
 		assert.ok(contents.textWidth() >= 900);
 	});
+
+	it("ignores an empty force-even spread when body content fits one page", function() {
+		let content = appendFixture(document.createElement("div"));
+		content.style.width = "1062px";
+		content.style.height = "709px";
+
+		let originalCreateRange = document.createRange.bind(document);
+		document.createRange = function() {
+			return {
+				selectNodeContents: function() {},
+				getBoundingClientRect: function() {
+					return {
+						left: 0,
+						right: 2124,
+						width: 2124,
+						height: 709,
+						bottom: 709
+					};
+				},
+				getClientRects: function() {
+					return [];
+				}
+			};
+		};
+
+		try {
+			let contents = new Contents(document, content);
+
+			assert.equal(contents.textWidth(), 1062);
+		} finally {
+			document.createRange = originalCreateRange;
+		}
+	});
 });
