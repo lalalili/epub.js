@@ -136,9 +136,22 @@ class Packaging {
 				"overlay" : overlay,
 				"mediaOverlay" : overlay,
 				"fallback" : fallback,
+				"fallbackChain" : [],
 				"properties" : properties.length ? properties.split(" ") : []
 			};
 
+		});
+
+		Object.keys(manifest).forEach(function(id){
+			var item = manifest[id],
+					fallback = item.fallback,
+					visited = {};
+
+			while(fallback && manifest[fallback] && !visited[fallback]) {
+				item.fallbackChain.push(fallback);
+				visited[fallback] = true;
+				fallback = manifest[fallback].fallback;
+			}
 		});
 
 		return manifest;
