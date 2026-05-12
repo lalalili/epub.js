@@ -203,6 +203,39 @@ class Spine {
 	}
 
 	/**
+	 * Index an href and encoded variants for spine lookups
+	 * @private
+	 * @param  {string} href
+	 * @param  {number} index
+	 */
+	indexHref(href, index) {
+		if (!href) {
+			return;
+		}
+
+		// Encode and Decode href lookups
+		// see pr for details: https://github.com/futurepress/epub.js/pull/358
+		this.spineByHref[decodeURI(href)] = index;
+		this.spineByHref[encodeURI(href)] = index;
+		this.spineByHref[href] = index;
+	}
+
+	/**
+	 * Remove an href and encoded variants from spine lookups
+	 * @private
+	 * @param  {string} href
+	 */
+	removeHref(href) {
+		if (!href) {
+			return;
+		}
+
+		delete this.spineByHref[decodeURI(href)];
+		delete this.spineByHref[encodeURI(href)];
+		delete this.spineByHref[href];
+	}
+
+	/**
 	 * Append a Section to the Spine
 	 * @private
 	 * @param  {Section} section
@@ -213,11 +246,10 @@ class Spine {
 
 		this.spineItems.push(section);
 
-		// Encode and Decode href lookups
-		// see pr for details: https://github.com/futurepress/epub.js/pull/358
-		this.spineByHref[decodeURI(section.href)] = index;
-		this.spineByHref[encodeURI(section.href)] = index;
-		this.spineByHref[section.href] = index;
+		this.indexHref(section.href, index);
+		if (section.originalHref !== section.href) {
+			this.indexHref(section.originalHref, index);
+		}
 
 		this.spineById[section.idref] = index;
 
@@ -231,7 +263,10 @@ class Spine {
 	 */
 	prepend(section) {
 		// var index = this.spineItems.unshift(section);
-		this.spineByHref[section.href] = 0;
+		this.indexHref(section.href, 0);
+		if (section.originalHref !== section.href) {
+			this.indexHref(section.originalHref, 0);
+		}
 		this.spineById[section.idref] = 0;
 
 		// Re-index
@@ -255,7 +290,10 @@ class Spine {
 		var index = this.spineItems.indexOf(section);
 
 		if(index > -1) {
-			delete this.spineByHref[section.href];
+			this.removeHref(section.href);
+			if (section.originalHref !== section.href) {
+				this.removeHref(section.originalHref);
+			}
 			delete this.spineById[section.idref];
 
 			return this.spineItems.splice(index, 1);

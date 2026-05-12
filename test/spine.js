@@ -48,5 +48,8 @@ describe('Spine', function() {
 		assert.equal(section.originalMediaType, 'video/webm');
 		assert.deepEqual(section.fallbackChain, ['video-fallback']);
 		assert.deepEqual(section.properties, ['remote-resources', 'scripted']);
+		assert.equal(spine.get('fallback.xhtml'), section);
+		assert.equal(spine.get('video.webm'), section);
+		assert.equal(spine.get('video.webm#t=10'), section);
 	});
 });
