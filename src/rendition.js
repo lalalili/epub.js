@@ -870,11 +870,23 @@ class Rendition {
 	 * @private
 	 */
 	located(location){
-		if (!location.length) {
+		if (!location || !location.length) {
 			return {};
 		}
-		let start = location[0];
-		let end = location[location.length-1];
+		let validLocations = location.filter(function(item) {
+			return item &&
+				item.mapping &&
+				item.mapping.start &&
+				item.mapping.end &&
+				Array.isArray(item.pages);
+		});
+
+		if (!validLocations.length) {
+			return {};
+		}
+
+		let start = validLocations[0];
+		let end = validLocations[validLocations.length-1];
 
 		let located = {
 			start: {
