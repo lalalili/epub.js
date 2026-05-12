@@ -22,6 +22,11 @@ class Section {
 		this.href = item.href;
 		this.url = item.url;
 		this.canonical = item.canonical;
+		this.mediaType = item.mediaType;
+		this.originalHref = item.originalHref;
+		this.originalMediaType = item.originalMediaType;
+		this.fallback = item.fallback;
+		this.fallbackChain = item.fallbackChain;
 		this.next = item.next;
 		this.prev = item.prev;
 

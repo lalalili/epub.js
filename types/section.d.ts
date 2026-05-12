@@ -18,6 +18,11 @@ export interface SpineItem {
   href?: string,
   url?: string,
   canonical?: string,
+  mediaType?: string,
+  originalHref?: string,
+  originalMediaType?: string,
+  fallback?: string,
+  fallbackChain?: Array<string>,
   properties?: Array<string>,
   linear?: string,
   next: () => SpineItem,
@@ -34,6 +39,11 @@ export default class Section {
   href: string;
   url: string;
   canonical: string;
+  mediaType: string;
+  originalHref: string;
+  originalMediaType: string;
+  fallback: string;
+  fallbackChain: Array<string>;
   next: () => SpineItem;
   prev: () => SpineItem;
   cfiBase: string;

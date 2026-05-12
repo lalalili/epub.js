@@ -48,6 +48,7 @@ class Spine {
 
 		this.items.forEach( (item, index) => {
 			var manifestItem = this.manifest[item.idref];
+			var resolvedManifestItem;
 			var spineItem;
 
 			item.index = index;
@@ -59,12 +60,22 @@ class Spine {
 			}
 
 			if(manifestItem) {
-				item.href = manifestItem.href;
+				resolvedManifestItem = this.resolveFallbackItem(manifestItem);
+				item.href = resolvedManifestItem.href;
 				item.url = resolver(item.href, true);
 				item.canonical = canonical(item.href);
+				item.mediaType = resolvedManifestItem.type;
+				item.originalHref = manifestItem.href;
+				item.originalMediaType = manifestItem.type;
+				item.fallback = manifestItem.fallback;
+				item.fallbackChain = manifestItem.fallbackChain || [];
 
 				if(manifestItem.properties.length){
 					item.properties.push.apply(item.properties, manifestItem.properties);
+				}
+
+				if(resolvedManifestItem !== manifestItem && resolvedManifestItem.properties.length){
+					item.properties.push.apply(item.properties, resolvedManifestItem.properties);
 				}
 			}
 
@@ -109,6 +120,50 @@ class Spine {
 		});
 
 		this.loaded = true;
+	}
+
+	/**
+	 * Resolve a manifest item to a renderable fallback item when needed
+	 * @private
+	 * @param  {PackagingManifestItem} manifestItem
+	 * @return {PackagingManifestItem} manifestItem
+	 */
+	resolveFallbackItem(manifestItem) {
+		if (this.isRenderableType(manifestItem.type)) {
+			return manifestItem;
+		}
+
+		var fallbackChain = manifestItem.fallbackChain || [];
+		var index = 0;
+		var fallbackItem;
+
+		while(index < fallbackChain.length) {
+			fallbackItem = this.manifest[fallbackChain[index]];
+			if (fallbackItem && this.isRenderableType(fallbackItem.type)) {
+				return fallbackItem;
+			}
+			index += 1;
+		}
+
+		return manifestItem;
+	}
+
+	/**
+	 * Check whether a manifest media type can be rendered as a spine section
+	 * @private
+	 * @param  {string} type
+	 * @return {boolean}
+	 */
+	isRenderableType(type) {
+		if (!type) {
+			return true;
+		}
+
+		return [
+			"application/xhtml+xml",
+			"text/html",
+			"image/svg+xml"
+		].indexOf(type) > -1;
 	}
 
 	/**
