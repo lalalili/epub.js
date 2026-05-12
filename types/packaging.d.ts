@@ -40,6 +40,7 @@ export interface PackagingManifestItem {
   overlay: string,
   mediaOverlay: string,
   fallback: string,
+  fallbackChain: Array<string>,
   properties: Array<string>
 }
 

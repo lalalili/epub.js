@@ -147,6 +147,7 @@ class Packaging {
 					fallback = item.fallback,
 					visited = {};
 
+			visited[id] = true;
 			while(fallback && manifest[fallback] && !visited[fallback]) {
 				item.fallbackChain.push(fallback);
 				visited[fallback] = true;

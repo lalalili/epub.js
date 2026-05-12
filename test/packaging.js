@@ -36,4 +36,25 @@ describe('Packaging', function() {
 		assert.equal(parsed.manifest['video-fallback'].overlay, 'mo1');
 		assert.equal(parsed.manifest['video-fallback'].mediaOverlay, 'mo1');
 	});
+
+	it('should stop manifest fallback chains before cycles repeat', function() {
+		var parsed = parsePackage(`<?xml version="1.0" encoding="UTF-8"?>
+			<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="bookid">
+				<metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+					<dc:identifier id="bookid">fallback-cycle-test</dc:identifier>
+					<dc:title>Fallback Cycle Test</dc:title>
+					<dc:language>en</dc:language>
+				</metadata>
+				<manifest>
+					<item id="primary" href="primary.bin" media-type="application/octet-stream" fallback="secondary" />
+					<item id="secondary" href="secondary.bin" media-type="application/octet-stream" fallback="primary" />
+				</manifest>
+				<spine>
+					<itemref idref="primary" />
+				</spine>
+			</package>`);
+
+		assert.deepEqual(parsed.manifest.primary.fallbackChain, ['secondary']);
+		assert.deepEqual(parsed.manifest.secondary.fallbackChain, ['primary']);
+	});
 });
