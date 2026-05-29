@@ -1061,6 +1061,111 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.container.scrollLeft, -10368);
 	});
 
+	it("does not move structural gutter pages off the vertical-rl page grid for raw-left line boxes", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "做得好的話，這道菜會非常、非常美味",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			clientWidth: 1320,
+			scrollWidth: 18144,
+			scrollLeft: -10368,
+			scrollTop: 0
+		};
+		manager.layout = {
+			effectivePageAdvance: 1296,
+			delta: 1296,
+			pageWidth: 1320,
+			width: 1320,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.isRtlVerticalPaginated = function() {
+			return true;
+		};
+		manager.getVerticalRlEdgeMaskWidths = function() {
+			return {
+				left: 24,
+				right: 0
+			};
+		};
+		manager.views = {
+			first: function() {
+				return {
+					width: function() {
+						return 18144;
+					},
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: 0
+							};
+						}
+					},
+					contents: {
+						writingMode: function() {
+							return "vertical-rl";
+						},
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								yielded = false;
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 6448,
+											right: 6472,
+											width: 24,
+											height: 740
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let snapped = manager.snapVerticalRlLogicalOffsetToTextBoundary(10368, 16824);
+
+		assert.equal(snapped, 10368);
+	});
+
 	it("queues vertical-rl boundary snapping after external scroll events", async function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 

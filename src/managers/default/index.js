@@ -1024,6 +1024,22 @@ class DefaultViewManager {
 		return Math.min(shift, Math.max(0, Math.floor(advance / 3)));
 	}
 
+	hasVerticalRlStructuralPageGutter(){
+		if (!this.isRtlVerticalPaginated() || !this.container || !this.layout) {
+			return false;
+		}
+
+		let advance = this.getPageAdvance() || 0;
+		let visibleWidth = this.container.clientWidth || 0;
+
+		return !!(
+			advance &&
+			visibleWidth &&
+			visibleWidth - advance > 1 &&
+			this.getPageBoundaryShift() === 0
+		);
+	}
+
 	getLogicalOffsetForPageIndex(pageIndex, totalPages, maxScroll){
 		let advance = this.getPageAdvance() || 0;
 		let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
@@ -1078,6 +1094,11 @@ class DefaultViewManager {
 		let rawRight = contentWidth - logicalOffset;
 		let rawLeft = rawRight - visibleWidth;
 		let edgeGuard = Math.max(1, Math.min(8, Math.round((this.layout && this.layout.edgeGuardPx) || 2)));
+		let structuralGutterMask = this.hasVerticalRlStructuralPageGutter()
+			? this.getVerticalRlEdgeMaskWidths()
+			: null;
+		let leftBoundary = rawLeft + (Number(structuralGutterMask && structuralGutterMask.left) || 0);
+		let rightBoundary = rawRight - (Number(structuralGutterMask && structuralGutterMask.right) || 0);
 		let rects = [];
 		let walker = doc.createTreeWalker(body, 4, {
 			acceptNode(node) {
@@ -1162,12 +1183,12 @@ class DefaultViewManager {
 
 			return count;
 		};
-		let initialCrossings = crossingCount(rawLeft, rawRight);
+		let initialCrossings = crossingCount(leftBoundary, rightBoundary);
 		let nearestDelta = 0;
 
 		if (initialCrossings > 0) {
-			addBoundaryCandidates(rawLeft);
-			addBoundaryCandidates(rawRight);
+			addBoundaryCandidates(leftBoundary);
+			addBoundaryCandidates(rightBoundary);
 
 			let uniqueCandidates = Array.from(new Set(candidates.filter((delta) => Number.isFinite(delta) && delta !== 0)));
 			let best = null;
@@ -1178,7 +1199,7 @@ class DefaultViewManager {
 					continue;
 				}
 
-				let score = crossingCount(rawLeft - clampedDelta, rawRight - clampedDelta);
+				let score = crossingCount(leftBoundary - clampedDelta, rightBoundary - clampedDelta);
 				let distance = Math.abs(clampedDelta);
 				if (
 					!best ||
