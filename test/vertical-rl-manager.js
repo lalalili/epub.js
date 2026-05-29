@@ -2880,10 +2880,10 @@ describe("Vertical RL manager pagination", function() {
 
 				return {
 					rawWidth: 17172,
-					snappedContentWidth: 18168,
-					effectivePageAdvance: 1296,
-					pageBoundaryShift: 20,
-					edgeGuardPx: 4,
+					snappedContentWidth: 18480,
+					effectivePageAdvance: 1320,
+					pageBoundaryShift: 0,
+					edgeGuardPx: 0,
 					totalPages: 14
 				};
 			}
@@ -2894,20 +2894,20 @@ describe("Vertical RL manager pagination", function() {
 
 		view.expand();
 
-		assert.equal(view.layout.edgeGuardPx, 4);
+		assert.equal(view.layout.edgeGuardPx, 0);
 		assert.deepEqual(updatedProps, {
-			delta: 1296,
-			effectivePageAdvance: 1296,
-			pageBoundaryShift: 20,
-			edgeGuardPx: 4
+			delta: 1320,
+			effectivePageAdvance: 1320,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0
 		});
 		assert.deepEqual(reframed, {
-			width: 18168,
+			width: 18480,
 			height: 761
 		});
 	});
 
-	it("moves a vertical-rl page boundary past the clipped line box", function() {
+	it("keeps vertical-rl page advance equal to the visible page width", function() {
 		let contents = Object.create(Contents.prototype);
 		contents._verticalRlPageMetricsCache = null;
 		contents.content = {
@@ -2956,9 +2956,10 @@ describe("Vertical RL manager pagination", function() {
 
 		let metrics = contents.verticalRlPageMetrics(300);
 
-		assert.equal(metrics.effectivePageAdvance, 288);
-		assert.equal(metrics.pageBoundaryShift, 20);
-		assert.ok(metrics.effectivePageAdvance < metrics.pageWidth);
+		assert.equal(metrics.effectivePageAdvance, 300);
+		assert.equal(metrics.pageBoundaryShift, 0);
+		assert.equal(metrics.edgeGuardPx, 0);
+		assert.equal(metrics.snappedContentWidth, 900);
 	});
 
 	it("materializes pages when vertical-rl content overflows along the block axis", function() {
@@ -3011,7 +3012,7 @@ describe("Vertical RL manager pagination", function() {
 
 		let metrics = contents.verticalRlPageMetrics(1062, 709);
 
-		assert.equal(metrics.effectivePageAdvance, 1044);
+		assert.equal(metrics.effectivePageAdvance, 1062);
 		assert.equal(metrics.totalPages, 3);
 		assert.equal(metrics.verticalFragmentPages, 3);
 		assert.ok(metrics.snappedContentWidth > metrics.pageWidth);

@@ -26,43 +26,6 @@ const cssPixelValue = (value) => {
 	return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const calculateVerticalRlPageBoundaryShift = (boundary, lineLefts, lineWidth, linePitch, edgeGuardPx) => {
-	if (
-		!Number.isFinite(boundary) ||
-		!Array.isArray(lineLefts) ||
-		!lineLefts.length ||
-		!Number.isFinite(linePitch) ||
-		linePitch <= 0
-	) {
-		return 0;
-	}
-
-	const guard = Number.isFinite(edgeGuardPx) && edgeGuardPx > 0
-		? edgeGuardPx
-		: VERTICAL_RL_MIN_EDGE_GUARD;
-	const safeLineWidth = Number.isFinite(lineWidth) && lineWidth > 0
-		? Math.min(lineWidth, linePitch)
-		: Math.min(24, Math.max(1, linePitch * 0.4));
-	let shift = 0;
-
-	for (const lineLeft of lineLefts) {
-		if (!Number.isFinite(lineLeft)) {
-			continue;
-		}
-
-		const lineRight = lineLeft + safeLineWidth;
-		if (boundary >= lineLeft - guard && boundary <= lineRight + guard) {
-			shift = Math.max(shift, (lineRight + guard) - boundary);
-		}
-	}
-
-	if (!Number.isFinite(shift) || shift <= 0) {
-		return 0;
-	}
-
-	return Math.min(Math.ceil(shift), Math.max(0, Math.floor(linePitch + safeLineWidth + guard)));
-};
-
 const resolveHorizontalTextWidth = (range, rangeRect, content) => {
 	const width = Number(rangeRect && rangeRect.width);
 	const scrollWidth = Number(content && content.scrollWidth);
@@ -1545,21 +1508,8 @@ class Contents {
 		rawHeight = Math.ceil(rawHeight);
 
 		const metrics = this.estimateVerticalRlLineMetrics(safePageWidth);
-		const linePitch = Number(metrics.linePitch);
-		const edgeGuardPx = Number.isFinite(linePitch) && linePitch > 0
-			? Math.max(VERTICAL_RL_MIN_EDGE_GUARD, Math.round(linePitch * 0.12))
-			: 0;
+		const edgeGuardPx = 0;
 		let effectivePageAdvance = Number.isFinite(safePageWidth) && safePageWidth > 0 ? safePageWidth : null;
-
-		if (
-			Number.isFinite(safePageWidth) &&
-			safePageWidth > 0 &&
-			Number.isFinite(linePitch) &&
-			linePitch > 0
-		) {
-			const usableWidth = Math.max(1, safePageWidth - edgeGuardPx);
-			effectivePageAdvance = Math.max(linePitch, Math.floor(usableWidth / linePitch) * linePitch);
-		}
 
 		const pageLength = effectivePageAdvance || safePageWidth || 1;
 		let totalPages = Math.max(1, Math.ceil(Math.max(0, rawWidth - (safePageWidth || pageLength)) / pageLength) + 1);
@@ -1578,16 +1528,7 @@ class Contents {
 			totalPages = Math.max(totalPages, verticalFragmentPages);
 		}
 		const snappedContentWidth = ((totalPages - 1) * pageLength) + (safePageWidth || pageLength);
-		const firstInteriorBoundary = totalPages > 1
-			? snappedContentWidth - pageLength
-			: null;
-		const pageBoundaryShift = calculateVerticalRlPageBoundaryShift(
-			firstInteriorBoundary,
-			metrics.lineLefts,
-			metrics.lineWidth,
-			metrics.linePitch,
-			edgeGuardPx
-		);
+		const pageBoundaryShift = 0;
 		const result = {
 			rawWidth,
 			rawPaintWidth: rawWidth,
