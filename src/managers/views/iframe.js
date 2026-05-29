@@ -318,7 +318,7 @@ class IframeView {
 			// Get the width of the text
 			width = this.contents.textWidth();
 			let pageAdvance = this.layout.pageWidth;
-			let visiblePageWidth = this.layout.pageWidth;
+			let visiblePageWidth = this.layout.viewportPageWidth || this.lockedWidth || this.layout.width || this.layout.pageWidth;
 			let pageMetrics = null;
 
 			if (
@@ -332,22 +332,26 @@ class IframeView {
 				if (pageMetrics.effectivePageAdvance > 0) {
 					pageAdvance = pageMetrics.effectivePageAdvance;
 					const pageWidth = pageMetrics.pageWidth || this.layout.pageWidth;
+					const viewportPageWidth = pageMetrics.viewportPageWidth || visiblePageWidth;
 					const pageBoundaryShift = pageMetrics.pageBoundaryShift || 0;
 					const edgeGuardPx = pageMetrics.edgeGuardPx || 0;
 					if (
 						this.layout.pageWidth !== pageWidth ||
+						this.layout.viewportPageWidth !== viewportPageWidth ||
 						this.layout.effectivePageAdvance !== pageAdvance ||
 						this.layout.delta !== pageAdvance ||
 						this.layout.pageBoundaryShift !== pageBoundaryShift ||
 						this.layout.edgeGuardPx !== edgeGuardPx
 					) {
 						this.layout.pageWidth = pageWidth;
+						this.layout.viewportPageWidth = viewportPageWidth;
 						this.layout.effectivePageAdvance = pageAdvance;
 						this.layout.delta = pageAdvance;
 						this.layout.pageBoundaryShift = pageBoundaryShift;
 						this.layout.edgeGuardPx = edgeGuardPx;
 						this.layout.update({
 							pageWidth,
+							viewportPageWidth,
 							delta: pageAdvance,
 							effectivePageAdvance: pageAdvance,
 							pageBoundaryShift: this.layout.pageBoundaryShift,
@@ -387,6 +391,7 @@ class IframeView {
 					rawPaintWidth: pageMetrics.rawPaintWidth,
 					snappedContentWidth: pageMetrics.snappedContentWidth,
 					pageAdvance,
+					viewportPageWidth: pageMetrics.viewportPageWidth,
 					pageCount: pageMetrics.totalPages,
 					linePitch: pageMetrics.linePitch,
 					edgeGuardPx: pageMetrics.edgeGuardPx,

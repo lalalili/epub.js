@@ -3519,10 +3519,11 @@ describe("Vertical RL manager pagination", function() {
 			href: "OEBPS/Text/Section0011.xhtml"
 		};
 		view.layout = {
-			pageWidth: 1320,
+			pageWidth: 1296,
+			viewportPageWidth: 1320,
 			effectivePageAdvance: 1296,
 			delta: 1296,
-			pageBoundaryShift: 20,
+			pageBoundaryShift: 0,
 			edgeGuardPx: 0,
 			update: function(props) {
 				updatedProps = props;
@@ -3543,9 +3544,10 @@ describe("Vertical RL manager pagination", function() {
 					rawWidth: 17172,
 					snappedContentWidth: 18144,
 					pageWidth: 1296,
+					viewportPageWidth: 1320,
 					effectivePageAdvance: 1296,
-					pageBoundaryShift: 0,
-					edgeGuardPx: 0,
+					pageBoundaryShift: 11,
+					edgeGuardPx: 11,
 					totalPages: 14
 				};
 			}
@@ -3556,13 +3558,15 @@ describe("Vertical RL manager pagination", function() {
 
 		view.expand();
 
-		assert.equal(view.layout.edgeGuardPx, 0);
+		assert.equal(view.layout.viewportPageWidth, 1320);
+		assert.equal(view.layout.edgeGuardPx, 11);
 		assert.deepEqual(updatedProps, {
 			pageWidth: 1296,
+			viewportPageWidth: 1320,
 			delta: 1296,
 			effectivePageAdvance: 1296,
-			pageBoundaryShift: 0,
-			edgeGuardPx: 0
+			pageBoundaryShift: 11,
+			edgeGuardPx: 11
 		});
 		assert.deepEqual(reframed, {
 			width: 18144,

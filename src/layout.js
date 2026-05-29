@@ -33,6 +33,7 @@ class Layout {
 		this.spreadWidth = 0;
 		this.delta = 0;
 		this.effectivePageAdvance = 0;
+		this.viewportPageWidth = 0;
 		this.pageBoundaryShift = 0;
 		this.edgeGuardPx = 0;
 
@@ -49,6 +50,7 @@ class Layout {
 			spreadWidth: 0,
 			delta: 0,
 			effectivePageAdvance: 0,
+			viewportPageWidth: 0,
 			pageBoundaryShift: 0,
 			edgeGuardPx: 0,
 			columnWidth: 0,
@@ -163,6 +165,7 @@ class Layout {
 		this.pageWidth = pageWidth;
 		this.delta = delta;
 		this.effectivePageAdvance = delta;
+		this.viewportPageWidth = width;
 		this.pageBoundaryShift = 0;
 
 		this.columnWidth = columnWidth;
@@ -186,6 +189,7 @@ class Layout {
 			pageWidth,
 			delta,
 			effectivePageAdvance: this.effectivePageAdvance,
+			viewportPageWidth: this.viewportPageWidth,
 			pageBoundaryShift: this.pageBoundaryShift,
 			columnWidth,
 			gap,
@@ -224,7 +228,7 @@ class Layout {
 	count(totalLength, pageLength) {
 
 		let spreads, pages;
-		let visiblePageWidth = this.pageWidth || this.width || pageLength;
+		let visiblePageWidth = this.viewportPageWidth || this.pageWidth || this.width || pageLength;
 		let effectivePageAdvance = this.effectivePageAdvance || this.delta || pageLength;
 
 		if (this.name === "pre-paginated") {
