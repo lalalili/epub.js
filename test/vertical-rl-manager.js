@@ -455,6 +455,106 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getLogicalPageStepToNextPage(), 225);
 	});
 
+	it("preserves half of the structural vertical-rl glyph guard when text snapping moves forward", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "把半杯剁碎的大葱與半杯紫蘇葉放入一個大碗中。",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			clientWidth: 1320,
+			scrollWidth: 18144,
+			scrollLeft: -9060
+		};
+		manager.layout = {
+			effectivePageAdvance: 1296,
+			delta: 1296,
+			pageWidth: 1320,
+			width: 1320,
+			pageBoundaryShift: 12,
+			edgeGuardPx: 12,
+			count: function(totalLength, pageLength) {
+				let pages = Math.max(1, Math.ceil(totalLength / pageLength));
+				return { pages, spreads: pages };
+			}
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			first: function() {
+				return {
+					width: function() {
+						return 18144;
+					},
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: 0
+							};
+						}
+					},
+					contents: {
+						writingMode: function() {
+							return "vertical-rl";
+						},
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 7763,
+											right: 7780,
+											width: 17,
+											height: 680
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let baseLogicalOffset = manager.getLogicalOffsetForPageIndex(7, 14, 16824);
+		let logicalOffset = manager.snapVerticalRlLogicalOffsetToTextBoundary(baseLogicalOffset, 16824);
+
+		assert.equal(baseLogicalOffset, 9060);
+		assert.equal(logicalOffset, 9066);
+	});
+
 	it("snaps vertical-rl logical offsets out of right boundary text boxes", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {
