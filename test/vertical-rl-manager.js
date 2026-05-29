@@ -1320,6 +1320,119 @@ describe("Vertical RL manager pagination", function() {
 		});
 	});
 
+	it("shrinks a structural left gutter mask before it covers current vertical-rl text", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "做得好的話，這道菜會非常、非常美味",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			clientWidth: 1320,
+			scrollWidth: 18144,
+			scrollLeft: -7917.2724609375,
+			getBoundingClientRect: function() {
+				return {
+					left: 0,
+					right: 1320,
+					width: 1320,
+					height: 761
+				};
+			}
+		};
+		manager.layout = {
+			pageWidth: 1296,
+			width: 1320,
+			effectivePageAdvance: 1296,
+			delta: 1296,
+			pageBoundaryShift: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.isRtlVerticalPaginated = function() {
+			return true;
+		};
+		manager.getTotalPagesForCurrentView = function() {
+			return 14;
+		};
+		manager.getCurrentPageIndex = function() {
+			return 6;
+		};
+		manager.getMaxLogicalScrollLeft = function() {
+			return 16824;
+		};
+		manager.getLogicalOffsetForPageIndex = function(pageIndex) {
+			return pageIndex * 1296;
+		};
+		manager.views = {
+			first: function() {
+				return {
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: -6455.80924987793,
+								right: 11688.181,
+								width: 18144
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 6477.54248046875,
+											right: 6500.26953125,
+											width: 22.72705078125,
+											height: 460
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let maskWidths = manager.getVerticalRlEdgeMaskWidths();
+
+		assert.equal(maskWidths.left, 20);
+		assert.equal(maskWidths.right, 0);
+	});
+
 	it("does not right-mask content that was hidden by the previous page left edge mask", function() {
 		let manager = createManagerAtLogicalOffset(0);
 

@@ -593,10 +593,13 @@ class DefaultViewManager {
 		);
 
 		if (hasStructuralGutter) {
-			return {
+			return this.snapVerticalRlEdgeMaskWidths({
 				left: Math.min(left, maxMask),
 				right
-			};
+			}, maxMask, {
+				nextPageStep: advance,
+				rightMaxMask: 0
+			});
 		}
 
 		if (currentPageIndex > 0) {
