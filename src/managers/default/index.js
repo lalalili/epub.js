@@ -1129,10 +1129,12 @@ class DefaultViewManager {
 			? Math.max(0, Math.min(maxScroll, logicalOffset + nearestDelta))
 			: logicalOffset;
 
-		this._verticalRlBoundarySnapCache = {
-			key: cacheKey,
-			value: snapped
-		};
+		if (nearestDelta) {
+			this._verticalRlBoundarySnapCache = {
+				key: cacheKey,
+				value: snapped
+			};
+		}
 
 		return snapped;
 	}

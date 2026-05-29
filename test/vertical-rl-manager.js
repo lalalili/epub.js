@@ -556,6 +556,120 @@ describe("Vertical RL manager pagination", function() {
 		assert.ok(rawRight <= 10399.3174 - 4);
 	});
 
+	it("does not cache a no-op vertical-rl boundary snap before text rects are ready", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "把麵糊舀在水果上面，放入烤箱中，以三百度烤大約三十分鐘。",
+			parentElement: {}
+		};
+		let phase = "not-ready";
+		let yielded = false;
+
+		manager.container = {
+			clientWidth: 1320,
+			scrollWidth: 18168,
+			scrollLeft: -7758.1818
+		};
+		manager.layout = {
+			effectivePageAdvance: 1296,
+			delta: 1296,
+			pageWidth: 1320,
+			width: 1320,
+			pageBoundaryShift: 18,
+			edgeGuardPx: 4,
+			count: function(totalLength, pageLength) {
+				let pages = Math.max(1, Math.ceil(totalLength / pageLength));
+				return { pages, spreads: pages };
+			}
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			first: function() {
+				return {
+					width: function() {
+						return 18168;
+					},
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: 0
+							};
+						}
+					},
+					contents: {
+						writingMode: function() {
+							return "vertical-rl";
+						},
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								yielded = false;
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										if (phase === "not-ready") {
+											return [{
+												left: 10363.3231,
+												right: 10386.0504,
+												width: 22.7273,
+												height: 680
+											}];
+										}
+
+										return [{
+											left: 10399.3174,
+											right: 10422.0447,
+											width: 22.7273,
+											height: 680
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let baseLogicalOffset = manager.getLogicalOffsetForPageIndex(6, 14, 16848);
+		let firstLogicalOffset = manager.snapVerticalRlLogicalOffsetToTextBoundary(baseLogicalOffset, 16848);
+
+		phase = "ready";
+		let secondLogicalOffset = manager.snapVerticalRlLogicalOffsetToTextBoundary(baseLogicalOffset, 16848);
+
+		assert.equal(firstLogicalOffset, baseLogicalOffset);
+		assert.ok(secondLogicalOffset > baseLogicalOffset);
+	});
+
 	it("adds a right edge mask for overlap with the previous vertical-rl page", function() {
 		let manager = createManagerAtLogicalOffset(0);
 
