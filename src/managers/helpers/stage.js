@@ -197,7 +197,13 @@ class Stage {
 		}
 
 		if(!isNumber(width)) {
-			width = this.container.clientWidth;
+			let containerBounds = this.container && this.container.getBoundingClientRect ?
+				this.container.getBoundingClientRect() :
+				null;
+
+			width = containerBounds && containerBounds.width ?
+				containerBounds.width :
+				this.container.clientWidth;
 		}
 
 		if(!isNumber(height)) {

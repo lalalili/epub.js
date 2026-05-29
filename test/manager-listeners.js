@@ -106,4 +106,38 @@ describe("Manager listener cleanup", function() {
 
 		assert.equal(removedOrientationListener, stage.orientationChangeFunc);
 	});
+
+	it("preserves fractional CSS widths when measuring a stage with fluid width", function() {
+		let stage = Object.create(Stage.prototype);
+		let element = document.createElement("div");
+		let container = document.createElement("div");
+
+		Object.defineProperty(container, "clientWidth", {
+			configurable: true,
+			value: 1306
+		});
+		Object.defineProperty(container, "clientHeight", {
+			configurable: true,
+			value: 760
+		});
+		container.getBoundingClientRect = function() {
+			return {
+				width: 1305.6,
+				height: 760
+			};
+		};
+
+		element.appendChild(container);
+		stage.element = element;
+		stage.container = container;
+		stage.settings = {
+			width: "100%",
+			height: "100%"
+		};
+
+		let size = stage.size();
+
+		assert.equal(size.width, 1305.6);
+		assert.equal(size.height, 760);
+	});
 });
