@@ -1015,7 +1015,7 @@ describe("Vertical RL manager pagination", function() {
 		manager.layout = {
 			effectivePageAdvance: 1296,
 			delta: 1296,
-			pageWidth: 1296,
+			pageWidth: 1320,
 			width: 1320,
 			pageBoundaryShift: 0,
 			edgeGuardPx: 0
@@ -1295,7 +1295,7 @@ describe("Vertical RL manager pagination", function() {
 			scrollLeft: -10368
 		};
 		manager.layout = {
-			pageWidth: 1296,
+			pageWidth: 1320,
 			width: 1320,
 			effectivePageAdvance: 1296,
 			delta: 1296,

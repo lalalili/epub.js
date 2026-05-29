@@ -575,11 +575,21 @@ class DefaultViewManager {
 		let left = Math.ceil(bleed);
 		let right = 0;
 		let maxMask = Math.max(0, Math.floor(advance / 4));
-		let activePageWidth = this.layout && (this.layout.pageWidth || this.layout.effectivePageAdvance || this.layout.delta || 0);
+
+		let totalPages = this.getTotalPagesForCurrentView();
+		let currentPageIndex = this.getCurrentPageIndex();
+		let previousPageStep = 0;
+		if (currentPageIndex > 0) {
+			let maxScroll = this.getMaxLogicalScrollLeft();
+			let currentOffset = this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll);
+			let previousOffset = this.getLogicalOffsetForPageIndex(currentPageIndex - 1, totalPages, maxScroll);
+			previousPageStep = Math.abs(currentOffset - previousOffset);
+		}
+
 		let hasStructuralGutter = (
-			Math.abs(activePageWidth - advance) <= 1 &&
 			Math.abs(visibleWidth - advance - left) <= 1 &&
-			this.getPageBoundaryShift() === 0
+			this.getPageBoundaryShift() === 0 &&
+			(currentPageIndex <= 0 || Math.abs(previousPageStep - advance) <= 1)
 		);
 
 		if (hasStructuralGutter) {
@@ -589,19 +599,12 @@ class DefaultViewManager {
 			};
 		}
 
-		let totalPages = this.getTotalPagesForCurrentView();
-		let currentPageIndex = this.getCurrentPageIndex();
-		let previousPageStep = 0;
-			if (currentPageIndex > 0) {
-				let maxScroll = this.getMaxLogicalScrollLeft();
-				let currentOffset = this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll);
-				let previousOffset = this.getLogicalOffsetForPageIndex(currentPageIndex - 1, totalPages, maxScroll);
-				previousPageStep = Math.abs(currentOffset - previousOffset);
-				let previousPageLeftMask = this.getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask);
-				let overlap = Math.max(0, visibleWidth - previousPageStep - previousPageLeftMask);
+		if (currentPageIndex > 0) {
+			let previousPageLeftMask = this.getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask);
+			let overlap = Math.max(0, visibleWidth - previousPageStep - previousPageLeftMask);
 
-				right = Math.min(Math.ceil(overlap), maxMask);
-			}
+			right = Math.min(Math.ceil(overlap), maxMask);
+		}
 
 		return this.snapVerticalRlEdgeMaskWidths({
 			left: Math.min(left, maxMask),
@@ -1437,8 +1440,8 @@ class DefaultViewManager {
 				let shouldSnapCurrentOffsetToPageGrid = (
 					options.useCurrentOffset &&
 					this.getPageBoundaryShift() === 0 &&
-					this.layout &&
-					Math.abs((this.layout.pageWidth || 0) - (this.getPageAdvance() || 0)) <= 1
+					this.container &&
+					(this.container.clientWidth || 0) - (this.getPageAdvance() || 0) > 1
 				);
 				if (shouldSnapCurrentOffsetToPageGrid) {
 					let currentIndex = this.getCurrentPageIndex();
