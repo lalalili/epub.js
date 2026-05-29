@@ -834,7 +834,16 @@ class DefaultViewManager {
 					}
 					continue;
 				}
-				if (rawRightStraddler && (rawRightOverhang <= Math.max(edgeTolerance, 4) || maskConsumesVisibleRightEdge)) {
+				if (
+					rawRightStraddler &&
+					(
+						rawRightOverhang <= Math.max(edgeTolerance, 4) ||
+						(
+							maskConsumesVisibleRightEdge &&
+							(requiredRawRightMask <= 0 || nextPageStep <= 0)
+						)
+					)
+				) {
 					if (right > 0) {
 						shrink = Math.min(shrink, -right);
 					}

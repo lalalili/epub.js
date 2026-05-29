@@ -1407,7 +1407,6 @@ describe("Vertical RL manager pagination", function() {
 			nodeValue: "把麵糊舀在水果上面，放入烤箱中，以三百度烤大約三十分鐘。",
 			parentElement: {}
 		};
-		let nodes = [straddlingNode, previousLineNode];
 
 		manager.container = {
 			clientWidth: 1320,
@@ -1466,6 +1465,7 @@ describe("Vertical RL manager pagination", function() {
 						document: {
 							body: {},
 							createTreeWalker: function() {
+								let nodes = [straddlingNode, previousLineNode];
 								return {
 									nextNode: function() {
 										return nodes.shift() || null;
