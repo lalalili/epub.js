@@ -2952,7 +2952,7 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(maskWidths.right, 0);
 	});
 
-	it("propagates the vertical-rl edge guard from content metrics to the layout", function() {
+	it("propagates the vertical-rl active page width from content metrics to the layout", function() {
 		let view = Object.create(IframeView.prototype);
 		let updatedProps = null;
 		let reframed = null;
@@ -2993,8 +2993,9 @@ describe("Vertical RL manager pagination", function() {
 
 				return {
 					rawWidth: 17172,
-					snappedContentWidth: 18480,
-					effectivePageAdvance: 1320,
+					snappedContentWidth: 18144,
+					pageWidth: 1296,
+					effectivePageAdvance: 1296,
 					pageBoundaryShift: 0,
 					edgeGuardPx: 0,
 					totalPages: 14
@@ -3009,18 +3010,19 @@ describe("Vertical RL manager pagination", function() {
 
 		assert.equal(view.layout.edgeGuardPx, 0);
 		assert.deepEqual(updatedProps, {
-			delta: 1320,
-			effectivePageAdvance: 1320,
+			pageWidth: 1296,
+			delta: 1296,
+			effectivePageAdvance: 1296,
 			pageBoundaryShift: 0,
 			edgeGuardPx: 0
 		});
 		assert.deepEqual(reframed, {
-			width: 18480,
+			width: 18144,
 			height: 761
 		});
 	});
 
-	it("keeps vertical-rl page advance equal to the visible page width", function() {
+	it("snaps vertical-rl page advance to an integer line pitch", function() {
 		let contents = Object.create(Contents.prototype);
 		contents._verticalRlPageMetricsCache = null;
 		contents.content = {
@@ -3069,10 +3071,11 @@ describe("Vertical RL manager pagination", function() {
 
 		let metrics = contents.verticalRlPageMetrics(300);
 
-		assert.equal(metrics.effectivePageAdvance, 300);
+		assert.equal(metrics.effectivePageAdvance, 288);
+		assert.equal(metrics.pageWidth, 288);
 		assert.equal(metrics.pageBoundaryShift, 0);
 		assert.equal(metrics.edgeGuardPx, 0);
-		assert.equal(metrics.snappedContentWidth, 900);
+		assert.equal(metrics.snappedContentWidth, 864);
 	});
 
 	it("materializes pages when vertical-rl content overflows along the block axis", function() {
@@ -3125,7 +3128,8 @@ describe("Vertical RL manager pagination", function() {
 
 		let metrics = contents.verticalRlPageMetrics(1062, 709);
 
-		assert.equal(metrics.effectivePageAdvance, 1062);
+		assert.equal(metrics.effectivePageAdvance, 1044);
+		assert.equal(metrics.pageWidth, 1044);
 		assert.equal(metrics.totalPages, 3);
 		assert.equal(metrics.verticalFragmentPages, 3);
 		assert.ok(metrics.snappedContentWidth > metrics.pageWidth);

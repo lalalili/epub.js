@@ -1509,10 +1509,23 @@ class Contents {
 
 		const metrics = this.estimateVerticalRlLineMetrics(safePageWidth);
 		const edgeGuardPx = 0;
-		let effectivePageAdvance = Number.isFinite(safePageWidth) && safePageWidth > 0 ? safePageWidth : null;
+		let viewportPageWidth = Number.isFinite(safePageWidth) && safePageWidth > 0 ? safePageWidth : null;
+		let effectivePageAdvance = viewportPageWidth;
+		if (
+			viewportPageWidth &&
+			metrics.stable &&
+			Number.isFinite(metrics.linePitch) &&
+			metrics.linePitch > 0 &&
+			viewportPageWidth > metrics.linePitch
+		) {
+			const lineSnappedAdvance = Math.floor(viewportPageWidth / metrics.linePitch) * metrics.linePitch;
+			if (lineSnappedAdvance > 0) {
+				effectivePageAdvance = lineSnappedAdvance;
+			}
+		}
 
-		const pageLength = effectivePageAdvance || safePageWidth || 1;
-		let totalPages = Math.max(1, Math.ceil(Math.max(0, rawWidth - (safePageWidth || pageLength)) / pageLength) + 1);
+		const pageLength = effectivePageAdvance || viewportPageWidth || 1;
+		let totalPages = Math.max(1, Math.ceil(rawWidth / pageLength));
 		let verticalFragmentPages = 1;
 		if (
 			totalPages <= 1 &&
@@ -1527,13 +1540,14 @@ class Contents {
 			verticalFragmentPages = Math.max(1, Math.ceil(Math.max(0, rawHeight - safePageHeight) / blockAdvance) + 1);
 			totalPages = Math.max(totalPages, verticalFragmentPages);
 		}
-		const snappedContentWidth = ((totalPages - 1) * pageLength) + (safePageWidth || pageLength);
+		const snappedContentWidth = totalPages * pageLength;
 		const pageBoundaryShift = 0;
 		const result = {
 			rawWidth,
 			rawPaintWidth: rawWidth,
 			rawHeight,
-			pageWidth: safePageWidth,
+			pageWidth: pageLength,
+			viewportPageWidth,
 			effectivePageAdvance,
 			linePitch: metrics.linePitch,
 			lineWidth: metrics.lineWidth,

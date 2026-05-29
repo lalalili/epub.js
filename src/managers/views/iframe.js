@@ -331,19 +331,23 @@ class IframeView {
 				width = pageMetrics.rawWidth;
 				if (pageMetrics.effectivePageAdvance > 0) {
 					pageAdvance = pageMetrics.effectivePageAdvance;
+					const pageWidth = pageMetrics.pageWidth || this.layout.pageWidth;
 					const pageBoundaryShift = pageMetrics.pageBoundaryShift || 0;
 					const edgeGuardPx = pageMetrics.edgeGuardPx || 0;
 					if (
+						this.layout.pageWidth !== pageWidth ||
 						this.layout.effectivePageAdvance !== pageAdvance ||
 						this.layout.delta !== pageAdvance ||
 						this.layout.pageBoundaryShift !== pageBoundaryShift ||
 						this.layout.edgeGuardPx !== edgeGuardPx
 					) {
+						this.layout.pageWidth = pageWidth;
 						this.layout.effectivePageAdvance = pageAdvance;
 						this.layout.delta = pageAdvance;
 						this.layout.pageBoundaryShift = pageBoundaryShift;
 						this.layout.edgeGuardPx = edgeGuardPx;
 						this.layout.update({
+							pageWidth,
 							delta: pageAdvance,
 							effectivePageAdvance: pageAdvance,
 							pageBoundaryShift: this.layout.pageBoundaryShift,
