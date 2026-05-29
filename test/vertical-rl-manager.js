@@ -1283,6 +1283,27 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(snapped, 10368);
 	});
 
+	it("queues current-offset grid snapping after vertical-rl views are displayed", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let queued = false;
+		let emitted = false;
+
+		manager.isRtlVerticalPaginated = function() {
+			return true;
+		};
+		manager.queueVerticalRlBoundarySnapRetryForCurrentOffset = function() {
+			queued = true;
+		};
+		manager.emit = function() {
+			emitted = true;
+		};
+
+		manager.afterDisplayed({});
+
+		assert.equal(queued, true);
+		assert.equal(emitted, true);
+	});
+
 	it("queues vertical-rl boundary snapping after external scroll events", async function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 

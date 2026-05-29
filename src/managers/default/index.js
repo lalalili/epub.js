@@ -345,6 +345,9 @@ class DefaultViewManager {
 	}
 
 	afterDisplayed(view){
+		if (this.isRtlVerticalPaginated()) {
+			this.queueVerticalRlBoundarySnapRetryForCurrentOffset();
+		}
 		this.emit(EVENTS.MANAGERS.ADDED, view);
 	}
 
