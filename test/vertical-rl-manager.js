@@ -843,10 +843,10 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(maskWidths.right, 0);
 	});
 
-	it("shrinks the right vertical-rl edge mask when the previous raw left edge already clipped the line", function() {
-		let manager = Object.create(DefaultViewManager.prototype);
-		let textNode = {
-			nodeValue: "編按：香醋（Aceto balsamico），是一種義大利調味品，又名義大利黑醋或巴薩米克醋。",
+		it("shrinks the right vertical-rl edge mask when the previous raw left edge already clipped the line", function() {
+			let manager = Object.create(DefaultViewManager.prototype);
+			let textNode = {
+				nodeValue: "編按：香醋（Aceto balsamico），是一種義大利調味品，又名義大利黑醋或巴薩米克醋。",
 			parentElement: {}
 		};
 		let yielded = false;
@@ -928,14 +928,190 @@ describe("Vertical RL manager pagination", function() {
 			rightMaxMask: 6
 		});
 
-		assert.equal(maskWidths.left, 24);
-		assert.equal(maskWidths.right, 0);
-	});
+			assert.equal(maskWidths.left, 24);
+			assert.equal(maskWidths.right, 0);
+		});
 
-	it("does not expand the right vertical-rl edge mask into a raw viewport boundary line box", function() {
-		let manager = Object.create(DefaultViewManager.prototype);
-		let textNode = {
-			nodeValue: "編按：香醋（Aceto balsamico），是一種義大利調味品，又名義大利黑醋或巴薩米克醋。",
+		it("expands the left vertical-rl edge mask when the mask boundary would slice a visible line", function() {
+			let manager = Object.create(DefaultViewManager.prototype);
+			let textNode = {
+				nodeValue: "燙的。最適合用來炸櫛瓜花的油是花生油或葵花油。",
+				parentElement: {}
+			};
+			let yielded = false;
+
+			manager.container = {
+				getBoundingClientRect: function() {
+					return {
+						left: 213.1818,
+						right: 1533.1818
+					};
+				}
+			};
+			manager.layout = {
+				edgeGuardPx: 4
+			};
+			manager.views = {
+				first: function() {
+					return {
+						iframe: {
+							getBoundingClientRect: function() {
+								return {
+									left: -6284.8149
+								};
+							}
+						},
+						contents: {
+							window: {
+								getComputedStyle: function() {
+									return {
+										display: "block",
+										visibility: "visible"
+									};
+								}
+							},
+							document: {
+								body: {},
+								createTreeWalker: function() {
+									return {
+										nextNode: function() {
+											if (yielded) {
+												return null;
+											}
+											yielded = true;
+											return textNode;
+										}
+									};
+								},
+								createRange: function() {
+									return {
+										selectNodeContents: function() {},
+										getClientRects: function() {
+											return [{
+												left: 6502.088,
+												right: 6524.815,
+												width: 22.727,
+												height: 460
+											}];
+										},
+										detach: function() {}
+									};
+								}
+							}
+						}
+					};
+				},
+				last: function() {
+					return this.first();
+				}
+			};
+			manager.getLogicalPageStepToNextPage = function() {
+				return 1296.363;
+			};
+
+			let maskWidths = manager.snapVerticalRlEdgeMaskWidths({
+				left: 24,
+				right: 0
+			}, 120, {
+				rightMaxMask: 0
+			});
+
+			assert.equal(maskWidths.left, 28);
+			assert.equal(maskWidths.right, 0);
+		});
+
+		it("adds a small right vertical-rl paint guard for a line starting just outside the raw viewport", function() {
+			let manager = Object.create(DefaultViewManager.prototype);
+			let textNode = {
+				nodeValue: "買得到的話，新鮮的牛肝菌猶如一頓盛宴。",
+				parentElement: {}
+			};
+			let yielded = false;
+
+			manager.container = {
+				getBoundingClientRect: function() {
+					return {
+						left: 213.1818,
+						right: 1533.1818
+					};
+				}
+			};
+			manager.layout = {
+				edgeGuardPx: 4
+			};
+			manager.views = {
+				first: function() {
+					return {
+						iframe: {
+							getBoundingClientRect: function() {
+								return {
+									left: -7581.1787
+								};
+							}
+						},
+						contents: {
+							window: {
+								getComputedStyle: function() {
+									return {
+										display: "block",
+										visibility: "visible"
+									};
+								}
+							},
+							document: {
+								body: {},
+								createTreeWalker: function() {
+									return {
+										nextNode: function() {
+											if (yielded) {
+												return null;
+											}
+											yielded = true;
+											return textNode;
+										}
+									};
+								},
+								createRange: function() {
+									return {
+										selectNodeContents: function() {},
+										getClientRects: function() {
+											return [{
+												left: 9114.701,
+												right: 9137.429,
+												width: 22.728,
+												height: 700
+											}];
+										},
+										detach: function() {}
+									};
+								}
+							}
+						}
+					};
+				},
+				last: function() {
+					return this.first();
+				}
+			};
+			manager.getLogicalPageStepToNextPage = function() {
+				return 1296.363;
+			};
+
+			let maskWidths = manager.snapVerticalRlEdgeMaskWidths({
+				left: 24,
+				right: 0
+			}, 120, {
+				rightMaxMask: 0
+			});
+
+			assert.equal(maskWidths.left, 24);
+			assert.equal(maskWidths.right, 4);
+		});
+
+		it("does not expand the right vertical-rl edge mask into a raw viewport boundary line box", function() {
+			let manager = Object.create(DefaultViewManager.prototype);
+			let textNode = {
+				nodeValue: "編按：香醋（Aceto balsamico），是一種義大利調味品，又名義大利黑醋或巴薩米克醋。",
 			parentElement: {}
 		};
 		let yielded = false;
