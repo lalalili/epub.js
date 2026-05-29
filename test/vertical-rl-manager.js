@@ -1164,8 +1164,8 @@ describe("Vertical RL manager pagination", function() {
 									selectNodeContents: function() {},
 									getClientRects: function() {
 										return [{
-											left: 9103.8633,
-											right: 9126.5906,
+											left: 1522.6846,
+											right: 1545.4119,
 											width: 22.727,
 											height: 700
 										}];

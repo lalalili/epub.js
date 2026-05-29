@@ -713,7 +713,22 @@ class DefaultViewManager {
 
 			for (const rect of Array.from(range.getClientRects())) {
 				if (rect.width > 0 && rect.height > 0) {
-					rects.push(rect);
+					if (
+						iframeRect.left < 0 &&
+						rect.right >= containerRect.left - maxMask &&
+						rect.left <= containerRect.right + maxMask
+					) {
+						rects.push({
+							left: rect.left - iframeRect.left,
+							right: rect.right - iframeRect.left,
+							top: rect.top,
+							bottom: rect.bottom,
+							width: rect.width,
+							height: rect.height
+						});
+					} else {
+						rects.push(rect);
+					}
 				}
 
 				if (rects.length >= 1000) {
