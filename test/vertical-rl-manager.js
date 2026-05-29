@@ -842,6 +842,95 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(maskWidths.right, 0);
 	});
 
+	it("shrinks the right vertical-rl edge mask when the previous raw left edge already clipped the line", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "編按：香醋（Aceto balsamico），是一種義大利調味品，又名義大利黑醋或巴薩米克醋。",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			getBoundingClientRect: function() {
+				return {
+					left: 213.1818,
+					right: 1533.1818
+				};
+			}
+		};
+		manager.layout = {
+			edgeGuardPx: 4
+		};
+		manager.views = {
+			first: function() {
+				return {
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: 212.4574
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 1297.983,
+											right: 1320.71,
+											width: 22.727,
+											height: 696.747
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+		manager.getLogicalPageStepToNextPage = function() {
+			return 0;
+		};
+
+		let maskWidths = manager.snapVerticalRlEdgeMaskWidths({
+			left: 24,
+			right: 6
+		}, 120, {
+			previousPageStep: 1313.636,
+			rightMaxMask: 6
+		});
+
+		assert.equal(maskWidths.left, 24);
+		assert.equal(maskWidths.right, 0);
+	});
+
 	it("shrinks the left vertical-rl edge mask to preserve a full line box", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {
