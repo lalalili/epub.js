@@ -1003,6 +1003,64 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(Math.round(manager.container.scrollLeft), -7773);
 	});
 
+	it("snaps restored vertical-rl current offsets back to the active page grid", async function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+
+		manager.container = {
+			clientWidth: 1320,
+			scrollWidth: 18144,
+			scrollLeft: -10345.4541,
+			scrollTop: 0
+		};
+		manager.layout = {
+			effectivePageAdvance: 1296,
+			delta: 1296,
+			pageWidth: 1296,
+			width: 1320,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.isRtlVerticalPaginated = function() {
+			return true;
+		};
+		manager.getTotalPagesForCurrentView = function() {
+			return 14;
+		};
+		manager.getMaxLogicalScrollLeft = function() {
+			return 16824;
+		};
+		manager.getCurrentPageIndex = function() {
+			return 8;
+		};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.waitForVerticalRlLayoutReady = function() {
+			return Promise.resolve();
+		};
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function(logicalOffset) {
+			return logicalOffset;
+		};
+		manager.snapVerticalRlLogicalOffsetFromEdgeMask = function(logicalOffset) {
+			return logicalOffset;
+		};
+		manager.scrollTo = function(left) {
+			this.container.scrollLeft = left;
+		};
+
+		manager.queueVerticalRlBoundarySnapRetry(8, {
+			useCurrentOffset: true
+		});
+		await Promise.resolve();
+
+		assert.equal(manager.container.scrollLeft, -10368);
+	});
+
 	it("queues vertical-rl boundary snapping after external scroll events", async function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 
@@ -1226,6 +1284,40 @@ describe("Vertical RL manager pagination", function() {
 
 		assert.equal(maskWidths.left, 60);
 		assert.equal(maskWidths.right, 20);
+	});
+
+	it("keeps a structural left gutter mask when active vertical-rl page width is narrower than the viewport", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+
+		manager.container = {
+			clientWidth: 1320,
+			scrollWidth: 18144,
+			scrollLeft: -10368
+		};
+		manager.layout = {
+			pageWidth: 1296,
+			width: 1320,
+			effectivePageAdvance: 1296,
+			delta: 1296,
+			pageBoundaryShift: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.isRtlVerticalPaginated = function() {
+			return true;
+		};
+
+		let maskWidths = manager.getVerticalRlEdgeMaskWidths();
+
+		assert.deepEqual(maskWidths, {
+			left: 24,
+			right: 0
+		});
 	});
 
 	it("does not right-mask content that was hidden by the previous page left edge mask", function() {
