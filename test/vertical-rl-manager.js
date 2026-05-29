@@ -1104,14 +1104,103 @@ describe("Vertical RL manager pagination", function() {
 				rightMaxMask: 0
 			});
 
-			assert.equal(maskWidths.left, 24);
-			assert.equal(maskWidths.right, 4);
+		assert.equal(maskWidths.left, 24);
+		assert.equal(maskWidths.right, 4);
+	});
+
+	it("covers the visible part of a right vertical-rl line clipped by the raw viewport", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "把麵糊舀在水果上面，放入烤箱中，以三百度烤大約三十分鐘。",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			getBoundingClientRect: function() {
+				return {
+					left: 213.1818,
+					right: 1533.1818
+				};
+			}
+		};
+		manager.layout = {
+			edgeGuardPx: 4
+		};
+		manager.views = {
+			first: function() {
+				return {
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: -7581.1787
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 9103.8633,
+											right: 9126.5906,
+											width: 22.727,
+											height: 700
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+		manager.getLogicalPageStepToNextPage = function() {
+			return 1296.363;
+		};
+
+		let maskWidths = manager.snapVerticalRlEdgeMaskWidths({
+			left: 24,
+			right: 4
+		}, 120, {
+			previousPageStep: 1296.363,
+			rightMaxMask: 4
 		});
 
-		it("does not expand the right vertical-rl edge mask into a raw viewport boundary line box", function() {
-			let manager = Object.create(DefaultViewManager.prototype);
-			let textNode = {
-				nodeValue: "編按：香醋（Aceto balsamico），是一種義大利調味品，又名義大利黑醋或巴薩米克醋。",
+		assert.equal(maskWidths.left, 24);
+		assert.equal(maskWidths.right, 12);
+	});
+
+	it("does not expand the right vertical-rl edge mask into a raw viewport boundary line box", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "編按：香醋（Aceto balsamico），是一種義大利調味品，又名義大利黑醋或巴薩米克醋。",
 			parentElement: {}
 		};
 		let yielded = false;

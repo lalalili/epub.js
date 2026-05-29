@@ -682,6 +682,7 @@ class DefaultViewManager {
 		let nextPageStep = Number(limits.nextPageStep ?? this.getLogicalPageStepToNextPage()) || 0;
 		let previousPageStep = Number(limits.previousPageStep) || 0;
 		let edgeTolerance = Math.max(1, Math.min(4, Math.round((this.layout && this.layout.edgeGuardPx) || 1)));
+		let canExpandClippedRawRight = !!(this.layout && Number(this.layout.edgeGuardPx) > 0);
 		let rightPaintGuardMax = Math.min(maxMask, Math.max(rightMaxMask, edgeTolerance));
 		let rects = [];
 		let walker = doc.createTreeWalker(body, 4, {
@@ -780,13 +781,16 @@ class DefaultViewManager {
 			let boundary = rawRight - right;
 			let expand = 0;
 			let shrink = 0;
+			let expandBeyondPaintGuard = false;
 			for (const rect of rects) {
 				let previousRawLeft = rawLeft + previousPageStep;
 				let clippedAtPreviousLeft = previousPageStep > 0 && rect.left < previousRawLeft && rect.right > previousRawLeft;
 				let rawRightStraddler = rect.left < rawRight && rect.right > rawRight;
 				let rawRightOverhang = rawRightStraddler ? rect.right - rawRight : 0;
 				let visibleInsideRawRight = rawRightStraddler ? rawRight - Math.max(rect.left, rawLeft) : 0;
-				let maskConsumesVisibleRightEdge = rawRightStraddler && visibleInsideRawRight <= Math.max(right, rightMaxMask) + edgeTolerance;
+				let maskConsumesVisibleRightEdge = rawRightStraddler &&
+					right < visibleInsideRawRight &&
+					visibleInsideRawRight <= Math.max(right, rightMaxMask) + edgeTolerance;
 				let startsJustOutsideRawRight = rect.left >= rawRight && rect.left - rawRight <= edgeTolerance;
 				if (startsJustOutsideRawRight) {
 					let targetRight = Math.ceil(Math.min(edgeTolerance, rect.left - rawRight + edgeTolerance));
@@ -809,6 +813,25 @@ class DefaultViewManager {
 					continue;
 				}
 				if (
+					rawRightStraddler &&
+					visibleInsideRawRight > edgeTolerance &&
+					right >= visibleInsideRawRight &&
+					rightMaxMask >= visibleInsideRawRight
+				) {
+					if (right > 0) {
+						shrink = Math.min(shrink, -right);
+					}
+					continue;
+				}
+				if (rawRightStraddler && visibleInsideRawRight > edgeTolerance) {
+					let targetRight = Math.ceil(visibleInsideRawRight + 1);
+					if (canExpandClippedRawRight && targetRight > right) {
+						expand = Math.max(expand, targetRight - right);
+						expandBeyondPaintGuard = true;
+					}
+					continue;
+				}
+				if (
 					clippedAtPreviousLeft &&
 					rect.right > boundary &&
 					rect.left < rawRight
@@ -825,7 +848,9 @@ class DefaultViewManager {
 			}
 			let shift = shrink < 0 ? shrink : expand;
 			if (shift !== 0) {
-				let maxAllowedRight = shift > 0 ? rightPaintGuardMax : rightMaxMask;
+				let maxAllowedRight = shift > 0
+					? (expandBeyondPaintGuard ? maxMask : rightPaintGuardMax)
+					: rightMaxMask;
 				right = Math.max(0, Math.min(maxAllowedRight, right + shift));
 			}
 			return shift;
