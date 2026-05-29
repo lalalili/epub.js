@@ -1980,6 +1980,10 @@ class DefaultViewManager {
 			this.ignore = false;
 		}
 
+		if (!this._verticalRlBoundarySnapApplying && this.isRtlVerticalPaginated()) {
+			this.queueVerticalRlBoundarySnapRetryForCurrentOffset();
+		}
+
 	}
 
 	bounds() {

@@ -890,6 +890,68 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(Math.round(manager.container.scrollLeft), -7773);
 	});
 
+	it("queues vertical-rl boundary snapping after external scroll events", async function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+
+		manager.container = {
+			clientWidth: 1320,
+			scrollWidth: 18168,
+			scrollLeft: -7758.1818,
+			scrollTop: 0
+		};
+		manager.layout = {
+			effectivePageAdvance: 1296,
+			delta: 1296,
+			pageWidth: 1320,
+			width: 1320,
+			pageBoundaryShift: 18,
+			edgeGuardPx: 4
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.isRtlVerticalPaginated = function() {
+			return true;
+		};
+		manager.getTotalPagesForCurrentView = function() {
+			return 14;
+		};
+		manager.getMaxLogicalScrollLeft = function() {
+			return 16848;
+		};
+		manager.getCurrentPageIndex = function() {
+			return 6;
+		};
+		manager.getVerticalRlEdgeMaskWidths = function() {
+			return {
+				left: 24,
+				right: 17
+			};
+		};
+		manager.emit = function() {};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.waitForVerticalRlLayoutReady = function() {
+			return Promise.resolve();
+		};
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function(logicalOffset) {
+			return logicalOffset;
+		};
+		manager.scrollTo = function(left) {
+			this.container.scrollLeft = left;
+		};
+
+		manager.onScroll();
+		await new Promise(function(resolve) {
+			setTimeout(resolve, 10);
+		});
+
+		assert.equal(Math.round(manager.container.scrollLeft), -7773);
+	});
+
 	it("snaps direct restored offsets when iframe content rects are already logical coordinates", async function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {
