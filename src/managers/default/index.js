@@ -1015,10 +1015,6 @@ class DefaultViewManager {
 			logicalOffset = Math.max(0, logicalOffset - boundaryShift);
 		}
 
-		if (this.isRtlVerticalPaginated() && targetIndex > 0 && targetIndex < totalPages - 1) {
-			logicalOffset = this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll);
-		}
-
 		return Math.min(maxScroll, logicalOffset);
 	}
 
@@ -1260,6 +1256,9 @@ class DefaultViewManager {
 		let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
 		let maxScroll = this.getMaxLogicalScrollLeft();
 		let logicalOffset = this.getLogicalOffsetForPageIndex(targetIndex, totalPages, maxScroll);
+		if (this.isRtlVerticalPaginated() && targetIndex > 0 && targetIndex < totalPages - 1) {
+			logicalOffset = this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll);
+		}
 		let left = logicalOffset;
 
 		if (this.settings.direction === "rtl") {

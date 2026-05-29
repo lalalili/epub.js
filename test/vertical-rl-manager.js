@@ -486,6 +486,7 @@ describe("Vertical RL manager pagination", function() {
 			rtlScrollType: "negative",
 			writingMode: "vertical-rl"
 		};
+		manager.isPaginated = true;
 		manager.views = {
 			first: function() {
 				return {
@@ -547,10 +548,11 @@ describe("Vertical RL manager pagination", function() {
 			}
 		};
 
-		let logicalOffset = manager.getLogicalOffsetForPageIndex(6, 14, 16848);
+		let baseLogicalOffset = manager.getLogicalOffsetForPageIndex(6, 14, 16848);
+		let logicalOffset = manager.snapVerticalRlLogicalOffsetToTextBoundary(baseLogicalOffset, 16848);
 		let rawRight = 18168 - logicalOffset;
 
-		assert.ok(logicalOffset > (6 * 1296) - 18);
+		assert.ok(logicalOffset > baseLogicalOffset);
 		assert.ok(rawRight <= 10399.3174 - 4);
 	});
 
