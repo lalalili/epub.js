@@ -1291,6 +1291,112 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(maskWidths.right, 12);
 	});
 
+	it("keeps the right vertical-rl edge mask when a previous-page line also crosses the boundary", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let previousLineNode = {
+			nodeValue: "把兩塊沾有橄欖油的雞胸肉整塊放入用油抹過的煎鍋中。",
+			parentElement: {}
+		};
+		let straddlingNode = {
+			nodeValue: "把麵糊舀在水果上面，放入烤箱中，以三百度烤大約三十分鐘。",
+			parentElement: {}
+		};
+		let nodes = [previousLineNode, straddlingNode];
+
+		manager.container = {
+			getBoundingClientRect: function() {
+				return {
+					left: 213.1818,
+					right: 1533.1818
+				};
+			}
+		};
+		manager.layout = {
+			edgeGuardPx: 4
+		};
+		manager.views = {
+			first: function() {
+				return {
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: -10172.9971
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										return nodes.shift() || null;
+									}
+								};
+							},
+							createRange: function() {
+								let selectedNode;
+								return {
+									selectNodeContents: function(node) {
+										selectedNode = node;
+									},
+									getClientRects: function() {
+										if (selectedNode === previousLineNode) {
+											return [{
+												left: 1502.3289,
+												right: 1525.0569,
+												width: 22.728,
+												height: 680
+											}];
+										}
+
+										return [{
+											left: 1522.6846,
+											right: 1545.4119,
+											width: 22.7273,
+											height: 680
+										}, {
+											left: 1486.6903,
+											right: 1509.4176,
+											width: 22.7273,
+											height: 60
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+		manager.getLogicalPageStepToNextPage = function() {
+			return 1296;
+		};
+
+		let maskWidths = manager.snapVerticalRlEdgeMaskWidths({
+			left: 7,
+			right: 0
+		}, 324, {
+			previousPageStep: 1296,
+			rightMaxMask: 0
+		});
+
+		assert.equal(maskWidths.left, 7);
+		assert.equal(maskWidths.right, 12);
+	});
+
 	it("does not expand the right vertical-rl edge mask into a raw viewport boundary line box", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {

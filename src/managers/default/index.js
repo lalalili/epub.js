@@ -797,6 +797,19 @@ class DefaultViewManager {
 			let expand = 0;
 			let shrink = 0;
 			let expandBeyondPaintGuard = false;
+			let requiredRawRightMask = 0;
+			for (const rect of rects) {
+				let rawRightStraddler = rect.left < rawRight && rect.right > rawRight;
+				if (!rawRightStraddler) {
+					continue;
+				}
+
+				let rawRightOverhang = rect.right - rawRight;
+				let visibleInsideRawRight = rawRight - Math.max(rect.left, rawLeft);
+				if (visibleInsideRawRight > edgeTolerance && rawRightOverhang > Math.max(edgeTolerance, 4)) {
+					requiredRawRightMask = Math.max(requiredRawRightMask, Math.ceil(visibleInsideRawRight + 1));
+				}
+			}
 			for (const rect of rects) {
 				let previousRawLeft = rawLeft + previousPageStep;
 				let clippedAtPreviousLeft = previousPageStep > 0 && rect.left < previousRawLeft && rect.right > previousRawLeft;
@@ -851,7 +864,10 @@ class DefaultViewManager {
 					rect.right > boundary &&
 					rect.left < rawRight
 				) {
-					let targetRight = Math.max(0, Math.floor(rawRight - Math.min(rect.right, rawRight)));
+					let targetRight = Math.max(
+						requiredRawRightMask,
+						Math.max(0, Math.floor(rawRight - Math.min(rect.right, rawRight)))
+					);
 					if (targetRight < right) {
 						shrink = Math.min(shrink, targetRight - right);
 					}
@@ -865,7 +881,7 @@ class DefaultViewManager {
 			if (shift !== 0) {
 				let maxAllowedRight = shift > 0
 					? (expandBeyondPaintGuard ? maxMask : rightPaintGuardMax)
-					: rightMaxMask;
+					: Math.max(rightMaxMask, requiredRawRightMask, right + shift);
 				right = Math.max(0, Math.min(maxAllowedRight, right + shift));
 			}
 			return shift;
