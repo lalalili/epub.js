@@ -1508,7 +1508,6 @@ class Contents {
 		rawHeight = Math.ceil(rawHeight);
 
 		const metrics = this.estimateVerticalRlLineMetrics(safePageWidth);
-		const edgeGuardPx = 0;
 		let viewportPageWidth = Number.isFinite(safePageWidth) && safePageWidth > 0 ? safePageWidth : null;
 		let effectivePageAdvance = viewportPageWidth;
 		if (
@@ -1523,6 +1522,20 @@ class Contents {
 				effectivePageAdvance = lineSnappedAdvance;
 			}
 		}
+		const structuralBleed = viewportPageWidth && effectivePageAdvance
+			? Math.max(0, viewportPageWidth - effectivePageAdvance)
+			: 0;
+		const edgeGuardPx = (
+			metrics.stable &&
+			Number.isFinite(metrics.lineWidth) &&
+			metrics.lineWidth > 0 &&
+			structuralBleed > VERTICAL_RL_MIN_EDGE_GUARD
+		)
+			? Math.min(
+				Math.floor(structuralBleed / 2),
+				Math.max(VERTICAL_RL_MIN_EDGE_GUARD, Math.ceil(metrics.lineWidth / 4))
+			)
+			: 0;
 
 		const pageLength = effectivePageAdvance || viewportPageWidth || 1;
 		let totalPages = Math.max(1, Math.ceil(rawWidth / pageLength));
@@ -1541,7 +1554,7 @@ class Contents {
 			totalPages = Math.max(totalPages, verticalFragmentPages);
 		}
 		const snappedContentWidth = totalPages * pageLength;
-		const pageBoundaryShift = 0;
+		const pageBoundaryShift = edgeGuardPx;
 		const result = {
 			rawWidth,
 			rawPaintWidth: rawWidth,

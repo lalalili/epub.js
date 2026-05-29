@@ -3521,8 +3521,8 @@ describe("Vertical RL manager pagination", function() {
 
 		assert.equal(metrics.effectivePageAdvance, 288);
 		assert.equal(metrics.pageWidth, 288);
-		assert.equal(metrics.pageBoundaryShift, 0);
-		assert.equal(metrics.edgeGuardPx, 0);
+		assert.equal(metrics.pageBoundaryShift, 5);
+		assert.equal(metrics.edgeGuardPx, 5);
 		assert.equal(metrics.snappedContentWidth, 864);
 	});
 
