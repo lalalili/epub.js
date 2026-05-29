@@ -871,6 +871,109 @@ describe("Vertical RL manager pagination", function() {
 		assert.ok(rawRight >= 14261.71875 + 1 || rawRight <= 14239.71875 - 1);
 	});
 
+	it("snaps vertical-rl text boundaries using left-origin viewport coordinates", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNodes = [{
+			nodeValue: "滴少許橄欖油在雞塊上面。蓋上蓋子，以三百度烤大約四十五分鐘。",
+			parentElement: {}
+		}, {
+			nodeValue: "•",
+			parentElement: {}
+		}];
+		let index = 0;
+		let currentNode = null;
+
+		manager.container = {
+			clientWidth: 1296,
+			scrollWidth: 16848,
+			scrollLeft: -10368
+		};
+		manager.layout = {
+			effectivePageAdvance: 1296,
+			delta: 1296,
+			pageWidth: 1296,
+			width: 1296,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			first: function() {
+				return {
+					_contentWidth: 16746,
+					width: function() {
+						return 16848;
+					},
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: -10368
+							};
+						}
+					},
+					contents: {
+						writingMode: function() {
+							return "vertical-rl";
+						},
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {
+								scrollWidth: 16746
+							},
+							createTreeWalker: function() {
+								index = 0;
+								return {
+									nextNode: function() {
+										currentNode = textNodes[index] || null;
+										index += 1;
+										return currentNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function(node) {
+										currentNode = node;
+									},
+									getClientRects: function() {
+										return [{
+											left: 11643.03125,
+											right: 11665.03125,
+											width: 22,
+											height: 808
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let snapped = manager.snapVerticalRlLogicalOffsetToTextBoundary(10368, 15552);
+
+		assert.ok(snapped > 10368);
+		assert.ok(snapped + 1296 >= 11665.03125 + 1);
+	});
+
 	it("does not cache a no-op vertical-rl boundary snap before text rects are ready", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {
