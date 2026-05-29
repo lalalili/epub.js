@@ -1019,6 +1019,94 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(maskWidths.right, 0);
 	});
 
+	it("shrinks the right vertical-rl edge mask when it would consume the visible boundary sliver", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "做得好的話，這道菜會非常、非常美味；但做得不好的話（把櫛瓜花炸軟掉的話），它就會超級難吃。",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			getBoundingClientRect: function() {
+				return {
+					left: 213.1818,
+					right: 1533.1818
+				};
+			}
+		};
+		manager.layout = {
+			edgeGuardPx: 4
+		};
+		manager.views = {
+			first: function() {
+				return {
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: -4988.4517
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 6502.088,
+											right: 6524.815,
+											width: 22.727,
+											height: 680
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+		manager.getLogicalPageStepToNextPage = function() {
+			return 0;
+		};
+
+		let maskWidths = manager.snapVerticalRlEdgeMaskWidths({
+			left: 15,
+			right: 21
+		}, 120, {
+			rightMaxMask: 21
+		});
+
+		assert.equal(maskWidths.left, 15);
+		assert.equal(maskWidths.right, 0);
+	});
+
 	it("shrinks the left vertical-rl edge mask to preserve a full line box", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {

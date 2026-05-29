@@ -785,7 +785,9 @@ class DefaultViewManager {
 				let clippedAtPreviousLeft = previousPageStep > 0 && rect.left < previousRawLeft && rect.right > previousRawLeft;
 				let rawRightStraddler = rect.left < rawRight && rect.right > rawRight;
 				let rawRightOverhang = rawRightStraddler ? rect.right - rawRight : 0;
-				if (rawRightStraddler && rawRightOverhang <= edgeTolerance) {
+				let visibleInsideRawRight = rawRightStraddler ? rawRight - Math.max(rect.left, rawLeft) : 0;
+				let maskConsumesVisibleRightEdge = rawRightStraddler && visibleInsideRawRight <= right + edgeTolerance;
+				if (rawRightStraddler && (rawRightOverhang <= Math.max(edgeTolerance, 4) || maskConsumesVisibleRightEdge)) {
 					if (right > 0) {
 						shrink = Math.min(shrink, -right);
 					}
