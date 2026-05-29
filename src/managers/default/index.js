@@ -1491,19 +1491,22 @@ class DefaultViewManager {
 				let shouldSnapCurrentOffsetToPageGrid = (
 					options.useCurrentOffset &&
 					this.getPageBoundaryShift() === 0 &&
-					this.container &&
-					(this.container.clientWidth || 0) - (this.getPageAdvance() || 0) > 1
+					this.container
 				);
+				let snappedCurrentOffsetToPageGrid = false;
 				if (shouldSnapCurrentOffsetToPageGrid) {
 					let currentIndex = this.getCurrentPageIndex();
 					let pageOffset = this.getLogicalOffsetForPageIndex(currentIndex, currentTotalPages, maxScroll);
 					if (Math.abs(currentOffset - pageOffset) <= this.getPageSnapTolerance()) {
 						logicalOffset = pageOffset;
+						snappedCurrentOffsetToPageGrid = true;
 					}
 				}
-				let snappedOffset = this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll);
+				let snappedOffset = snappedCurrentOffsetToPageGrid
+					? logicalOffset
+					: this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll);
 
-				if (Math.abs(snappedOffset - logicalOffset) <= 1) {
+				if (!snappedCurrentOffsetToPageGrid && Math.abs(snappedOffset - logicalOffset) <= 1) {
 					snappedOffset = this.snapVerticalRlLogicalOffsetFromEdgeMask(logicalOffset, maxScroll);
 				}
 

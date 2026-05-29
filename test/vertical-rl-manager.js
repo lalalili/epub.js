@@ -1043,8 +1043,8 @@ describe("Vertical RL manager pagination", function() {
 		manager.waitForVerticalRlLayoutReady = function() {
 			return Promise.resolve();
 		};
-		manager.snapVerticalRlLogicalOffsetToTextBoundary = function(logicalOffset) {
-			return logicalOffset;
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function() {
+			return 10345;
 		};
 		manager.snapVerticalRlLogicalOffsetFromEdgeMask = function(logicalOffset) {
 			return logicalOffset;
