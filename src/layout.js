@@ -34,6 +34,7 @@ class Layout {
 		this.delta = 0;
 		this.effectivePageAdvance = 0;
 		this.pageBoundaryShift = 0;
+		this.edgeGuardPx = 0;
 
 		this.columnWidth = 0;
 		this.gap = 0;
@@ -49,6 +50,7 @@ class Layout {
 			delta: 0,
 			effectivePageAdvance: 0,
 			pageBoundaryShift: 0,
+			edgeGuardPx: 0,
 			columnWidth: 0,
 			gap: 0,
 			divisor: 1

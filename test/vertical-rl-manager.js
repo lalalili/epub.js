@@ -1,6 +1,7 @@
 import assert from "assert";
 import Contents from "../src/contents";
 import DefaultViewManager from "../src/managers/default";
+import IframeView from "../src/managers/views/iframe";
 import Rendition from "../src/rendition";
 import { replaceLinks } from "../src/utils/replacements";
 
@@ -1605,6 +1606,74 @@ describe("Vertical RL manager pagination", function() {
 
 		assert.equal(maskWidths.left, 40);
 		assert.equal(maskWidths.right, 0);
+	});
+
+	it("propagates the vertical-rl edge guard from content metrics to the layout", function() {
+		let view = Object.create(IframeView.prototype);
+		let updatedProps = null;
+		let reframed = null;
+
+		view.lockedWidth = 1320;
+		view.lockedHeight = 761;
+		view._expanding = false;
+		view._needsReframe = true;
+		view.iframe = {};
+		view.settings = {
+			axis: "horizontal",
+			flow: "paginated",
+			forceEvenPages: false
+		};
+		view.section = {
+			href: "OEBPS/Text/Section0011.xhtml"
+		};
+		view.layout = {
+			pageWidth: 1320,
+			effectivePageAdvance: 1296,
+			delta: 1296,
+			pageBoundaryShift: 20,
+			edgeGuardPx: 0,
+			update: function(props) {
+				updatedProps = props;
+			}
+		};
+		view.contents = {
+			textWidth: function() {
+				return 17172;
+			},
+			writingMode: function() {
+				return "vertical-rl";
+			},
+			verticalRlPageMetrics: function(pageWidth, pageHeight) {
+				assert.equal(pageWidth, 1320);
+				assert.equal(pageHeight, 761);
+
+				return {
+					rawWidth: 17172,
+					snappedContentWidth: 18168,
+					effectivePageAdvance: 1296,
+					pageBoundaryShift: 20,
+					edgeGuardPx: 4,
+					totalPages: 14
+				};
+			}
+		};
+		view.reframe = function(width, height) {
+			reframed = { width, height };
+		};
+
+		view.expand();
+
+		assert.equal(view.layout.edgeGuardPx, 4);
+		assert.deepEqual(updatedProps, {
+			delta: 1296,
+			effectivePageAdvance: 1296,
+			pageBoundaryShift: 20,
+			edgeGuardPx: 4
+		});
+		assert.deepEqual(reframed, {
+			width: 18168,
+			height: 761
+		});
 	});
 
 	it("moves a vertical-rl page boundary past the clipped line box", function() {
