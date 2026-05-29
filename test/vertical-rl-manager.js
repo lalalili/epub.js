@@ -726,6 +726,122 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(maskWidths.right, 2);
 	});
 
+	it("does not hide a previous-page clipped line again at the current right edge", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "樣。難怪義大利人喜歡用水果來配甜點。即使是凝膠冰糕（Gelato）──過去對義大利",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			clientWidth: 1320,
+			getBoundingClientRect: function() {
+				return {
+					left: 213.1818,
+					right: 1533.1818
+				};
+			}
+		};
+		manager.layout = {
+			effectivePageAdvance: 1296,
+			delta: 1296,
+			pageWidth: 1320,
+			pageBoundaryShift: 6,
+			edgeGuardPx: 4
+		};
+		manager.views = {
+			first: function() {
+				return {
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: -6272.4429
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 7783.0962,
+											right: 7805.8237,
+											width: 22.73,
+											height: 693.31
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+		manager.isRtlVerticalPaginated = function() {
+			return true;
+		};
+		manager.getPageAdvance = function() {
+			return 1296;
+		};
+		manager.getTotalPagesForCurrentView = function() {
+			return 8;
+		};
+		manager.getCurrentPageIndex = function() {
+			return 2;
+		};
+		manager.getMaxLogicalScrollLeft = function() {
+			return 9072;
+		};
+		manager.getLogicalOffsetForPageIndex = function(pageIndex) {
+			if (pageIndex <= 0) {
+				return 0;
+			}
+			if (pageIndex === 1) {
+				return 1290;
+			}
+			if (pageIndex === 2) {
+				return 2586.3635;
+			}
+
+			return pageIndex * 1296 - 6;
+		};
+		manager.getLogicalPageStepToNextPage = function() {
+			return 1296;
+		};
+
+		let maskWidths = manager.getVerticalRlEdgeMaskWidths();
+
+		assert.equal(maskWidths.left, 24);
+		assert.equal(maskWidths.right, 0);
+	});
+
 	it("shrinks the left vertical-rl edge mask to preserve a full line box", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {
