@@ -1107,6 +1107,94 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(maskWidths.right, 0);
 	});
 
+	it("does not re-expand the right vertical-rl edge mask after shrinking a visible boundary sliver", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "雖然鼠尾草常常會帶有綠色的粉塵，讓人打噴嚏，但新鮮的鼠尾草所散發的強烈香味，卻能讓人食指大動。",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			getBoundingClientRect: function() {
+				return {
+					left: 213.1818,
+					right: 1533.1818
+				};
+			}
+		};
+		manager.layout = {
+			edgeGuardPx: 4
+		};
+		manager.views = {
+			first: function() {
+				return {
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: -3692.9971
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 5218.2813,
+											right: 5241.0083,
+											width: 22.727,
+											height: 680
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+		manager.getLogicalPageStepToNextPage = function() {
+			return 0;
+		};
+
+		let maskWidths = manager.snapVerticalRlEdgeMaskWidths({
+			left: 24,
+			right: 9
+		}, 120, {
+			rightMaxMask: 9
+		});
+
+		assert.equal(maskWidths.left, 24);
+		assert.equal(maskWidths.right, 0);
+	});
+
 	it("shrinks the left vertical-rl edge mask to preserve a full line box", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {
