@@ -719,7 +719,7 @@ describe("Vertical RL manager pagination", function() {
 
 		await Promise.resolve();
 
-		assert.equal(manager.container.scrollLeft, -7773);
+		assert.equal(Math.round(manager.container.scrollLeft), -7773);
 		assert.equal(snapCalls, 2);
 	});
 
@@ -773,7 +773,7 @@ describe("Vertical RL manager pagination", function() {
 			setTimeout(resolve, 10);
 		});
 
-		assert.equal(manager.container.scrollLeft, -7773);
+		assert.equal(Math.round(manager.container.scrollLeft), -7773);
 		assert.equal(snapCalls, 4);
 	});
 
@@ -829,7 +829,7 @@ describe("Vertical RL manager pagination", function() {
 		manager.scrollToLogicalPage(6);
 		await Promise.resolve();
 
-		assert.equal(manager.container.scrollLeft, -7773);
+		assert.equal(Math.round(manager.container.scrollLeft), -7773);
 	});
 
 	it("queues vertical-rl boundary snapping after direct restored scroll offsets", async function() {
@@ -887,7 +887,119 @@ describe("Vertical RL manager pagination", function() {
 			setTimeout(resolve, 10);
 		});
 
-		assert.equal(manager.container.scrollLeft, -7773);
+		assert.equal(Math.round(manager.container.scrollLeft), -7773);
+	});
+
+	it("snaps direct restored offsets when iframe content rects are already logical coordinates", async function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "買得到的話，新鮮的牛肝菌猶如一頓盛宴。抹上橄欖油。",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			clientWidth: 1320,
+			scrollWidth: 18168,
+			scrollLeft: -9069.0908,
+			scrollTop: 0
+		};
+		manager.layout = {
+			effectivePageAdvance: 1296,
+			delta: 1296,
+			pageWidth: 1320,
+			width: 1320,
+			pageBoundaryShift: 18,
+			edgeGuardPx: 4
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.getTotalPagesForCurrentView = function() {
+			return 14;
+		};
+		manager.getMaxLogicalScrollLeft = function() {
+			return 16848;
+		};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.waitForVerticalRlLayoutReady = function() {
+			return Promise.resolve();
+		};
+		manager.views = {
+			first: function() {
+				return {
+					width: function() {
+						return 18168;
+					},
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: -7565.7241
+							};
+						}
+					},
+					contents: {
+						writingMode: function() {
+							return "vertical-rl";
+						},
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								yielded = false;
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 9078.7109,
+											right: 9101.4385,
+											width: 22.7276,
+											height: 740
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		manager.scrollTo(-9069.0908, 0, true);
+		await new Promise(function(resolve) {
+			setTimeout(resolve, 10);
+		});
+
+		let rawRight = 18168 - Math.abs(manager.container.scrollLeft);
+
+		assert.equal(Math.round(manager.container.scrollLeft), -9062);
+		assert.ok(rawRight >= 9101.4385 + 4);
 	});
 
 	it("does not wait indefinitely for vertical-rl font readiness before boundary snapping", async function() {

@@ -1094,8 +1094,17 @@ class DefaultViewManager {
 				}
 
 				inspected += 1;
-				let left = rect.left - iframeRect.left;
-				let right = rect.right - iframeRect.left;
+				let left = rect.left;
+				let right = rect.right;
+				let shiftedLeft = rect.left - iframeRect.left;
+				let shiftedRight = rect.right - iframeRect.left;
+				let directDistance = this.getVerticalRlRectDistanceToLogicalViewport(left, right, rawLeft, rawRight);
+				let shiftedDistance = this.getVerticalRlRectDistanceToLogicalViewport(shiftedLeft, shiftedRight, rawLeft, rawRight);
+
+				if (shiftedDistance + 0.5 < directDistance) {
+					left = shiftedLeft;
+					right = shiftedRight;
+				}
 
 				if (right <= rawLeft || left >= rawRight) {
 					continue;
@@ -1137,6 +1146,18 @@ class DefaultViewManager {
 		}
 
 		return snapped;
+	}
+
+	getVerticalRlRectDistanceToLogicalViewport(left, right, rawLeft, rawRight){
+		if (right < rawLeft) {
+			return rawLeft - right;
+		}
+
+		if (left > rawRight) {
+			return left - rawRight;
+		}
+
+		return 0;
 	}
 
 	snapVerticalRlLogicalOffsetFromEdgeMask(logicalOffset, maxScroll){
@@ -1331,7 +1352,7 @@ class DefaultViewManager {
 		}).then(nextFrame);
 	}
 
-	queueVerticalRlBoundarySnapRetry(pageIndex){
+	queueVerticalRlBoundarySnapRetry(pageIndex, options = {}){
 		if (!this.isRtlVerticalPaginated() || !this.container) {
 			return;
 		}
@@ -1355,9 +1376,11 @@ class DefaultViewManager {
 
 				let currentTotalPages = this.getTotalPagesForCurrentView();
 				let maxScroll = this.getMaxLogicalScrollLeft();
-				let logicalOffset = this.getLogicalOffsetForPageIndex(targetIndex, currentTotalPages, maxScroll);
-				let snappedOffset = this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll);
 				let currentOffset = this.getNormalizedLogicalScrollLeft();
+				let logicalOffset = options.useCurrentOffset
+					? Math.max(0, Math.min(maxScroll, currentOffset))
+					: this.getLogicalOffsetForPageIndex(targetIndex, currentTotalPages, maxScroll);
+				let snappedOffset = this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll);
 
 				if (Math.abs(snappedOffset - logicalOffset) <= 1) {
 					snappedOffset = this.snapVerticalRlLogicalOffsetFromEdgeMask(logicalOffset, maxScroll);
@@ -1411,7 +1434,7 @@ class DefaultViewManager {
 			}
 
 			this.syncVerticalRlViewportClip();
-			this.queueVerticalRlBoundarySnapRetry(this.getCurrentPageIndex());
+			this.queueVerticalRlBoundarySnapRetry(this.getCurrentPageIndex(), { useCurrentOffset: true });
 		}.bind(this), 0);
 	}
 
