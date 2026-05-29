@@ -1059,8 +1059,7 @@ class DefaultViewManager {
 		let rawRight = contentWidth - logicalOffset;
 		let rawLeft = rawRight - visibleWidth;
 		let edgeGuard = Math.max(1, Math.min(8, Math.round((this.layout && this.layout.edgeGuardPx) || 2)));
-		let nearestDelta = 0;
-		let nearestDistance = Infinity;
+		let rects = [];
 		let walker = doc.createTreeWalker(body, 4, {
 			acceptNode(node) {
 				let text = String(node.nodeValue || "").replace(/\s+/g, "");
@@ -1106,23 +1105,7 @@ class DefaultViewManager {
 					right = shiftedRight;
 				}
 
-				if (right <= rawLeft || left >= rawRight) {
-					continue;
-				}
-
-				if (left < rawRight && right > rawRight) {
-					let moveBeforeLine = Math.ceil(rawRight - (left - edgeGuard));
-					let moveAfterLine = -Math.ceil((right + edgeGuard) - rawRight);
-					let beforeDistance = Math.abs(moveBeforeLine);
-					let afterDistance = Math.abs(moveAfterLine);
-					let delta = beforeDistance <= afterDistance ? moveBeforeLine : moveAfterLine;
-					let distance = Math.min(beforeDistance, afterDistance);
-
-					if (distance < nearestDistance) {
-						nearestDistance = distance;
-						nearestDelta = delta;
-					}
-				}
+				rects.push({ left, right });
 
 				if (inspected >= 1000) {
 					break;
@@ -1131,6 +1114,64 @@ class DefaultViewManager {
 
 			if (range.detach) {
 				range.detach();
+			}
+		}
+
+		let candidates = [];
+		let addBoundaryCandidates = (boundary) => {
+			let straddlers = rects.filter((rect) => rect.left < boundary && rect.right > boundary);
+			if (!straddlers.length) {
+				return;
+			}
+
+			let minLeft = Math.min(...straddlers.map((rect) => rect.left));
+			let maxRight = Math.max(...straddlers.map((rect) => rect.right));
+
+			candidates.push(Math.ceil(boundary - (minLeft - edgeGuard)));
+			candidates.push(-Math.ceil((maxRight + edgeGuard) - boundary));
+		};
+		let crossingCount = (leftBoundary, rightBoundary) => {
+			let count = 0;
+			for (const rect of rects) {
+				if (
+					(rect.left < leftBoundary && rect.right > leftBoundary) ||
+					(rect.left < rightBoundary && rect.right > rightBoundary)
+				) {
+					count += 1;
+				}
+			}
+
+			return count;
+		};
+		let initialCrossings = crossingCount(rawLeft, rawRight);
+		let nearestDelta = 0;
+
+		if (initialCrossings > 0) {
+			addBoundaryCandidates(rawLeft);
+			addBoundaryCandidates(rawRight);
+
+			let uniqueCandidates = Array.from(new Set(candidates.filter((delta) => Number.isFinite(delta) && delta !== 0)));
+			let best = null;
+			for (const delta of uniqueCandidates) {
+				let snappedOffset = Math.max(0, Math.min(maxScroll, logicalOffset + delta));
+				let clampedDelta = snappedOffset - logicalOffset;
+				if (!clampedDelta) {
+					continue;
+				}
+
+				let score = crossingCount(rawLeft - clampedDelta, rawRight - clampedDelta);
+				let distance = Math.abs(clampedDelta);
+				if (
+					!best ||
+					score < best.score ||
+					(score === best.score && distance < best.distance)
+				) {
+					best = { delta: clampedDelta, distance, score };
+				}
+			}
+
+			if (best && best.score < initialCrossings) {
+				nearestDelta = best.delta;
 			}
 		}
 

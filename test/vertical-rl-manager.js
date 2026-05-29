@@ -556,6 +556,119 @@ describe("Vertical RL manager pagination", function() {
 		assert.ok(rawRight <= 10399.3174 - 4);
 	});
 
+	it("snaps vertical-rl page boundaries out of overlapping line box clusters", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNodes = [
+			{
+				nodeValue: "把兩顆蛋和四分之一茶匙的鹽加入一杯水和一又四分之一杯麵粉中。",
+				parentElement: {}
+			},
+			{
+				nodeValue: "譯註：一種可透過更換刀具而將食物切片、剁碎、打漿或研磨的器具。",
+				parentElement: {}
+			},
+			{
+				nodeValue: "把鼠尾草浸入麵糊中，然後把麵糊連鼠尾草一起倒至熱油中。",
+				parentElement: {}
+			}
+		];
+		let rectsByText = new Map([
+			[textNodes[0], { left: 6609.9287, right: 6632.6563, width: 22.7276, height: 680 }],
+			[textNodes[1], { left: 6592.6277, right: 6615.3550, width: 22.7273, height: 680 }],
+			[textNodes[2], { left: 5290.1274, right: 5312.8550, width: 22.7276, height: 680 }]
+		]);
+		let index = 0;
+		let currentNode = null;
+
+		manager.container = {
+			clientWidth: 1320,
+			scrollWidth: 18480,
+			scrollLeft: -11861.8184
+		};
+		manager.layout = {
+			effectivePageAdvance: 1320,
+			delta: 1320,
+			pageWidth: 1320,
+			width: 1320,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0,
+			count: function(totalLength, pageLength) {
+				let pages = Math.max(1, Math.ceil(totalLength / pageLength));
+				return { pages, spreads: pages };
+			}
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			first: function() {
+				return {
+					width: function() {
+						return 18480;
+					},
+					iframe: {
+						getBoundingClientRect: function() {
+							return { left: 0 };
+						}
+					},
+					contents: {
+						writingMode: function() {
+							return "vertical-rl";
+						},
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								index = 0;
+								return {
+									nextNode: function() {
+										currentNode = textNodes[index] || null;
+										index += 1;
+										return currentNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function(node) {
+										currentNode = node;
+									},
+									getClientRects: function() {
+										return [rectsByText.get(currentNode)];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let baseLogicalOffset = 11861.8184;
+		let logicalOffset = manager.snapVerticalRlLogicalOffsetToTextBoundary(baseLogicalOffset, 17160);
+		let rawRight = 18480 - logicalOffset;
+		let rawLeft = rawRight - 1320;
+
+		assert.ok(logicalOffset < baseLogicalOffset);
+		assert.ok(rawRight >= 6632.6563 + 1);
+		assert.ok(rawLeft >= 5312.8550 + 1);
+	});
+
 	it("does not cache a no-op vertical-rl boundary snap before text rects are ready", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {
