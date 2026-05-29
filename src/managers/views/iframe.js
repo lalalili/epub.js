@@ -5,6 +5,16 @@ import Contents from "../../contents";
 import { EVENTS } from "../../utils/constants";
 import { Pane, Highlight, Underline } from "marks-pane";
 
+export function stripScriptTagsFromContents(contents) {
+	if (typeof contents !== "string" || contents.toLowerCase().indexOf("<script") === -1) {
+		return contents;
+	}
+
+	return contents
+		.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, "")
+		.replace(/<script\b[^>]*\/\s*>/gi, "");
+}
+
 const shouldDebugVerticalRl = () => {
 	return typeof window !== "undefined" && window.__EPUB_VRL_DEBUG__ === true;
 };
@@ -480,6 +490,10 @@ class IframeView {
 			this.onLoad(event, loading);
 
 		}.bind(this);
+
+		if (!this.settings.allowScriptedContent) {
+			contents = stripScriptTagsFromContents(contents);
+		}
 
 		if (this.settings.method === "blobUrl") {
 			this.blobUrl = createBlobUrl(contents, "application/xhtml+xml");
