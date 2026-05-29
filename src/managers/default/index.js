@@ -783,6 +783,14 @@ class DefaultViewManager {
 			for (const rect of rects) {
 				let previousRawLeft = rawLeft + previousPageStep;
 				let clippedAtPreviousLeft = previousPageStep > 0 && rect.left < previousRawLeft && rect.right > previousRawLeft;
+				let rawRightStraddler = rect.left < rawRight && rect.right > rawRight;
+				let rawRightOverhang = rawRightStraddler ? rect.right - rawRight : 0;
+				if (rawRightStraddler && rawRightOverhang <= edgeTolerance) {
+					if (right > 0) {
+						shrink = Math.min(shrink, -right);
+					}
+					continue;
+				}
 				if (
 					clippedAtPreviousLeft &&
 					rect.right > boundary &&
