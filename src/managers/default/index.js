@@ -844,7 +844,8 @@ class DefaultViewManager {
 					rawRightStraddler &&
 					visibleInsideRawRight > edgeTolerance &&
 					right >= visibleInsideRawRight &&
-					rightMaxMask >= visibleInsideRawRight
+					rightMaxMask >= visibleInsideRawRight &&
+					(requiredRawRightMask <= 0 || nextPageStep <= 0)
 				) {
 					if (right > 0) {
 						shrink = Math.min(shrink, -right);

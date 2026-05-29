@@ -1397,6 +1397,123 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(maskWidths.right, 12);
 	});
 
+	it("keeps the required right vertical-rl edge mask from the full width calculation", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let previousLineNode = {
+			nodeValue: "把麵糊舀在水果上面，放入烤箱中，以三百度烤大約三十分鐘。",
+			parentElement: {}
+		};
+		let straddlingNode = {
+			nodeValue: "把麵糊舀在水果上面，放入烤箱中，以三百度烤大約三十分鐘。",
+			parentElement: {}
+		};
+		let nodes = [straddlingNode, previousLineNode];
+
+		manager.container = {
+			clientWidth: 1320,
+			scrollWidth: 18168,
+			scrollLeft: -6461.8179,
+			getBoundingClientRect: function() {
+				return {
+					left: 213.1818,
+					right: 1533.1818
+				};
+			}
+		};
+		manager.layout = {
+			effectivePageAdvance: 1296,
+			delta: 1296,
+			pageWidth: 1320,
+			width: 1320,
+			pageBoundaryShift: 18,
+			edgeGuardPx: 4,
+			count: function(totalLength, pageLength) {
+				let pages = Math.max(1, Math.ceil(totalLength / pageLength));
+				return { pages, spreads: pages };
+			}
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.views = {
+			first: function() {
+				return {
+					width: function() {
+						return 18168;
+					},
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: -10172.9971
+							};
+						}
+					},
+					contents: {
+						writingMode: function() {
+							return "vertical-rl";
+						},
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										return nodes.shift() || null;
+									}
+								};
+							},
+							createRange: function() {
+								let selectedNode;
+								return {
+									selectNodeContents: function(node) {
+										selectedNode = node;
+									},
+									getClientRects: function() {
+										if (selectedNode === previousLineNode) {
+											return [{
+												left: 1486.6903,
+												right: 1509.4176,
+												width: 22.7273,
+												height: 60
+											}];
+										}
+
+										return [{
+											left: 1522.6846,
+											right: 1545.4119,
+											width: 22.7273,
+											height: 680
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+		manager.isPaginated = true;
+
+		let maskWidths = manager.getVerticalRlEdgeMaskWidths();
+
+		assert.equal(maskWidths.left, 24);
+		assert.equal(maskWidths.right, 12);
+	});
+
 	it("does not expand the right vertical-rl edge mask into a raw viewport boundary line box", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {
