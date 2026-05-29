@@ -784,7 +784,6 @@ class DefaultViewManager {
 				let previousRawLeft = rawLeft + previousPageStep;
 				let clippedAtPreviousLeft = previousPageStep > 0 && rect.left < previousRawLeft && rect.right > previousRawLeft;
 				if (
-					right > 0 &&
 					clippedAtPreviousLeft &&
 					rect.right > boundary &&
 					rect.left < rawRight
