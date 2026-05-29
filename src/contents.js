@@ -1533,7 +1533,7 @@ class Contents {
 		)
 			? Math.min(
 				Math.floor(structuralBleed / 2),
-				Math.max(VERTICAL_RL_MIN_EDGE_GUARD, Math.ceil(metrics.lineWidth / 4))
+				Math.max(VERTICAL_RL_MIN_EDGE_GUARD, Math.ceil(metrics.lineWidth / 2) + 1)
 			)
 			: 0;
 

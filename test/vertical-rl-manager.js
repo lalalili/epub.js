@@ -3521,9 +3521,65 @@ describe("Vertical RL manager pagination", function() {
 
 		assert.equal(metrics.effectivePageAdvance, 288);
 		assert.equal(metrics.pageWidth, 288);
-		assert.equal(metrics.pageBoundaryShift, 5);
-		assert.equal(metrics.edgeGuardPx, 5);
+		assert.equal(metrics.pageBoundaryShift, 6);
+		assert.equal(metrics.edgeGuardPx, 6);
 		assert.equal(metrics.snappedContentWidth, 864);
+	});
+
+	it("keeps a half-glyph vertical-rl page boundary guard when structural bleed allows it", function() {
+		let contents = Object.create(Contents.prototype);
+		contents._verticalRlPageMetricsCache = null;
+		contents.content = {
+			clientWidth: 1320,
+			clientHeight: 761,
+			childElementCount: 1,
+			scrollWidth: 3912,
+			scrollHeight: 761
+		};
+		contents.documentElement = {
+			clientWidth: 1320,
+			clientHeight: 761,
+			scrollWidth: 3912,
+			scrollHeight: 761
+		};
+		contents.document = {
+			body: contents.content,
+			fonts: null
+		};
+		contents.window = {
+			getComputedStyle: function() {
+				return {
+					fontSize: "20px",
+					lineHeight: "36px",
+					letterSpacing: "0px",
+					fontFamily: "serif"
+				};
+			}
+		};
+		contents.measureVerticalRlRect = function() {
+			return {
+				rawWidth: 3912,
+				rawHeight: 761
+			};
+		};
+		contents.estimateVerticalRlLineMetrics = function() {
+			return {
+				linePitch: 36,
+				lineWidth: 20,
+				lineLefts: [1248, 1284],
+				sampleCount: 8,
+				gapMad: 0,
+				stable: true
+			};
+		};
+
+		let metrics = contents.verticalRlPageMetrics(1320);
+
+		assert.equal(metrics.effectivePageAdvance, 1296);
+		assert.equal(metrics.pageWidth, 1296);
+		assert.equal(metrics.pageBoundaryShift, 11);
+		assert.equal(metrics.edgeGuardPx, 11);
+		assert.equal(metrics.snappedContentWidth, 5184);
 	});
 
 	it("materializes pages when vertical-rl content overflows along the block axis", function() {
