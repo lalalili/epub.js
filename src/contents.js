@@ -1510,18 +1510,6 @@ class Contents {
 		const metrics = this.estimateVerticalRlLineMetrics(safePageWidth);
 		let viewportPageWidth = Number.isFinite(safePageWidth) && safePageWidth > 0 ? safePageWidth : null;
 		let effectivePageAdvance = viewportPageWidth;
-		if (
-			viewportPageWidth &&
-			metrics.stable &&
-			Number.isFinite(metrics.linePitch) &&
-			metrics.linePitch > 0 &&
-			viewportPageWidth > metrics.linePitch
-		) {
-			const lineSnappedAdvance = Math.floor(viewportPageWidth / metrics.linePitch) * metrics.linePitch;
-			if (lineSnappedAdvance > 0) {
-				effectivePageAdvance = lineSnappedAdvance;
-			}
-		}
 		const structuralBleed = viewportPageWidth && effectivePageAdvance
 			? Math.max(0, viewportPageWidth - effectivePageAdvance)
 			: 0;

@@ -3542,12 +3542,12 @@ describe("Vertical RL manager pagination", function() {
 
 				return {
 					rawWidth: 17172,
-					snappedContentWidth: 18144,
-					pageWidth: 1296,
+					snappedContentWidth: 18480,
+					pageWidth: 1320,
 					viewportPageWidth: 1320,
-					effectivePageAdvance: 1296,
-					pageBoundaryShift: 11,
-					edgeGuardPx: 11,
+					effectivePageAdvance: 1320,
+					pageBoundaryShift: 0,
+					edgeGuardPx: 0,
 					totalPages: 14
 				};
 			}
@@ -3559,22 +3559,22 @@ describe("Vertical RL manager pagination", function() {
 		view.expand();
 
 		assert.equal(view.layout.viewportPageWidth, 1320);
-		assert.equal(view.layout.edgeGuardPx, 11);
+		assert.equal(view.layout.edgeGuardPx, 0);
 		assert.deepEqual(updatedProps, {
-			pageWidth: 1296,
+			pageWidth: 1320,
 			viewportPageWidth: 1320,
-			delta: 1296,
-			effectivePageAdvance: 1296,
-			pageBoundaryShift: 11,
-			edgeGuardPx: 11
+			delta: 1320,
+			effectivePageAdvance: 1320,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0
 		});
 		assert.deepEqual(reframed, {
-			width: 18144,
+			width: 18480,
 			height: 761
 		});
 	});
 
-	it("snaps vertical-rl page advance to an integer line pitch", function() {
+	it("keeps vertical-rl page advance equal to the visible page width", function() {
 		let contents = Object.create(Contents.prototype);
 		contents._verticalRlPageMetricsCache = null;
 		contents.content = {
@@ -3623,14 +3623,14 @@ describe("Vertical RL manager pagination", function() {
 
 		let metrics = contents.verticalRlPageMetrics(300);
 
-		assert.equal(metrics.effectivePageAdvance, 288);
-		assert.equal(metrics.pageWidth, 288);
-		assert.equal(metrics.pageBoundaryShift, 6);
-		assert.equal(metrics.edgeGuardPx, 6);
-		assert.equal(metrics.snappedContentWidth, 864);
+		assert.equal(metrics.effectivePageAdvance, 300);
+		assert.equal(metrics.pageWidth, 300);
+		assert.equal(metrics.pageBoundaryShift, 0);
+		assert.equal(metrics.edgeGuardPx, 0);
+		assert.equal(metrics.snappedContentWidth, 900);
 	});
 
-	it("keeps a half-glyph vertical-rl page boundary guard when structural bleed allows it", function() {
+	it("snaps vertical-rl content width to an integer visible page width", function() {
 		let contents = Object.create(Contents.prototype);
 		contents._verticalRlPageMetricsCache = null;
 		contents.content = {
@@ -3679,11 +3679,11 @@ describe("Vertical RL manager pagination", function() {
 
 		let metrics = contents.verticalRlPageMetrics(1320);
 
-		assert.equal(metrics.effectivePageAdvance, 1296);
-		assert.equal(metrics.pageWidth, 1296);
-		assert.equal(metrics.pageBoundaryShift, 11);
-		assert.equal(metrics.edgeGuardPx, 11);
-		assert.equal(metrics.snappedContentWidth, 5184);
+		assert.equal(metrics.effectivePageAdvance, 1320);
+		assert.equal(metrics.pageWidth, 1320);
+		assert.equal(metrics.pageBoundaryShift, 0);
+		assert.equal(metrics.edgeGuardPx, 0);
+		assert.equal(metrics.snappedContentWidth, 3960);
 	});
 
 	it("materializes pages when vertical-rl content overflows along the block axis", function() {
@@ -3736,8 +3736,8 @@ describe("Vertical RL manager pagination", function() {
 
 		let metrics = contents.verticalRlPageMetrics(1062, 709);
 
-		assert.equal(metrics.effectivePageAdvance, 1044);
-		assert.equal(metrics.pageWidth, 1044);
+		assert.equal(metrics.effectivePageAdvance, 1062);
+		assert.equal(metrics.pageWidth, 1062);
 		assert.equal(metrics.totalPages, 3);
 		assert.equal(metrics.verticalFragmentPages, 3);
 		assert.ok(metrics.snappedContentWidth > metrics.pageWidth);
