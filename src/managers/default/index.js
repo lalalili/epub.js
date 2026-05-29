@@ -1284,6 +1284,16 @@ class DefaultViewManager {
 		let fontsReady = doc && doc.fonts && doc.fonts.ready
 			? doc.fonts.ready.catch(function(){})
 			: Promise.resolve();
+		let fontReadyTimeout = Number(this.settings && this.settings.verticalRlFontReadyTimeout);
+		let safeFontReadyTimeout = Number.isFinite(fontReadyTimeout) && fontReadyTimeout >= 0
+			? fontReadyTimeout
+			: 160;
+		let fontReadyOrTimeout = Promise.race([
+			fontsReady,
+			new Promise(function(resolve){
+				setTimeout(resolve, safeFontReadyTimeout);
+			})
+		]);
 		let nextFrame = () => new Promise((resolve) => {
 			if (typeof requestAnimationFrame === "function") {
 				requestAnimationFrame(function(){
@@ -1295,7 +1305,7 @@ class DefaultViewManager {
 		});
 
 		return nextFrame().then(function(){
-			return fontsReady;
+			return fontReadyOrTimeout;
 		}).then(nextFrame);
 	}
 

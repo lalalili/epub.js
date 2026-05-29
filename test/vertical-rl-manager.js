@@ -723,6 +723,46 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(snapCalls, 2);
 	});
 
+	it("does not wait indefinitely for vertical-rl font readiness before boundary snapping", async function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+		let resolved = false;
+
+		manager.settings = {
+			verticalRlFontReadyTimeout: 5
+		};
+		manager.views = {
+			first: function() {
+				return {
+					contents: {
+						document: {
+							fonts: {
+								ready: new Promise(function(){})
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		globalThis.requestAnimationFrame = function(callback) {
+			return setTimeout(callback, 0);
+		};
+
+		try {
+			await manager.waitForVerticalRlLayoutReady().then(function() {
+				resolved = true;
+			});
+		} finally {
+			globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+		}
+
+		assert.equal(resolved, true);
+	});
+
 	it("adds a right edge mask for overlap with the previous vertical-rl page", function() {
 		let manager = createManagerAtLogicalOffset(0);
 
