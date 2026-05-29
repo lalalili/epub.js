@@ -1322,34 +1322,50 @@ class DefaultViewManager {
 
 		let token = (this._verticalRlBoundarySnapRetryToken || 0) + 1;
 		this._verticalRlBoundarySnapRetryToken = token;
-
-		this.waitForVerticalRlLayoutReady().then(function(){
-			if (this._verticalRlBoundarySnapRetryToken !== token || !this.container) {
-				return;
-			}
-
-			let currentTotalPages = this.getTotalPagesForCurrentView();
-			let maxScroll = this.getMaxLogicalScrollLeft();
-			let logicalOffset = this.getLogicalOffsetForPageIndex(targetIndex, currentTotalPages, maxScroll);
-			let snappedOffset = this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll);
-			let currentOffset = this.getNormalizedLogicalScrollLeft();
-
-			if (Math.abs(snappedOffset - logicalOffset) <= 1 || Math.abs(snappedOffset - currentOffset) <= 1) {
-				return;
-			}
-
-			let left = snappedOffset;
-			if (this.settings.direction === "rtl") {
-				if (this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0) {
-					left = -snappedOffset;
-				} else if (this.settings.rtlScrollType === "default") {
-					left = Math.max(0, maxScroll - snappedOffset);
+		let retryDelays = Array.isArray(this.settings && this.settings.verticalRlBoundarySnapRetryDelays)
+			? this.settings.verticalRlBoundarySnapRetryDelays
+			: [250, 750, 1500, 3000, 6000, 9000];
+		let retryAttempt = function(attempt){
+			this.waitForVerticalRlLayoutReady().then(function(){
+				if (this._verticalRlBoundarySnapRetryToken !== token || !this.container) {
+					return;
 				}
-			}
 
-			this.scrollTo(left, 0, true);
-			this.syncVerticalRlViewportClip();
-		}.bind(this));
+				let currentTotalPages = this.getTotalPagesForCurrentView();
+				let maxScroll = this.getMaxLogicalScrollLeft();
+				let logicalOffset = this.getLogicalOffsetForPageIndex(targetIndex, currentTotalPages, maxScroll);
+				let snappedOffset = this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll);
+				let currentOffset = this.getNormalizedLogicalScrollLeft();
+
+				if (Math.abs(snappedOffset - logicalOffset) <= 1) {
+					let delay = Number(retryDelays[attempt]);
+					if (Number.isFinite(delay) && delay >= 0) {
+						setTimeout(function(){
+							retryAttempt(attempt + 1);
+						}, delay);
+					}
+					return;
+				}
+
+				if (Math.abs(snappedOffset - currentOffset) <= 1) {
+					return;
+				}
+
+				let left = snappedOffset;
+				if (this.settings.direction === "rtl") {
+					if (this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0) {
+						left = -snappedOffset;
+					} else if (this.settings.rtlScrollType === "default") {
+						left = Math.max(0, maxScroll - snappedOffset);
+					}
+				}
+
+				this.scrollTo(left, 0, true);
+				this.syncVerticalRlViewportClip();
+			}.bind(this));
+		}.bind(this);
+
+		retryAttempt(0);
 	}
 
 	displaySpineItemAtEnd(section, forceRight){

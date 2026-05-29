@@ -723,6 +723,60 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(snapCalls, 2);
 	});
 
+	it("keeps retrying vertical-rl boundary snapping until late text rects are measurable", async function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let snapCalls = 0;
+
+		manager.container = {
+			clientWidth: 1320,
+			scrollWidth: 18168,
+			scrollLeft: -7758.1818
+		};
+		manager.layout = {
+			effectivePageAdvance: 1296,
+			delta: 1296,
+			pageWidth: 1320,
+			width: 1320,
+			pageBoundaryShift: 18
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl",
+			verticalRlBoundarySnapRetryDelays: [0, 0]
+		};
+		manager.isPaginated = true;
+		manager.isRtlVerticalPaginated = function() {
+			return true;
+		};
+		manager.getTotalPagesForCurrentView = function() {
+			return 14;
+		};
+		manager.getMaxLogicalScrollLeft = function() {
+			return 16848;
+		};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.waitForVerticalRlLayoutReady = function() {
+			return Promise.resolve();
+		};
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function(logicalOffset) {
+			snapCalls += 1;
+			return snapCalls < 4 ? logicalOffset : logicalOffset + 15;
+		};
+		manager.scrollTo = function(left) {
+			this.container.scrollLeft = left;
+		};
+
+		manager.scrollToLogicalPage(6);
+		await new Promise(function(resolve) {
+			setTimeout(resolve, 10);
+		});
+
+		assert.equal(manager.container.scrollLeft, -7773);
+		assert.equal(snapCalls, 4);
+	});
+
 	it("does not wait indefinitely for vertical-rl font readiness before boundary snapping", async function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let originalRequestAnimationFrame = globalThis.requestAnimationFrame;
