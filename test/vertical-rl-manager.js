@@ -1125,7 +1125,7 @@ describe("Vertical RL manager pagination", function() {
 			}
 		};
 		manager.layout = {
-			edgeGuardPx: 4
+			edgeGuardPx: 0
 		};
 		manager.views = {
 			first: function() {
@@ -1191,6 +1191,100 @@ describe("Vertical RL manager pagination", function() {
 		}, 120, {
 			previousPageStep: 1296.363,
 			rightMaxMask: 4
+		});
+
+		assert.equal(maskWidths.left, 24);
+		assert.equal(maskWidths.right, 12);
+	});
+
+	it("expands the right vertical-rl edge mask from zero for a runtime viewport-coordinate straddler", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "把麵糊舀在水果上面，放入烤箱中，以三百度烤大約三十分鐘。",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			getBoundingClientRect: function() {
+				return {
+					left: 213.1818,
+					right: 1533.1818
+				};
+			}
+		};
+		manager.layout = {
+			edgeGuardPx: 4
+		};
+		manager.views = {
+			first: function() {
+				return {
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: -8876.6328
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 1522.6846,
+											right: 1545.4119,
+											width: 22.7273,
+											height: 680
+										}, {
+											left: 1486.6903,
+											right: 1509.4176,
+											width: 22.7273,
+											height: 60
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+		manager.getLogicalPageStepToNextPage = function() {
+			return 1296;
+		};
+
+		let maskWidths = manager.snapVerticalRlEdgeMaskWidths({
+			left: 24,
+			right: 0
+		}, 324, {
+			previousPageStep: 1296,
+			rightMaxMask: 0
 		});
 
 		assert.equal(maskWidths.left, 24);

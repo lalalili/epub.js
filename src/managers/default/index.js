@@ -682,7 +682,7 @@ class DefaultViewManager {
 		let nextPageStep = Number(limits.nextPageStep ?? this.getLogicalPageStepToNextPage()) || 0;
 		let previousPageStep = Number(limits.previousPageStep) || 0;
 		let edgeTolerance = Math.max(1, Math.min(4, Math.round((this.layout && this.layout.edgeGuardPx) || 1)));
-		let canExpandClippedRawRight = !!(this.layout && Number(this.layout.edgeGuardPx) > 0);
+		let canExpandClippedRawRight = iframeRect.left < 0 || !!(this.layout && Number(this.layout.edgeGuardPx) > 0);
 		let rightPaintGuardMax = Math.min(maxMask, Math.max(rightMaxMask, edgeTolerance));
 		let rects = [];
 		let walker = doc.createTreeWalker(body, 4, {
