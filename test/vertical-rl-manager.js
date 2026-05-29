@@ -769,6 +769,108 @@ describe("Vertical RL manager pagination", function() {
 		assert.ok(rawLeft >= 5312.8550 + 1);
 	});
 
+	it("uses the visual content width when vertical-rl text rects are reported in viewport coordinates", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "我第一次做摺合式的饀餅，是從寶拉．沃爾霍特的書上學來的。",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			clientWidth: 1296,
+			scrollWidth: 16848,
+			scrollLeft: -2592
+		};
+		manager.layout = {
+			effectivePageAdvance: 1296,
+			delta: 1296,
+			pageWidth: 1296,
+			width: 1296,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			first: function() {
+				return {
+					_contentWidth: 16743,
+					width: function() {
+						return 16848;
+					},
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: -12808
+							};
+						}
+					},
+					contents: {
+						writingMode: function() {
+							return "vertical-rl";
+						},
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {
+								scrollWidth: 16743
+							},
+							createTreeWalker: function() {
+								yielded = false;
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 1431.71875,
+											right: 1453.71875,
+											width: 22,
+											height: 808
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let baseLogicalOffset = 2592;
+		let logicalOffset = manager.snapVerticalRlLogicalOffsetToTextBoundary(baseLogicalOffset, 15552);
+		let rawRight = 16848 - logicalOffset;
+
+		assert.equal(manager.getVerticalRlVisualContentWidth(manager.views.first()), 16848);
+		assert.notEqual(logicalOffset, baseLogicalOffset);
+		assert.ok(rawRight >= 14261.71875 + 1 || rawRight <= 14239.71875 - 1);
+	});
+
 	it("does not cache a no-op vertical-rl boundary snap before text rects are ready", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {
@@ -1103,7 +1205,7 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(Math.round(manager.container.scrollLeft), -7773);
 	});
 
-	it("snaps restored vertical-rl current offsets back to the active page grid", async function() {
+	it("snaps restored vertical-rl current offsets back to the active page grid when boundaries are clean", async function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 
 		manager.container = {
@@ -1143,8 +1245,8 @@ describe("Vertical RL manager pagination", function() {
 		manager.waitForVerticalRlLayoutReady = function() {
 			return Promise.resolve();
 		};
-		manager.snapVerticalRlLogicalOffsetToTextBoundary = function() {
-			return 10345;
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function(logicalOffset) {
+			return logicalOffset;
 		};
 		manager.snapVerticalRlLogicalOffsetFromEdgeMask = function(logicalOffset) {
 			return logicalOffset;
@@ -1159,6 +1261,65 @@ describe("Vertical RL manager pagination", function() {
 		await Promise.resolve();
 
 		assert.equal(manager.container.scrollLeft, -10368);
+	});
+
+	it("rechecks text boundaries after snapping restored vertical-rl current offsets to the page grid", async function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+
+		manager.container = {
+			clientWidth: 1296,
+			scrollWidth: 16848,
+			scrollLeft: -2588,
+			scrollTop: 0
+		};
+		manager.layout = {
+			effectivePageAdvance: 1296,
+			delta: 1296,
+			pageWidth: 1296,
+			width: 1296,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.isRtlVerticalPaginated = function() {
+			return true;
+		};
+		manager.getTotalPagesForCurrentView = function() {
+			return 13;
+		};
+		manager.getMaxLogicalScrollLeft = function() {
+			return 15552;
+		};
+		manager.getCurrentPageIndex = function() {
+			return 2;
+		};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.waitForVerticalRlLayoutReady = function() {
+			return Promise.resolve();
+		};
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function(logicalOffset) {
+			assert.equal(logicalOffset, 2592);
+			return 2586;
+		};
+		manager.snapVerticalRlLogicalOffsetFromEdgeMask = function(logicalOffset) {
+			return logicalOffset;
+		};
+		manager.scrollTo = function(left) {
+			this.container.scrollLeft = left;
+		};
+
+		manager.queueVerticalRlBoundarySnapRetry(2, {
+			useCurrentOffset: true
+		});
+		await Promise.resolve();
+
+		assert.equal(manager.container.scrollLeft, -2586);
 	});
 
 	it("does not move structural gutter pages off the vertical-rl page grid for raw-left line boxes", function() {

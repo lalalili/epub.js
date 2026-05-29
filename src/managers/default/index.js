@@ -1092,7 +1092,9 @@ class DefaultViewManager {
 		let doc = view && view.contents && view.contents.document;
 		let win = view && view.contents && view.contents.window;
 		let body = doc && doc.body;
-		let contentWidth = this.getNavigableWidthForView(view);
+		let contentWidth = this.isRtlVerticalPaginated()
+			? this.getVerticalRlVisualContentWidth(view)
+			: this.getNavigableWidthForView(view);
 		let visibleWidth = this.layout.pageWidth || this.layout.width || this.getPageAdvance() || 0;
 
 		if (
@@ -1326,8 +1328,34 @@ class DefaultViewManager {
 		return Math.max(0, this.container.scrollWidth - this.container.clientWidth);
 	}
 
+	getVerticalRlVisualContentWidth(view){
+		let visibleWidth = this.container && this.container.clientWidth ? this.container.clientWidth : 0;
+		let maxLogicalScroll = this.getMaxLogicalScrollLeft();
+		let candidates = [
+			this.container && this.container.scrollWidth,
+			view && view.width ? view.width() : 0,
+			view && view._contentWidth,
+			maxLogicalScroll + visibleWidth
+		];
+
+		return Math.max(
+			0,
+			...candidates
+				.map(function(value){
+					return Number(value) || 0;
+				})
+				.filter(function(value){
+					return Number.isFinite(value) && value > 0;
+				})
+		);
+	}
+
 	getNavigableWidthForView(view){
 		let width = view && view.width ? view.width() : 0;
+
+		if (view && this.isRtlVerticalPaginated()) {
+			return Math.max(width || 0, this.getVerticalRlVisualContentWidth(view));
+		}
 
 		if (
 			view &&
@@ -1506,20 +1534,16 @@ class DefaultViewManager {
 					this.getPageBoundaryShift() === 0 &&
 					this.container
 				);
-				let snappedCurrentOffsetToPageGrid = false;
 				if (shouldSnapCurrentOffsetToPageGrid) {
 					let currentIndex = this.getCurrentPageIndex();
 					let pageOffset = this.getLogicalOffsetForPageIndex(currentIndex, currentTotalPages, maxScroll);
 					if (Math.abs(currentOffset - pageOffset) <= this.getPageSnapTolerance()) {
 						logicalOffset = pageOffset;
-						snappedCurrentOffsetToPageGrid = true;
 					}
 				}
-				let snappedOffset = snappedCurrentOffsetToPageGrid
-					? logicalOffset
-					: this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll);
+				let snappedOffset = this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll);
 
-				if (!snappedCurrentOffsetToPageGrid && Math.abs(snappedOffset - logicalOffset) <= 1) {
+				if (Math.abs(snappedOffset - logicalOffset) <= 1) {
 					snappedOffset = this.snapVerticalRlLogicalOffsetFromEdgeMask(logicalOffset, maxScroll);
 				}
 
