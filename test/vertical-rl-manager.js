@@ -81,6 +81,21 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getCurrentPageIndex(), 0);
 	});
 
+	it("counts viewport-filling single media pages as one navigable page", function() {
+		let manager = createHorizontalManager({
+			contentWidth: 1296,
+			iframeWidth: 1296
+		});
+		let view = manager.views.first();
+		view._viewportFillingSingleMediaPage = true;
+		manager.layout.pageWidth = 1295.9942626953125;
+		manager.layout.effectivePageAdvance = 1295.9942626953125;
+		manager.layout.delta = 1295.9942626953125;
+
+		assert.equal(manager.getTotalPagesForCurrentView(), 1);
+		assert.equal(manager.getCurrentPageIndex(), 0);
+	});
+
 	it("rounds near-snapped horizontal scroll offsets to the intended page index", function() {
 		let manager = createHorizontalManager({
 			contentWidth: 3186,
@@ -102,6 +117,36 @@ describe("Vertical RL manager pagination", function() {
 			}
 		});
 
+		manager.clear = function() {};
+		manager.updateLayout = function() {};
+		manager.append = function() {
+			appended = true;
+			return Promise.resolve();
+		};
+		manager.handleNextPrePaginated = function() {
+			return Promise.resolve();
+		};
+
+		await manager.next();
+
+		assert.equal(manager.container.scrollLeft, 0);
+		assert.equal(appended, true);
+	});
+
+	it("moves to the next spine item from a viewport-filling single media page", async function() {
+		let appended = false;
+		let manager = createHorizontalManager({
+			contentWidth: 1296,
+			iframeWidth: 1296,
+			nextSection: {
+				properties: []
+			}
+		});
+		let view = manager.views.first();
+		view._viewportFillingSingleMediaPage = true;
+		manager.layout.pageWidth = 1295.9942626953125;
+		manager.layout.effectivePageAdvance = 1295.9942626953125;
+		manager.layout.delta = 1295.9942626953125;
 		manager.clear = function() {};
 		manager.updateLayout = function() {};
 		manager.append = function() {

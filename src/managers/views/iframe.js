@@ -344,6 +344,7 @@ class IframeView {
 				pageAdvance = singleMediaPageWidth;
 				width = Math.ceil(singleMediaPageWidth);
 			}
+			this._viewportFillingSingleMediaPage = viewportFillingSingleMediaPage;
 
 			if (
 				!viewportFillingSingleMediaPage &&

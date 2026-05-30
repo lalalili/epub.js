@@ -80,5 +80,6 @@ describe("Views", function() {
 		assert.equal(view.width(), 1296);
 		assert.equal(view.element.style.width, "1296px");
 		assert.equal(view.iframe.style.width, "1296px");
+		assert.equal(view._viewportFillingSingleMediaPage, true);
 	});
 });

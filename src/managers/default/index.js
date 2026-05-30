@@ -1434,6 +1434,10 @@ class DefaultViewManager {
 			return 1;
 		}
 
+		if (view._viewportFillingSingleMediaPage) {
+			return 1;
+		}
+
 		let width = this.getNavigableWidthForView(view);
 		let advance = this.getPageAdvance();
 		let pageWidth = this.layout.pageWidth || this.layout.width || advance;
