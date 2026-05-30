@@ -14,6 +14,8 @@ const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
 const VERTICAL_RL_WIDTH_GUARD = 2;
 const VERTICAL_RL_MIN_EDGE_GUARD = 2;
+const SINGLE_MEDIA_SELECTOR = "img, svg, image, video, canvas";
+const VISIBLE_TEXT_BLOCK_SELECTOR = "p, h1, h2, h3, h4, h5, h6, li, table, pre, code, blockquote";
 
 const median = (values) => {
 	if (!values.length) return null;
@@ -315,6 +317,69 @@ class Contents {
 		width = clampOnePageHorizontalTextWidth(width, content);
 
 		return Math.round(width);
+	}
+
+	isViewportFillingSingleMediaPage(viewportWidth) {
+		const safeViewportWidth = Number(viewportWidth);
+		const content = this.content || this.document.body;
+
+		if (!content || !this.document || !this.window || !Number.isFinite(safeViewportWidth) || safeViewportWidth <= 0) {
+			return false;
+		}
+
+		const textBlocks = Array.from(content.querySelectorAll(VISIBLE_TEXT_BLOCK_SELECTOR))
+			.filter((node) => {
+				const text = (node.textContent || "").replace(/\s+/g, "").trim();
+				if (!text || typeof node.getBoundingClientRect !== "function") {
+					return false;
+				}
+				const style = this.window.getComputedStyle(node);
+				const rect = node.getBoundingClientRect();
+				return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+			});
+
+		if (textBlocks.length > 0) {
+			return false;
+		}
+
+		const normalizedText = (content.textContent || "").replace(/\s+/g, " ").trim();
+		if (normalizedText.length > 40) {
+			return false;
+		}
+
+		const mediaNodes = Array.from(content.querySelectorAll(SINGLE_MEDIA_SELECTOR))
+			.filter((node) => {
+				if (node.tagName && node.tagName.toLowerCase() === "img" && node.closest("svg")) {
+					return false;
+				}
+				if (typeof node.getBoundingClientRect !== "function") {
+					return false;
+				}
+				const style = this.window.getComputedStyle(node);
+				const rect = node.getBoundingClientRect();
+				return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+			});
+
+		if (mediaNodes.length !== 1) {
+			return false;
+		}
+
+		const media = mediaNodes[0];
+		const mediaStyle = this.window.getComputedStyle(media);
+		const mediaRect = media.getBoundingClientRect();
+		const markedSingleImagePage = content.getAttribute && content.getAttribute("data-epub-single-image-centered") === "1";
+		const viewportFillingStyle = (
+			mediaStyle.objectFit === "contain" ||
+			mediaStyle.position === "absolute" ||
+			mediaStyle.position === "fixed"
+		);
+		const oversizedMedia = (
+			mediaRect.width > safeViewportWidth * 1.5 ||
+			(content.scrollWidth || 0) > safeViewportWidth * 1.5 ||
+			(this.documentElement && (this.documentElement.scrollWidth || 0) > safeViewportWidth * 1.5)
+		);
+
+		return Boolean(markedSingleImagePage || (viewportFillingStyle && oversizedMedia));
 	}
 
 	/**

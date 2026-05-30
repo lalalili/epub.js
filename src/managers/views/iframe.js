@@ -330,8 +330,19 @@ class IframeView {
 			let pageAdvance = this.layout.pageWidth;
 			let visiblePageWidth = this.layout.viewportPageWidth || this.lockedWidth || this.layout.width || this.layout.pageWidth;
 			let pageMetrics = null;
+			let viewportFillingSingleMediaPage = false;
 
 			if (
+				this.settings.flow === "paginated" &&
+				this.contents.isViewportFillingSingleMediaPage &&
+				this.contents.isViewportFillingSingleMediaPage(visiblePageWidth)
+			) {
+				viewportFillingSingleMediaPage = true;
+				width = Math.ceil(visiblePageWidth);
+			}
+
+			if (
+				!viewportFillingSingleMediaPage &&
 				this.settings.flow === "paginated" &&
 				this.contents.writingMode &&
 				this.contents.writingMode() === "vertical-rl" &&

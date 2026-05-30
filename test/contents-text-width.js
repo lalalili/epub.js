@@ -208,4 +208,49 @@ describe("Contents textWidth", function() {
 			});
 		}
 	});
+
+	it("detects viewport-filling single media pages", function() {
+		let content = appendFixture(document.createElement("div"));
+		content.style.width = "116639px";
+		content.style.height = "761px";
+		content.setAttribute("data-epub-single-image-centered", "1");
+
+		let image = document.createElement("img");
+		image.style.display = "block";
+		image.style.position = "absolute";
+		image.style.objectFit = "contain";
+		image.getBoundingClientRect = function() {
+			return {
+				left: 0,
+				right: 116639,
+				top: 0,
+				bottom: 761,
+				width: 116639,
+				height: 761
+			};
+		};
+		content.appendChild(image);
+
+		let descriptors = [
+			[content, "scrollWidth", Object.getOwnPropertyDescriptor(content, "scrollWidth")],
+			[document.documentElement, "scrollWidth", Object.getOwnPropertyDescriptor(document.documentElement, "scrollWidth")]
+		];
+
+		Object.defineProperty(content, "scrollWidth", { configurable: true, value: 116639 });
+		Object.defineProperty(document.documentElement, "scrollWidth", { configurable: true, value: 116639 });
+
+		try {
+			let contents = new Contents(document, content);
+
+			assert.equal(contents.isViewportFillingSingleMediaPage(1296), true);
+		} finally {
+			descriptors.forEach(function([target, property, descriptor]) {
+				if (descriptor) {
+					Object.defineProperty(target, property, descriptor);
+				} else {
+					delete target[property];
+				}
+			});
+		}
+	});
 });
