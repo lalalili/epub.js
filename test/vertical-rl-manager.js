@@ -96,6 +96,18 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getCurrentPageIndex(), 0);
 	});
 
+	it("does not add a phantom page for fractional page advance on snapped content width", function() {
+		let manager = createHorizontalManager({
+			contentWidth: 2592,
+			iframeWidth: 2592
+		});
+		manager.layout.pageWidth = 1295.9942626953125;
+		manager.layout.effectivePageAdvance = 1295.9942626953125;
+		manager.layout.delta = 1295.9942626953125;
+
+		assert.equal(manager.getTotalPagesForCurrentView(), 2);
+	});
+
 	it("rounds near-snapped horizontal scroll offsets to the intended page index", function() {
 		let manager = createHorizontalManager({
 			contentWidth: 3186,
