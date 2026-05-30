@@ -329,16 +329,19 @@ class IframeView {
 			width = this.contents.textWidth();
 			let pageAdvance = this.layout.pageWidth;
 			let visiblePageWidth = this.layout.viewportPageWidth || this.lockedWidth || this.layout.width || this.layout.pageWidth;
+			let singleMediaPageWidth = this.settings.width || this.lockedWidth || this.layout.columnWidth || this.layout.pageWidth || visiblePageWidth;
 			let pageMetrics = null;
 			let viewportFillingSingleMediaPage = false;
 
 			if (
 				this.settings.flow === "paginated" &&
 				this.contents.isViewportFillingSingleMediaPage &&
-				this.contents.isViewportFillingSingleMediaPage(visiblePageWidth)
+				this.contents.isViewportFillingSingleMediaPage(singleMediaPageWidth)
 			) {
 				viewportFillingSingleMediaPage = true;
-				width = Math.ceil(visiblePageWidth);
+				visiblePageWidth = singleMediaPageWidth;
+				pageAdvance = singleMediaPageWidth;
+				width = Math.ceil(singleMediaPageWidth);
 			}
 
 			if (
@@ -393,7 +396,7 @@ class IframeView {
 
 			this._contentWidth = width;
 
-			if (this.settings.forceEvenPages) {
+			if (this.settings.forceEvenPages && !viewportFillingSingleMediaPage) {
 				columns = this.layout.effectivePageAdvance && this.layout.effectivePageAdvance !== this.layout.pageWidth
 					? this.layout.count(width).pages
 					: (width / this.layout.pageWidth);

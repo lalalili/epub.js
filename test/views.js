@@ -47,11 +47,13 @@ describe("Views", function() {
 			layout: {
 				name: "reflowable",
 				pageWidth: 1296,
-				viewportPageWidth: 1296,
-				width: 1296,
-				divisor: 1,
+				viewportPageWidth: 3888,
+				width: 3888,
+				columnWidth: 1296,
+				divisor: 2,
 				update: function() {}
-			}
+			},
+			forceEvenPages: true
 		});
 
 		view.iframe = document.createElement("iframe");
