@@ -1646,11 +1646,18 @@ class Contents {
 		let rawWidth = rect.rawWidth;
 		let rawHeight = rect.rawHeight;
 		const content = this.content || this.document.body;
+		const contentScrollWidth = content ? content.scrollWidth || 0 : 0;
 		if (!Number.isFinite(rawWidth) || rawWidth <= 0) {
 			rawWidth = Math.max(
-				content ? content.scrollWidth || 0 : 0,
+				contentScrollWidth,
 				this.documentElement ? this.documentElement.scrollWidth || 0 : 0
 			);
+		} else if (
+			Number.isFinite(contentScrollWidth) &&
+			contentScrollWidth > safePageWidth &&
+			rawWidth > contentScrollWidth + VERTICAL_RL_WIDTH_GUARD
+		) {
+			rawWidth = contentScrollWidth;
 		}
 		if (!Number.isFinite(rawHeight) || rawHeight <= 0) {
 			rawHeight = Math.max(

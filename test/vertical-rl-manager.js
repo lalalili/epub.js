@@ -4193,6 +4193,65 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(metrics.snappedContentWidth, 2574);
 	});
 
+	it("uses body scroll width when an inflated vertical-rl range rect would block boundary snapping", function() {
+		let contents = Object.create(Contents.prototype);
+		contents._verticalRlPageMetricsCache = null;
+		contents.content = {
+			clientWidth: 1296,
+			clientHeight: 761,
+			childElementCount: 1,
+			scrollWidth: 2319,
+			scrollHeight: 761
+		};
+		contents.documentElement = {
+			clientWidth: 1296,
+			clientHeight: 761,
+			scrollWidth: 2592,
+			scrollHeight: 761
+		};
+		contents.document = {
+			body: contents.content,
+			fonts: null
+		};
+		contents.window = {
+			getComputedStyle: function() {
+				return {
+					fontSize: "20px",
+					lineHeight: "36px",
+					letterSpacing: "0px",
+					fontFamily: "serif"
+				};
+			}
+		};
+		contents.measureVerticalRlRect = function() {
+			return {
+				rawWidth: 2592,
+				rawHeight: 761
+			};
+		};
+		contents.estimateVerticalRlLineMetrics = function() {
+			return {
+				linePitch: 36,
+				lineWidth: 22.727294921875,
+				lineLefts: [1208, 1244, 1279.9005126953125, 1316, 1352],
+				lineBoxes: [{
+					left: 1279.9005126953125,
+					right: 1302.6278076171875,
+					width: 22.727294921875
+				}],
+				sampleCount: 8,
+				gapMad: 0,
+				stable: true
+			};
+		};
+
+		let metrics = contents.verticalRlPageMetrics(1296);
+
+		assert.equal(metrics.rawWidth, 2321);
+		assert.equal(metrics.totalPages, 2);
+		assert.equal(metrics.snappedContentWidth, 2574);
+	});
+
 	it("materializes pages when vertical-rl content overflows along the block axis", function() {
 		let contents = Object.create(Contents.prototype);
 		contents._verticalRlPageMetricsCache = null;
