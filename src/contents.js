@@ -28,6 +28,87 @@ const cssPixelValue = (value) => {
 	return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const countVerticalRlBoundaryCrossings = (contentWidth, pageLength, totalPages, lineBoxes) => {
+	let count = 0;
+	for (let page = 1; page < totalPages; page += 1) {
+		const boundary = contentWidth - (page * pageLength);
+		for (const box of lineBoxes) {
+			if (box.left < boundary && box.right > boundary) {
+				count += 1;
+			}
+		}
+	}
+
+	return count;
+};
+
+const snapVerticalRlContentWidthToTextBoundaries = ({
+	snappedContentWidth,
+	pageLength,
+	totalPages,
+	rawWidth,
+	lineBoxes
+}) => {
+	if (
+		!Number.isFinite(snappedContentWidth) ||
+		!Number.isFinite(pageLength) ||
+		!Number.isFinite(totalPages) ||
+		totalPages <= 1 ||
+		!Array.isArray(lineBoxes) ||
+		!lineBoxes.length
+	) {
+		return snappedContentWidth;
+	}
+
+	const minContentWidth = Math.max(
+		Number.isFinite(rawWidth) && rawWidth > 0 ? rawWidth : 0,
+		((totalPages - 1) * pageLength) + 1
+	);
+	const candidates = [0];
+
+	for (let page = 1; page < totalPages; page += 1) {
+		const boundary = snappedContentWidth - (page * pageLength);
+		for (const box of lineBoxes) {
+			if (box.left < boundary && box.right > boundary) {
+				candidates.push(Math.floor(box.left - boundary - 1));
+			}
+		}
+	}
+
+	const initialCrossings = countVerticalRlBoundaryCrossings(
+		snappedContentWidth,
+		pageLength,
+		totalPages,
+		lineBoxes
+	);
+	let best = {
+		width: snappedContentWidth,
+		delta: 0,
+		crossings: initialCrossings
+	};
+
+	for (const delta of Array.from(new Set(candidates))) {
+		if (!Number.isFinite(delta) || delta >= 0) {
+			continue;
+		}
+
+		const width = snappedContentWidth + delta;
+		if (width < minContentWidth) {
+			continue;
+		}
+
+		const crossings = countVerticalRlBoundaryCrossings(width, pageLength, totalPages, lineBoxes);
+		if (
+			crossings < best.crossings ||
+			(crossings === best.crossings && Math.abs(delta) < Math.abs(best.delta))
+		) {
+			best = { width, delta, crossings };
+		}
+	}
+
+	return best.crossings < initialCrossings ? Math.ceil(best.width) : snappedContentWidth;
+};
+
 const resolveHorizontalTextWidth = (range, rangeRect, content) => {
 	const width = Number(rangeRect && rangeRect.width);
 	const scrollWidth = Number(content && content.scrollWidth);
@@ -1491,11 +1572,17 @@ class Contents {
 			: 140;
 		const xs = [];
 		const widths = [];
+		const lineBoxes = [];
 
 		for (const rect of rects) {
 			if (rect.width > 0 && rect.height > 0) {
 				xs.push(Math.round(rect.left * 2) / 2);
 				widths.push(rect.width);
+				lineBoxes.push({
+					left: rect.left,
+					right: rect.right,
+					width: rect.width
+				});
 			}
 		}
 
@@ -1529,6 +1616,7 @@ class Contents {
 			linePitch,
 			lineWidth,
 			lineLefts: uniqueXs,
+			lineBoxes,
 			sampleCount: gaps.length,
 			gapMad,
 			stable
@@ -1607,7 +1695,13 @@ class Contents {
 			verticalFragmentPages = Math.max(1, Math.ceil(Math.max(0, rawHeight - safePageHeight) / blockAdvance) + 1);
 			totalPages = Math.max(totalPages, verticalFragmentPages);
 		}
-		const snappedContentWidth = totalPages * pageLength;
+		const snappedContentWidth = snapVerticalRlContentWidthToTextBoundaries({
+			snappedContentWidth: totalPages * pageLength,
+			pageLength,
+			totalPages,
+			rawWidth,
+			lineBoxes: metrics.lineBoxes
+		});
 		const pageBoundaryShift = edgeGuardPx;
 		const result = {
 			rawWidth,

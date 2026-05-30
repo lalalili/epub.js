@@ -108,6 +108,25 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getTotalPagesForCurrentView(), 2);
 	});
 
+	it("does not add a phantom page for content width snapped before a vertical-rl text boundary", function() {
+		let manager = createHorizontalManager({
+			contentWidth: 2574,
+			iframeWidth: 2574
+		});
+		manager.settings.direction = "rtl";
+		manager.settings.rtlScrollType = "negative";
+		manager.settings.writingMode = "vertical-rl";
+		manager.isRtlVerticalPaginated = function() {
+			return true;
+		};
+		manager.layout.pageWidth = 1296;
+		manager.layout.width = 1296;
+		manager.layout.effectivePageAdvance = 1296;
+		manager.layout.delta = 1296;
+
+		assert.equal(manager.getTotalPagesForCurrentView(), 2);
+	});
+
 	it("rounds near-snapped horizontal scroll offsets to the intended page index", function() {
 		let manager = createHorizontalManager({
 			contentWidth: 3186,
@@ -2123,6 +2142,113 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(maskWidths.right, 0);
 	});
 
+	it("adds a clean-page right mask when the final vertical-rl page duplicates a boundary line", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "在社交媒體與短影音盛行的時代，人們容易習慣快速、碎片化的資訊",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			clientWidth: 1296,
+			scrollWidth: 2574,
+			scrollLeft: -1278,
+			getBoundingClientRect: function() {
+				return {
+					left: 225,
+					right: 1521,
+					width: 1296,
+					height: 761
+				};
+			}
+		};
+		manager.layout = {
+			name: "reflowable",
+			pageWidth: 1296,
+			width: 1296,
+			effectivePageAdvance: 1296,
+			delta: 1296,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.isRtlVerticalPaginated = function() {
+			return true;
+		};
+		manager.views = {
+			first: function() {
+				return {
+					width: function() {
+						return 2574;
+					},
+					_contentWidth: 2574,
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: 225,
+								right: 2799,
+								width: 2574
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 1279.9005126953125,
+											right: 1302.6278076171875,
+											width: 22.727294921875,
+											height: 740
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let maskWidths = manager.getVerticalRlEdgeMaskWidths();
+
+		assert.equal(maskWidths.left, 0);
+		assert.equal(maskWidths.right, 18);
+	});
+
 	it("does not add a right edge mask on the first vertical-rl page", function() {
 		let manager = createManagerAtLogicalOffset(0);
 
@@ -4005,6 +4131,66 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(metrics.pageBoundaryShift, 0);
 		assert.equal(metrics.edgeGuardPx, 0);
 		assert.equal(metrics.snappedContentWidth, 3960);
+	});
+
+	it("snaps vertical-rl content width before a shared text boundary", function() {
+		let contents = Object.create(Contents.prototype);
+		contents._verticalRlPageMetricsCache = null;
+		contents.content = {
+			clientWidth: 1296,
+			clientHeight: 761,
+			childElementCount: 1,
+			scrollWidth: 2321,
+			scrollHeight: 761
+		};
+		contents.documentElement = {
+			clientWidth: 1296,
+			clientHeight: 761,
+			scrollWidth: 2321,
+			scrollHeight: 761
+		};
+		contents.document = {
+			body: contents.content,
+			fonts: null
+		};
+		contents.window = {
+			getComputedStyle: function() {
+				return {
+					fontSize: "20px",
+					lineHeight: "36px",
+					letterSpacing: "0px",
+					fontFamily: "serif"
+				};
+			}
+		};
+		contents.measureVerticalRlRect = function() {
+			return {
+				rawWidth: 2323,
+				rawHeight: 761
+			};
+		};
+		contents.estimateVerticalRlLineMetrics = function() {
+			return {
+				linePitch: 36,
+				lineWidth: 22.727294921875,
+				lineLefts: [1208, 1244, 1279.9005126953125, 1316, 1352],
+				lineBoxes: [{
+					left: 1279.9005126953125,
+					right: 1302.6278076171875,
+					width: 22.727294921875
+				}],
+				sampleCount: 8,
+				gapMad: 0,
+				stable: true
+			};
+		};
+
+		let metrics = contents.verticalRlPageMetrics(1296);
+
+		assert.equal(metrics.effectivePageAdvance, 1296);
+		assert.equal(metrics.pageWidth, 1296);
+		assert.equal(metrics.totalPages, 2);
+		assert.equal(metrics.snappedContentWidth, 2574);
 	});
 
 	it("materializes pages when vertical-rl content overflows along the block axis", function() {
