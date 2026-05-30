@@ -109,6 +109,38 @@ const snapVerticalRlContentWidthToTextBoundaries = ({
 	return best.crossings < initialCrossings ? Math.ceil(best.width) : snappedContentWidth;
 };
 
+const stabilizeVerticalRlSnappedContentWidth = ({
+	previous,
+	snappedContentWidth,
+	pageLength,
+	totalPages,
+	lineWidth
+}) => {
+	const width = Number(snappedContentWidth);
+	const previousWidth = Number(previous && previous.width);
+	if (
+		!Number.isFinite(width) ||
+		width <= 0 ||
+		!previous ||
+		!Number.isFinite(previousWidth) ||
+		previousWidth <= 0 ||
+		previous.totalPages !== totalPages ||
+		Math.abs(Number(previous.pageLength || 0) - Number(pageLength || 0)) > 1
+	) {
+		return snappedContentWidth;
+	}
+
+	const maxReframeDrift = Math.max(
+		24,
+		Math.min(48, Math.ceil(Number(lineWidth || 0) + VERTICAL_RL_WIDTH_GUARD))
+	);
+	if (Math.abs(width - previousWidth) > maxReframeDrift) {
+		return snappedContentWidth;
+	}
+
+	return Math.min(width, previousWidth);
+};
+
 const resolveHorizontalTextWidth = (range, rangeRect, content) => {
 	const width = Number(rangeRect && rangeRect.width);
 	const scrollWidth = Number(content && content.scrollWidth);
@@ -540,6 +572,7 @@ class Contents {
 	invalidateVerticalRlMetricsCache() {
 		this._verticalRlMetricsCache = null;
 		this._verticalRlPageMetricsCache = null;
+		this._verticalRlStableSnappedContentWidth = null;
 	}
 
 	/**
@@ -1702,13 +1735,25 @@ class Contents {
 			verticalFragmentPages = Math.max(1, Math.ceil(Math.max(0, rawHeight - safePageHeight) / blockAdvance) + 1);
 			totalPages = Math.max(totalPages, verticalFragmentPages);
 		}
-		const snappedContentWidth = snapVerticalRlContentWidthToTextBoundaries({
+		let snappedContentWidth = snapVerticalRlContentWidthToTextBoundaries({
 			snappedContentWidth: totalPages * pageLength,
 			pageLength,
 			totalPages,
 			rawWidth,
 			lineBoxes: metrics.lineBoxes
 		});
+		snappedContentWidth = stabilizeVerticalRlSnappedContentWidth({
+			previous: this._verticalRlStableSnappedContentWidth,
+			snappedContentWidth,
+			pageLength,
+			totalPages,
+			lineWidth: metrics.lineWidth
+		});
+		this._verticalRlStableSnappedContentWidth = {
+			pageLength,
+			totalPages,
+			width: snappedContentWidth
+		};
 		const pageBoundaryShift = edgeGuardPx;
 		const result = {
 			rawWidth,

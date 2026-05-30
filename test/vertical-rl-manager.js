@@ -4252,6 +4252,78 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(metrics.snappedContentWidth, 2574);
 	});
 
+	it("keeps the lower boundary-snapped vertical-rl width across iframe reframe drift", function() {
+		let contents = Object.create(Contents.prototype);
+		let pass = 0;
+		const pageWidth = 1295.9942626953125;
+		const fullWidth = pageWidth * 14;
+		const sharedBoundary = fullWidth - pageWidth;
+		contents._verticalRlPageMetricsCache = null;
+		contents._verticalRlStableSnappedContentWidth = null;
+		contents.content = {
+			clientWidth: 18144,
+			clientHeight: 761,
+			childElementCount: 1,
+			scrollWidth: 18014,
+			scrollHeight: 761
+		};
+		contents.documentElement = {
+			clientWidth: 18144,
+			clientHeight: 761,
+			scrollWidth: 18144,
+			scrollHeight: 761
+		};
+		contents.document = {
+			body: contents.content,
+			fonts: null
+		};
+		contents.window = {
+			getComputedStyle: function() {
+				return {
+					fontSize: "20px",
+					lineHeight: "36px",
+					letterSpacing: "0px",
+					fontFamily: "serif"
+				};
+			}
+		};
+		contents.measureVerticalRlRect = function() {
+			return {
+				rawWidth: 18014,
+				rawHeight: 761
+			};
+		};
+		contents.estimateVerticalRlLineMetrics = function() {
+			pass += 1;
+			return {
+				linePitch: 36,
+				lineWidth: 22.727294921875,
+				lineLefts: [],
+				lineBoxes: pass === 2 ? [{
+					left: sharedBoundary - 6.5,
+					right: sharedBoundary + 16.227294921875,
+					width: 22.727294921875
+				}] : [],
+				sampleCount: 8,
+				gapMad: 0,
+				stable: true
+			};
+		};
+
+		let metrics = contents.verticalRlPageMetrics(pageWidth, 761);
+		assert.equal(Math.round(metrics.snappedContentWidth), 18144);
+
+		contents.content.clientWidth = 18136;
+		contents.documentElement.clientWidth = 18136;
+		metrics = contents.verticalRlPageMetrics(pageWidth, 761);
+		assert.equal(metrics.snappedContentWidth, 18136);
+
+		contents.content.clientWidth = 18144;
+		contents.documentElement.clientWidth = 18144;
+		metrics = contents.verticalRlPageMetrics(pageWidth, 761);
+		assert.equal(metrics.snappedContentWidth, 18136);
+	});
+
 	it("materializes pages when vertical-rl content overflows along the block axis", function() {
 		let contents = Object.create(Contents.prototype);
 		contents._verticalRlPageMetricsCache = null;
