@@ -253,4 +253,64 @@ describe("Contents textWidth", function() {
 			});
 		}
 	});
+
+	it("detects viewport-filling svg image pages as one media item", function() {
+		let content = appendFixture(document.createElement("div"));
+		content.style.width = "116639px";
+		content.style.height = "761px";
+		content.setAttribute("data-epub-single-image-centered", "1");
+
+		let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+		svg.style.display = "block";
+		svg.style.position = "absolute";
+		svg.style.objectFit = "contain";
+		svg.getBoundingClientRect = function() {
+			return {
+				left: 0,
+				right: 116639,
+				top: 0,
+				bottom: 761,
+				width: 116639,
+				height: 761
+			};
+		};
+
+		let image = document.createElementNS("http://www.w3.org/2000/svg", "image");
+		image.style.display = "block";
+		image.getBoundingClientRect = function() {
+			return {
+				left: 58025,
+				right: 58613,
+				top: 0,
+				bottom: 761,
+				width: 588,
+				height: 761
+			};
+		};
+
+		svg.appendChild(image);
+		content.appendChild(svg);
+
+		let descriptors = [
+			[content, "scrollWidth", Object.getOwnPropertyDescriptor(content, "scrollWidth")],
+			[document.documentElement, "scrollWidth", Object.getOwnPropertyDescriptor(document.documentElement, "scrollWidth")]
+		];
+
+		Object.defineProperty(content, "scrollWidth", { configurable: true, value: 116639 });
+		Object.defineProperty(document.documentElement, "scrollWidth", { configurable: true, value: 116639 });
+
+		try {
+			let contents = new Contents(document, content);
+
+			assert.equal(contents.isViewportFillingSingleMediaPage(1296), true);
+		} finally {
+			descriptors.forEach(function([target, property, descriptor]) {
+				if (descriptor) {
+					Object.defineProperty(target, property, descriptor);
+				} else {
+					delete target[property];
+				}
+			});
+		}
+	});
 });

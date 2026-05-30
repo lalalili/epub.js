@@ -349,7 +349,8 @@ class Contents {
 
 		const mediaNodes = Array.from(content.querySelectorAll(SINGLE_MEDIA_SELECTOR))
 			.filter((node) => {
-				if (node.tagName && node.tagName.toLowerCase() === "img" && node.closest("svg")) {
+				const tagName = node.tagName ? node.tagName.toLowerCase() : "";
+				if (tagName !== "svg" && node.closest("svg")) {
 					return false;
 				}
 				if (typeof node.getBoundingClientRect !== "function") {
