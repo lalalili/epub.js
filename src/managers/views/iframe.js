@@ -329,7 +329,8 @@ class IframeView {
 			width = this.contents.textWidth();
 			let pageAdvance = this.layout.pageWidth;
 			let visiblePageWidth = this.layout.viewportPageWidth || this.lockedWidth || this.layout.width || this.layout.pageWidth;
-			let singleMediaPageWidth = this.settings.width || this.lockedWidth || this.layout.columnWidth || this.layout.pageWidth || visiblePageWidth;
+			let parentPageWidth = this.element && this.element.parentElement ? this.element.parentElement.clientWidth : 0;
+			let singleMediaPageWidth = parentPageWidth || this.lockedWidth || this.layout.columnWidth || this.layout.pageWidth || this.settings.width || visiblePageWidth;
 			let pageMetrics = null;
 			let viewportFillingSingleMediaPage = false;
 
