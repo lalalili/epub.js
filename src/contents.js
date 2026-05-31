@@ -60,11 +60,33 @@ const snapVerticalRlContentWidthToTextBoundaries = ({
 		return snappedContentWidth;
 	}
 
+	const candidates = [0];
+	const initialCrossings = countVerticalRlBoundaryCrossings(
+		snappedContentWidth,
+		pageLength,
+		totalPages,
+		lineBoxes
+	);
+	const maxLineRight = Math.max(
+		0,
+		...lineBoxes
+			.map((box) => Number(box && box.right))
+			.filter((value) => Number.isFinite(value) && value > 0)
+	);
+	const rawWidthValue = Number.isFinite(rawWidth) && rawWidth > 0 ? rawWidth : 0;
+	const rawWidthLooksLikeFrameOverhang = Boolean(
+		initialCrossings > 0 &&
+		rawWidthValue > 0 &&
+		maxLineRight > 0 &&
+		rawWidthValue > maxLineRight + VERTICAL_RL_WIDTH_GUARD &&
+		rawWidthValue - maxLineRight <= Math.max(32, pageLength * 0.1)
+	);
 	const minContentWidth = Math.max(
-		Number.isFinite(rawWidth) && rawWidth > 0 ? rawWidth : 0,
+		rawWidthLooksLikeFrameOverhang
+			? maxLineRight + VERTICAL_RL_WIDTH_GUARD
+			: rawWidthValue,
 		((totalPages - 1) * pageLength) + 1
 	);
-	const candidates = [0];
 
 	for (let page = 1; page < totalPages; page += 1) {
 		const boundary = snappedContentWidth - (page * pageLength);
@@ -75,12 +97,6 @@ const snapVerticalRlContentWidthToTextBoundaries = ({
 		}
 	}
 
-	const initialCrossings = countVerticalRlBoundaryCrossings(
-		snappedContentWidth,
-		pageLength,
-		totalPages,
-		lineBoxes
-	);
 	let best = {
 		width: snappedContentWidth,
 		delta: 0,
@@ -436,7 +452,14 @@ class Contents {
 		const safeViewportWidth = Number(viewportWidth);
 		const content = this.content || this.document.body;
 
-		if (!content || !this.document || !this.window || !Number.isFinite(safeViewportWidth) || safeViewportWidth <= 0) {
+		if (
+			!content ||
+			!this.document ||
+			!this.window ||
+			typeof content.querySelectorAll !== "function" ||
+			!Number.isFinite(safeViewportWidth) ||
+			safeViewportWidth <= 0
+		) {
 			return false;
 		}
 
@@ -455,7 +478,32 @@ class Contents {
 			return false;
 		}
 
-		const normalizedText = (content.textContent || "").replace(/\s+/g, " ").trim();
+		const visibleText = [];
+		const collectVisibleText = (node) => {
+			if (!node) {
+				return;
+			}
+			if (node.nodeType === TEXT_NODE) {
+				visibleText.push(node.nodeValue || "");
+				return;
+			}
+			if (node.nodeType !== ELEMENT_NODE) {
+				return;
+			}
+			const style = this.window.getComputedStyle(node);
+			if (
+				node.hidden ||
+				style.display === "none" ||
+				style.visibility === "hidden" ||
+				style.visibility === "collapse"
+			) {
+				return;
+			}
+			Array.from(node.childNodes || []).forEach(collectVisibleText);
+		};
+		collectVisibleText(content);
+
+		const normalizedText = visibleText.join(" ").replace(/\s+/g, " ").trim();
 		if (normalizedText.length > 40) {
 			return false;
 		}
@@ -479,6 +527,7 @@ class Contents {
 		}
 
 		const media = mediaNodes[0];
+		const tagName = media.tagName ? media.tagName.toLowerCase() : "";
 		const mediaStyle = this.window.getComputedStyle(media);
 		const mediaRect = media.getBoundingClientRect();
 		const markedSingleImagePage = content.getAttribute && content.getAttribute("data-epub-single-image-centered") === "1";
@@ -487,13 +536,18 @@ class Contents {
 			mediaStyle.position === "absolute" ||
 			mediaStyle.position === "fixed"
 		);
+		const fillsViewportWidth = mediaRect.width >= safeViewportWidth * 0.75;
+		const svgMediaPage = tagName === "svg" && (
+			(media.getAttribute && media.getAttribute("viewBox")) ||
+			(media.querySelector && media.querySelector("image"))
+		);
 		const oversizedMedia = (
 			mediaRect.width > safeViewportWidth * 1.5 ||
 			(content.scrollWidth || 0) > safeViewportWidth * 1.5 ||
 			(this.documentElement && (this.documentElement.scrollWidth || 0) > safeViewportWidth * 1.5)
 		);
 
-		return Boolean(markedSingleImagePage || (viewportFillingStyle && oversizedMedia));
+		return Boolean(markedSingleImagePage || (viewportFillingStyle && (oversizedMedia || fillsViewportWidth || svgMediaPage)));
 	}
 
 	/**
@@ -1564,12 +1618,13 @@ class Contents {
 			const range = this.document.createRange();
 			range.selectNodeContents(content);
 			const rect = range.getBoundingClientRect();
+			const rawWidth = Math.max(rect.width || 0, rect.right || 0);
 			return {
 				left: rect.left,
 				right: rect.right,
 				top: rect.top,
 				bottom: rect.bottom,
-				rawWidth: rect.width,
+				rawWidth,
 				rawHeight: Math.max(rect.height || 0, rect.bottom - Math.min(rect.top, 0))
 			};
 		} catch(e) {
@@ -1679,18 +1734,78 @@ class Contents {
 		let rawWidth = rect.rawWidth;
 		let rawHeight = rect.rawHeight;
 		const content = this.content || this.document.body;
+		if (this.isViewportFillingSingleMediaPage(safePageWidth)) {
+			const pageLength = Number.isFinite(safePageWidth) && safePageWidth > 0
+				? safePageWidth
+				: 1;
+			rawHeight = Math.ceil(Math.max(
+				Number.isFinite(rawHeight) && rawHeight > 0 ? rawHeight : 0,
+				Number.isFinite(safePageHeight) && safePageHeight > 0 ? safePageHeight : 0,
+				content ? content.scrollHeight || 0 : 0,
+				this.documentElement ? this.documentElement.scrollHeight || 0 : 0
+			));
+			const result = {
+				rawWidth: pageLength,
+				rawPaintWidth: pageLength,
+				rawHeight,
+				pageWidth: pageLength,
+				viewportPageWidth: pageLength,
+				effectivePageAdvance: pageLength,
+				linePitch: null,
+				lineWidth: null,
+				edgeGuardPx: 0,
+				edgeGuard: 0,
+				pageBoundaryShift: 0,
+				sampleCount: 0,
+				gapMad: null,
+				stable: false,
+				verticalFragmentPages: 1,
+				totalPages: 1,
+				snappedContentWidth: pageLength
+			};
+			this._verticalRlPageMetricsCache = {
+				key: cacheKey,
+				metrics: result
+			};
+			this._verticalRlStableSnappedContentWidth = {
+				pageLength,
+				totalPages: 1,
+				width: pageLength
+			};
+			return result;
+		}
 		const contentScrollWidth = content ? content.scrollWidth || 0 : 0;
+		const contentClientWidth = content ? content.clientWidth || content.offsetWidth || 0 : 0;
+		const documentScrollWidth = this.documentElement ? this.documentElement.scrollWidth || 0 : 0;
+		const contentCoversDocumentCanvas = Boolean(
+			documentScrollWidth > 0 &&
+			contentClientWidth > 0 &&
+			contentClientWidth >= documentScrollWidth - VERTICAL_RL_WIDTH_GUARD
+		);
+		const positiveInlineOffset = Boolean(
+			Number.isFinite(rect.left) &&
+			Number.isFinite(rect.right) &&
+			Number.isFinite(rect.rawWidth) &&
+			contentCoversDocumentCanvas &&
+			rect.left > VERTICAL_RL_WIDTH_GUARD &&
+			rect.right >= rect.rawWidth - VERTICAL_RL_WIDTH_GUARD &&
+			rect.rawWidth > contentScrollWidth + VERTICAL_RL_WIDTH_GUARD &&
+			documentScrollWidth >= rect.rawWidth - VERTICAL_RL_WIDTH_GUARD
+		);
+		const scrollWidthLimit = positiveInlineOffset
+			? Math.max(contentScrollWidth, documentScrollWidth)
+			: contentScrollWidth;
 		if (!Number.isFinite(rawWidth) || rawWidth <= 0) {
 			rawWidth = Math.max(
 				contentScrollWidth,
-				this.documentElement ? this.documentElement.scrollWidth || 0 : 0
+				documentScrollWidth
 			);
 		} else if (
-			Number.isFinite(contentScrollWidth) &&
-			contentScrollWidth > safePageWidth &&
-			rawWidth > contentScrollWidth + VERTICAL_RL_WIDTH_GUARD
+			Number.isFinite(scrollWidthLimit) &&
+			scrollWidthLimit > safePageWidth &&
+			rawWidth > scrollWidthLimit + VERTICAL_RL_WIDTH_GUARD
 		) {
-			rawWidth = contentScrollWidth;
+			rawWidth = scrollWidthLimit;
 		}
 		if (!Number.isFinite(rawHeight) || rawHeight <= 0) {
 			rawHeight = Math.max(

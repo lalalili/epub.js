@@ -1050,6 +1050,1008 @@ describe("Vertical RL manager pagination", function() {
 		assert.ok(snapped + 1296 >= 11665.03125 + 1);
 	});
 
+	it("prefers right-origin boundary snapping when left-origin decoys also cross", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNodes = [{
+			nodeValue: "那是一個午後，一場雷暴雨剛走，天光轉為耀眼的金黃色。",
+			parentElement: {}
+		}, {
+			nodeValue: "我從一本本的歷史書得知，圖倫所在的這個區是分水嶺。",
+			parentElement: {}
+		}, {
+			nodeValue: "三位波蘭工人寄住在當地一家教堂後頭的房間。",
+			parentElement: {}
+		}, {
+			nodeValue: "史達尼斯洛奧四十歲。在他們為我們工作的幾星期裡。",
+			parentElement: {}
+		}];
+		let rectsByText = new Map([
+			[textNodes[0], { left: 14221.548, right: 14244.275, width: 22.727, height: 740 }],
+			[textNodes[1], { left: 15509.36, right: 15532.088, width: 22.728, height: 692 }],
+			[textNodes[2], { left: 6459.531, right: 6482.258, width: 22.727, height: 740 }],
+			[textNodes[3], { left: 6459.531, right: 6482.258, width: 22.727, height: 740 }]
+		]);
+		let index = 0;
+		let currentNode = null;
+		let pageWidth = 1295.9942626953125;
+		let contentWidth = 20717;
+		let baseLogicalOffset = pageWidth * 4;
+
+		manager.container = {
+			clientWidth: 1296,
+			scrollWidth: contentWidth,
+			scrollLeft: -baseLogicalOffset
+		};
+		manager.layout = {
+			effectivePageAdvance: pageWidth,
+			delta: pageWidth,
+			pageWidth,
+			width: 1296,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			first: function() {
+				return {
+					width: function() {
+						return contentWidth;
+					},
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: 0
+							};
+						}
+					},
+					contents: {
+						writingMode: function() {
+							return "vertical-rl";
+						},
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {
+								scrollWidth: 19738
+							},
+							createTreeWalker: function() {
+								index = 0;
+								return {
+									nextNode: function() {
+										currentNode = textNodes[index] || null;
+										index += 1;
+										return currentNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function(node) {
+										currentNode = node;
+									},
+									getClientRects: function() {
+										return [rectsByText.get(currentNode)];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let snapped = manager.snapVerticalRlLogicalOffsetToTextBoundary(baseLogicalOffset, 19421);
+		let rawRight = contentWidth - snapped;
+		let rawLeft = rawRight - pageWidth;
+		let actualRightOriginCrossings = [textNodes[0], textNodes[1]]
+			.map((node) => rectsByText.get(node))
+			.filter((rect) => (
+				(rect.left < rawLeft && rect.right > rawLeft) ||
+				(rect.left < rawRight && rect.right > rawRight)
+			));
+
+		assert.ok(snapped < baseLogicalOffset);
+		assert.equal(actualRightOriginCrossings.length, 0);
+	});
+
+	it("keeps a sequential next page from re-showing the previous page left edge", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNodes = [{
+			nodeValue: "他是位老人，外套披在肩上，步伐很慢，一副若有所思的樣子。",
+			parentElement: {}
+		}, {
+			nodeValue: "我家會有一個神龕這件事情，讓我覺得不可思議。",
+			parentElement: {}
+		}, {
+			nodeValue: "從我現在的位置，我看不見也聽不著山谷下方農場裡的噪動。",
+			parentElement: {}
+		}];
+		let rectsByText = new Map([
+			[textNodes[0], { left: 19416.36328125, right: 19439.08984375, width: 22.7265625, height: 740 }],
+			[textNodes[1], { left: 18104.984375, right: 18127.712890625, width: 22.728515625, height: 740 }],
+			[textNodes[2], { left: 18160.978515625, right: 18183.70703125, width: 22.728515625, height: 740 }]
+		]);
+		let index = 0;
+		let currentNode = null;
+		let pageWidth = 1295.9942626953125;
+		let contentWidth = 20717;
+		let baseLogicalOffset = pageWidth;
+		let previousPageLeftBoundary = 19413.727272987366;
+
+		manager.container = {
+			clientWidth: 1296,
+			scrollWidth: contentWidth,
+			scrollLeft: -baseLogicalOffset
+		};
+		manager.layout = {
+			effectivePageAdvance: pageWidth,
+			delta: pageWidth,
+			pageWidth,
+			width: 1296,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			first: function() {
+				return {
+					width: function() {
+						return contentWidth;
+					},
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: 0
+							};
+						}
+					},
+					contents: {
+						writingMode: function() {
+							return "vertical-rl";
+						},
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {
+								scrollWidth: 19738
+							},
+							createTreeWalker: function() {
+								index = 0;
+								return {
+									nextNode: function() {
+										currentNode = textNodes[index] || null;
+										index += 1;
+										return currentNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function(node) {
+										currentNode = node;
+									},
+									getClientRects: function() {
+										return [rectsByText.get(currentNode)];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let snapped = manager.snapVerticalRlLogicalOffsetToTextBoundary(baseLogicalOffset, 19421, {
+			maxRightBoundary: previousPageLeftBoundary
+		});
+		let rawRight = contentWidth - snapped;
+		let rawLeft = rawRight - pageWidth;
+		let duplicatedPreviousLine = rectsByText.get(textNodes[0]);
+		let crossings = Array.from(rectsByText.values()).filter((rect) => (
+			(rect.left < rawLeft && rect.right > rawLeft) ||
+			(rect.left < rawRight && rect.right > rawRight)
+		));
+
+		assert.ok(rawRight <= previousPageLeftBoundary + 1);
+		assert.ok(duplicatedPreviousLine.left >= rawRight);
+		assert.equal(crossings.length, 0);
+	});
+
+	it("left-masks a sequential page edge that the next page must own", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let contentWidth = 20716.98828125;
+		let pageWidth = 1295.9942626953125;
+		let rawLeft = 18117.356521606445;
+		let rawRight = rawLeft + pageWidth;
+		let currentOffset = contentWidth - rawRight;
+		let textNodes = [{
+			nodeValue: "我家會有一個神龕這件事情，讓我覺得不可思議，但更不可思議的是，我竟會成為一場獻花禮的參與者之一。",
+			parentElement: {}
+		}, {
+			nodeValue: "從我現在的位置，我看不見也聽不著山谷下方農場裡的噪動或喧囂。",
+			parentElement: {}
+		}];
+		let rectsByText = new Map([
+			[textNodes[0], { left: 18104.984375, right: 18127.712890625, top: 40, bottom: 740, width: 22.728515625, height: 700 }],
+			[textNodes[1], { left: 18160.978515625, right: 18183.70703125, top: 0, bottom: 320, width: 22.728515625, height: 320 }]
+		]);
+		let currentNode = null;
+
+		manager.container = {
+			clientWidth: pageWidth,
+			scrollWidth: contentWidth,
+			scrollLeft: -currentOffset,
+			getBoundingClientRect: function() {
+				return {
+					left: rawLeft,
+					right: rawRight,
+					width: pageWidth
+				};
+			}
+		};
+		manager.layout = {
+			effectivePageAdvance: pageWidth,
+			delta: pageWidth,
+			pageWidth,
+			width: pageWidth,
+			edgeGuardPx: 4,
+			pageBoundaryShift: 28
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			first: function() {
+				return {
+					_contentWidth: contentWidth,
+					width: function() {
+						return contentWidth;
+					},
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: 0
+							};
+						}
+					},
+					contents: {
+						writingMode: function() {
+							return "vertical-rl";
+						},
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								let index = 0;
+								return {
+									nextNode: function() {
+										currentNode = textNodes[index++] || null;
+										return currentNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [rectsByText.get(currentNode)];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+		manager._verticalRlSequentialBoundaryConstraint = {
+			pageIndex: 1,
+			maxRightBoundary: rectsByText.get(textNodes[0]).right
+		};
+		manager.getCurrentPageIndex = function() {
+			return 1;
+		};
+		manager.getTotalPagesForCurrentView = function() {
+			return 16;
+		};
+		manager.getMaxLogicalScrollLeft = function() {
+			return contentWidth - pageWidth;
+		};
+		manager.getLogicalOffsetForPageIndex = function(pageIndex) {
+			return pageIndex === 1 ? currentOffset : currentOffset - pageWidth;
+		};
+		manager.getNormalizedLogicalScrollLeft = function() {
+			return currentOffset;
+		};
+
+		let maskWidths = manager.getVerticalRlCleanPageEdgeMaskWidths(pageWidth);
+
+		assert.ok(maskWidths.left >= 12, JSON.stringify(maskWidths));
+		assert.equal(maskWidths.right, 0);
+	});
+
+	it("prefers the previous effective boundary when advancing from a masked clean page", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let contentWidth = 10343.991409301758;
+		let pageWidth = 1295.9942626953125;
+		let pageAdvance = 1320;
+		let previousEffectiveLeft = 9058.997146606445;
+		let expectedOffset = contentWidth - previousEffectiveLeft;
+		let currentNode = null;
+
+		manager.container = {
+			clientWidth: pageWidth,
+			scrollWidth: contentWidth,
+			scrollLeft: 0,
+			scrollTop: 0,
+			getBoundingClientRect: function() {
+				return {
+					left: 0,
+					right: pageWidth,
+					width: pageWidth
+				};
+			}
+		};
+		manager.layout = {
+			effectivePageAdvance: pageAdvance,
+			delta: pageAdvance,
+			pageWidth,
+			width: pageWidth,
+			edgeGuardPx: 4,
+			pageBoundaryShift: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			first: function() {
+				return {
+					_contentWidth: contentWidth,
+					width: function() {
+						return contentWidth;
+					},
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: 0
+							};
+						}
+					},
+					contents: {
+						writingMode: function() {
+							return "vertical-rl";
+						},
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										currentNode = null;
+										return currentNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.getCurrentPageIndex = function() {
+			return 0;
+		};
+		manager.getTotalPagesForCurrentView = function() {
+			return 8;
+		};
+		manager.getMaxLogicalScrollLeft = function() {
+			return contentWidth - pageWidth;
+		};
+		manager.getNormalizedLogicalScrollLeft = function() {
+			return 0;
+		};
+		manager.getVerticalRlEdgeMaskWidths = function() {
+			return {
+				left: previousEffectiveLeft - (contentWidth - pageWidth),
+				right: 0
+			};
+		};
+
+		manager.scrollToLogicalPage(1);
+
+		assert.ok(manager._verticalRlSequentialBoundaryConstraint);
+		assert.equal(
+			manager._verticalRlSequentialBoundaryConstraint.preferredRightBoundary,
+			previousEffectiveLeft
+		);
+		assert.ok(Math.abs(manager.container.scrollLeft + expectedOffset) <= 0.01, manager.container.scrollLeft);
+	});
+
+	it("uses the rendered clean-page mask when computed mask is intentionally zero on the first page", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let contentWidth = 10343.991409301758;
+		let pageWidth = 1295.9942626953125;
+		let renderedLeftMask = 11;
+		let previousEffectiveLeft = contentWidth - pageWidth + renderedLeftMask;
+		let expectedOffset = contentWidth - previousEffectiveLeft;
+		let currentNode = null;
+
+		manager.container = {
+			clientWidth: pageWidth,
+			scrollWidth: contentWidth,
+			scrollLeft: 0,
+			scrollTop: 0,
+			dataset: {
+				epubVrlEdgeMask: String(renderedLeftMask),
+				epubVrlEdgeMaskLeft: String(renderedLeftMask),
+				epubVrlEdgeMaskRight: "0"
+			},
+			getBoundingClientRect: function() {
+				return {
+					left: 0,
+					right: pageWidth,
+					width: pageWidth
+				};
+			}
+		};
+		manager.layout = {
+			effectivePageAdvance: pageWidth,
+			delta: pageWidth,
+			pageWidth,
+			width: pageWidth,
+			edgeGuardPx: 4,
+			pageBoundaryShift: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			first: function() {
+				return {
+					_contentWidth: contentWidth,
+					width: function() {
+						return contentWidth;
+					},
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: 0
+							};
+						}
+					},
+					contents: {
+						writingMode: function() {
+							return "vertical-rl";
+						},
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										currentNode = null;
+										return currentNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.getCurrentPageIndex = function() {
+			return 0;
+		};
+		manager.getTotalPagesForCurrentView = function() {
+			return 8;
+		};
+		manager.getMaxLogicalScrollLeft = function() {
+			return contentWidth - pageWidth;
+		};
+		manager.getNormalizedLogicalScrollLeft = function() {
+			return 0;
+		};
+		manager.getVerticalRlEdgeMaskWidths = function() {
+			return {
+				left: 0,
+				right: 0
+			};
+		};
+
+		manager.scrollToLogicalPage(1);
+
+		assert.ok(manager._verticalRlSequentialBoundaryConstraint);
+		assert.equal(
+			manager._verticalRlSequentialBoundaryConstraint.preferredRightBoundary,
+			previousEffectiveLeft
+		);
+		assert.ok(Math.abs(manager.container.scrollLeft + expectedOffset) <= 0.01, manager.container.scrollLeft);
+	});
+
+	it("passes the current effective left boundary when advancing to the next vertical-rl page", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let capturedPageIndex = null;
+		let capturedOptions = null;
+
+		manager.views = {
+			length: 1,
+			last: function() {
+				return {
+					section: {
+						next: function() {
+							return null;
+						}
+					}
+				};
+			}
+		};
+		manager.isRtlVerticalPaginated = function() {
+			return true;
+		};
+		manager.settings = {
+			direction: "rtl"
+		};
+		manager.getCurrentPageIndex = function() {
+			return 1;
+		};
+		manager.getTotalPagesForCurrentView = function() {
+			return 8;
+		};
+		manager.getVerticalRlCurrentEffectiveLeftBoundary = function() {
+			return 7767.45458984375;
+		};
+		manager.scrollToLogicalPage = function(pageIndex, options) {
+			capturedPageIndex = pageIndex;
+			capturedOptions = options;
+		};
+
+		manager.next();
+
+		assert.equal(capturedPageIndex, 2);
+		assert.equal(capturedOptions.sequentialRightBoundary, 7767.45458984375);
+	});
+
+	it("uses the page advance for the penultimate vertical-rl step when the final page clamps to max scroll", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+
+		manager.container = {};
+		manager.getPageAdvance = function() {
+			return 1274.54541015625;
+		};
+		manager.getTotalPagesForCurrentView = function() {
+			return 14;
+		};
+		manager.getCurrentPageIndex = function() {
+			return 12;
+		};
+		manager.getMaxLogicalScrollLeft = function() {
+			return 16842.7265625;
+		};
+		manager.getLogicalOffsetForPageIndex = function(pageIndex) {
+			return pageIndex === 13 ? 16842.7265625 : 15526.36328125;
+		};
+		manager.isRtlVerticalPaginated = function() {
+			return true;
+		};
+		manager.hasVerticalRlStructuralPageGutter = function() {
+			return true;
+		};
+
+		assert.equal(manager.getLogicalPageStepToNextPage(), 1274.54541015625);
+	});
+
+	it("applies a sequential vertical-rl boundary when advancing to the final page", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let contentWidth = 18139;
+		let visibleWidth = 1296;
+		let maxScroll = contentWidth - visibleWidth;
+		let capturedLeft = null;
+
+		manager.container = {
+			clientWidth: visibleWidth,
+			scrollWidth: contentWidth,
+			scrollLeft: -15526.36328125
+		};
+		manager.layout = {
+			effectivePageAdvance: 1274.54541015625,
+			delta: 1274.54541015625,
+			pageWidth: visibleWidth,
+			width: visibleWidth,
+			edgeGuardPx: 0,
+			pageBoundaryShift: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			first: function() {
+				return {
+					_contentWidth: contentWidth,
+					width: function() {
+						return contentWidth;
+					},
+					iframe: null,
+					contents: null
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.queueVerticalRlBoundarySnapRetry = function() {};
+		manager.scrollTo = function(left) {
+			capturedLeft = left;
+			this.container.scrollLeft = left;
+		};
+
+		manager.scrollToLogicalPage(13, {
+			sequentialRightBoundary: 1331
+		});
+
+		assert.equal(maxScroll, 16843);
+		assert.equal(capturedLeft, -(contentWidth - 1331));
+	});
+
+	it("reuses cached vertical-rl logical page offsets when returning from the final page", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let contentWidth = 18139;
+		let visibleWidth = 1296;
+		let maxScroll = contentWidth - visibleWidth;
+		let capturedLeft = null;
+		let snapCalls = 0;
+
+		manager.container = {
+			clientWidth: visibleWidth,
+			scrollWidth: contentWidth,
+			scrollLeft: -14245.4541015625
+		};
+		manager.layout = {
+			effectivePageAdvance: 1296,
+			delta: 1296,
+			pageWidth: visibleWidth,
+			width: visibleWidth,
+			edgeGuardPx: 0,
+			pageBoundaryShift: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			first: function() {
+				return {
+					_contentWidth: contentWidth,
+					width: function() {
+						return contentWidth;
+					},
+					iframe: null,
+					contents: null
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.queueVerticalRlBoundarySnapRetry = function() {};
+		manager.scrollTo = function(left) {
+			capturedLeft = left;
+			this.container.scrollLeft = left;
+		};
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function(logicalOffset) {
+			snapCalls += 1;
+			if (logicalOffset === maxScroll) {
+				return contentWidth - 1318.9914093017578;
+			}
+
+			return 15527.2724609375;
+		};
+
+		manager.scrollToLogicalPage(12);
+		assert.equal(capturedLeft, -15527.2724609375);
+
+		manager.scrollToLogicalPage(13, {
+			sequentialRightBoundary: 1318.9914093017578
+		});
+		assert.equal(capturedLeft, -(contentWidth - 1318.9914093017578));
+
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function() {
+			throw new Error("cached page 13 offset should be reused");
+		};
+		manager.scrollToLogicalPage(12);
+
+		assert.equal(capturedLeft, -15527.2724609375);
+		assert.equal(snapCalls, 2);
+	});
+
+	it("keeps delayed vertical-rl boundary retries on the cached logical page offset", async function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let contentWidth = 18139;
+		let visibleWidth = 1296;
+		let maxScroll = contentWidth - visibleWidth;
+		let cachedOffset = 15527.2724609375;
+		let capturedLeft = null;
+
+		manager.container = {
+			clientWidth: visibleWidth,
+			scrollWidth: contentWidth,
+			scrollLeft: -cachedOffset,
+			scrollTop: 0
+		};
+		manager.layout = {
+			effectivePageAdvance: 1296,
+			delta: 1296,
+			pageWidth: visibleWidth,
+			width: visibleWidth,
+			edgeGuardPx: 0,
+			pageBoundaryShift: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl",
+			verticalRlBoundarySnapRetryDelays: []
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			first: function() {
+				return {
+					_contentWidth: contentWidth,
+					width: function() {
+						return contentWidth;
+					},
+					iframe: null,
+					contents: null
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.waitForVerticalRlLayoutReady = function() {
+			return Promise.resolve();
+		};
+		manager.getTotalPagesForCurrentView = function() {
+			return 14;
+		};
+		manager.getMaxLogicalScrollLeft = function() {
+			return maxScroll;
+		};
+		manager.getCurrentPageIndex = function() {
+			return 12;
+		};
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function() {
+			throw new Error("cached page offset should not be re-snapped by delayed retries");
+		};
+		manager.snapVerticalRlLogicalOffsetFromEdgeMask = function() {
+			throw new Error("cached page offset should not be moved by edge mask retries");
+		};
+		manager.scrollTo = function(left) {
+			capturedLeft = left;
+			this.container.scrollLeft = left;
+		};
+
+		let cacheKey = manager.getVerticalRlLogicalPageOffsetCacheKey(14, maxScroll);
+		manager.cacheVerticalRlLogicalPageOffset(12, cachedOffset, cacheKey);
+		manager.queueVerticalRlBoundarySnapRetry(12);
+		await Promise.resolve();
+
+		assert.equal(manager.container.scrollLeft, -cachedOffset);
+		assert.equal(capturedLeft, null);
+	});
+
+	it("does not snap a preferred sequential boundary past the previous effective page edge", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let contentWidth = 10344;
+		let pageWidth = 1296;
+		let preferredRightBoundary = 7769.45458984375;
+		let logicalOffset = contentWidth - preferredRightBoundary;
+		let textNode = {
+			nodeValue: "這一行跨過上一頁的有效左界線，下一頁不應再被往內推。",
+			parentElement: {}
+		};
+		let currentNode = null;
+
+		manager.container = {
+			clientWidth: pageWidth,
+			scrollWidth: contentWidth,
+			scrollLeft: -logicalOffset
+		};
+		manager.layout = {
+			effectivePageAdvance: pageWidth,
+			delta: pageWidth,
+			pageWidth,
+			width: pageWidth,
+			edgeGuardPx: 4,
+			pageBoundaryShift: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			first: function() {
+				return {
+					_contentWidth: contentWidth,
+					width: function() {
+						return contentWidth;
+					},
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: 0
+							};
+						}
+					},
+					contents: {
+						writingMode: function() {
+							return "vertical-rl";
+						},
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								let used = false;
+								return {
+									nextNode: function() {
+										if (used) {
+											return null;
+										}
+										used = true;
+										currentNode = textNode;
+										return currentNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function(node) {
+										currentNode = node;
+									},
+									getClientRects: function() {
+										return [{
+											left: preferredRightBoundary - 10.5,
+											right: preferredRightBoundary + 12.5,
+											top: 40,
+											bottom: 740,
+											width: 23,
+											height: 700
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let snapped = manager.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, contentWidth - pageWidth, {
+			maxRightBoundary: preferredRightBoundary,
+			preferredRightBoundary
+		});
+		let rawRight = contentWidth - snapped;
+
+		assert.ok(Math.abs(rawRight - preferredRightBoundary) <= 1, rawRight);
+	});
+
 	it("does not cache a no-op vertical-rl boundary snap before text rects are ready", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {
@@ -1215,6 +2217,59 @@ describe("Vertical RL manager pagination", function() {
 
 		assert.equal(Math.round(manager.container.scrollLeft), -7773);
 		assert.equal(snapCalls, 2);
+	});
+
+	it("cancels stale vertical-rl boundary retries when navigating to the final page", async function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let pageWidth = 1296;
+		let contentWidth = 18139;
+		let maxScroll = contentWidth - pageWidth;
+		let stalePage13Offset = 15548.181640625;
+
+		manager.container = {
+			clientWidth: pageWidth,
+			scrollWidth: contentWidth,
+			scrollLeft: -15526.36328125,
+			scrollTop: 0
+		};
+		manager.layout = {
+			effectivePageAdvance: pageWidth,
+			delta: pageWidth,
+			pageWidth,
+			width: pageWidth,
+			pageBoundaryShift: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.isRtlVerticalPaginated = function() {
+			return true;
+		};
+		manager.getTotalPagesForCurrentView = function() {
+			return 14;
+		};
+		manager.getMaxLogicalScrollLeft = function() {
+			return maxScroll;
+		};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.waitForVerticalRlLayoutReady = function() {
+			return Promise.resolve();
+		};
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function(logicalOffset) {
+			return Math.abs(logicalOffset - (12 * pageWidth)) <= pageWidth
+				? stalePage13Offset
+				: logicalOffset;
+		};
+
+		manager.queueVerticalRlBoundarySnapRetry(12);
+		manager.scrollToLogicalPage(13);
+		await Promise.resolve();
+
+		assert.equal(Math.round(manager.container.scrollLeft), -Math.round(maxScroll));
 	});
 
 	it("keeps retrying vertical-rl boundary snapping until late text rects are measurable", async function() {
@@ -1806,6 +2861,31 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(Math.round(manager.container.scrollLeft), -7773);
 	});
 
+	it("does not queue current-offset snapping for silent vertical-rl programmatic scrolls", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let queued = false;
+
+		manager.container = {
+			scrollLeft: -2580,
+			scrollTop: 0
+		};
+		manager.settings = {
+			fullsize: false
+		};
+		manager.ignore = true;
+		manager.isRtlVerticalPaginated = function() {
+			return true;
+		};
+		manager.queueVerticalRlBoundarySnapRetryForCurrentOffset = function() {
+			queued = true;
+		};
+
+		manager.onScroll();
+
+		assert.equal(manager.ignore, false);
+		assert.equal(queued, false);
+	});
+
 	it("snaps direct restored offsets when iframe content rects are already logical coordinates", async function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {
@@ -2116,6 +3196,99 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(maskWidths.right, 0);
 	});
 
+	it("uses direct logical rect coordinates for left edge masks when the iframe is shifted", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "的臥室純淨得像間方濟會教士的隱修室。我認為它是世界上最完美的房間。",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			getBoundingClientRect: function() {
+				return {
+					left: 225,
+					right: 1521,
+					width: 1296,
+					height: 761
+				};
+			}
+		};
+		manager.layout = {
+			edgeGuardPx: 0
+		};
+		manager.views = {
+			first: function() {
+				return {
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: -1090.7243194580078,
+								right: 17048.265914916992,
+								width: 18139
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 1307.7840576171875,
+											right: 1330.5113525390625,
+											width: 22.727294921875,
+											height: 660
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let maskWidths = manager.snapVerticalRlEdgeMaskWidths({
+			left: 0,
+			right: 0
+		}, 323, {
+			nextPageStep: 1296,
+			previousPageStep: 1296,
+			rightMaxMask: 323,
+			allowRawLeftMask: true,
+			forceRawLeftMask: true
+		});
+
+		assert.equal(maskWidths.left, 16);
+		assert.equal(maskWidths.right, 0);
+	});
+
 	it("does not right-mask content that was hidden by the previous page left edge mask", function() {
 		let manager = createManagerAtLogicalOffset(0);
 
@@ -2247,6 +3420,103 @@ describe("Vertical RL manager pagination", function() {
 
 		assert.equal(maskWidths.left, 0);
 		assert.equal(maskWidths.right, 18);
+	});
+
+	it("does not clean-page right-mask a boundary line that the previous page barely exposes", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "我家會有一個神龕這件事情，讓我覺得不可思議，但更不可思議",
+			parentElement: {}
+		};
+		let yielded = false;
+		let rawLeft = 23328.067459106445;
+		let rawRight = 24624.061721801758;
+		let previousPageStep = 1295.9942626953125;
+
+		manager.container = {
+			getBoundingClientRect: function() {
+				return {
+					left: rawLeft,
+					right: rawRight,
+					width: rawRight - rawLeft,
+					height: 761
+				};
+			}
+		};
+		manager.layout = {
+			edgeGuardPx: 0
+		};
+		manager.views = {
+			first: function() {
+				return {
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: 0,
+								right: 27215.87890625,
+								width: 27215.87890625
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 24603.166015625,
+											right: 24625.89453125,
+											width: 22.728515625,
+											height: 700
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let maskWidths = manager.snapVerticalRlEdgeMaskWidths({
+			left: 0,
+			right: 0
+		}, 323, {
+			rawLeft,
+			rawRight,
+			previousPageStep,
+			nextPageStep: previousPageStep,
+			rightMaxMask: 323,
+			allowRawRightMask: true
+		});
+
+		assert.equal(maskWidths.left, 0);
+		assert.equal(maskWidths.right, 0);
 	});
 
 	it("does not add a right edge mask on the first vertical-rl page", function() {
@@ -3947,6 +5217,92 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(maskWidths.right, 0);
 	});
 
+	it("keeps a penultimate-page left mask when the final vertical-rl page will own the raw edge line", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "世界上最完美的房間。",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			getBoundingClientRect: function() {
+				return {
+					left: 225.1846466064453,
+					right: 1521.1789093017578
+				};
+			}
+		};
+		manager.layout = {
+			edgeGuardPx: 0
+		};
+		manager.views = {
+			first: function() {
+				return {
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: -1091.4488525390625
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 216.335205078125,
+											right: 239.0625,
+											width: 22.727294921875,
+											height: 680
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let maskWidths = manager.snapVerticalRlEdgeMaskWidths({
+			left: 0,
+			right: 0
+		}, 324, {
+			nextPageStep: 1316.36328125,
+			allowRawLeftMask: true
+		});
+
+		assert.equal(maskWidths.left, 15);
+		assert.equal(maskWidths.right, 0);
+	});
+
 	it("propagates the vertical-rl active page width from content metrics to the layout", function() {
 		let view = Object.create(IframeView.prototype);
 		let updatedProps = null;
@@ -4225,6 +5581,8 @@ describe("Vertical RL manager pagination", function() {
 		};
 		contents.measureVerticalRlRect = function() {
 			return {
+				left: 0,
+				right: 2592,
 				rawWidth: 2592,
 				rawHeight: 761
 			};
@@ -4250,6 +5608,172 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(metrics.rawWidth, 2321);
 		assert.equal(metrics.totalPages, 2);
 		assert.equal(metrics.snappedContentWidth, 2574);
+	});
+
+	it("ignores far-right html canvas offsets when the vertical-rl body is only two pages", function() {
+		let contents = Object.create(Contents.prototype);
+		contents._verticalRlPageMetricsCache = null;
+		contents.content = {
+			clientWidth: 2319,
+			offsetWidth: 2319,
+			clientHeight: 761,
+			childElementCount: 1,
+			scrollWidth: 2319,
+			scrollHeight: 761
+		};
+		contents.documentElement = {
+			clientWidth: 77743,
+			clientHeight: 761,
+			scrollWidth: 77743,
+			scrollHeight: 761
+		};
+		contents.document = {
+			body: contents.content,
+			fonts: null
+		};
+		contents.window = {
+			getComputedStyle: function() {
+				return {
+					fontSize: "20px",
+					lineHeight: "36px",
+					letterSpacing: "0px",
+					fontFamily: "serif"
+				};
+			}
+		};
+		contents.measureVerticalRlRect = function() {
+			return {
+				left: 75424.046875,
+				right: 77742.7265625,
+				rawWidth: 77742.7265625,
+				rawHeight: 761
+			};
+		};
+		contents.estimateVerticalRlLineMetrics = function() {
+			return {
+				linePitch: 36,
+				lineWidth: 22.734375,
+				lineLefts: [75430.9453125, 75466.9375, 75502.9296875],
+				lineBoxes: [{
+					left: 77691.8125,
+					right: 77730.90625,
+					width: 39.09375
+				}, {
+					left: 77630.6328125,
+					right: 77653.3671875,
+					width: 22.734375
+				}, {
+					left: 77518.6484375,
+					right: 77541.375,
+					width: 22.7265625
+				}],
+				sampleCount: 8,
+				gapMad: 0,
+				stable: true
+			};
+		};
+
+		let metrics = contents.verticalRlPageMetrics(1296, 761);
+
+		assert.equal(metrics.rawWidth, 2321);
+		assert.equal(metrics.totalPages, 2);
+		assert.equal(metrics.snappedContentWidth, 2592);
+	});
+
+	it("measures positive-offset vertical-rl text to its right edge", function() {
+		let contents = Object.create(Contents.prototype);
+		contents.content = {};
+		contents.document = {
+			body: contents.content,
+			createRange: function() {
+				return {
+					selectNodeContents: function() {},
+					getBoundingClientRect: function() {
+						return {
+							left: 7457.008,
+							right: 27195.008,
+							top: 0,
+							bottom: 761,
+							width: 19738,
+							height: 761
+						};
+					}
+				};
+			}
+		};
+
+		let rect = contents.measureVerticalRlRect();
+
+		assert.equal(rect.rawWidth, 27195.008);
+	});
+
+	it("allows Section0006 frame overhang to snap boundaries between text columns", function() {
+		let contents = Object.create(Contents.prototype);
+		contents._verticalRlPageMetricsCache = null;
+		const pageWidth = 1295.9942626953125;
+		contents.content = {
+			clientWidth: 27216,
+			clientHeight: 761,
+			childElementCount: 1,
+			scrollWidth: 19738,
+			scrollHeight: 761
+		};
+		contents.documentElement = {
+			clientWidth: 27216,
+			clientHeight: 761,
+			scrollWidth: 27215,
+			scrollHeight: 761
+		};
+		contents.document = {
+			body: contents.content,
+			fonts: null
+		};
+		contents.window = {
+			getComputedStyle: function() {
+				return {
+					fontSize: "20px",
+					lineHeight: "36px",
+					letterSpacing: "0px",
+					fontFamily: "serif"
+				};
+			}
+		};
+		contents.measureVerticalRlRect = function() {
+			return {
+				left: 7457,
+				right: 27195,
+				rawWidth: 27195,
+				rawHeight: 761
+			};
+		};
+		contents.estimateVerticalRlLineMetrics = function() {
+			return {
+				linePitch: 36,
+				lineWidth: 22.728515625,
+				lineLefts: [],
+				lineBoxes: [{
+					left: 27166.36328125,
+					right: 27189.08984375,
+					width: 22.7265625
+				}, {
+					left: 24603.166015625,
+					right: 24625.89453125,
+					width: 22.728515625
+				}, {
+					left: 23311.34765625,
+					right: 23334.076171875,
+					width: 22.728515625
+				}],
+				sampleCount: 512,
+				gapMad: 0,
+				stable: true
+			};
+		};
+
+		let metrics = contents.verticalRlPageMetrics(pageWidth, 761);
+
+		assert.equal(metrics.totalPages, 21);
+		assert.equal(metrics.snappedContentWidth, 27194);
 	});
 
 	it("keeps the lower boundary-snapped vertical-rl width across iframe reframe drift", function() {
@@ -4379,5 +5903,166 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(metrics.totalPages, 3);
 		assert.equal(metrics.verticalFragmentPages, 3);
 		assert.ok(metrics.snappedContentWidth > metrics.pageWidth);
+	});
+
+	it("treats an svg title page with a hidden heading as a single media page", function() {
+		let contents = Object.create(Contents.prototype);
+		let hiddenHeading = {
+			nodeType: 1,
+			hidden: false,
+			childNodes: [{
+				nodeType: 3,
+				nodeValue: "第二章　兩頭牛，犁兩天的土地　A HOUSE AND THE LAND IT TAKES TWO OXEN TWO DAYS TO PLOW"
+			}]
+		};
+		let svg = {
+			nodeType: 1,
+			tagName: "svg",
+			hidden: false,
+			closest: function() {
+				return null;
+			},
+			getAttribute: function(name) {
+				return name === "viewBox" ? "0 0 1500 1941" : null;
+			},
+			querySelector: function(selector) {
+				return selector === "image" ? {} : null;
+			},
+			getBoundingClientRect: function() {
+				return {
+					width: 1296,
+					height: 761
+				};
+			}
+		};
+		let content = {
+			nodeType: 1,
+			hidden: false,
+			scrollWidth: 1296,
+			childNodes: [hiddenHeading, svg],
+			querySelectorAll: function(selector) {
+				return selector === "img, svg, image, video, canvas" ? [svg] : [];
+			},
+			getAttribute: function() {
+				return null;
+			}
+		};
+		contents.content = content;
+		contents.document = {
+			body: content
+		};
+		contents.window = {
+			getComputedStyle: function(node) {
+				if (node === hiddenHeading) {
+					return {
+						display: "none",
+						visibility: "visible"
+					};
+				}
+				if (node === svg) {
+					return {
+						display: "block",
+						visibility: "visible",
+						objectFit: "",
+						position: "absolute"
+					};
+				}
+				return {
+					display: "block",
+					visibility: "visible"
+				};
+			}
+		};
+
+		assert.equal(contents.isViewportFillingSingleMediaPage(1296), true);
+	});
+
+	it("does not let an inflated svg title-page canvas become vertical-rl page count", function() {
+		let contents = Object.create(Contents.prototype);
+		contents._verticalRlPageMetricsCache = null;
+		let hiddenHeading = {
+			nodeType: 1,
+			hidden: false,
+			childNodes: [{
+				nodeType: 3,
+				nodeValue: "第二章　兩頭牛，犁兩天的土地　A HOUSE AND THE LAND IT TAKES TWO OXEN TWO DAYS TO PLOW"
+			}]
+		};
+		let svg = {
+			nodeType: 1,
+			tagName: "svg",
+			hidden: false,
+			closest: function() {
+				return null;
+			},
+			getAttribute: function(name) {
+				return name === "viewBox" ? "0 0 1500 1941" : null;
+			},
+			querySelector: function(selector) {
+				return selector === "image" ? {} : null;
+			},
+			getBoundingClientRect: function() {
+				return {
+					width: 2880995,
+					height: 761
+				};
+			}
+		};
+		let content = {
+			nodeType: 1,
+			hidden: false,
+			scrollWidth: 2880995,
+			scrollHeight: 761,
+			childNodes: [hiddenHeading, svg],
+			querySelectorAll: function(selector) {
+				return selector === "img, svg, image, video, canvas" ? [svg] : [];
+			},
+			getAttribute: function() {
+				return null;
+			}
+		};
+		contents.content = content;
+		contents.documentElement = {
+			scrollWidth: 2880995,
+			scrollHeight: 761
+		};
+		contents.document = {
+			body: content
+		};
+		contents.window = {
+			getComputedStyle: function(node) {
+				if (node === hiddenHeading) {
+					return {
+						display: "none",
+						visibility: "visible"
+					};
+				}
+				if (node === svg) {
+					return {
+						display: "block",
+						visibility: "visible",
+						objectFit: "",
+						position: "absolute"
+					};
+				}
+				return {
+					display: "block",
+					visibility: "visible",
+					columnGap: "normal"
+				};
+			}
+		};
+		contents.measureVerticalRlRect = function() {
+			return {
+				rawWidth: 2880995,
+				rawHeight: 761
+			};
+		};
+
+		let metrics = contents.verticalRlPageMetrics(1296, 761);
+
+		assert.equal(metrics.totalPages, 1);
+		assert.equal(metrics.snappedContentWidth, 1296);
+		assert.equal(metrics.rawWidth, 1296);
 	});
 });

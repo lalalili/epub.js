@@ -625,6 +625,93 @@ class DefaultViewManager {
 		});
 	}
 
+	getVerticalRlRenderedEdgeMaskWidths(){
+		let computed = this.getVerticalRlEdgeMaskWidths();
+		let dataset = this.container && this.container.dataset ? this.container.dataset : {};
+		let renderedLeft = Number(dataset.epubVrlEdgeMaskLeft);
+		let renderedRight = Number(dataset.epubVrlEdgeMaskRight);
+
+		if (!Number.isFinite(renderedLeft)) {
+			renderedLeft = Number(dataset.epubVrlEdgeMask);
+		}
+		if (!Number.isFinite(renderedRight)) {
+			renderedRight = 0;
+		}
+
+		return {
+			left: Math.max(Number(computed && computed.left) || 0, renderedLeft || 0),
+			right: Math.max(Number(computed && computed.right) || 0, renderedRight || 0)
+		};
+	}
+
+	getVerticalRlCurrentEffectiveLeftBoundary(){
+		if (!this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) {
+			return null;
+		}
+
+		let view = this.views.first() || this.views.last();
+		let contentWidth = view ? this.getVerticalRlVisualContentWidth(view) : 0;
+		let advance = this.getPageAdvance() || 0;
+		let visibleWidth = this.layout.pageWidth || this.layout.width || advance || this.container.clientWidth || 0;
+		let currentOffset = this.getNormalizedLogicalScrollLeft();
+		let currentMaskWidths = this.getVerticalRlRenderedEdgeMaskWidths();
+		let currentLeftMask = Number(currentMaskWidths && currentMaskWidths.left) || 0;
+		let effectiveLeftBoundary = contentWidth - currentOffset - visibleWidth + currentLeftMask;
+
+		return Number.isFinite(effectiveLeftBoundary) && effectiveLeftBoundary > 0
+			? effectiveLeftBoundary
+			: null;
+	}
+
+	getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll){
+		if (!this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) {
+			return null;
+		}
+
+		let view = this.views.first() || this.views.last();
+		let contentWidth = view ? this.getVerticalRlVisualContentWidth(view) : 0;
+		let visibleWidth = this.layout.pageWidth || this.layout.width || this.getPageAdvance() || this.container.clientWidth || 0;
+		let advance = this.getPageAdvance() || 0;
+
+		if (!contentWidth || !visibleWidth || !advance) {
+			return null;
+		}
+
+		return [
+			Math.round((Number(totalPages) || 0) * 100) / 100,
+			Math.round((Number(maxScroll) || 0) * 100) / 100,
+			Math.round(contentWidth * 100) / 100,
+			Math.round(visibleWidth * 100) / 100,
+			Math.round(advance * 100) / 100,
+			Math.round((Number(this.layout.edgeGuardPx) || 0) * 100) / 100
+		].join(":");
+	}
+
+	getCachedVerticalRlLogicalPageOffset(pageIndex, cacheKey){
+		let cache = this._verticalRlLogicalPageOffsetCache;
+		if (!cache || cache.key !== cacheKey || !cache.offsets) {
+			return null;
+		}
+
+		let cachedOffset = Number(cache.offsets[pageIndex]);
+		return Number.isFinite(cachedOffset) ? cachedOffset : null;
+	}
+
+	cacheVerticalRlLogicalPageOffset(pageIndex, logicalOffset, cacheKey){
+		if (!cacheKey || !Number.isFinite(Number(logicalOffset))) {
+			return;
+		}
+
+		if (!this._verticalRlLogicalPageOffsetCache || this._verticalRlLogicalPageOffsetCache.key !== cacheKey) {
+			this._verticalRlLogicalPageOffsetCache = {
+				key: cacheKey,
+				offsets: Object.create(null)
+			};
+		}
+
+		this._verticalRlLogicalPageOffsetCache.offsets[pageIndex] = Number(logicalOffset);
+	}
+
 	getVerticalRlCleanPageEdgeMaskWidths(advance){
 		if (!this.container || !this.views || !advance) {
 			return { left: 0, right: 0 };
@@ -645,16 +732,25 @@ class DefaultViewManager {
 		let currentOffset = this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll);
 		let previousOffset = this.getLogicalOffsetForPageIndex(currentPageIndex - 1, totalPages, maxScroll);
 		let previousPageStep = Math.abs(currentOffset - previousOffset) || advance;
+		let actualCurrentOffset = this.getNormalizedLogicalScrollLeft();
+		let currentGridOffset = this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll);
+		let isSequentialBoundaryPage = !!(
+			this._verticalRlSequentialBoundaryConstraint &&
+			this._verticalRlSequentialBoundaryConstraint.pageIndex === currentPageIndex
+		);
+		let forceRawLeftMask = isSequentialBoundaryPage || Math.abs(actualCurrentOffset - currentGridOffset) > 1;
 
 		return this.snapVerticalRlEdgeMaskWidths({
 			left: 0,
 			right: 0
 		}, maxMask, {
-			nextPageStep: previousPageStep,
-			previousPageStep,
-			rightMaxMask: maxMask,
-			allowRawRightMask: true
-		});
+				nextPageStep: previousPageStep,
+				previousPageStep,
+				rightMaxMask: maxMask,
+				allowRawRightMask: true,
+				allowRawLeftMask: currentPageIndex === totalPages - 2,
+				forceRawLeftMask
+			});
 	}
 
 	getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask){
@@ -711,6 +807,14 @@ class DefaultViewManager {
 		let nextOffset = this.getLogicalOffsetForPageIndex(nextPageIndex, totalPages, maxScroll);
 		let step = Math.abs(nextOffset - currentOffset);
 
+		if (
+			nextPageIndex === totalPages - 1 &&
+			step > advance &&
+			this.hasVerticalRlStructuralPageGutter()
+		) {
+			return advance;
+		}
+
 		return step > 0 ? step : advance;
 	}
 
@@ -736,10 +840,12 @@ class DefaultViewManager {
 		let leftMaxMask = Math.max(0, Number(limits.leftMaxMask ?? maxMask) || 0);
 		let rightMaxMask = Math.max(0, Number(limits.rightMaxMask ?? maxMask) || 0);
 		let left = Math.max(0, Math.min(Number(widths.left) || 0, leftMaxMask));
-		let right = Math.max(0, Math.min(Number(widths.right) || 0, rightMaxMask));
-		let nextPageStep = Number(limits.nextPageStep ?? this.getLogicalPageStepToNextPage()) || 0;
-		let previousPageStep = Number(limits.previousPageStep) || 0;
-		let edgeTolerance = Math.max(1, Math.min(4, Math.round((this.layout && this.layout.edgeGuardPx) || 1)));
+			let right = Math.max(0, Math.min(Number(widths.right) || 0, rightMaxMask));
+			let nextPageStep = Number(limits.nextPageStep ?? this.getLogicalPageStepToNextPage()) || 0;
+			let previousPageStep = Number(limits.previousPageStep) || 0;
+			let forceRawLeftMask = !!limits.forceRawLeftMask;
+			let allowRawLeftMask = !!limits.allowRawLeftMask;
+			let edgeTolerance = Math.max(1, Math.min(4, Math.round((this.layout && this.layout.edgeGuardPx) || 1)));
 		let canExpandClippedRawRight = iframeRect.left < 0 ||
 			!!(this.layout && Number(this.layout.edgeGuardPx) > 0) ||
 			!!limits.allowRawRightMask;
@@ -773,22 +879,29 @@ class DefaultViewManager {
 
 			for (const rect of Array.from(range.getClientRects())) {
 				if (rect.width > 0 && rect.height > 0) {
-					if (
-						iframeRect.left < 0 &&
-						rect.right >= containerRect.left - maxMask &&
-						rect.left <= containerRect.right + maxMask
-					) {
-						rects.push({
-							left: rect.left - iframeRect.left,
-							right: rect.right - iframeRect.left,
-							top: rect.top,
-							bottom: rect.bottom,
-							width: rect.width,
-							height: rect.height
-						});
-					} else {
-						rects.push(rect);
+					let left = rect.left;
+					let right = rect.right;
+					let shiftedLeft = rect.left - iframeRect.left;
+					let shiftedRight = rect.right - iframeRect.left;
+
+					if (iframeRect.left < 0) {
+						let directDistance = this.getVerticalRlRectDistanceToLogicalViewport(left, right, rawLeft, rawRight);
+						let shiftedDistance = this.getVerticalRlRectDistanceToLogicalViewport(shiftedLeft, shiftedRight, rawLeft, rawRight);
+
+						if (shiftedDistance + 0.5 < directDistance) {
+							left = shiftedLeft;
+							right = shiftedRight;
+						}
 					}
+
+					rects.push({
+						left,
+						right,
+						top: rect.top,
+						bottom: rect.bottom,
+						width: rect.width,
+						height: rect.height
+					});
 				}
 
 				if (rects.length >= 1000) {
@@ -810,14 +923,14 @@ class DefaultViewManager {
 				let clippedAtNextRight = !hasNextPage || rect.right + nextPageStep > rawRight;
 				let visibleAtNextRight = hasNextPage && rect.right + nextPageStep <= rawRight;
 				let nearlyVisibleAtNextRight = hasNextPage && rect.right + nextPageStep <= rawRight + edgeTolerance;
-				if (left <= 0 && rawLeftStraddler && clippedAtNextRight) {
-					continue;
-				}
-				if (rect.left < boundary && rect.right > boundary) {
-					let expand = Math.ceil(rect.right - boundary + 1);
-					let shrink = Math.ceil(boundary - rect.left + 1);
-					if (hasNextPage && (visibleAtNextRight || nearlyVisibleAtNextRight)) {
-						shift = Math.max(shift, expand);
+					if (left <= 0 && rawLeftStraddler && clippedAtNextRight && !forceRawLeftMask && !allowRawLeftMask) {
+						continue;
+					}
+					if (rect.left < boundary && rect.right > boundary) {
+						let expand = Math.ceil(rect.right - boundary + 1);
+						let shrink = Math.ceil(boundary - rect.left + 1);
+						if (hasNextPage && (visibleAtNextRight || nearlyVisibleAtNextRight || allowRawLeftMask)) {
+							shift = Math.max(shift, expand);
 					} else if (shrink > 0 && left - shrink >= 0) {
 						shift = Math.min(shift, -shrink);
 					} else {
@@ -826,10 +939,11 @@ class DefaultViewManager {
 				} else if (
 					left > 0 &&
 					rect.right > rawLeft &&
-					rect.left < boundary &&
-					rect.right <= boundary &&
-					(rawLeftStraddler ? !visibleAtNextRight : !nearlyVisibleAtNextRight) &&
-					(!rawLeftStraddler || clippedAtNextRight)
+						rect.left < boundary &&
+						rect.right <= boundary &&
+						(!rawLeftStraddler || !forceRawLeftMask) &&
+						(rawLeftStraddler ? (!visibleAtNextRight && !allowRawLeftMask) : !nearlyVisibleAtNextRight) &&
+						(!rawLeftStraddler || clippedAtNextRight)
 				) {
 					let targetLeft = Math.max(0, Math.floor(Math.max(rect.left, rawLeft) - rawLeft - 1));
 					if (targetLeft < left) {
@@ -852,108 +966,113 @@ class DefaultViewManager {
 			}
 			return shift;
 		};
-		const snapRight = () => {
-			let boundary = rawRight - right;
-			let expand = 0;
-			let shrink = 0;
-			let expandBeyondPaintGuard = false;
-			let requiredRawRightMask = 0;
-			for (const rect of rects) {
-				let rawRightStraddler = rect.left < rawRight && rect.right > rawRight;
-				if (!rawRightStraddler) {
-					continue;
-				}
-
-				let rawRightOverhang = rect.right - rawRight;
-				let visibleInsideRawRight = rawRight - Math.max(rect.left, rawLeft);
-				if (visibleInsideRawRight > edgeTolerance && rawRightOverhang > Math.max(edgeTolerance, 4)) {
-					requiredRawRightMask = Math.max(requiredRawRightMask, Math.ceil(visibleInsideRawRight + 1));
-				}
-			}
-			for (const rect of rects) {
+			const snapRight = () => {
+				let boundary = rawRight - right;
+				let expand = 0;
+				let shrink = 0;
+				let expandBeyondPaintGuard = false;
+				let requiredRawRightMask = 0;
 				let previousRawLeft = rawLeft + previousPageStep;
-				let clippedAtPreviousLeft = previousPageStep > 0 && rect.left < previousRawLeft && rect.right > previousRawLeft;
-				let rawRightStraddler = rect.left < rawRight && rect.right > rawRight;
-				let rawRightOverhang = rawRightStraddler ? rect.right - rawRight : 0;
-				let visibleInsideRawRight = rawRightStraddler ? rawRight - Math.max(rect.left, rawLeft) : 0;
-				let maskConsumesVisibleRightEdge = rawRightStraddler &&
-					right < visibleInsideRawRight &&
-					visibleInsideRawRight <= Math.max(right, rightMaxMask) + edgeTolerance;
-				let startsJustOutsideRawRight = rect.left >= rawRight && rect.left - rawRight <= edgeTolerance;
-				if (startsJustOutsideRawRight) {
-					let targetRight = Math.ceil(Math.min(edgeTolerance, rect.left - rawRight + edgeTolerance));
-					if (targetRight > right) {
-						expand = Math.max(expand, targetRight - right);
+				for (const rect of rects) {
+					let rawRightStraddler = rect.left < rawRight && rect.right > rawRight;
+					if (!rawRightStraddler) {
+						continue;
 					}
-					continue;
-				}
-				if (rawRightStraddler && visibleInsideRawRight <= edgeTolerance) {
-					let targetRight = Math.ceil(visibleInsideRawRight + 1);
-					if (targetRight > right) {
-						expand = Math.max(expand, targetRight - right);
+
+					let clippedAtPreviousLeft = previousPageStep > 0 && rect.left < previousRawLeft && rect.right > previousRawLeft;
+					if (clippedAtPreviousLeft) {
+						continue;
 					}
-					continue;
+
+					let rawRightOverhang = rect.right - rawRight;
+					let visibleInsideRawRight = rawRight - Math.max(rect.left, rawLeft);
+					if (visibleInsideRawRight > edgeTolerance && rawRightOverhang > Math.max(edgeTolerance, 4)) {
+						requiredRawRightMask = Math.max(requiredRawRightMask, Math.ceil(visibleInsideRawRight + 1));
+					}
 				}
-				if (
-					rawRightStraddler &&
-					(
-						rawRightOverhang <= Math.max(edgeTolerance, 4) ||
+				for (const rect of rects) {
+					let clippedAtPreviousLeft = previousPageStep > 0 && rect.left < previousRawLeft && rect.right > previousRawLeft;
+					let rawRightStraddler = rect.left < rawRight && rect.right > rawRight;
+					let rawRightOverhang = rawRightStraddler ? rect.right - rawRight : 0;
+					let visibleInsideRawRight = rawRightStraddler ? rawRight - Math.max(rect.left, rawLeft) : 0;
+					let maskConsumesVisibleRightEdge = rawRightStraddler &&
+						right < visibleInsideRawRight &&
+						visibleInsideRawRight <= Math.max(right, rightMaxMask) + edgeTolerance;
+					let startsJustOutsideRawRight = rect.left >= rawRight && rect.left - rawRight <= edgeTolerance;
+					if (
+						clippedAtPreviousLeft &&
+						rect.right > boundary &&
+						rect.left < rawRight
+					) {
+						let targetRight = Math.max(
+							requiredRawRightMask,
+							Math.max(0, Math.floor(rawRight - Math.min(rect.right, rawRight)))
+						);
+						if (targetRight < right) {
+							shrink = Math.min(shrink, targetRight - right);
+						}
+						continue;
+					}
+					if (startsJustOutsideRawRight) {
+						let targetRight = Math.ceil(Math.min(edgeTolerance, rect.left - rawRight + edgeTolerance));
+						if (targetRight > right) {
+							expand = Math.max(expand, targetRight - right);
+						}
+						continue;
+					}
+					if (rawRightStraddler && visibleInsideRawRight <= edgeTolerance) {
+						let targetRight = Math.ceil(visibleInsideRawRight + 1);
+						if (targetRight > right) {
+							expand = Math.max(expand, targetRight - right);
+						}
+						continue;
+					}
+					if (
+						rawRightStraddler &&
 						(
-							maskConsumesVisibleRightEdge &&
-							(requiredRawRightMask <= 0 || nextPageStep <= 0)
+							rawRightOverhang <= Math.max(edgeTolerance, 4) ||
+							(
+								maskConsumesVisibleRightEdge &&
+								(requiredRawRightMask <= 0 || nextPageStep <= 0)
+							)
 						)
-					)
-				) {
-					if (right > 0) {
-						shrink = Math.min(shrink, -right);
+					) {
+						if (right > 0) {
+							shrink = Math.min(shrink, -right);
+						}
+						continue;
 					}
-					continue;
-				}
-				if (
-					rawRightStraddler &&
-					visibleInsideRawRight > edgeTolerance &&
-					right >= visibleInsideRawRight &&
-					rightMaxMask >= visibleInsideRawRight &&
-					(requiredRawRightMask <= 0 || nextPageStep <= 0)
-				) {
-					if (right > 0) {
-						shrink = Math.min(shrink, -right);
+					if (
+						rawRightStraddler &&
+						visibleInsideRawRight > edgeTolerance &&
+						right >= visibleInsideRawRight &&
+						rightMaxMask >= visibleInsideRawRight &&
+						(requiredRawRightMask <= 0 || nextPageStep <= 0)
+					) {
+						if (right > 0) {
+							shrink = Math.min(shrink, -right);
+						}
+						continue;
 					}
-					continue;
-				}
-				if (rawRightStraddler && visibleInsideRawRight > edgeTolerance) {
-					let targetRight = Math.ceil(visibleInsideRawRight + 1);
-					if (canExpandClippedRawRight && targetRight > right) {
-						expand = Math.max(expand, targetRight - right);
-						expandBeyondPaintGuard = true;
+					if (rawRightStraddler && visibleInsideRawRight > edgeTolerance) {
+						let targetRight = Math.ceil(visibleInsideRawRight + 1);
+						if (canExpandClippedRawRight && targetRight > right) {
+							expand = Math.max(expand, targetRight - right);
+							expandBeyondPaintGuard = true;
+						}
+						continue;
 					}
-					continue;
-				}
-				if (
-					clippedAtPreviousLeft &&
-					rect.right > boundary &&
-					rect.left < rawRight
-				) {
-					let targetRight = Math.max(
-						requiredRawRightMask,
-						Math.max(0, Math.floor(rawRight - Math.min(rect.right, rawRight)))
-					);
-					if (targetRight < right) {
-						shrink = Math.min(shrink, targetRight - right);
+					if (rect.left < boundary && rect.right > boundary) {
+						expand = Math.max(expand, Math.ceil(boundary - rect.left + 1));
 					}
-					continue;
 				}
-				if (rect.left < boundary && rect.right > boundary) {
-					expand = Math.max(expand, Math.ceil(boundary - rect.left + 1));
-				}
-			}
-			let shift = shrink < 0 ? shrink : expand;
-			if (shift !== 0) {
-				let maxAllowedRight = shift > 0
-					? (expandBeyondPaintGuard ? maxMask : rightPaintGuardMax)
-					: Math.max(rightMaxMask, requiredRawRightMask, right + shift);
-				right = Math.max(0, Math.min(maxAllowedRight, right + shift));
-			}
+				let shift = shrink < 0 ? shrink : expand;
+					if (shift !== 0) {
+						let maxAllowedRight = shift > 0
+							? (expandBeyondPaintGuard ? maxMask : rightPaintGuardMax)
+							: Math.max(rightMaxMask, requiredRawRightMask, right + shift);
+						right = Math.max(0, Math.min(maxAllowedRight, right + shift));
+					}
 			return shift;
 		};
 
@@ -1120,7 +1239,7 @@ class DefaultViewManager {
 		return Math.min(maxScroll, logicalOffset);
 	}
 
-	snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll){
+	snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll, options = {}){
 		if (!this.container || !this.views || !this.layout) {
 			return logicalOffset;
 		}
@@ -1134,6 +1253,21 @@ class DefaultViewManager {
 			? this.getVerticalRlVisualContentWidth(view)
 			: this.getNavigableWidthForView(view);
 		let visibleWidth = this.layout.pageWidth || this.layout.width || this.getPageAdvance() || 0;
+		let maxRightBoundary = Number(options && options.maxRightBoundary);
+		let hasMaxRightBoundary = Number.isFinite(maxRightBoundary);
+		let preferredRightBoundary = Number(options && options.preferredRightBoundary);
+		let hasPreferredRightBoundary = Number.isFinite(preferredRightBoundary);
+		if (hasPreferredRightBoundary) {
+			let targetRightBoundary = Math.max(0, preferredRightBoundary);
+			if (hasMaxRightBoundary) {
+				targetRightBoundary = Math.min(targetRightBoundary, maxRightBoundary);
+			}
+			preferredRightBoundary = targetRightBoundary;
+			logicalOffset = Math.max(0, Math.min(maxScroll, contentWidth - targetRightBoundary));
+		}
+		if (hasMaxRightBoundary) {
+			logicalOffset = Math.max(logicalOffset, Math.max(0, Math.min(maxScroll, contentWidth - maxRightBoundary)));
+		}
 
 		if (
 			!iframe ||
@@ -1152,7 +1286,13 @@ class DefaultViewManager {
 			Math.round(maxScroll * 100) / 100,
 			Math.round(contentWidth * 100) / 100,
 			Math.round(visibleWidth * 100) / 100,
-			this.layout.edgeGuardPx || 0
+			this.layout.edgeGuardPx || 0,
+			hasMaxRightBoundary
+				? Math.round(maxRightBoundary * 100) / 100
+				: "none",
+			hasPreferredRightBoundary
+				? Math.round(preferredRightBoundary * 100) / 100
+				: "none"
 		].join(":");
 
 		if (this._verticalRlBoundarySnapCache && this._verticalRlBoundarySnapCache.key === cacheKey) {
@@ -1272,6 +1412,13 @@ class DefaultViewManager {
 					if (!clampedDelta) {
 						continue;
 					}
+					if (
+						hasMaxRightBoundary &&
+						boundaryOffsetDirection < 0 &&
+						contentWidth - snappedOffset > maxRightBoundary + 1
+					) {
+						continue;
+					}
 
 					let shiftedDelta = boundaryOffsetDirection * clampedDelta;
 					let score = crossingCount(leftBoundary + shiftedDelta, rightBoundary + shiftedDelta);
@@ -1311,18 +1458,20 @@ class DefaultViewManager {
 			rightOriginRawRight - structuralRightMask,
 			-1
 		);
+		rightOriginSnap.model = "right-origin";
 		let leftOriginSnap = evaluateBoundaryModel(
 			logicalOffset + structuralLeftMask,
 			logicalOffset + visibleWidth - structuralRightMask,
 			1
 		);
+		leftOriginSnap.model = "left-origin";
 		let snaps = [rightOriginSnap, leftOriginSnap].filter((snap) => snap && snap.delta);
 		let bestSnap = snaps.sort(function(a, b) {
 			if (a.score !== b.score) {
 				return a.score - b.score;
 			}
-			if (a.initialCrossings !== b.initialCrossings) {
-				return b.initialCrossings - a.initialCrossings;
+			if (a.model !== b.model) {
+				return a.model === "right-origin" ? -1 : 1;
 			}
 
 			return a.distance - b.distance;
@@ -1345,6 +1494,18 @@ class DefaultViewManager {
 		let snapped = nearestDelta
 			? Math.max(0, Math.min(maxScroll, logicalOffset + nearestDelta))
 			: logicalOffset;
+		if (hasPreferredRightBoundary) {
+			let snappedRawRight = contentWidth - snapped;
+			if (snappedRawRight < preferredRightBoundary - 1) {
+				snapped = Math.min(snapped, Math.max(0, Math.min(maxScroll, contentWidth - preferredRightBoundary)));
+			}
+		}
+		if (hasMaxRightBoundary) {
+			let snappedRawRight = contentWidth - snapped;
+			if (snappedRawRight > maxRightBoundary + 1) {
+				snapped = Math.max(snapped, Math.max(0, Math.min(maxScroll, contentWidth - maxRightBoundary)));
+			}
+		}
 
 		if (nearestDelta) {
 			this._verticalRlBoundarySnapCache = {
@@ -1546,15 +1707,64 @@ class DefaultViewManager {
 		return Math.max(0, Math.min(totalPages - 1, pageIndex));
 	}
 
-	scrollToLogicalPage(pageIndex){
+	scrollToLogicalPage(pageIndex, options = {}){
 		this.syncVerticalRlViewportClip();
 		let advance = this.getPageAdvance();
 		let totalPages = this.getTotalPagesForCurrentView();
 		let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
 		let maxScroll = this.getMaxLogicalScrollLeft();
-		let logicalOffset = this.getLogicalOffsetForPageIndex(targetIndex, totalPages, maxScroll);
-		if (this.isRtlVerticalPaginated() && targetIndex > 0 && targetIndex < totalPages - 1) {
-			logicalOffset = this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll);
+		let sequentialBoundaryConstraint = null;
+		let logicalOffsetCacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
+		let cachedLogicalOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey);
+		if (this.isRtlVerticalPaginated() && targetIndex > 0) {
+			let forcedRightBoundary = Number(options && options.sequentialRightBoundary);
+			if (Number.isFinite(forcedRightBoundary) && forcedRightBoundary > 0) {
+				sequentialBoundaryConstraint = {
+					pageIndex: targetIndex,
+					maxRightBoundary: forcedRightBoundary,
+					preferredRightBoundary: forcedRightBoundary
+				};
+			} else if (targetIndex < totalPages - 1) {
+				let currentIndex = this.getCurrentPageIndex();
+				if (currentIndex === targetIndex - 1) {
+					let view = this.views && (this.views.first() || this.views.last());
+					let contentWidth = view ? this.getVerticalRlVisualContentWidth(view) : 0;
+					let visibleWidth = this.layout.pageWidth || this.layout.width || advance || 0;
+					let currentOffset = this.getNormalizedLogicalScrollLeft();
+					let currentGridOffset = this.getLogicalOffsetForPageIndex(currentIndex, totalPages, maxScroll);
+					let currentMaskWidths = this.getVerticalRlRenderedEdgeMaskWidths();
+					let currentLeftMask = Number(currentMaskWidths && currentMaskWidths.left) || 0;
+					let hasCleanPageLeftMask = currentLeftMask > 0 && Math.max(0, visibleWidth - advance) <= 1;
+					let maxRightBoundary = contentWidth - currentOffset - visibleWidth + currentLeftMask;
+					if (
+						(Math.abs(currentOffset - currentGridOffset) > 1 || hasCleanPageLeftMask) &&
+						Number.isFinite(maxRightBoundary) &&
+						maxRightBoundary > 0
+					) {
+						sequentialBoundaryConstraint = {
+							pageIndex: targetIndex,
+							maxRightBoundary,
+							preferredRightBoundary: maxRightBoundary
+						};
+					}
+				}
+			}
+		}
+		let logicalOffset = cachedLogicalOffset !== null && !sequentialBoundaryConstraint
+			? cachedLogicalOffset
+			: this.getLogicalOffsetForPageIndex(targetIndex, totalPages, maxScroll);
+		if (cachedLogicalOffset === null || sequentialBoundaryConstraint) {
+			if (
+				this.isRtlVerticalPaginated() &&
+				targetIndex > 0 &&
+				(targetIndex < totalPages - 1 || sequentialBoundaryConstraint)
+			) {
+				logicalOffset = this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll, sequentialBoundaryConstraint || {});
+			}
+		}
+		this._verticalRlSequentialBoundaryConstraint = sequentialBoundaryConstraint;
+		if (this.isRtlVerticalPaginated()) {
+			this.cacheVerticalRlLogicalPageOffset(targetIndex, logicalOffset, logicalOffsetCacheKey);
 		}
 		let left = logicalOffset;
 
@@ -1616,12 +1826,13 @@ class DefaultViewManager {
 
 		let totalPages = this.getTotalPagesForCurrentView();
 		let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
+		let token = (this._verticalRlBoundarySnapRetryToken || 0) + 1;
+		this._verticalRlBoundarySnapRetryToken = token;
+
 		if (targetIndex <= 0 || targetIndex >= totalPages - 1) {
 			return;
 		}
 
-		let token = (this._verticalRlBoundarySnapRetryToken || 0) + 1;
-		this._verticalRlBoundarySnapRetryToken = token;
 		let retryDelays = Array.isArray(this.settings && this.settings.verticalRlBoundarySnapRetryDelays)
 			? this.settings.verticalRlBoundarySnapRetryDelays
 			: [250, 750, 1500, 3000, 6000, 9000];
@@ -1634,7 +1845,15 @@ class DefaultViewManager {
 				let currentTotalPages = this.getTotalPagesForCurrentView();
 				let maxScroll = this.getMaxLogicalScrollLeft();
 				let currentOffset = this.getNormalizedLogicalScrollLeft();
-				let logicalOffset = options.useCurrentOffset
+				let logicalOffsetCacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(currentTotalPages, maxScroll);
+				let cachedLogicalOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey);
+				let shouldUseCachedLogicalOffset = cachedLogicalOffset !== null && (
+					!options.useCurrentOffset ||
+					Math.abs(currentOffset - cachedLogicalOffset) <= this.getPageSnapTolerance()
+				);
+				let logicalOffset = shouldUseCachedLogicalOffset
+					? cachedLogicalOffset
+					: options.useCurrentOffset
 					? Math.max(0, Math.min(maxScroll, currentOffset))
 					: this.getLogicalOffsetForPageIndex(targetIndex, currentTotalPages, maxScroll);
 				let shouldSnapCurrentOffsetToPageGrid = (
@@ -1649,9 +1868,17 @@ class DefaultViewManager {
 						logicalOffset = pageOffset;
 					}
 				}
-				let snappedOffset = this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll);
+				let sequentialBoundaryConstraint = (
+					this._verticalRlSequentialBoundaryConstraint &&
+					this._verticalRlSequentialBoundaryConstraint.pageIndex === targetIndex
+				)
+					? this._verticalRlSequentialBoundaryConstraint
+					: {};
+				let snappedOffset = shouldUseCachedLogicalOffset
+					? logicalOffset
+					: this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll, sequentialBoundaryConstraint);
 
-				if (Math.abs(snappedOffset - logicalOffset) <= 1) {
+				if (!shouldUseCachedLogicalOffset && Math.abs(snappedOffset - logicalOffset) <= 1) {
 					snappedOffset = this.snapVerticalRlLogicalOffsetFromEdgeMask(logicalOffset, maxScroll);
 				}
 
@@ -1668,6 +1895,8 @@ class DefaultViewManager {
 					}
 					return;
 				}
+
+				this.cacheVerticalRlLogicalPageOffset(targetIndex, snappedOffset, logicalOffsetCacheKey);
 
 				let left = snappedOffset;
 				if (this.settings.direction === "rtl") {
@@ -1756,7 +1985,9 @@ class DefaultViewManager {
 			let totalPages = this.getTotalPagesForCurrentView();
 
 			if (pageIndex < totalPages - 1) {
-				this.scrollToLogicalPage(pageIndex + 1);
+				this.scrollToLogicalPage(pageIndex + 1, {
+					sequentialRightBoundary: this.getVerticalRlCurrentEffectiveLeftBoundary()
+				});
 				return;
 			} else {
 				next = this.views.last().section.next();
@@ -2216,6 +2447,7 @@ class DefaultViewManager {
 	onScroll(){
 		let scrollTop;
 		let scrollLeft;
+		let ignored = this.ignore;
 
 		if(!this.settings.fullsize) {
 			scrollTop = this.container.scrollTop;
@@ -2249,7 +2481,7 @@ class DefaultViewManager {
 			this.ignore = false;
 		}
 
-		if (!this._verticalRlBoundarySnapApplying && this.isRtlVerticalPaginated()) {
+		if (!ignored && !this._verticalRlBoundarySnapApplying && this.isRtlVerticalPaginated()) {
 			this.queueVerticalRlBoundarySnapRetryForCurrentOffset();
 		}
 
