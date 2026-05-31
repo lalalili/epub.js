@@ -5131,6 +5131,89 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(maskWidths.right, 0);
 	});
 
+	it("expands a rendered left mask to cover the full visible vertical line", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let textNode = {
+			nodeValue: "經過一番清洗以後，空蕩蕩的房子變得寬敞而爽淨",
+			parentElement: {}
+		};
+		let yielded = false;
+
+		manager.container = {
+			getBoundingClientRect: function() {
+				return {
+					left: 225.1846,
+					right: 1521.1789
+				};
+			}
+		};
+		manager.getPageAdvance = function() {
+			return 1296;
+		};
+		manager.views = {
+			first: function() {
+				return {
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: 0
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 225.1709,
+											right: 247.8975,
+											width: 22.7266,
+											height: 740
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let maskWidths = manager.expandVerticalRlLeftMaskToVisibleLine({
+			left: 11,
+			right: 0
+		});
+
+		assert.equal(maskWidths.left, 24);
+		assert.equal(maskWidths.right, 0);
+	});
+
 	it("expands a left mask for a near-boundary line visible on the next page", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let textNode = {

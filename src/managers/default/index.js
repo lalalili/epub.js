@@ -787,6 +787,100 @@ class DefaultViewManager {
 		return Math.max(widths.left, widths.right);
 	}
 
+	expandVerticalRlLeftMaskToVisibleLine(maskWidths){
+		if (!maskWidths || !maskWidths.left || !this.container || !this.views) {
+			return maskWidths;
+		}
+
+		let view = this.views.first() || this.views.last();
+		let iframe = view && view.iframe;
+		let doc = view && view.contents && view.contents.document;
+		let win = view && view.contents && view.contents.window;
+		let body = doc && doc.body;
+
+		if (!iframe || !doc || !win || !body || typeof doc.createTreeWalker !== "function") {
+			return maskWidths;
+		}
+
+		let advance = this.getPageAdvance() || 0;
+		let maxMask = Math.max(0, Math.floor(advance / 4));
+		if (!maxMask) {
+			return maskWidths;
+		}
+
+		let containerRect = this.container.getBoundingClientRect();
+		let iframeRect = iframe.getBoundingClientRect();
+		let rawLeft = containerRect.left - iframeRect.left;
+		let rawRight = containerRect.right - iframeRect.left;
+		let left = Math.max(0, Number(maskWidths.left) || 0);
+		let walker = doc.createTreeWalker(body, 4, {
+			acceptNode(node) {
+				let text = String(node.nodeValue || "").replace(/\s+/g, "");
+				if (text.length < 2) {
+					return 2;
+				}
+
+				let parent = node.parentElement;
+				if (!parent) {
+					return 2;
+				}
+
+				let style = win.getComputedStyle(parent);
+				if (style.display === "none" || style.visibility === "hidden") {
+					return 2;
+				}
+
+				return 1;
+			}
+		});
+		let node;
+		let rectCount = 0;
+
+		while ((node = walker.nextNode()) && rectCount < 1000) {
+			let range = doc.createRange();
+			range.selectNodeContents(node);
+
+			for (const rect of Array.from(range.getClientRects())) {
+				rectCount += 1;
+				if (rect.width <= 0 || rect.height <= 0) {
+					continue;
+				}
+
+				let rectLeft = rect.left;
+				let rectRight = rect.right;
+				let shiftedLeft = rect.left - iframeRect.left;
+				let shiftedRight = rect.right - iframeRect.left;
+
+				if (iframeRect.left < 0) {
+					let directDistance = this.getVerticalRlRectDistanceToLogicalViewport(rectLeft, rectRight, rawLeft, rawRight);
+					let shiftedDistance = this.getVerticalRlRectDistanceToLogicalViewport(shiftedLeft, shiftedRight, rawLeft, rawRight);
+
+					if (shiftedDistance + 0.5 < directDistance) {
+						rectLeft = shiftedLeft;
+						rectRight = shiftedRight;
+					}
+				}
+
+				if (rectLeft < rawLeft && rectRight > rawLeft) {
+					left = Math.max(left, Math.ceil(rectRight - rawLeft + 1));
+				}
+
+				if (rectCount >= 1000) {
+					break;
+				}
+			}
+
+			if (range.detach) {
+				range.detach();
+			}
+		}
+
+		return {
+			left: Math.min(left, maxMask),
+			right: maskWidths.right
+		};
+	}
+
 	getLogicalPageStepToNextPage(){
 		let advance = this.getPageAdvance() || 0;
 
@@ -1091,7 +1185,9 @@ class DefaultViewManager {
 			return;
 		}
 
-		let maskWidths = this.getVerticalRlEdgeMaskWidths();
+		let maskWidths = this.expandVerticalRlLeftMaskToVisibleLine(
+			this.getVerticalRlEdgeMaskWidths()
+		);
 		if (!maskWidths.left && !maskWidths.right) {
 			this.removeVerticalRlViewportClip();
 			if (this.container.dataset && this.container.dataset.epubVrlEdgeMask) {
