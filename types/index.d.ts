@@ -1,5 +1,5 @@
 // Type definitions for epubjs 0.3
-// Project: https://github.com/futurepress/epub.js#readme
+// Project: https://github.com/lalalili/epub.js#readme
 // Definitions by: Fred Chasen <https://github.com/fchasen>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 import Epub from "./epub";
@@ -16,6 +16,4 @@ export { default as Layout } from './layout';
 export { NavItem } from './navigation';
 export { default as request } from './utils/request';
 
-declare namespace ePub {
-
-}
+declare namespace ePub {}

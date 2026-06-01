@@ -12,6 +12,19 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0016
+- Why:
+  - The public default `ePub` function exposes static members at runtime (`VERSION`, `Book`, `Rendition`, `Contents`, `CFI`, and `utils`) that were not represented in the TypeScript entry declarations.
+  - Aitehub and other consumers should be able to typecheck both named imports and the legacy default static surface from the package root.
+- Diff Scope:
+  - `types/epub.d.ts`: declare the default callable's static public API.
+  - `types/index.d.ts`: update the project header to the maintained fork and keep the namespace declaration compact.
+  - `types/epubjs-tests.ts`: add type assertions for root named exports and default static members.
+- Test:
+  - `npm run typecheck`
+- Rollback:
+  - Revert this patch if downstream TypeScript consumers rely on the previous narrower default callable type.
+
 ### P-0015
 - Why:
   - The release checklist uses `npm run typecheck`, but GitHub Actions did not run the TypeScript declaration gate.
