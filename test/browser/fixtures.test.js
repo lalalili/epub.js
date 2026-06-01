@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { fixtureUrl } from "./helpers/fixtures";
 
 describe("browser fixture serving", () => {
 	it("serves unpacked EPUB fixture files through the Vite module URL", async () => {
-		var packageUrl = new URL("../fixtures/alice/OPS/package.opf", import.meta.url);
-		var response = await fetch(packageUrl);
+		var response = await fetch(fixtureUrl("alice/OPS/package.opf"));
 		var text = await response.text();
 
 		expect(response.ok).toBe(true);
@@ -12,8 +12,7 @@ describe("browser fixture serving", () => {
 	});
 
 	it("serves archived EPUB fixture files through the Vite module URL", async () => {
-		var epubUrl = new URL("../fixtures/alice.epub", import.meta.url);
-		var response = await fetch(epubUrl);
+		var response = await fetch(fixtureUrl("alice.epub"));
 		var buffer = await response.arrayBuffer();
 		var bytes = new Uint8Array(buffer.slice(0, 4));
 
