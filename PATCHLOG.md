@@ -12,6 +12,22 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0041
+- Why:
+  - `EpubCFI#fromRange()` is the next self-contained CFI slice after `fromNode()`: it creates browser Range objects from XHTML fixtures and asserts generated CFI strings, but does not yet validate reverse `toRange()` mapping.
+  - Moving it separately keeps the remaining legacy CFI gate focused on `toRange()` and range offset clamping.
+- Diff Scope:
+  - `test/epubcfi.js`: remove the legacy Karma/Mocha `EpubCFI#fromRange()` tests.
+  - `test/browser/epubcfi.test.js`: add equivalent Vitest Browser Mode coverage for collapsed ranges, multi-node ranges, highlight ranges, and interleaved highlight text counting using Vite `?raw` XHTML fixture imports.
+- Test:
+  - `npm test`
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vitest Browser Range construction changes `EpubCFI#fromRange()` output compared with the legacy Karma/raw-loader fixture path.
+
 ### P-0040
 - Why:
   - After P-0039, the remaining EpubCFI legacy tests are DOM node and Range conversion coverage. `fromNode()` is the smallest DOM fixture slice and does not create browser Range objects.

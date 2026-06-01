@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import EpubCFI from "../../src/epubcfi.js";
+import chapter from "../fixtures/chapter1.xhtml?raw";
 import chapterHighlights from "../fixtures/chapter1-highlights.xhtml?raw";
+import highlightContents from "../fixtures/highlight.xhtml?raw";
 
 function parseXhtml(markup) {
 	return new DOMParser().parseFromString(markup, "application/xhtml+xml");
@@ -157,6 +159,103 @@ describe("EpubCFI", () => {
 
 			expect(t.nodeType).toBe(Node.ELEMENT_NODE);
 			expect(cfi.toString()).toBe("epubcfi(/6/4[chap01ref]!/4/2/32/2[c001p0017])");
+		});
+	});
+
+	describe("#fromRange()", () => {
+		var base = "/6/4[chap01ref]";
+		var doc = parseXhtml(chapter);
+		var docHighlights = parseXhtml(chapterHighlights);
+		var docHighlightsAlice = parseXhtml(highlightContents);
+
+		it("gets a cfi from a collapsed range", () => {
+			var t1 = doc.getElementById("c001p0004").childNodes[0];
+			var range = doc.createRange();
+			var cfi;
+
+			range.setStart(t1, 6);
+
+			cfi = new EpubCFI(range, base);
+
+			expect(cfi.range).toBe(false);
+			expect(cfi.toString()).toBe("epubcfi(/6/4[chap01ref]!/4/2/10/2[c001p0004]/1:6)");
+		});
+
+		it("gets a cfi from a range", () => {
+			var t1 = doc.getElementById("c001p0004").childNodes[0];
+			var t2 = doc.getElementById("c001p0007").childNodes[0];
+			var range = doc.createRange();
+			var cfi;
+
+			range.setStart(t1, 6);
+			range.setEnd(t2, 27);
+
+			cfi = new EpubCFI(range, base);
+
+			expect(cfi.range).toBe(true);
+			expect(cfi.toString()).toBe("epubcfi(/6/4[chap01ref]!/4/2,/10/2[c001p0004]/1:6,/16/2[c001p0007]/1:27)");
+		});
+
+		it("gets a cfi from a range with offset 0", () => {
+			var t1 = doc.getElementById("c001p0004").childNodes[0];
+			var range = doc.createRange();
+			var cfi;
+
+			range.setStart(t1, 0);
+			range.setEnd(t1, 1);
+
+			cfi = new EpubCFI(range, base);
+
+			expect(cfi.range).toBe(true);
+			expect(cfi.toString()).toBe("epubcfi(/6/4[chap01ref]!/4/2/10/2[c001p0004],/1:0,/1:1)");
+		});
+
+		it("gets a cfi from a range inside a highlight", () => {
+			var t1 = docHighlights.getElementById("highlight-1").childNodes[0];
+			var range = docHighlights.createRange();
+			var cfi;
+
+			range.setStart(t1, 6);
+
+			cfi = new EpubCFI(range, base, "annotator-hl");
+
+			expect(cfi.toString()).toBe("epubcfi(/6/4[chap01ref]!/4/2/32/2[c001p0017]/1:43)");
+		});
+
+		it("gets a cfi from a range past a highlight", () => {
+			var t1 = docHighlights.getElementById("c001s0001").childNodes[1];
+			var range = docHighlights.createRange();
+			var cfi;
+
+			range.setStart(t1, 25);
+
+			cfi = new EpubCFI(range, base, "annotator-hl");
+
+			expect(cfi.toString()).toBe("epubcfi(/6/4[chap01ref]!/4/2/4/2[c001s0001]/1:41)");
+		});
+
+		it("gets a cfi from a range in between two highlights", () => {
+			var t1 = docHighlightsAlice.getElementById("p2").childNodes[1];
+			var range = docHighlightsAlice.createRange();
+			var cfi;
+
+			range.setStart(t1, 4);
+
+			cfi = new EpubCFI(range, base, "annotator-hl");
+
+			expect(cfi.toString()).toBe("epubcfi(/6/4[chap01ref]!/4/4[p2]/1:123)");
+		});
+
+		it("correctly counts text nodes independent of any elements present in between", () => {
+			var t1 = docHighlightsAlice.getElementById("p3").childNodes[2];
+			var range = docHighlightsAlice.createRange();
+			var cfi;
+
+			range.setStart(t1, 4);
+
+			cfi = new EpubCFI(range, base);
+
+			expect(cfi.toString()).toBe("epubcfi(/6/4[chap01ref]!/4/6[p3]/3:4)");
 		});
 	});
 });
