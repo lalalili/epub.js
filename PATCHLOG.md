@@ -12,6 +12,21 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0026
+- Why:
+  - `test/packaging.js` only exercises OPF XML parsing through `DOMParser`, with no Karma fixture server, EPUB archive, request, iframe, or rendition dependency.
+  - Moving it continues the Vitest-first migration while preserving legacy Karma for higher-risk rendering and EPUB integration coverage.
+- Diff Scope:
+  - `test/packaging.js`: remove the Karma/Mocha packaging parser tests.
+  - `test/browser/packaging.test.js`: add equivalent Vitest Browser Mode coverage.
+- Test:
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if browser XML namespace parsing differs between the Vitest and Karma browser runners.
+
 ### P-0025
 - Why:
   - `test/navigation.js` is a DOMParser-only navigation lookup test and does not depend on Karma fixtures, iframe rendering, or request/archive behavior.

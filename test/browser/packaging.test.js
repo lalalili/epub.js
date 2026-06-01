@@ -1,15 +1,15 @@
-import assert from 'assert';
-import Packaging from '../src/packaging';
+import { describe, expect, it } from "vitest";
+import Packaging from "../../src/packaging";
 
-describe('Packaging', function() {
+describe("Packaging", () => {
 	function parsePackage(markup) {
 		var parser = new DOMParser();
-		var doc = parser.parseFromString(markup, 'application/xml');
+		var doc = parser.parseFromString(markup, "application/xml");
 
 		return new Packaging(doc).parse(doc);
 	}
 
-	it('should preserve manifest fallback and media overlay idrefs', function() {
+	it("preserves manifest fallback and media overlay idrefs", () => {
 		var parsed = parsePackage(`<?xml version="1.0" encoding="UTF-8"?>
 			<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="bookid">
 				<metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -28,16 +28,16 @@ describe('Packaging', function() {
 				</spine>
 			</package>`);
 
-		assert.equal(parsed.manifest.video.fallback, 'video-fallback');
-		assert.deepEqual(parsed.manifest.video.fallbackChain, ['video-fallback', 'text-fallback']);
-		assert.deepEqual(parsed.manifest['video-fallback'].fallbackChain, ['text-fallback']);
-		assert.deepEqual(parsed.manifest['text-fallback'].fallbackChain, []);
-		assert.deepEqual(parsed.manifest.video.properties, ['remote-resources', 'scripted']);
-		assert.equal(parsed.manifest['video-fallback'].overlay, 'mo1');
-		assert.equal(parsed.manifest['video-fallback'].mediaOverlay, 'mo1');
+		expect(parsed.manifest.video.fallback).toBe("video-fallback");
+		expect(parsed.manifest.video.fallbackChain).toEqual(["video-fallback", "text-fallback"]);
+		expect(parsed.manifest["video-fallback"].fallbackChain).toEqual(["text-fallback"]);
+		expect(parsed.manifest["text-fallback"].fallbackChain).toEqual([]);
+		expect(parsed.manifest.video.properties).toEqual(["remote-resources", "scripted"]);
+		expect(parsed.manifest["video-fallback"].overlay).toBe("mo1");
+		expect(parsed.manifest["video-fallback"].mediaOverlay).toBe("mo1");
 	});
 
-	it('should stop manifest fallback chains before cycles repeat', function() {
+	it("stops manifest fallback chains before cycles repeat", () => {
 		var parsed = parsePackage(`<?xml version="1.0" encoding="UTF-8"?>
 			<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="bookid">
 				<metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -54,7 +54,7 @@ describe('Packaging', function() {
 				</spine>
 			</package>`);
 
-		assert.deepEqual(parsed.manifest.primary.fallbackChain, ['secondary']);
-		assert.deepEqual(parsed.manifest.secondary.fallbackChain, ['primary']);
+		expect(parsed.manifest.primary.fallbackChain).toEqual(["secondary"]);
+		expect(parsed.manifest.secondary.fallbackChain).toEqual(["primary"]);
 	});
 });
