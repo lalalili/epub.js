@@ -12,6 +12,17 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0014
+- Why:
+  - The fork now uses `tsc -p tsconfig.json --noEmit` for the transitional TypeScript declaration gate.
+  - `types/tslint.json` referenced the obsolete `dtslint` stack but was no longer used by package scripts, CI, or documentation.
+- Diff Scope:
+  - `types/tslint.json`: remove the stale dtslint configuration.
+- Test:
+  - `npm run typecheck`
+- Rollback:
+  - Restore `types/tslint.json` if a downstream declaration workflow still depends on dtslint.
+
 ### P-0013
 - Why:
   - `npm run lint` was wired into CI but forced a successful exit even with hundreds of legacy ESLint errors and warnings.
