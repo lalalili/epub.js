@@ -12,6 +12,22 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0039
+- Why:
+  - `test/epubcfi.js` mixes low-risk string/parser comparisons with higher-risk DOM fixture and Range conversion behavior.
+  - Moving the constructor, `parse()`, `toString()`, `checkType()`, and `compare()` assertions first keeps the Vitest migration incremental while leaving DOM Range coverage on the legacy Karma gate for the next CFI slice.
+- Diff Scope:
+  - `test/epubcfi.js`: keep only DOM node, Range, and `toRange()` legacy coverage.
+  - `test/browser/epubcfi.test.js`: add equivalent Vitest Browser Mode coverage for string parsing, type detection, string output, and CFI comparison.
+- Test:
+  - `npm test`
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vitest Browser EpubCFI string parsing or comparison diverges from the legacy Karma bundle.
+
 ### P-0038
 - Why:
   - `test/section.js` is the next fixture-driven Karma test after `Book` and `Locations`; it validates section text search against Alice chapters without rendering, pagination, RTL, request/archive, or host integration behavior.
