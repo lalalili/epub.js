@@ -51,9 +51,6 @@ module.exports = {
 	resolve: {
 		alias: {
 			path: "path-webpack"
-		},
-		fallback: {
-			assert: require.resolve("assert/")
 		}
 	},
 	devServer: {

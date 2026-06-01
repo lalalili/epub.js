@@ -78,7 +78,6 @@
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.8.13",
-    "assert": "^2.1.0",
     "core-js": "^3.49.0",
     "event-emitter": "^0.3.5",
     "jszip": "^3.10.1",

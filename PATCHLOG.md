@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0047
+- Why:
+  - After the final Karma suite moved to Vitest Browser, the Node `assert` browser polyfill was no longer imported by source or tests.
+  - Removing the stale webpack fallback and dependency reduces obsolete Node polyfill surface while preserving the existing `path-webpack` and `process/browser` compatibility paths still used by source and webpack builds.
+- Diff Scope:
+  - `webpack.config.js`: remove the unused `assert` fallback alias.
+  - `package.json` / `package-lock.json`: remove the unused `assert` dependency.
+- Test:
+  - `npm test`
+  - `npm run test:browser`
+  - `npm run typecheck`
+  - `npm run lint`
+  - `npm run build`
+  - `npm run build:webpack`
+  - `npm run legacy`
+- Rollback:
+  - Revert this patch if webpack-based UMD or legacy builds require an `assert` browser fallback in downstream environments.
+
 ### P-0046
 - Why:
   - `test/vertical-rl-manager.js` was the final legacy Karma suite and covers the high-risk vertical-rl pagination, boundary snapping, restore, and edge-mask regression matrix.
