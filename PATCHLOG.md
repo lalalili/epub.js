@@ -12,6 +12,22 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0020
+- Why:
+  - Start the F+ internal architecture split with a low-risk `platform` boundary before moving rendering or request/archive code.
+  - Browser global feature detection was embedded in `utils/core`, which makes later core/rendering/platform separation harder to reason about.
+- Diff Scope:
+  - `src/platform/browser.js`: add browser global helpers for `window`, `document`, `navigator`, URL constructor, and prefixed `requestAnimationFrame`.
+  - `src/utils/core.js`: keep the existing public utility exports, but source browser URL and RAF detection from the platform boundary.
+  - `test/platform-browser.js`: add a Karma smoke proving browser helpers and the legacy `utils/core` RAF export stay aligned.
+- Test:
+  - `npm test`
+  - `npm run test:browser`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if any browser global detection regression appears; no public package entry points are changed.
+
 ### P-0019
 - Why:
   - The old `documentation` toolchain kept a dev-only Vue 2 advisory in the tree and generated API docs from legacy JSDoc rather than the package's TypeScript public surface.

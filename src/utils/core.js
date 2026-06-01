@@ -3,18 +3,22 @@
  * @module Core
 */
 import { DOMParser as XMLDOMParser } from "@xmldom/xmldom";
+import {
+	getURLConstructor,
+	requestAnimationFrame as platformRequestAnimationFrame
+} from "../platform/browser";
 
 /**
  * Vendor prefixed requestAnimationFrame
  * @returns {function} requestAnimationFrame
  * @memberof Core
  */
-export const requestAnimationFrame = (typeof window != "undefined") ? (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame) : false;
+export const requestAnimationFrame = platformRequestAnimationFrame;
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
 const COMMENT_NODE = 8;
 const DOCUMENT_NODE = 9;
-const _URL = typeof URL != "undefined" ? URL : (typeof window != "undefined" ? (window.URL || window.webkitURL || window.mozURL) : undefined);
+const _URL = getURLConstructor();
 
 /**
  * Generates a UUID

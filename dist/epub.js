@@ -5113,8 +5113,33 @@
 		exports.DOMParser = require_dom_parser().DOMParser;
 	}));
 	//#endregion
-	//#region src/utils/core.js
+	//#region src/platform/browser.js
 	var import_event_emitter = /* @__PURE__ */ __toESM(require_event_emitter());
+	var import_lib = require_lib();
+	/**
+	* Browser platform boundary.
+	*
+	* Keep global object lookups here so core/rendering modules can migrate away
+	* from direct window/document feature detection incrementally.
+	*/
+	function getWindow() {
+		return typeof window !== "undefined" ? window : void 0;
+	}
+	function getURLConstructor() {
+		if (typeof URL !== "undefined") return URL;
+		var win = getWindow();
+		return win ? win.URL || win.webkitURL || win.mozURL : void 0;
+	}
+	var requestAnimationFrame$2 = (function() {
+		var win = getWindow();
+		return win ? win.requestAnimationFrame || win.mozRequestAnimationFrame || win.webkitRequestAnimationFrame || win.msRequestAnimationFrame : false;
+	})();
+	//#endregion
+	//#region src/utils/core.js
+	/**
+	* Core Utilities and Helpers
+	* @module Core
+	*/
 	var core_exports = /* @__PURE__ */ __exportAll({
 		RangeObject: () => RangeObject,
 		blob2base64: () => blob2base64,
@@ -5157,16 +5182,15 @@
 		walk: () => walk,
 		windowBounds: () => windowBounds
 	});
-	var import_lib = require_lib();
 	/**
 	* Vendor prefixed requestAnimationFrame
 	* @returns {function} requestAnimationFrame
 	* @memberof Core
 	*/
-	var requestAnimationFrame$1 = typeof window != "undefined" ? window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame : false;
+	var requestAnimationFrame$1 = requestAnimationFrame$2;
 	var ELEMENT_NODE$2 = 1;
 	var TEXT_NODE$2 = 3;
-	var _URL = typeof URL != "undefined" ? URL : typeof window != "undefined" ? window.URL || window.webkitURL || window.mozURL : void 0;
+	var _URL = getURLConstructor();
 	/**
 	* Generates a UUID
 	* based on: http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
