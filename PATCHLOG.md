@@ -12,6 +12,20 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0013
+- Why:
+  - `npm run lint` was wired into CI but forced a successful exit even with hundreds of legacy ESLint errors and warnings.
+  - The fork needs a measurable modernization gate that prevents new lint debt without requiring a full source cleanup in the same slice.
+- Diff Scope:
+  - `eslint-baseline.json`: record the current ESLint debt ceiling.
+  - `scripts/check-eslint-baseline.mjs`: run ESLint as JSON, compare total errors and warnings against the ceiling, and fail when the ceiling is exceeded.
+  - `package.json`: make `npm run lint` execute the baseline gate.
+  - `README.md`: document the transitional lint gate and baseline reduction rule.
+- Test:
+  - `npm run lint`
+- Rollback:
+  - Revert this patch and restore the previous reporting-only lint script.
+
 ### P-0012
 - Why:
   - Start the vNext modernization path with package entry points that match current JavaScript package conventions while preserving Aitehub's existing root imports.

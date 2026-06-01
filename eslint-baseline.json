@@ -1,0 +1,7 @@
+{
+  "maxErrors": 232,
+  "maxWarnings": 606,
+  "command": "eslint -c .eslintrc.js src",
+  "updated": "2026-06-01",
+  "note": "Transitional ceiling for legacy ESLint debt. Reduce these numbers whenever existing lint issues are fixed."
+}

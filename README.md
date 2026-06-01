@@ -164,9 +164,10 @@ npm test
 npm audit --omit=dev
 ```
 
-`npm run lint` currently reports legacy style and JSDoc debt while exiting
-successfully. Treat new lint output in touched files as release-blocking, but do
-not expect the existing source tree to be lint-clean yet.
+`npm run lint` enforces the current ESLint debt ceiling from
+`eslint-baseline.json`. The legacy source tree is not lint-clean yet, but CI
+must fail if the total error or warning count increases. When lint debt is
+fixed, lower the matching baseline counts in the same change.
 
 Full `npm audit` may report a dev-only `documentation` issue through
 `vue-template-compiler`. Production dependencies must stay clean with
