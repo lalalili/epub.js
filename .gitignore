@@ -6,6 +6,14 @@ node_modules
 bower_components
 books
 lib
-dist
+dist/*
+!dist/
+!dist/epub.cjs
+!dist/epub.cjs.map
+!dist/epub.js
+!dist/epub.js.map
+!dist/epub.min.js
+!dist/epub.mjs
+!dist/epub.mjs.map
 documentation/html
 types/*.js

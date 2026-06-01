@@ -1,54 +1,55 @@
-# Epub.js v0.3
+# Epub.js v0.3 maintenance fork
 
-![FuturePress Views](http://fchasen.com/futurepress/fp.png)
+This repository is the `lalalili/epub.js` maintenance fork of
+`futurepress/epub.js`. It keeps the 0.3.x public API stable while carrying
+patches needed by the Aitehub EPUB reader.
 
-Epub.js is a JavaScript library for rendering ePub documents in the browser, across many devices.
+The upstream project, original API shape, and BSD-2-Clause license remain from
+FuturePress. Fork-specific behavior and release notes are tracked in
+[`PATCHLOG.md`](PATCHLOG.md).
 
-Epub.js provides an interface for common ebook functions (such as rendering, persistence and pagination) without the need to develop a dedicated application or plugin. Importantly, it has an incredibly permissive [Free BSD](http://en.wikipedia.org/wiki/BSD_licenses) license.
+## Fork usage
 
-[Try it while reading Moby Dick](https://futurepress.github.io/epubjs-reader/)
+Aitehub consumes this fork as GitHub release tarballs:
 
-## Why EPUB
-
-![Why EPUB](http://fchasen.com/futurepress/whyepub.png)
-
-The [EPUB standard](http://www.idpf.org/epub/30/spec/epub30-overview.html) is a widely used and easily convertible format. Many books are currently in this format, and it is convertible to many other formats (such as PDF, Mobi and iBooks).
-
-An unzipped EPUB3 is a collection of HTML5 files, CSS, images and other media – just like any other website. However, it enforces a schema of book components, which allows us to render a book and its parts based on a controlled vocabulary.
-
-More specifically, the EPUB schema standardizes the table of contents, provides a manifest that enables the caching of the entire book, and separates the storage of the content from how it’s displayed.
-
-## Getting Started
-
-If using archived `.epub` files include JSZip (this must precede inclusion of epub.js):
-
-```html
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+```text
+https://codeload.github.com/lalalili/epub.js/tar.gz/v0.3.93.<N>
 ```
 
-Get the minified code from the build folder:
+The package version remains `0.3.93` for compatibility with existing consumers.
+Fork releases are cut as tags such as `v0.3.93.124`.
+
+This repository is not published to npm as the canonical distribution for
+Aitehub. Update the tarball tag in both Aitehub manifests when cutting a new
+fork release.
+
+## Getting started
+
+If using archived `.epub` files in a browser build, include JSZip before
+epub.js:
 
 ```html
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="../dist/epub.min.js"></script>
 ```
 
-Set up a element to render to:
+Set up an element to render into:
 
 ```html
 <div id="area"></div>
 ```
 
-Create the new ePub, and then render it to that element:
+Create the book and render it:
 
 ```html
 <script>
   var book = ePub("url/to/book/package.opf");
-  var rendition = book.renderTo("area", {width: 600, height: 400});
+  var rendition = book.renderTo("area", { width: 600, height: 400 });
   var displayed = rendition.display();
 </script>
 ```
 
-## Render Methods
+## Render methods
 
 ### Default
 
@@ -56,25 +57,27 @@ Create the new ePub, and then render it to that element:
 book.renderTo("area", { method: "default", width: "100%", height: "100%" });
 ```
 
-[View example](http://futurepress.github.io/epub.js/examples/spreads.html)
-
-The default manager only displays a single section at a time.
+The default manager displays a single section at a time.
 
 ### Continuous
 
 ```js
 book.renderTo("area", { method: "continuous", width: "100%", height: "100%" });
 ```
-[View example](http://futurepress.github.io/epub.js/examples/continuous-scrolled.html)
 
-The continuous manager will display as many sections as need to fill the screen, and preload the next section offscreen. This enables seamless swiping / scrolling between pages on mobile and desktop, but is less performant than the default method.
+The continuous manager displays as many sections as needed to fill the screen
+and preloads the next section offscreen. This enables seamless swiping or
+scrolling between pages, but it is less performant than the default method.
 
-## Flow Overrides
+## Flow overrides
 
-### Auto (Default)
-`book.renderTo("area", { flow: "auto", width: "900", height: "600" });`
+### Auto
 
-Flow will be based on the settings in the OPF, defaults to `paginated`.
+```js
+book.renderTo("area", { flow: "auto", width: "900", height: "600" });
+```
+
+Flow is based on OPF settings and defaults to `paginated`.
 
 ### Paginated
 
@@ -82,19 +85,20 @@ Flow will be based on the settings in the OPF, defaults to `paginated`.
 book.renderTo("area", { flow: "paginated", width: "900", height: "600" });
 ```
 
-[View example](http://futurepress.github.io/epub.js/examples/spreads.html)
+### Scrolled
 
-Scrolled: `book.renderTo("area", { flow: "scrolled-doc" });`
+```js
+book.renderTo("area", { flow: "scrolled-doc", width: "900", height: "600" });
+```
 
-[View example](http://futurepress.github.io/epub.js/examples/scrolled.html)
+## Scripted content
 
-## Scripted Content
+[Scripted EPUB content](https://www.w3.org/TR/epub-33/#sec-scripted-content)
+is disabled by default because it can execute untrusted code inside rendered
+book content.
 
-[Scripted content](https://www.w3.org/TR/epub-33/#sec-scripted-content), JavasScript the ePub HTML content, is disabled by default due to the potential for executing malicious content. 
-
-This is done by sandboxing the iframe the content is rendered into, though it is still recommended to sanitize the ePub content server-side as well.
-
-If a trusted ePub contains interactivity, it can be enabled by passing `allowScriptedContent: true` to the `Rendition` settings.
+Scripts can be enabled for trusted EPUB files by passing
+`allowScriptedContent: true` to the rendition settings:
 
 ```html
 <script>
@@ -106,112 +110,148 @@ If a trusted ePub contains interactivity, it can be enabled by passing `allowScr
 </script>
 ```
 
-This will allow the sandboxed content to run scripts, but currently makes the sandbox insecure.
+Even with iframe sandboxing, consumers should sanitize untrusted EPUB content
+server-side.
 
-## Documentation
+## Local development
 
-API documentation is available at [epubjs.org/documentation/0.3/](http://epubjs.org/documentation/0.3/)
+Install dependencies with npm:
 
-A Markdown version is included in the repo at [documentation/API.md](https://github.com/futurepress/epub.js/blob/master/documentation/md/API.md)
-
-## Running Locally
-
-install [node.js](http://nodejs.org/)
-
-Then install the project dependences with npm
-
-```javascript
+```sh
 npm install
 ```
 
-You can run the reader locally with the command
+Run the local example server:
 
-```javascript
+```sh
 npm start
 ```
 
-## Examples
+Local examples are available under `/examples/`, for example:
 
-+ [Spreads](http://futurepress.github.io/epub.js/examples/spreads.html)
-+ [Scrolled](http://futurepress.github.io/epub.js/examples/scrolled.html)
-+ [Swipe](http://futurepress.github.io/epub.js/examples/swipe.html)
-+ [Input](http://futurepress.github.io/epub.js/examples/input.html)
-+ [Highlights](http://futurepress.github.io/epub.js/examples/highlights.html)
+- `/examples/spreads.html`
+- `/examples/scrolled.html`
+- `/examples/continuous-scrolled.html`
+- `/examples/swipe.html`
+- `/examples/highlights.html`
 
-[View All Examples](http://futurepress.github.io/epub.js/examples/)
+Legacy upstream examples are still available at
+<https://futurepress.github.io/epub.js/examples/>, but fork validation should
+prefer local examples and Aitehub reader regression cases.
 
 ## Testing
 
-Test can be run by Karma from NPM
+Run the full Karma test suite:
 
-```js
+```sh
 npm test
 ```
 
-## Building for Distribution
+Run focused browser tests with Mocha grep:
 
-Builds are concatenated and minified using [webpack](https://webpack.js.org/) and [babel](https://babeljs.io/)
+```sh
+npx karma start --single-run --browsers ChromeHeadlessNoSandbox --grep "vertical-rl"
+```
 
-To generate a new build run
+Before cutting a fork release, run:
 
-```javascript
+```sh
+npm run typecheck
+npm run compile
+npm run build
+npm run docs:md
+npm test
+npm audit --omit=dev
+```
+
+`npm run lint` currently reports legacy style and JSDoc debt while exiting
+successfully. Treat new lint output in touched files as release-blocking, but do
+not expect the existing source tree to be lint-clean yet.
+
+Full `npm audit` may report a dev-only `documentation` issue through
+`vue-template-compiler`. Production dependencies must stay clean with
+`npm audit --omit=dev`.
+
+## Building for distribution
+
+Builds are bundled with Vite/Rollup. The package entry points are:
+
+- `dist/epub.mjs` for ESM consumers
+- `dist/epub.cjs` for CommonJS consumers
+- `dist/epub.js` for browser UMD examples
+- `dist/epub.min.js` for minified browser UMD examples
+
+The compatibility `lib/` output is still generated with Babel for transitional
+consumers, but package resolution now points at `dist/`.
+The `dist/epub*` release files are tracked intentionally because Aitehub
+consumes GitHub codeload tarballs.
+
+```sh
 npm run prepare
 ```
 
-or to continuously build run
+For development rebuilds:
 
-```javascript
-npm run watch
+```sh
+npm run build
 ```
+
+Legacy webpack builds remain available through `npm run build:webpack`,
+`npm run legacy`, and `npm run productionLegacy` while the Vite/Rollup path is
+rolled out.
+
+## Documentation
+
+Generated API documentation is included at
+[`documentation/md/API.md`](documentation/md/API.md). Regenerate it with:
+
+```sh
+npm run docs:md
+```
+
+Because this fork is maintained for Aitehub integration, fork-specific changes
+and rollback notes belong in [`PATCHLOG.md`](PATCHLOG.md), not only in generated
+API output.
 
 ## Hooks
 
-Similar to a plugins, Epub.js implements events that can be "hooked" into. Thus you can interact with and manipulate the contents of the book.
-
-Examples of this functionality is loading videos from YouTube links before displaying a chapter's contents or implementing annotation.
-
-Hooks require an event to register to and a can return a promise to block until they are finished.
-
-Example hook:
-
-```javascript
-rendition.hooks.content.register(function(contents, view) {
-
-    var elements = contents.document.querySelectorAll('[video]');
-    var items = Array.prototype.slice.call(elements);
-
-    items.forEach(function(item){
-      // do something with the video item
-    });
-
-})
-```
-
-The parts of the rendering process that can be hooked into are below.
+Epub.js exposes hooks that allow consumers to inspect and manipulate book
+content during rendering.
 
 ```js
-book.spine.hooks.serialize // Section is being converted to text
-book.spine.hooks.content // Section has been loaded and parsed
-rendition.hooks.render // Section is rendered to the screen
-rendition.hooks.content // Section contents have been loaded
-rendition.hooks.unloaded // Section contents are being unloaded
+rendition.hooks.content.register(function(contents, view) {
+  var elements = contents.document.querySelectorAll("[video]");
+  var items = Array.prototype.slice.call(elements);
+
+  items.forEach(function(item) {
+    // do something with the video item
+  });
+});
 ```
 
-## Reader
-The reader has moved to its own repo at: https://github.com/futurepress/epubjs-reader/
+Common hook points:
 
-## Additional Resources
+```js
+book.spine.hooks.serialize; // Section is being converted to text
+book.spine.hooks.content; // Section has been loaded and parsed
+rendition.hooks.render; // Section is rendered to the screen
+rendition.hooks.content; // Section contents have been loaded
+rendition.hooks.unloaded; // Section contents are being unloaded
+```
 
-[![Gitter Chat](https://badges.gitter.im/futurepress/epub.js.png)](https://gitter.im/futurepress/epub.js "Gitter Chat")
+## Reader integration
 
-[Epub.js Developer Mailing List](https://groups.google.com/forum/#!forum/epubjs)
+The standalone upstream reader lives at
+<https://github.com/futurepress/epubjs-reader/>.
 
-IRC Server: freenode.net Channel: #epub.js
+The Aitehub integration source of truth lives in the `epub-reader` package in
+the Aitehub repository. Core layout, pagination, CFI, RTL, vertical writing, and
+rendition behavior should be fixed in this fork when the defect is intrinsic to
+epub.js.
 
-Follow us on twitter: @Epubjs
+## License and attribution
 
-+ http://twitter.com/#!/Epubjs
+Epub.js is BSD-2-Clause licensed. See [`license`](license).
 
-## Other
-
-EPUB is a registered trademark of the [IDPF](http://idpf.org/).
+EPUB is a registered trademark of the W3C Publishing Business Group's
+predecessor organizations.

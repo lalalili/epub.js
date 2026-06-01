@@ -14,6 +14,7 @@ export { default as Rendition, Location } from './rendition';
 export { default as Contents } from './contents';
 export { default as Layout } from './layout';
 export { NavItem } from './navigation';
+export { default as request } from './utils/request';
 
 declare namespace ePub {
 

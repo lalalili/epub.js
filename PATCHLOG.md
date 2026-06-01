@@ -12,6 +12,52 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0012
+- Why:
+  - Start the vNext modernization path with package entry points that match current JavaScript package conventions while preserving Aitehub's existing root imports.
+  - Move the primary distribution build from webpack to Vite/Rollup without removing the legacy webpack fallback yet.
+  - Add a TypeScript typecheck command as the first step toward core TypeScript migration.
+- Diff Scope:
+  - `package.json`: point `main`, `module`, `browser`, `types`, and `exports` at explicit public entry points; add Vite/Rollup build scripts and `typecheck`; keep webpack legacy scripts as fallback.
+  - `.gitignore` / `dist/`: keep only the Vite/Rollup release artifacts trackable so GitHub codeload tarballs contain the files referenced by package entry points.
+  - `vite.config.mjs` / `vite.umd.config.mjs`: add ESM, CJS, browser UMD, and minified browser UMD builds.
+  - `tsconfig.json`: add the transitional TypeScript check configuration for current JS sources and existing declaration tests.
+  - `types/index.d.ts` / `types/epubjs-tests.ts`: cover the Aitehub root imports, including the named `request` export.
+  - `README.md`: document Vite/Rollup outputs and updated release checks.
+- Test:
+  - `npm install`
+  - `npm run typecheck`
+  - `npm run build`
+  - ESM smoke: dynamic import of `dist/epub.mjs` exposes default, `Rendition`, and `request`
+  - CJS smoke: `require("./dist/epub.cjs")` exposes default, `Rendition`, and `request`
+  - UMD smoke: `require("./dist/epub.js")` returns the `ePub` function when `JSZip` is global
+  - `npm test`
+  - `npm audit --omit=dev` reports 0 vulnerabilities
+- Rollback:
+  - Revert this patch commit and keep using the previous Babel + webpack package entry points.
+
+### P-0011
+- Why:
+  - The fork README still presented upstream FuturePress links, badges, images, Bower-era metadata, and social/community references that are no longer maintained.
+  - Dependency metadata and lockfile state carried obsolete tooling and avoidable production audit findings.
+  - Release validation needs to distinguish production dependency safety from the remaining dev-only `documentation -> vue-template-compiler` advisory.
+- Diff Scope:
+  - `README.md`: rewrite the README around the `lalalili/epub.js` maintenance fork, Aitehub tarball consumption, local examples, tests, build commands, generated API docs, hook usage, and reader integration ownership.
+  - `package.json` / `package-lock.json`: update fork repository metadata, remove Travis/Bower/PhantomJS-era tooling, upgrade build/test dependencies, and add npm overrides for vulnerable transitive packages where compatible.
+  - `.travis.yml` / `bower.json`: remove obsolete distribution and CI metadata.
+  - `documentation/md/API.md` and `lib/`: regenerate documentation and compiled output after dependency updates.
+- Test:
+  - `npm install`
+  - `npm run compile`
+  - `npm run build`
+  - `npm run docs:md`
+  - `npm test`
+  - `npm start` smoke test until webpack-dev-server compiled successfully
+  - `npm audit --omit=dev` reports 0 vulnerabilities
+  - Full `npm audit` still reports the dev-only `documentation -> vue-template-compiler` moderate advisory; the available npm fix downgrades `documentation` to `6.2.0` and is intentionally not applied.
+- Rollback:
+  - Revert this patch commit and restore the previous package lock if the upgraded toolchain breaks release preparation.
+
 ### P-0010
 - Why:
   - Annotation and bookmark jumps need to recompute vertical-rl text-boundary snapping instead of reusing stale cached logical page offsets from sequential page turns.
