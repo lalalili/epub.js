@@ -12,6 +12,22 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0043
+- Why:
+  - `test/continuous-manager.js` only exercises synthetic `ContinuousViewManager` update, scrolled queue, stale callback, and trim scheduling behavior. It does not load EPUB content, render iframes, paginate, or use CFI/request/archive paths.
+  - Moving it keeps low-risk manager coverage on Vitest Browser while leaving text measurement, viewport-filling media, and vertical-rl pagination coverage on the legacy Karma gate for later slices.
+- Diff Scope:
+  - `test/continuous-manager.js`: remove the legacy Karma/Mocha ContinuousViewManager tests.
+  - `test/browser/continuous-manager.test.js`: add equivalent Vitest Browser Mode coverage.
+- Test:
+  - `npm test`
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vitest Browser timer scheduling changes `ContinuousViewManager#scrolled()` or `scheduleTrim()` behavior compared with the legacy Karma runner.
+
 ### P-0042
 - Why:
   - `EpubCFI#toRange()` is the final CFI legacy Karma slice after parser, `fromNode()`, and `fromRange()` moved to Vitest Browser.
