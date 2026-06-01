@@ -12,6 +12,22 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0038
+- Why:
+  - `test/section.js` is the next fixture-driven Karma test after `Book` and `Locations`; it validates section text search against Alice chapters without rendering, pagination, RTL, request/archive, or host integration behavior.
+  - Moving it to Vitest Browser keeps chapter search coverage on the modern runner while further shrinking the legacy Karma gate.
+- Diff Scope:
+  - `test/section.js`: remove the legacy Karma/Mocha section search tests.
+  - `test/browser/section.test.js`: add equivalent Vitest Browser Mode coverage for `Section#find()` and `Section#search()` using the shared Alice package fixture URL helper.
+- Test:
+  - `npm test`
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vitest Browser package fixture loading changes `Section#find()` or `Section#search()` results compared with the legacy Karma runner.
+
 ### P-0037
 - Why:
   - `test/locations.js` is parser-level coverage for location generation and fallback CFIs, with no rendering, request/archive, pagination, or host integration behavior.
