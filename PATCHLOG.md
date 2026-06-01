@@ -12,6 +12,22 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0037
+- Why:
+  - `test/locations.js` is parser-level coverage for location generation and fallback CFIs, with no rendering, request/archive, pagination, or host integration behavior.
+  - Moving it to Vitest Browser removes another Karma `raw-loader` XHTML fixture dependency while keeping the browser `DOMParser` and xmldom parse paths covered.
+- Diff Scope:
+  - `test/locations.js`: remove the legacy Karma/Mocha Locations parser tests.
+  - `test/browser/locations.test.js`: add equivalent Vitest Browser Mode coverage using Vite's `?raw` XHTML fixture import.
+- Test:
+  - `npm test`
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vite raw XHTML fixture imports diverge from the legacy Karma/raw-loader parser input.
+
 ### P-0036
 - Why:
   - `test/book.js` was the next Karma fixture proxy dependency after `ePub()` and covers the same EPUB fixture loading surface plus cover URL behavior.
