@@ -12,6 +12,22 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0042
+- Why:
+  - `EpubCFI#toRange()` is the final CFI legacy Karma slice after parser, `fromNode()`, and `fromRange()` moved to Vitest Browser.
+  - Moving it completes CFI coverage migration and removes the remaining Karma/raw-loader XHTML fixture dependency from `test/epubcfi.js`.
+- Diff Scope:
+  - `test/epubcfi.js`: remove the final legacy Karma/Mocha EpubCFI tests.
+  - `test/browser/epubcfi.test.js`: add equivalent Vitest Browser Mode coverage for `toRange()`, highlight range resolution, and out-of-range offset clamping.
+- Test:
+  - `npm test`
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vitest Browser `Range` resolution changes `EpubCFI#toRange()` behavior compared with the legacy Karma/raw-loader fixture path.
+
 ### P-0041
 - Why:
   - `EpubCFI#fromRange()` is the next self-contained CFI slice after `fromNode()`: it creates browser Range objects from XHTML fixtures and asserts generated CFI strings, but does not yet validate reverse `toRange()` mapping.

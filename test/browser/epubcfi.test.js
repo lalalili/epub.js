@@ -258,4 +258,99 @@ describe("EpubCFI", () => {
 			expect(cfi.toString()).toBe("epubcfi(/6/4[chap01ref]!/4/6[p3]/3:4)");
 		});
 	});
+
+	describe("#toRange()", () => {
+		var base = "/6/4[chap01ref]";
+		var doc = parseXhtml(chapterHighlights);
+
+		it("gets a range from a cfi", () => {
+			var t1 = doc.getElementById("c001p0004").childNodes[0];
+			var ogRange = doc.createRange();
+			var cfi;
+			var newRange;
+
+			ogRange.setStart(t1, 6);
+
+			cfi = new EpubCFI(ogRange, base);
+
+			expect(cfi.toString()).toBe("epubcfi(/6/4[chap01ref]!/4/2/10/2[c001p0004]/1:6)");
+
+			newRange = cfi.toRange(doc);
+
+			expect(newRange.startContainer).toBe(t1);
+			expect(newRange.startOffset).toBe(6);
+			expect(newRange.collapsed).toBe(true);
+		});
+
+		it("gets a range from a cfi with a range", () => {
+			var t1 = doc.getElementById("c001p0004").childNodes[0];
+			var t2 = doc.getElementById("c001p0007").childNodes[0];
+			var ogRange = doc.createRange();
+			var cfi;
+			var newRange;
+
+			ogRange.setStart(t1, 6);
+			ogRange.setEnd(t2, 27);
+
+			cfi = new EpubCFI(ogRange, base);
+
+			expect(cfi.toString()).toBe("epubcfi(/6/4[chap01ref]!/4/2,/10/2[c001p0004]/1:6,/16/2[c001p0007]/1:27)");
+
+			newRange = cfi.toRange(doc);
+
+			expect(newRange.startContainer).toBe(t1);
+			expect(newRange.startOffset).toBe(6);
+			expect(newRange.endContainer).toBe(t2);
+			expect(newRange.endOffset).toBe(27);
+			expect(newRange.collapsed).toBe(false);
+		});
+
+		it("gets a range from a cfi inside a highlight", () => {
+			var t1 = doc.getElementById("highlight-1").childNodes[0];
+			var ogRange = doc.createRange();
+			var cfi;
+			var newRange;
+
+			ogRange.setStart(t1, 6);
+
+			cfi = new EpubCFI(ogRange, base, "annotator-hl");
+
+			expect(cfi.toString()).toBe("epubcfi(/6/4[chap01ref]!/4/2/32/2[c001p0017]/1:43)");
+
+			newRange = cfi.toRange(doc, "annotator-hl");
+
+			expect(newRange.startContainer).toBeTruthy();
+			expect(newRange.startContainer).toBe(t1);
+			expect(newRange.startOffset).toBe(6);
+		});
+
+		it("gets a range from a cfi inside a highlight range", () => {
+			var t1 = doc.getElementById("highlight-2").childNodes[0];
+			var t2 = doc.getElementById("c001s0001").childNodes[1];
+			var ogRange = doc.createRange();
+			var cfi;
+			var newRange;
+
+			ogRange.setStart(t1, 5);
+			ogRange.setEnd(t2, 25);
+
+			cfi = new EpubCFI(ogRange, base, "annotator-hl");
+
+			expect(cfi.toString()).toBe("epubcfi(/6/4[chap01ref]!/4/2/4/2[c001s0001],/1:5,/1:41)");
+
+			newRange = cfi.toRange(doc, "annotator-hl");
+
+			expect(newRange.startContainer.textContent).toBe(t1.textContent);
+		});
+
+		it("clamps out-of-range offsets from stored cfi to a safe range", () => {
+			var cfi = new EpubCFI("epubcfi(/6/4[chap01ref]!/4/2/10/2[c001p0004]/1:9999)");
+			var newRange = cfi.toRange(doc);
+
+			expect(newRange).toBeTruthy();
+			expect(newRange.startContainer).toBeTruthy();
+			expect(newRange.startOffset).toBeGreaterThanOrEqual(0);
+			expect(newRange.startOffset).toBeLessThanOrEqual(newRange.startContainer.textContent.length);
+		});
+	});
 });
