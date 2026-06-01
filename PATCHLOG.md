@@ -12,6 +12,21 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0018
+- Why:
+  - Karma remains the compatibility regression runner, but the modernization path needs a Vite-native browser test gate before any larger test migration.
+  - Start Vitest Browser Mode with a small public API smoke that runs in real Chromium and validates the package root surface without touching EPUB fixture loading yet.
+- Diff Scope:
+  - `.github/workflows/ci.yml`: run the Vitest browser smoke before the existing Karma test job.
+  - `package.json` / `package-lock.json`: add Vitest Browser Mode dependencies and `npm run test:browser`.
+  - `vitest.browser.config.mjs`: configure the Playwright browser provider to use system Chrome in headless no-sandbox mode.
+  - `test/browser/public-api.test.js`: add the first browser-mode public API smoke.
+- Test:
+  - `npm run test:browser`
+  - `npm test`
+- Rollback:
+  - Revert this patch if Vitest Browser Mode is unstable in CI; Karma remains the primary browser test gate.
+
 ### P-0017
 - Why:
   - Core declarations still typed `requestCredentials` as `object`, treated custom request methods as generic functions, and returned the global `JSON` object type for parsed JSON responses.
