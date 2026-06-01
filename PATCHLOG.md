@@ -12,6 +12,17 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0015
+- Why:
+  - The release checklist uses `npm run typecheck`, but GitHub Actions did not run the TypeScript declaration gate.
+  - CI should exercise the same package entry/type contract that Aitehub consumes from the fork release tarball.
+- Diff Scope:
+  - `.github/workflows/ci.yml`: add `npm run typecheck` before compile/build/test.
+- Test:
+  - `npm run typecheck`
+- Rollback:
+  - Remove the CI typecheck step if it blocks unrelated emergency releases.
+
 ### P-0014
 - Why:
   - The fork now uses `tsc -p tsconfig.json --noEmit` for the transitional TypeScript declaration gate.
