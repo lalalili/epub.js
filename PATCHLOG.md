@@ -12,6 +12,21 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0030
+- Why:
+  - `test/teardown-raf.js` uses synthetic `Contents` and `Rendition` objects to verify teardown guards only; it does not display a rendition, load EPUB content, paginate, navigate CFI, or use request/archive paths.
+  - Moving it keeps teardown regression coverage on the Vitest Browser path while leaving real rendering and EPUB integration coverage on the legacy Karma gate.
+- Diff Scope:
+  - `test/teardown-raf.js`: remove the Karma/Mocha teardown guard tests.
+  - `test/browser/teardown-raf.test.js`: add equivalent Vitest Browser Mode coverage.
+- Test:
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vitest Browser async timer behavior diverges from the legacy Karma browser runner.
+
 ### P-0029
 - Why:
   - `test/manager-listeners.js` validates listener cleanup and Stage measurement with synthetic DOM objects only, without EPUB loading, request/archive behavior, CFI navigation, iframe contents, or pagination.

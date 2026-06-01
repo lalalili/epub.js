@@ -1,8 +1,8 @@
-import assert from "assert";
-import Contents from "../src/contents";
-import Rendition from "../src/rendition";
+import { describe, expect, it } from "vitest";
+import Contents from "../../src/contents";
+import Rendition from "../../src/rendition";
 
-describe("Teardown requestAnimationFrame guards", function() {
+describe("Teardown requestAnimationFrame guards", () => {
 	function createQueuedRendition(manager) {
 		let rendition = Object.create(Rendition.prototype);
 		let emitted = [];
@@ -27,7 +27,13 @@ describe("Teardown requestAnimationFrame guards", function() {
 		};
 	}
 
-	it("ignores a queued Contents resize check after the iframe document is cleared", function() {
+	function waitForQueuedReport() {
+		return new Promise(function(resolve) {
+			setTimeout(resolve, 30);
+		});
+	}
+
+	it("ignores a queued Contents resize check after the iframe document is cleared", () => {
 		let contents = Object.create(Contents.prototype);
 		let invalidated = false;
 
@@ -36,39 +42,37 @@ describe("Teardown requestAnimationFrame guards", function() {
 			invalidated = true;
 		};
 
-		assert.doesNotThrow(function() {
+		expect(function() {
 			contents.resizeCheck();
-		});
-		assert.equal(invalidated, false);
+		}).not.toThrow();
+		expect(invalidated).toBe(false);
 	});
 
-	it("ignores a queued Rendition location report after the manager is cleared", function(done) {
+	it("ignores a queued Rendition location report after the manager is cleared", async () => {
 		let {emitted, rendition} = createQueuedRendition(null);
 
-		assert.doesNotThrow(function() {
+		expect(function() {
 			rendition.reportLocation();
-		});
+		}).not.toThrow();
 
-		setTimeout(function() {
-			assert.deepEqual(emitted, []);
-			done();
-		}, 30);
+		await waitForQueuedReport();
+
+		expect(emitted).toEqual([]);
 	});
 
-	it("ignores a queued Rendition location report when currentLocation throws during teardown", function(done) {
+	it("ignores a queued Rendition location report when currentLocation throws during teardown", async () => {
 		let {emitted, rendition} = createQueuedRendition({
 			currentLocation: function() {
 				throw new TypeError("Cannot read properties of null (reading 'currentLocation')");
 			}
 		});
 
-		assert.doesNotThrow(function() {
+		expect(function() {
 			rendition.reportLocation();
-		});
+		}).not.toThrow();
 
-		setTimeout(function() {
-			assert.deepEqual(emitted, []);
-			done();
-		}, 30);
+		await waitForQueuedReport();
+
+		expect(emitted).toEqual([]);
 	});
 });
