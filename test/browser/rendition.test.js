@@ -1,7 +1,7 @@
-import assert from "assert";
-import Rendition from "../src/rendition";
+import { describe, expect, it } from "vitest";
+import Rendition from "../../src/rendition";
 
-describe("Rendition", function() {
+describe("Rendition", () => {
 	function createRendition() {
 		let rendition = Object.create(Rendition.prototype);
 
@@ -29,13 +29,13 @@ describe("Rendition", function() {
 		return rendition;
 	}
 
-	it("ignores empty manager location entries", function() {
+	it("ignores empty manager location entries", () => {
 		let rendition = createRendition();
 
-		assert.deepEqual(rendition.located([undefined]), {});
+		expect(rendition.located([undefined])).toEqual({});
 	});
 
-	it("uses the first and last valid manager location entries", function() {
+	it("uses the first and last valid manager location entries", () => {
 		let rendition = createRendition();
 		let located = rendition.located([
 			undefined,
@@ -62,12 +62,12 @@ describe("Rendition", function() {
 			}
 		]);
 
-		assert.equal(located.start.index, 1);
-		assert.equal(located.start.href, "chapter-1.xhtml");
-		assert.equal(located.start.displayed.page, 2);
-		assert.equal(located.end.index, 2);
-		assert.equal(located.end.href, "chapter-2.xhtml");
-		assert.equal(located.end.displayed.page, 2);
-		assert.equal(located.atEnd, true);
+		expect(located.start.index).toBe(1);
+		expect(located.start.href).toBe("chapter-1.xhtml");
+		expect(located.start.displayed.page).toBe(2);
+		expect(located.end.index).toBe(2);
+		expect(located.end.href).toBe("chapter-2.xhtml");
+		expect(located.end.displayed.page).toBe(2);
+		expect(located.atEnd).toBe(true);
 	});
 });

@@ -12,6 +12,22 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0033
+- Why:
+  - `test/rendition.js` only exercises `Rendition#located()` against synthetic manager location entries and stubbed book helpers; it does not display a rendition, scroll, paginate, parse CFI, load EPUB content, or use request/archive paths.
+  - Moving this data-shaping coverage to Vitest Browser reduces the legacy Karma surface while keeping rendering/layout tests in Karma for now.
+- Diff Scope:
+  - `test/rendition.js`: remove the Karma/Mocha `Rendition#located()` tests.
+  - `test/browser/rendition.test.js`: add equivalent Vitest Browser Mode coverage.
+- Test:
+  - `npm test`
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vitest Browser module initialization changes `Rendition.prototype.located()` behavior compared with the legacy Karma bundle.
+
 ### P-0032
 - Why:
   - The low-risk `Views` collection cleanup and script-stripping tests do not depend on pagination, EPUB loading, CFI, request/archive behavior, or iframe layout.
