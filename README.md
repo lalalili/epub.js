@@ -141,14 +141,14 @@ prefer local examples and Aitehub reader regression cases.
 
 ## Testing
 
-Run the legacy Karma regression suite:
+Run the full browser regression gate:
 
 ```sh
 npm test
 ```
 
-`npm test` intentionally remains an alias for the legacy Karma suite during the
-transition. New browser tests should use Vitest Browser Mode:
+`npm test` runs both the Vitest Browser Mode suite and the legacy Karma suite.
+New browser tests should use Vitest Browser Mode:
 
 ```sh
 npm run test:browser
@@ -159,7 +159,7 @@ Karma-only fixture/proxy behavior that has not been migrated yet. Keep existing
 Karma tests as regression coverage until their fixture, rendering, and layout
 paths have equivalent Vitest coverage.
 
-Run focused browser tests with Mocha grep:
+Run the legacy Karma suite directly when focused Mocha grep is needed:
 
 ```sh
 npm run test:legacy -- --grep "vertical-rl"
@@ -172,8 +172,7 @@ npm run typecheck
 npm run compile
 npm run build
 npm run docs:md
-npm run test:browser
-npm run test:legacy
+npm test
 npm audit
 npm audit --omit=dev
 ```

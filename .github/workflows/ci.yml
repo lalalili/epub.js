@@ -40,8 +40,5 @@ jobs:
       - name: Docs
         run: npm run docs:md
 
-      - name: Browser Test
-        run: npm run test:browser
-
-      - name: Legacy Karma Test
-        run: npm run test:legacy
+      - name: Test
+        run: npm test

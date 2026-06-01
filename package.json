@@ -27,7 +27,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "karma start --single-run --browsers ChromeHeadlessNoSandbox",
+    "test": "npm run test:browser && npm run test:legacy",
     "test:legacy": "karma start --single-run --browsers ChromeHeadlessNoSandbox",
     "test:browser": "vitest run --config vitest.browser.config.mjs",
     "docs": "npm run docs:md",

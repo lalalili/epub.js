@@ -12,6 +12,23 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0031
+- Why:
+  - Vitest Browser Mode now owns the migrated low-risk browser tests, so the default `npm test` gate should include it instead of only running the legacy Karma suite.
+  - Keeping `test:browser` and `test:legacy` as separate focused commands preserves the ability to debug either runner while making the default test command match the active migration strategy.
+- Diff Scope:
+  - `package.json`: change `npm test` to run `test:browser` followed by `test:legacy`.
+  - `.github/workflows/ci.yml`: use `npm test` as the main test gate instead of duplicating both test commands in CI.
+  - `README.md`: document the new full browser regression gate and the focused legacy Karma command.
+- Test:
+  - `npm test`
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if downstream automation needs `npm test` to remain a Karma-only alias; `npm run test:legacy` remains the direct Karma command.
+
 ### P-0030
 - Why:
   - `test/teardown-raf.js` uses synthetic `Contents` and `Rendition` objects to verify teardown guards only; it does not display a rendition, load EPUB content, paginate, navigate CFI, or use request/archive paths.
