@@ -12,6 +12,21 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0034
+- Why:
+  - Remaining legacy candidates increasingly depend on Karma's `/fixtures/` proxy. Before migrating `Book` / `ePub` fixture-driven tests, Vitest Browser needs an explicit smoke proving unpacked and archived EPUB fixtures are served reliably.
+  - This keeps the next migration step evidence-based instead of assuming Vite's browser runner resolves fixture assets the same way as Karma.
+- Diff Scope:
+  - `test/browser/fixtures.test.js`: add fixture-serving smoke coverage for the unpacked OPF and archived Alice EPUB via `new URL(..., import.meta.url)`.
+- Test:
+  - `npm test`
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vite Browser asset serving is replaced by a dedicated `/fixtures/` middleware or fixture helper.
+
 ### P-0033
 - Why:
   - `test/rendition.js` only exercises `Rendition#located()` against synthetic manager location entries and stubbed book helpers; it does not display a rendition, scroll, paginate, parse CFI, load EPUB content, or use request/archive paths.
