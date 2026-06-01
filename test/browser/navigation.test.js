@@ -1,15 +1,15 @@
-import assert from 'assert';
-import Navigation from '../src/navigation';
+import { describe, expect, it } from "vitest";
+import Navigation from "../../src/navigation";
 
-describe('Navigation', function() {
+describe("Navigation", () => {
 	function parseNavigation(markup) {
 		var parser = new DOMParser();
-		var doc = parser.parseFromString(markup, 'application/xhtml+xml');
+		var doc = parser.parseFromString(markup, "application/xhtml+xml");
 
 		return new Navigation(doc);
 	}
 
-	it('gets nav items by href, bare id, and hash id', function() {
+	it("gets nav items by href, bare id, and hash id", () => {
 		var navigation = parseNavigation(`<?xml version="1.0" encoding="UTF-8"?>
 			<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
 				<body>
@@ -31,9 +31,9 @@ describe('Navigation', function() {
 				</body>
 			</html>`);
 
-		assert.equal(navigation.get('Text/chapter1.xhtml').id, 'chapter-one');
-		assert.equal(navigation.get('chapter-one').href, 'Text/chapter1.xhtml');
-		assert.equal(navigation.get('#chapter-one').href, 'Text/chapter1.xhtml');
-		assert.equal(navigation.get('#chapter-two-part-one').href, 'Text/chapter2.xhtml#part-1');
+		expect(navigation.get("Text/chapter1.xhtml").id).toBe("chapter-one");
+		expect(navigation.get("chapter-one").href).toBe("Text/chapter1.xhtml");
+		expect(navigation.get("#chapter-one").href).toBe("Text/chapter1.xhtml");
+		expect(navigation.get("#chapter-two-part-one").href).toBe("Text/chapter2.xhtml#part-1");
 	});
 });

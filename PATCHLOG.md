@@ -12,6 +12,21 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0025
+- Why:
+  - `test/navigation.js` is a DOMParser-only navigation lookup test and does not depend on Karma fixtures, iframe rendering, or request/archive behavior.
+  - Moving it keeps new and low-risk coverage on the Vitest Browser path while shrinking the legacy Karma gate.
+- Diff Scope:
+  - `test/navigation.js`: remove the Karma/Mocha navigation lookup test.
+  - `test/browser/navigation.test.js`: add equivalent Vitest Browser Mode coverage.
+- Test:
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vitest Browser XML parsing diverges from the legacy Karma browser environment.
+
 ### P-0024
 - Why:
   - `test/core.js` covers URL and path helpers without Karma-only fixtures, proxies, or rendering behavior, so it is a good next target for the Vitest-first migration.
