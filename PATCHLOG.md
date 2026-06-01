@@ -12,6 +12,21 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0028
+- Why:
+  - `test/spine.js` validates package/spine unpack metadata and href lookup from inline OPF XML, without loading EPUB archives, requests, iframe contents, pagination, rendition display, or CFI navigation.
+  - Moving it continues shrinking the legacy Karma surface while keeping higher-risk rendering and EPUB integration tests on the legacy gate for now.
+- Diff Scope:
+  - `test/spine.js`: remove the Karma/Mocha spine unpack test.
+  - `test/browser/spine.test.js`: add equivalent Vitest Browser Mode coverage.
+- Test:
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vitest Browser module resolution changes Section/Spine construction semantics compared with the legacy Karma bundle.
+
 ### P-0027
 - Why:
   - `test/pagelist.js` only validates EPUB 3 and NCX page-list XML parsing through `DOMParser`, without Karma fixtures, reader layout, CFI, request, archive, or rendition behavior.
