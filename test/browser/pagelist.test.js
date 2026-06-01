@@ -1,15 +1,15 @@
-import assert from 'assert';
-import PageList from '../src/pagelist';
+import { describe, expect, it } from "vitest";
+import PageList from "../../src/pagelist";
 
-describe('PageList', function() {
+describe("PageList", () => {
 	function parsePageList(markup) {
 		var parser = new DOMParser();
-		var doc = parser.parseFromString(markup, 'application/xhtml+xml');
+		var doc = parser.parseFromString(markup, "application/xhtml+xml");
 
 		return new PageList(doc);
 	}
 
-	it('preserves string page labels from EPUB 3 page-list nav', function() {
+	it("preserves string page labels from EPUB 3 page-list nav", () => {
 		var pageList = parsePageList(`<?xml version="1.0" encoding="UTF-8"?>
 			<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
 				<body>
@@ -23,13 +23,13 @@ describe('PageList', function() {
 				</body>
 			</html>`);
 
-		assert.deepEqual(pageList.pages, ['ix', '1', '2']);
-		assert.equal(pageList.hrefFromPage('ix'), 'Text/intro.xhtml#page-ix');
-		assert.equal(pageList.hrefFromPage('1'), 'Text/chapter1.xhtml#page-1');
-		assert.equal(pageList.pageFromHref('Text/chapter2.xhtml#page-2'), '2');
+		expect(pageList.pages).toEqual(["ix", "1", "2"]);
+		expect(pageList.hrefFromPage("ix")).toBe("Text/intro.xhtml#page-ix");
+		expect(pageList.hrefFromPage("1")).toBe("Text/chapter1.xhtml#page-1");
+		expect(pageList.pageFromHref("Text/chapter2.xhtml#page-2")).toBe("2");
 	});
 
-	it('preserves string page labels from NCX pageList', function() {
+	it("preserves string page labels from NCX pageList", () => {
 		var parser = new DOMParser();
 		var doc = parser.parseFromString(`<?xml version="1.0" encoding="UTF-8"?>
 			<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/">
@@ -43,11 +43,11 @@ describe('PageList', function() {
 						<content src="Text/chapter1.xhtml#page-1"/>
 					</pageTarget>
 				</pageList>
-			</ncx>`, 'application/xml');
+			</ncx>`, "application/xml");
 		var pageList = new PageList(doc);
 
-		assert.deepEqual(pageList.pages, ['ix', '1']);
-		assert.equal(pageList.hrefFromPage('ix'), 'Text/intro.xhtml#page-ix');
-		assert.equal(pageList.pageFromHref('Text/chapter1.xhtml#page-1'), '1');
+		expect(pageList.pages).toEqual(["ix", "1"]);
+		expect(pageList.hrefFromPage("ix")).toBe("Text/intro.xhtml#page-ix");
+		expect(pageList.pageFromHref("Text/chapter1.xhtml#page-1")).toBe("1");
 	});
 });

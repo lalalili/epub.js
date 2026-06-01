@@ -12,6 +12,21 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0027
+- Why:
+  - `test/pagelist.js` only validates EPUB 3 and NCX page-list XML parsing through `DOMParser`, without Karma fixtures, reader layout, CFI, request, archive, or rendition behavior.
+  - Moving it keeps parser-level coverage on the Vitest Browser path while preserving Karma for higher-risk integration tests.
+- Diff Scope:
+  - `test/pagelist.js`: remove the Karma/Mocha page-list parser tests.
+  - `test/browser/pagelist.test.js`: add equivalent Vitest Browser Mode coverage.
+- Test:
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if browser XML namespace parsing differs between Vitest Browser and the legacy Karma runner.
+
 ### P-0026
 - Why:
   - `test/packaging.js` only exercises OPF XML parsing through `DOMParser`, with no Karma fixture server, EPUB archive, request, iframe, or rendition dependency.
