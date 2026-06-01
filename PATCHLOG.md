@@ -12,6 +12,21 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0023
+- Why:
+  - The Vitest-first rule should apply to the new low-risk platform and compatibility smoke tests added during the F+ split.
+  - Karma should stop accumulating new tests and remain focused on the legacy fixture/rendering/layout regression suite.
+- Diff Scope:
+  - `test/platform-browser.js` / `test/compat-css.js`: remove the new Karma smoke tests.
+  - `test/browser/platform-browser.test.js` / `test/browser/compat-css.test.js`: add equivalent Vitest Browser Mode coverage.
+- Test:
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vitest Browser Mode cannot cover these browser-global smoke tests reliably in CI.
+
 ### P-0022
 - Why:
   - Future test additions should move to Vitest Browser Mode, while the existing Karma suite remains the legacy regression gate until equivalent coverage is migrated.
