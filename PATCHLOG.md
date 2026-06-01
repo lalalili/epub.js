@@ -12,6 +12,22 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0021
+- Why:
+  - Continue the F+ architecture split by creating a small `compat` boundary for browser CSS compatibility behavior.
+  - `utils/core.prefixed()` mixed legacy CSS feature detection into generic utilities; keeping it as a delegating export preserves existing imports while making the compatibility boundary explicit.
+- Diff Scope:
+  - `src/compat/css.js`: add the CSS vendor prefix resolver.
+  - `src/utils/core.js`: delegate the existing `prefixed()` export to `compat/css`.
+  - `test/compat-css.js`: verify the new helper and the legacy core export stay aligned.
+- Test:
+  - `npm test`
+  - `npm run test:browser`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if CSS property detection behaves differently in downstream readers; no public package entry points are changed.
+
 ### P-0020
 - Why:
   - Start the F+ internal architecture split with a low-risk `platform` boundary before moving rendering or request/archive code.

@@ -7,6 +7,7 @@ import {
 	getURLConstructor,
 	requestAnimationFrame as platformRequestAnimationFrame
 } from "../platform/browser";
+import { prefixed as prefixedCssProperty } from "../compat/css";
 
 /**
  * Vendor prefixed requestAnimationFrame
@@ -96,22 +97,7 @@ export function isFloat(n) {
  * @memberof Core
  */
 export function prefixed(unprefixed) {
-	var vendors = ["Webkit", "webkit", "Moz", "O", "ms" ];
-	var prefixes = ["-webkit-", "-webkit-", "-moz-", "-o-", "-ms-"];
-	var lower = unprefixed.toLowerCase();
-	var length = vendors.length;
-
-	if (typeof(document) === "undefined" || typeof(document.body.style[lower]) != "undefined") {
-		return unprefixed;
-	}
-
-	for (var i = 0; i < length; i++) {
-		if (typeof(document.body.style[prefixes[i] + lower]) != "undefined") {
-			return prefixes[i] + lower;
-		}
-	}
-
-	return unprefixed;
+	return prefixedCssProperty(unprefixed);
 }
 
 /**

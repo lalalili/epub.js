@@ -5125,6 +5125,9 @@
 	function getWindow() {
 		return typeof window !== "undefined" ? window : void 0;
 	}
+	function getDocument() {
+		return typeof document !== "undefined" ? document : void 0;
+	}
 	function getURLConstructor() {
 		if (typeof URL !== "undefined") return URL;
 		var win = getWindow();
@@ -5134,6 +5137,38 @@
 		var win = getWindow();
 		return win ? win.requestAnimationFrame || win.mozRequestAnimationFrame || win.webkitRequestAnimationFrame || win.msRequestAnimationFrame : false;
 	})();
+	//#endregion
+	//#region src/compat/css.js
+	/**
+	* Resolve the CSS property spelling supported by the current browser.
+	*
+	* This keeps legacy prefixed CSS lookup separate from generic core helpers
+	* while `utils/core.prefixed()` remains the compatibility export.
+	* @param {string} unprefixed CSS property name without a vendor prefix
+	* @returns {string} supported CSS property name
+	*/
+	function prefixed$1(unprefixed) {
+		var doc = getDocument();
+		var vendors = [
+			"Webkit",
+			"webkit",
+			"Moz",
+			"O",
+			"ms"
+		];
+		var prefixes = [
+			"-webkit-",
+			"-webkit-",
+			"-moz-",
+			"-o-",
+			"-ms-"
+		];
+		var lower = unprefixed.toLowerCase();
+		var length = vendors.length;
+		if (!doc || !doc.body || typeof doc.body.style[lower] != "undefined") return unprefixed;
+		for (var i = 0; i < length; i++) if (typeof doc.body.style[prefixes[i] + lower] != "undefined") return prefixes[i] + lower;
+		return unprefixed;
+	}
 	//#endregion
 	//#region src/utils/core.js
 	/**
@@ -5248,25 +5283,7 @@
 	* @memberof Core
 	*/
 	function prefixed(unprefixed) {
-		var vendors = [
-			"Webkit",
-			"webkit",
-			"Moz",
-			"O",
-			"ms"
-		];
-		var prefixes = [
-			"-webkit-",
-			"-webkit-",
-			"-moz-",
-			"-o-",
-			"-ms-"
-		];
-		var lower = unprefixed.toLowerCase();
-		var length = vendors.length;
-		if (typeof document === "undefined" || typeof document.body.style[lower] != "undefined") return unprefixed;
-		for (var i = 0; i < length; i++) if (typeof document.body.style[prefixes[i] + lower] != "undefined") return prefixes[i] + lower;
-		return unprefixed;
+		return prefixed$1(unprefixed);
 	}
 	/**
 	* Apply defaults to an object
