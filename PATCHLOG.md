@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0046
+- Why:
+  - `test/vertical-rl-manager.js` was the final legacy Karma suite and covers the high-risk vertical-rl pagination, boundary snapping, restore, and edge-mask regression matrix.
+  - Moving it completes the Karma-to-Vitest migration. Keeping `test:legacy` as a compatibility no-op makes the removed runner explicit while `npm test` now uses Vitest Browser Mode only.
+- Diff Scope:
+  - `test/vertical-rl-manager.js`: move to `test/browser/vertical-rl-manager.test.js` and run under Vitest Browser Mode.
+  - `package.json` / `package-lock.json`: remove Karma/Mocha/raw-loader dev dependencies, make `npm test` run `test:browser`, and turn `test:legacy` into a no-op.
+  - `karma.conf.js` / `test/index.html`: remove obsolete Karma/Mocha browser runner files.
+  - `README.md`: update testing instructions for the Vitest-only browser suite.
+- Test:
+  - `npm test`
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vitest Browser cannot reproduce the vertical-rl pagination regression matrix or downstream automation still requires the Karma runner.
+
 ### P-0045
 - Why:
   - `test/contents-text-width.js` covers synthetic `Contents#textWidth()` and single-media detection DOM measurements. It exercises browser range/layout APIs but does not load EPUB content, render reader iframes, navigate pagination, or touch CFI/request/archive paths.

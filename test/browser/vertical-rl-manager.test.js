@@ -1,9 +1,24 @@
-import assert from "assert";
-import Contents from "../src/contents";
-import DefaultViewManager from "../src/managers/default";
-import IframeView from "../src/managers/views/iframe";
-import Rendition from "../src/rendition";
-import { replaceLinks } from "../src/utils/replacements";
+import { describe, expect, it } from "vitest";
+import Contents from "../../src/contents";
+import DefaultViewManager from "../../src/managers/default";
+import IframeView from "../../src/managers/views/iframe";
+import Rendition from "../../src/rendition";
+import { replaceLinks } from "../../src/utils/replacements";
+
+const assert = {
+	deepEqual(actual, expected, message) {
+		expect(actual, message).toEqual(expected);
+	},
+	equal(actual, expected, message) {
+		expect(actual == expected, message).toBe(true);
+	},
+	notEqual(actual, expected, message) {
+		expect(actual != expected, message).toBe(true);
+	},
+	ok(actual, message) {
+		expect(actual, message).toBeTruthy();
+	}
+};
 
 describe("Vertical RL manager pagination", function() {
 	function createHorizontalManager({ contentWidth, iframeWidth, scrollLeft = 0, nextSection = null }) {

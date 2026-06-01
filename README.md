@@ -147,22 +147,20 @@ Run the full browser regression gate:
 npm test
 ```
 
-`npm test` runs both the Vitest Browser Mode suite and the legacy Karma suite.
-New browser tests should use Vitest Browser Mode:
+`npm test` runs the Vitest Browser Mode suite. All browser tests now run
+through Vitest Browser Mode:
 
 ```sh
 npm run test:browser
 ```
 
-Add new tests under `test/browser/**/*.test.js` unless the test depends on a
-Karma-only fixture/proxy behavior that has not been migrated yet. Keep existing
-Karma tests as regression coverage until their fixture, rendering, and layout
-paths have equivalent Vitest coverage.
+Add new tests under `test/browser/**/*.test.js`.
 
-Run the legacy Karma suite directly when focused Mocha grep is needed:
+The legacy Karma suite has been removed. `npm run test:legacy` is kept as a
+compatibility no-op for older automation:
 
 ```sh
-npm run test:legacy -- --grep "vertical-rl"
+npm run test:legacy
 ```
 
 Before cutting a fork release, run:
