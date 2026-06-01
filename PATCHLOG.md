@@ -12,6 +12,22 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0044
+- Why:
+  - `test/views.js` only covers one synthetic `IframeView#expand()` case for viewport-filling single media pages. It does not load EPUB content, perform iframe rendering, paginate real text, or touch CFI/request/archive paths.
+  - Moving it keeps this low-risk view sizing guard on Vitest Browser while leaving text width and vertical-rl pagination coverage on the legacy Karma gate.
+- Diff Scope:
+  - `test/views.js`: remove the legacy Karma/Mocha IframeView test.
+  - `test/browser/views.test.js`: add equivalent Vitest Browser Mode coverage beside the existing Views/IframeView helper tests.
+- Test:
+  - `npm test`
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vitest Browser DOM sizing differs from the legacy Karma runner for `IframeView#expand()` single-media page width behavior.
+
 ### P-0043
 - Why:
   - `test/continuous-manager.js` only exercises synthetic `ContinuousViewManager` update, scrolled queue, stale callback, and trim scheduling behavior. It does not load EPUB content, render iframes, paginate, or use CFI/request/archive paths.
