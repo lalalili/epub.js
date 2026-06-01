@@ -10,9 +10,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 - Test:
 - Rollback:
 
+## 2026-06-01
+
+### P-0010
+- Why:
+  - Annotation and bookmark jumps need to recompute vertical-rl text-boundary snapping instead of reusing stale cached logical page offsets from sequential page turns.
+  - Vertical-rl same-document hash navigation could assign a target to the previous visual page when the target sat inside the previous page's snap tolerance but outside its strict visible range.
+  - Footnote backlinks in RTL / vertical-rl books then focused the correct DOM anchor while the outer paginated container remained on the wrong visual page, leaving the source marker outside the visible viewport.
+- Diff Scope:
+  - `src/managers/default/index.js`: add `scrollToLogicalPage(pageIndex, { ignoreCachedLogicalOffset: true })` support for jump paths that need fresh boundary snapping
+  - `src/managers/default/index.js`: make `getVerticalRlPageIndexForOffset()` prefer the strict page range before falling back to tolerance / nearest-page matching
+  - `test/vertical-rl-manager.js`: add regressions for cached-offset bypass and for a hash anchor that overlaps the previous page tolerance but belongs to the next strict page
+- Test:
+  - `npx karma start --single-run --browsers ChromeHeadlessNoSandbox --grep "ignore a cached vertical-rl page offset"`
+  - `npx karma start --single-run --browsers ChromeHeadlessNoSandbox --grep "prefers the strict vertical-rl page"`
+  - Real-book validation: `01KQRTA21S9M41Y3646WEQNHE5`, `Section0012.xhtml`, footnote `#footnote-071` / backlink `#footnote-071-backlink`
+- Rollback:
+  - Revert this patch commit and release a new fork tag.
+
 ## 2026-03-28
 
-### P-AITEHUB-0009
+### P-0009
 - Why:
   - Full `locations.generate()` loads every spine section sequentially, which in chunk mode downloads all encrypted content before reading can start. Consumers need a way to refine locations one section at a time as the reader naturally loads content.
   - `generateForSection(section, chars)` loads a single section, parses precise CFI locations for it, then splices them into `_locations` in the correct sorted position — replacing any coarser (e.g. synthetic) entries that were already there for that section.
@@ -27,7 +45,7 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-03-22
 
-### P-AITEHUB-0008
+### P-0008
 - Why:
   - epub.js uses `requestAnimationFrame` callbacks in two critical paths. When the reader is torn down (navigate away, component unmount), rAF callbacks can still fire after the underlying objects are destroyed, causing uncaught "Cannot read properties of null" errors. Application layer had to catch these errors with a global `window.addEventListener('error', ...)` handler.
   - `Contents.resizeCheck()` calls `this.document.createRange()` — if the iframe is already detached, `this.document` is `null`.
@@ -41,7 +59,7 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 - Rollback:
   - Revert this patch commit.
 
-### P-AITEHUB-0007
+### P-0007
 - Why:
   - Expose `request` utility from public API so consumers can `import { request } from 'epubjs'` instead of the fragile deep import `epubjs/lib/utils/request`.
 - Diff Scope:
@@ -52,7 +70,7 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 - Rollback:
   - Revert this patch commit.
 
-### P-AITEHUB-0006
+### P-0006
 - Why:
   - Replace webpack 4 + `--openssl-legacy-provider` workaround with webpack 5, which uses xxhash64 (no OpenSSL md4 dependency). Enables clean Node 22+ / Node 24+ builds without any environment flags.
 - Diff Scope:
@@ -70,7 +88,7 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-03-03
 
-### P-AITEHUB-0001
+### P-0001
 - Why:
   - Stabilize CFI restore when stored offsets are out of range (`Range.setStart` / `Range.setEnd` edge cases).
 - Diff Scope:
@@ -80,7 +98,7 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 - Rollback:
   - Revert this patch commit.
 
-### P-AITEHUB-0002
+### P-0002
 - Why:
   - Fix vertical RTL paginated `display(cfi)` offset shift (`moveTo` Y-axis grid should use `layout.height`).
 - Diff Scope:
@@ -90,7 +108,7 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 - Rollback:
   - Revert this patch commit.
 
-### P-AITEHUB-0003
+### P-0003
 - Why:
   - Remove leaked `window` listeners after destroy (`unload` and `orientationchange` cleanup).
 - Diff Scope:
@@ -102,7 +120,7 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 - Rollback:
   - Revert this patch commit.
 
-### P-AITEHUB-0004
+### P-0004
 - Why:
   - Ensure at least one generated location per section for image-heavy/empty-text sections.
 - Diff Scope:
@@ -112,7 +130,7 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 - Rollback:
   - Revert this patch commit.
 
-### P-AITEHUB-0005
+### P-0005
 - Why:
   - Make git-hosted prepare stable on Node 22+ by forcing OpenSSL legacy provider for webpack-based build scripts.
 - Diff Scope:

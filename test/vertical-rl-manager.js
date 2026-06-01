@@ -465,6 +465,81 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getCurrentPageIndex(), 1);
 	});
 
+	it("can ignore a cached vertical-rl page offset when annotation jumps need boundary snapping", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let pageAdvance = 1295.9942626953125;
+		let contentWidth = 15532;
+		let targetPage = 2;
+		let cachedOffset = 2591.818115234375;
+		let snappedOffset = 2565.45458984375;
+		let snapCalls = 0;
+		let view = {
+			width: function() {
+				return contentWidth;
+			},
+			contents: {
+				writingMode: function() {
+					return "vertical-rl";
+				}
+			}
+		};
+
+		manager.container = {
+			clientWidth: 1296,
+			scrollWidth: contentWidth,
+			scrollLeft: 0,
+			scrollTop: 0
+		};
+		manager.layout = {
+			effectivePageAdvance: pageAdvance,
+			delta: pageAdvance,
+			pageWidth: pageAdvance,
+			width: pageAdvance,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			first: function() {
+				return view;
+			},
+			last: function() {
+				return view;
+			}
+		};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.queueVerticalRlBoundarySnapRetry = function() {};
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function(logicalOffset) {
+			snapCalls += 1;
+			assert.equal(Math.round(logicalOffset), Math.round(targetPage * pageAdvance));
+			return snappedOffset;
+		};
+		manager.scrollTo = function(left) {
+			this.container.scrollLeft = left;
+		};
+
+		let totalPages = manager.getTotalPagesForCurrentView();
+		let maxScroll = manager.getMaxLogicalScrollLeft();
+		let cacheKey = manager.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
+		manager.cacheVerticalRlLogicalPageOffset(targetPage, cachedOffset, cacheKey);
+
+		manager.scrollToLogicalPage(targetPage);
+
+		assert.equal(manager.container.scrollLeft, -cachedOffset);
+		assert.equal(snapCalls, 0);
+
+		manager.scrollToLogicalPage(targetPage, { ignoreCachedLogicalOffset: true });
+
+		assert.equal(manager.container.scrollLeft, -snappedOffset);
+		assert.equal(snapCalls, 1);
+	});
+
 	it("moves to the vertical-rl logical page that contains an anchor target", function() {
 		let manager = createManagerAtLogicalOffset(0);
 
@@ -488,6 +563,15 @@ describe("Vertical RL manager pagination", function() {
 		}, 780);
 
 		assert.equal(manager.getCurrentPageIndex(), 2);
+	});
+
+	it("prefers the strict vertical-rl page that contains a hash anchor before snap tolerance", function() {
+		let manager = createManagerAtLogicalOffset(0);
+
+		assert.equal(manager.getVerticalRlPageIndexForOffset({
+			left: 455,
+			top: 0
+		}, 780), 1);
 	});
 
 	it("uses the scrollable width when vertical-rl anchor offsets exceed the view width", function() {

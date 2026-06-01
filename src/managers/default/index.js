@@ -370,6 +370,7 @@ class DefaultViewManager {
 		let maxLogicalScroll = this.getMaxLogicalScrollLeft();
 		let targetLeft = Math.max(0, Math.min(contentWidth, Number(offset.left) || 0));
 		let tolerance = this.getPageSnapTolerance();
+		let toleranceMatch = null;
 		let nearestIndex = 0;
 		let nearestDistance = Infinity;
 
@@ -378,8 +379,12 @@ class DefaultViewManager {
 			let physicalStart = Math.max(0, Math.min(maxPhysicalStart, maxPhysicalStart - logicalOffset));
 			let physicalEnd = Math.min(contentWidth, physicalStart + visiblePageWidth);
 
-			if (targetLeft >= physicalStart - tolerance && targetLeft <= physicalEnd + tolerance) {
+			if (targetLeft >= physicalStart && targetLeft <= physicalEnd) {
 				return i;
+			}
+
+			if (toleranceMatch === null && targetLeft >= physicalStart - tolerance && targetLeft <= physicalEnd + tolerance) {
+				toleranceMatch = i;
 			}
 
 			let distance = targetLeft < physicalStart
@@ -390,6 +395,10 @@ class DefaultViewManager {
 				nearestDistance = distance;
 				nearestIndex = i;
 			}
+		}
+
+		if (toleranceMatch !== null) {
+			return toleranceMatch;
 		}
 
 		return nearestIndex;
@@ -1811,7 +1820,10 @@ class DefaultViewManager {
 		let maxScroll = this.getMaxLogicalScrollLeft();
 		let sequentialBoundaryConstraint = null;
 		let logicalOffsetCacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
-		let cachedLogicalOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey);
+		let ignoreCachedLogicalOffset = Boolean(options && options.ignoreCachedLogicalOffset);
+		let cachedLogicalOffset = ignoreCachedLogicalOffset
+			? null
+			: this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey);
 		if (this.isRtlVerticalPaginated() && targetIndex > 0) {
 			let forcedRightBoundary = Number(options && options.sequentialRightBoundary);
 			if (Number.isFinite(forcedRightBoundary) && forcedRightBoundary > 0) {
