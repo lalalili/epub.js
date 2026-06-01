@@ -12,6 +12,22 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0032
+- Why:
+  - The low-risk `Views` collection cleanup and script-stripping tests do not depend on pagination, EPUB loading, CFI, request/archive behavior, or iframe layout.
+  - The remaining viewport-filling media page test still covers paginated horizontal sizing, so it stays on the legacy Karma gate until rendering/layout coverage is migrated deliberately.
+- Diff Scope:
+  - `test/views.js`: keep only the viewport-filling single media page legacy Karma test.
+  - `test/browser/views.test.js`: add equivalent Vitest Browser Mode coverage for collection cleanup and script stripping.
+- Test:
+  - `npm test`
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vitest Browser DOM collection behavior or script-stripping module resolution differs from the legacy Karma bundle.
+
 ### P-0031
 - Why:
   - Vitest Browser Mode now owns the migrated low-risk browser tests, so the default `npm test` gate should include it instead of only running the legacy Karma suite.
