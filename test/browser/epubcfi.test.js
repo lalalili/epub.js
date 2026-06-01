@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 import EpubCFI from "../../src/epubcfi.js";
+import chapterHighlights from "../fixtures/chapter1-highlights.xhtml?raw";
+
+function parseXhtml(markup) {
+	return new DOMParser().parseFromString(markup, "application/xhtml+xml");
+}
 
 describe("EpubCFI", () => {
 	it("parses a cfi on init", () => {
@@ -115,6 +120,43 @@ describe("EpubCFI", () => {
 				"epubcfi(/6/16!/4/12/1:0)",
 				"epubcfi(/6/16!/4/12/2/1:9)"
 			)).toBe(-1);
+		});
+	});
+
+	describe("#fromNode()", () => {
+		var base = "/6/4[chap01ref]";
+		var doc = parseXhtml(chapterHighlights);
+
+		it("gets a cfi from a p node", () => {
+			var span = doc.getElementById("c001p0004");
+			var cfi = new EpubCFI(span, base);
+
+			expect(span.nodeType).toBe(Node.ELEMENT_NODE);
+			expect(cfi.toString()).toBe("epubcfi(/6/4[chap01ref]!/4/2/10/2[c001p0004])");
+		});
+
+		it("gets a cfi from a text node", () => {
+			var t = doc.getElementById("c001p0004").childNodes[0];
+			var cfi = new EpubCFI(t, base);
+
+			expect(t.nodeType).toBe(Node.TEXT_NODE);
+			expect(cfi.toString()).toBe("epubcfi(/6/4[chap01ref]!/4/2/10/2[c001p0004]/1)");
+		});
+
+		it("gets a cfi from a text node inside a highlight", () => {
+			var t = doc.getElementById("highlight-1").childNodes[0];
+			var cfi = new EpubCFI(t, base, "annotator-hl");
+
+			expect(t.nodeType).toBe(Node.TEXT_NODE);
+			expect(cfi.toString()).toBe("epubcfi(/6/4[chap01ref]!/4/2/32/2[c001p0017]/1)");
+		});
+
+		it("gets a cfi from a highlight node", () => {
+			var t = doc.getElementById("highlight-1");
+			var cfi = new EpubCFI(t, base, "annotator-hl");
+
+			expect(t.nodeType).toBe(Node.ELEMENT_NODE);
+			expect(cfi.toString()).toBe("epubcfi(/6/4[chap01ref]!/4/2/32/2[c001p0017])");
 		});
 	});
 });

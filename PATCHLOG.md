@@ -12,6 +12,22 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0040
+- Why:
+  - After P-0039, the remaining EpubCFI legacy tests are DOM node and Range conversion coverage. `fromNode()` is the smallest DOM fixture slice and does not create browser Range objects.
+  - Moving it first keeps the CFI migration incremental while leaving `fromRange()` and `toRange()` on Karma until their Range behavior is migrated separately.
+- Diff Scope:
+  - `test/epubcfi.js`: remove the legacy Karma/Mocha `EpubCFI#fromNode()` tests.
+  - `test/browser/epubcfi.test.js`: add equivalent Vitest Browser Mode coverage using Vite's `?raw` XHTML fixture import.
+- Test:
+  - `npm test`
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vitest Browser DOM parsing changes `EpubCFI#fromNode()` output compared with the legacy Karma/raw-loader fixture path.
+
 ### P-0039
 - Why:
   - `test/epubcfi.js` mixes low-risk string/parser comparisons with higher-risk DOM fixture and Range conversion behavior.

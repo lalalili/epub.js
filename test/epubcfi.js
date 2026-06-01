@@ -6,54 +6,6 @@ if (typeof DOMParser === "undefined") {
 }
 
 describe('EpubCFI', function() {
-	describe('#fromNode()', function() {
-		var base = "/6/4[chap01ref]";
-		// var contents = fs.readFileSync(__dirname + '/fixtures/chapter1-highlights.xhtml', 'utf8');
-		var contents = require('./fixtures/chapter1-highlights.xhtml').default;
-
-		// var serializer = new XMLSerializer();
-		// var doc = serializer.serializeToString(contents);
-		var doc = new DOMParser().parseFromString(contents, "application/xhtml+xml");
-
-		it('get a cfi from a p node', function() {
-			var span = doc.getElementById('c001p0004');
-			var cfi = new EpubCFI(span, base);
-
-			assert.equal(span.nodeType, Node.ELEMENT_NODE, "provided a element node");
-			assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/4/2/10/2[c001p0004])" );
-
-		});
-
-		it('get a cfi from a text node', function() {
-			var t = doc.getElementById('c001p0004').childNodes[0];
-			var cfi = new EpubCFI(t, base);
-
-			assert.equal(t.nodeType, Node.TEXT_NODE, "provided a text node");
-			assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/4/2/10/2[c001p0004]/1)" );
-
-
-		});
-
-		it('get a cfi from a text node inside a highlight', function() {
-			var t = doc.getElementById('highlight-1').childNodes[0];
-			var cfi = new EpubCFI(t, base, 'annotator-hl');
-
-			assert.equal(t.nodeType, Node.TEXT_NODE, "provided a text node");
-			assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/4/2/32/2[c001p0017]/1)" );
-
-		});
-
-		it('get a cfi from a highlight node', function() {
-			var t = doc.getElementById('highlight-1');
-			var cfi = new EpubCFI(t, base, 'annotator-hl');
-
-			assert.equal(t.nodeType, Node.ELEMENT_NODE, "provided a highlight node");
-			assert.equal( cfi.toString(), "epubcfi(/6/4[chap01ref]!/4/2/32/2[c001p0017])" );
-
-		});
-
-	});
-
 	describe('#fromRange()', function() {
 		var base = "/6/4[chap01ref]";
 
