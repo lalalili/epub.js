@@ -12,6 +12,21 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0022
+- Why:
+  - Future test additions should move to Vitest Browser Mode, while the existing Karma suite remains the legacy regression gate until equivalent coverage is migrated.
+  - CI and docs should name the legacy Karma gate explicitly instead of treating it as the long-term default test target.
+- Diff Scope:
+  - `package.json`: add `npm run test:legacy` as the explicit Karma suite; keep `npm test` unchanged for compatibility.
+  - `.github/workflows/ci.yml`: run the legacy Karma suite through `npm run test:legacy`.
+  - `README.md`: document the Vitest-first rule for new browser tests and the temporary Karma legacy role.
+- Test:
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm test`
+- Rollback:
+  - Revert this patch if downstream automation requires CI to call `npm test` directly; the underlying Karma command is unchanged.
+
 ### P-0021
 - Why:
   - Continue the F+ architecture split by creating a small `compat` boundary for browser CSS compatibility behavior.

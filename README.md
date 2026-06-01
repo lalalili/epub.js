@@ -141,16 +141,28 @@ prefer local examples and Aitehub reader regression cases.
 
 ## Testing
 
-Run the full Karma test suite:
+Run the legacy Karma regression suite:
 
 ```sh
 npm test
 ```
 
+`npm test` intentionally remains an alias for the legacy Karma suite during the
+transition. New browser tests should use Vitest Browser Mode:
+
+```sh
+npm run test:browser
+```
+
+Add new tests under `test/browser/**/*.test.js` unless the test depends on a
+Karma-only fixture/proxy behavior that has not been migrated yet. Keep existing
+Karma tests as regression coverage until their fixture, rendering, and layout
+paths have equivalent Vitest coverage.
+
 Run focused browser tests with Mocha grep:
 
 ```sh
-npx karma start --single-run --browsers ChromeHeadlessNoSandbox --grep "vertical-rl"
+npm run test:legacy -- --grep "vertical-rl"
 ```
 
 Before cutting a fork release, run:
@@ -161,7 +173,7 @@ npm run compile
 npm run build
 npm run docs:md
 npm run test:browser
-npm test
+npm run test:legacy
 npm audit
 npm audit --omit=dev
 ```

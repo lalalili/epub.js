@@ -28,6 +28,7 @@
   },
   "scripts": {
     "test": "karma start --single-run --browsers ChromeHeadlessNoSandbox",
+    "test:legacy": "karma start --single-run --browsers ChromeHeadlessNoSandbox",
     "test:browser": "vitest run --config vitest.browser.config.mjs",
     "docs": "npm run docs:md",
     "docs:html": "typedoc --options typedoc.html.json",

@@ -43,5 +43,5 @@ jobs:
       - name: Browser Test
         run: npm run test:browser
 
-      - name: Test
-        run: npm test
+      - name: Legacy Karma Test
+        run: npm run test:legacy
