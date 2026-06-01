@@ -12,6 +12,21 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0024
+- Why:
+  - `test/core.js` covers URL and path helpers without Karma-only fixtures, proxies, or rendering behavior, so it is a good next target for the Vitest-first migration.
+  - Moving these assertions reduces the legacy Karma surface while preserving the skipped known URL/path edge case.
+- Diff Scope:
+  - `test/core.js`: remove the Karma/Mocha version of URL and path helper tests.
+  - `test/browser/core.test.js`: add equivalent Vitest Browser Mode coverage.
+- Test:
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vite dependency resolution for `path-webpack` differs from the legacy Karma/webpack path.
+
 ### P-0023
 - Why:
   - The Vitest-first rule should apply to the new low-risk platform and compatibility smoke tests added during the F+ split.
