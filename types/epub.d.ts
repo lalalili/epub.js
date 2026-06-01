@@ -6,7 +6,7 @@ import * as coreUtils from "./utils/core";
 
 export default Epub;
 
-declare function Epub(urlOrData: string | ArrayBuffer, options?: BookOptions) : BookClass;
+declare function Epub(urlOrData: string | ArrayBuffer | Blob, options?: BookOptions) : BookClass;
 declare function Epub(options?: BookOptions) : BookClass;
 
 declare namespace Epub {

@@ -12,6 +12,20 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0017
+- Why:
+  - Core declarations still typed `requestCredentials` as `object`, treated custom request methods as generic functions, and returned the global `JSON` object type for parsed JSON responses.
+  - `Book`, `Rendition`, and `request` should expose a stronger public contract before the next release tag is consumed by Aitehub.
+- Diff Scope:
+  - `types/utils/request.d.ts`: add request type/header/response aliases and overloads for binary, blob, JSON, XML, XHTML, and fallback requests.
+  - `types/book.d.ts`: use `RequestMethod`, `RequestHeaders`, and `RequestResponse`; allow Blob input where runtime already supports it.
+  - `types/rendition.d.ts`: align `attachTo`, `currentLocation`, and `resize` signatures with runtime behavior.
+  - `types/epub.d.ts` / `types/epubjs-tests.ts`: cover Blob input and the stronger core API types.
+- Test:
+  - `npm run typecheck`
+- Rollback:
+  - Revert this patch if downstream TypeScript consumers need the previous looser request/book/rendition declarations.
+
 ### P-0016
 - Why:
   - The public default `ePub` function exposes static members at runtime (`VERSION`, `Book`, `Rendition`, `Contents`, `CFI`, and `utils`) that were not represented in the TypeScript entry declarations.

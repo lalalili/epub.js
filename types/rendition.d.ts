@@ -71,12 +71,11 @@ export default class Rendition {
 
     adjustImages(contents: Contents): Promise<void>;
 
-    attachTo(element: Element): Promise<void>;
+    attachTo(element: Element | string): Promise<void>;
 
     clear(): void;
 
-    currentLocation(): DisplayedLocation;
-    currentLocation(): Promise<DisplayedLocation>;
+    currentLocation(): Location | Promise<Location>;
 
     destroy(): void;
 
@@ -121,7 +120,7 @@ export default class Rendition {
 
     requireView(view: string | Function | object): any;
 
-    resize(width: number, height: number): void;
+    resize(width?: number | string, height?: number | string, epubcfi?: string): void;
 
     setManager(manager: Function): void;
 

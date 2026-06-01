@@ -17,11 +17,12 @@ import Resources from "./resources";
 import Container from "./container";
 import Packaging from "./packaging";
 import Store from "./store";
+import { RequestHeaders, RequestMethod, RequestResponse } from "./utils/request";
 
 export interface BookOptions {
-  requestMethod?: (url: string, type: string, withCredentials: object, headers: object) => Promise<object>;
-  requestCredentials?: object,
-  requestHeaders?: object,
+  requestMethod?: RequestMethod;
+  requestCredentials?: boolean,
+  requestHeaders?: RequestHeaders,
   encoding?: string,
   replacements?: string,
   canonical?: (path: string) => string,
@@ -30,7 +31,7 @@ export interface BookOptions {
 }
 
 export default class Book {
-    constructor(url: string, options?: BookOptions);
+    constructor(url: string | ArrayBuffer | Blob, options?: BookOptions);
     constructor(options?: BookOptions);
 
     settings: BookOptions;
@@ -47,7 +48,7 @@ export default class Book {
       resources: Promise<string[]>,
     }
     ready: Promise<void>;
-    request: Function;
+    request: RequestMethod;
     spine: Spine;
     locations: Locations;
     navigation: Navigation;
@@ -75,16 +76,16 @@ export default class Book {
 
     key(identifier?: string): string;
 
-    load(path: string): Promise<object>;
+    load(path: string): Promise<RequestResponse>;
 
     loadNavigation(opf: XMLDocument): Promise<Navigation>;
 
-    open(input: string, what?: string): Promise<object>;
-    open(input: ArrayBuffer, what?: string): Promise<object>;
+    open(input: string, what?: string): Promise<Book>;
+    open(input: ArrayBuffer | Blob, what?: string): Promise<Book>;
 
     openContainer(url: string): Promise<string>;
 
-    openEpub(data: BinaryType, encoding?: string): Promise<Book>;
+    openEpub(data: ArrayBuffer | Blob | string, encoding?: string): Promise<Book>;
 
     openManifest(url: string): Promise<Book>;
 
