@@ -12,6 +12,22 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0035
+- Why:
+  - New test coverage should no longer be added to Karma, and the small `ePub()` fixture-open checks can now rely on the Vitest Browser fixture-serving smoke from P-0034.
+  - Moving this first fixture-driven test keeps Karma as a shrinking legacy gate while proving the public `ePub()` constructor path works with Vite-served unpacked and archived EPUB fixtures.
+- Diff Scope:
+  - `test/epub.js`: remove the legacy Karma/Mocha `ePub()` fixture-open checks.
+  - `test/browser/epub.test.js`: add equivalent Vitest Browser Mode coverage using `new URL(..., import.meta.url)` fixture URLs.
+- Test:
+  - `npm test`
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vitest Browser fixture URLs diverge from real browser `ePub()` loading behavior.
+
 ### P-0034
 - Why:
   - Remaining legacy candidates increasingly depend on Karma's `/fixtures/` proxy. Before migrating `Book` / `ePub` fixture-driven tests, Vitest Browser needs an explicit smoke proving unpacked and archived EPUB fixtures are served reliably.
