@@ -12,6 +12,21 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0029
+- Why:
+  - `test/manager-listeners.js` validates listener cleanup and Stage measurement with synthetic DOM objects only, without EPUB loading, request/archive behavior, CFI navigation, iframe contents, or pagination.
+  - Moving it keeps low-risk DOM coverage on the Vitest Browser path while preserving legacy Karma for rendering-heavy tests.
+- Diff Scope:
+  - `test/manager-listeners.js`: remove the Karma/Mocha listener cleanup tests.
+  - `test/browser/manager-listeners.test.js`: add equivalent Vitest Browser Mode coverage.
+- Test:
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vitest Browser event listener stubbing differs from the legacy Karma browser runner.
+
 ### P-0028
 - Why:
   - `test/spine.js` validates package/spine unpack metadata and href lookup from inline OPF XML, without loading EPUB archives, requests, iframe contents, pagination, rendition display, or CFI navigation.

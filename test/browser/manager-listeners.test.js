@@ -1,23 +1,23 @@
-import assert from "assert";
-import ContinuousViewManager from "../src/managers/continuous/index";
-import DefaultViewManager from "../src/managers/default/index";
-import Stage from "../src/managers/helpers/stage";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import ContinuousViewManager from "../../src/managers/continuous/index";
+import DefaultViewManager from "../../src/managers/default/index";
+import Stage from "../../src/managers/helpers/stage";
 
-describe("Manager listener cleanup", function() {
+describe("Manager listener cleanup", () => {
 	let originalAddEventListener;
 	let originalRemoveEventListener;
 
-	beforeEach(function() {
+	beforeEach(() => {
 		originalAddEventListener = window.addEventListener;
 		originalRemoveEventListener = window.removeEventListener;
 	});
 
-	afterEach(function() {
+	afterEach(() => {
 		window.addEventListener = originalAddEventListener;
 		window.removeEventListener = originalRemoveEventListener;
 	});
 
-	it("removes the same DefaultViewManager unload listener it added", function() {
+	it("removes the same DefaultViewManager unload listener it added", () => {
 		let addedUnloadListener;
 		let removedUnloadListener;
 		let manager = Object.create(DefaultViewManager.prototype);
@@ -42,11 +42,11 @@ describe("Manager listener cleanup", function() {
 		manager.addEventListeners();
 		manager.removeEventListeners();
 
-		assert.equal(typeof addedUnloadListener, "function");
-		assert.equal(removedUnloadListener, addedUnloadListener);
+		expect(typeof addedUnloadListener).toBe("function");
+		expect(removedUnloadListener).toBe(addedUnloadListener);
 	});
 
-	it("removes the same ContinuousViewManager unload listener it added", function() {
+	it("removes the same ContinuousViewManager unload listener it added", () => {
 		let addedUnloadListener;
 		let removedUnloadListener;
 		let manager = Object.create(ContinuousViewManager.prototype);
@@ -79,11 +79,11 @@ describe("Manager listener cleanup", function() {
 		manager.addEventListeners();
 		manager.removeEventListeners();
 
-		assert.equal(typeof addedUnloadListener, "function");
-		assert.equal(removedUnloadListener, addedUnloadListener);
+		expect(typeof addedUnloadListener).toBe("function");
+		expect(removedUnloadListener).toBe(addedUnloadListener);
 	});
 
-	it("removes Stage orientationchange listener with the same event name it added", function() {
+	it("removes Stage orientationchange listener with the same event name it added", () => {
 		let removedOrientationListener;
 		let stage = Object.create(Stage.prototype);
 
@@ -104,10 +104,10 @@ describe("Manager listener cleanup", function() {
 
 		stage.destroy();
 
-		assert.equal(removedOrientationListener, stage.orientationChangeFunc);
+		expect(removedOrientationListener).toBe(stage.orientationChangeFunc);
 	});
 
-	it("preserves fractional CSS widths when measuring a stage with fluid width", function() {
+	it("preserves fractional CSS widths when measuring a stage with fluid width", () => {
 		let stage = Object.create(Stage.prototype);
 		let element = document.createElement("div");
 		let container = document.createElement("div");
@@ -137,7 +137,7 @@ describe("Manager listener cleanup", function() {
 
 		let size = stage.size();
 
-		assert.equal(size.width, 1305.6);
-		assert.equal(size.height, 760);
+		expect(size.width).toBe(1305.6);
+		expect(size.height).toBe(760);
 	});
 });
