@@ -160,7 +160,9 @@ npm run typecheck
 npm run compile
 npm run build
 npm run docs:md
+npm run test:browser
 npm test
+npm audit
 npm audit --omit=dev
 ```
 
@@ -169,9 +171,10 @@ npm audit --omit=dev
 must fail if the total error or warning count increases. When lint debt is
 fixed, lower the matching baseline counts in the same change.
 
-Full `npm audit` may report a dev-only `documentation` issue through
-`vue-template-compiler`. Production dependencies must stay clean with
-`npm audit --omit=dev`.
+The fork should keep both full dependency audit and production dependency audit
+clean. `npm run docs:md` is powered by TypeDoc from the public declaration
+entry point, so API documentation reflects the package surface consumed by
+Aitehub.
 
 ## Building for distribution
 
@@ -203,11 +206,17 @@ rolled out.
 
 ## Documentation
 
-Generated API documentation is included at
+Generated TypeDoc API documentation is included at
 [`documentation/md/API.md`](documentation/md/API.md). Regenerate it with:
 
 ```sh
 npm run docs:md
+```
+
+For local HTML browsing, run:
+
+```sh
+npm run docs:html
 ```
 
 Because this fork is maintained for Aitehub integration, fork-specific changes

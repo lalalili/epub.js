@@ -1,0 +1,19 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["types/index.d.ts"],
+  "tsconfig": "tsconfig.json",
+  "out": "documentation/html",
+  "readme": "none",
+  "disableSources": true,
+  "cleanOutputDir": true,
+  "skipErrorChecking": true,
+  "suppressCommentWarningsInDeclarationFiles": true,
+  "validation": {
+    "notExported": false,
+    "invalidLink": true,
+    "invalidPath": true,
+    "rewrittenLink": true,
+    "notDocumented": false,
+    "unusedMergeModuleWith": true
+  }
+}

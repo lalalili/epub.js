@@ -29,9 +29,9 @@
   "scripts": {
     "test": "karma start --single-run --browsers ChromeHeadlessNoSandbox",
     "test:browser": "vitest run --config vitest.browser.config.mjs",
-    "docs": "documentation build src/epub.js -f html -o documentation/html/",
-    "docs:html": "documentation build src/epub.js -f html -o documentation/html/",
-    "docs:md": "documentation build src/epub.js -f md -o documentation/md/API.md",
+    "docs": "npm run docs:md",
+    "docs:html": "typedoc --options typedoc.html.json",
+    "docs:md": "typedoc --options typedoc.json",
     "lint": "node scripts/check-eslint-baseline.mjs",
     "start": "vite --host localhost --port 8080",
     "build": "npm run build:modules && npm run build:umd && npm run build:umd:min && npm run build:clean",
@@ -52,7 +52,6 @@
   "license": "BSD-2-Clause",
   "overrides": {
     "diff": "^8.0.3",
-    "minimatch": "^3.1.5",
     "serialize-javascript": "^7.0.5",
     "tmp": "^0.2.6",
     "uuid": "^11.1.1"
@@ -64,7 +63,6 @@
     "@babel/runtime": "^7.29.7",
     "@vitest/browser-playwright": "^4.1.7",
     "babel-loader": "^9.2.0",
-    "documentation": "^14.0.3",
     "eslint": "^8.57.1",
     "karma": "^6.4.4",
     "karma-chrome-launcher": "^3.2.0",
@@ -76,6 +74,8 @@
     "playwright": "^1.60.0",
     "raw-loader": "^4.0.2",
     "terser-webpack-plugin": "^5.6.1",
+    "typedoc": "^0.28.19",
+    "typedoc-plugin-markdown": "^4.11.0",
     "typescript": "^6.0.3",
     "vite": "^8.0.15",
     "vitest": "^4.1.7",

@@ -37,6 +37,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Docs
+        run: npm run docs:md
+
       - name: Browser Test
         run: npm run test:browser
 
