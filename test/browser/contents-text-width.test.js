@@ -1,11 +1,11 @@
-import assert from "assert";
-import Contents from "../src/contents";
+import { afterEach, describe, expect, it } from "vitest";
+import Contents from "../../src/contents";
 
-describe("Contents textWidth", function() {
+describe("Contents textWidth", () => {
 	let fixtures = [];
 
-	afterEach(function() {
-		fixtures.forEach(function(fixture) {
+	afterEach(() => {
+		fixtures.forEach((fixture) => {
 			if (fixture.parentNode) {
 				fixture.parentNode.removeChild(fixture);
 			}
@@ -22,7 +22,17 @@ describe("Contents textWidth", function() {
 		return content;
 	}
 
-	it("ignores off-screen absolute title text when measuring horizontal width", function() {
+	function restoreDescriptors(descriptors) {
+		descriptors.forEach(([target, property, descriptor]) => {
+			if (descriptor) {
+				Object.defineProperty(target, property, descriptor);
+			} else {
+				delete target[property];
+			}
+		});
+	}
+
+	it("ignores off-screen absolute title text when measuring horizontal width", () => {
 		let content = appendFixture(document.createElement("div"));
 		content.style.width = "1062px";
 		content.style.height = "709px";
@@ -49,16 +59,16 @@ describe("Contents textWidth", function() {
 
 		let range = document.createRange();
 		range.selectNodeContents(content);
-		assert.ok(range.getBoundingClientRect().width > 10000);
+		expect(range.getBoundingClientRect().width).toBeGreaterThan(10000);
 
 		let contents = new Contents(document, content);
 		let width = contents.textWidth();
 
-		assert.ok(width >= 1062);
-		assert.ok(width < 2000);
+		expect(width).toBeGreaterThanOrEqual(1062);
+		expect(width).toBeLessThan(2000);
 	});
 
-	it("preserves normal wide horizontal content width", function() {
+	it("preserves normal wide horizontal content width", () => {
 		let content = appendFixture(document.createElement("div"));
 		content.style.width = "300px";
 		content.style.height = "200px";
@@ -71,19 +81,19 @@ describe("Contents textWidth", function() {
 
 		let contents = new Contents(document, content);
 
-		assert.ok(contents.textWidth() >= 900);
+		expect(contents.textWidth()).toBeGreaterThanOrEqual(900);
 	});
 
-	it("ignores an empty force-even spread when body content fits one page", function() {
+	it("ignores an empty force-even spread when body content fits one page", () => {
 		let content = appendFixture(document.createElement("div"));
 		content.style.width = "1062px";
 		content.style.height = "709px";
 
 		let originalCreateRange = document.createRange.bind(document);
-		document.createRange = function() {
+		document.createRange = () => {
 			return {
-				selectNodeContents: function() {},
-				getBoundingClientRect: function() {
+				selectNodeContents: () => {},
+				getBoundingClientRect: () => {
 					return {
 						left: 0,
 						right: 2124,
@@ -92,22 +102,20 @@ describe("Contents textWidth", function() {
 						bottom: 709
 					};
 				},
-				getClientRects: function() {
-					return [];
-				}
+				getClientRects: () => []
 			};
 		};
 
 		try {
 			let contents = new Contents(document, content);
 
-			assert.equal(contents.textWidth(), 1062);
+			expect(contents.textWidth()).toBe(1062);
 		} finally {
 			document.createRange = originalCreateRange;
 		}
 	});
 
-	it("uses body scroll width when range width only exceeds a one-page viewport by body sizing", function() {
+	it("uses body scroll width when range width only exceeds a one-page viewport by body sizing", () => {
 		let content = appendFixture(document.createElement("div"));
 		content.style.width = "1062px";
 		content.style.height = "709px";
@@ -124,10 +132,10 @@ describe("Contents textWidth", function() {
 		Object.defineProperty(content, "scrollWidth", { configurable: true, value: 1062 });
 		Object.defineProperty(document.body, "scrollWidth", { configurable: true, value: 1062 });
 		Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: 1062 });
-		document.createRange = function() {
+		document.createRange = () => {
 			return {
-				selectNodeContents: function() {},
-				getBoundingClientRect: function() {
+				selectNodeContents: () => {},
+				getBoundingClientRect: () => {
 					return {
 						left: 0,
 						right: 1150,
@@ -136,29 +144,21 @@ describe("Contents textWidth", function() {
 						bottom: 709
 					};
 				},
-				getClientRects: function() {
-					return [];
-				}
+				getClientRects: () => []
 			};
 		};
 
 		try {
 			let contents = new Contents(document, content);
 
-			assert.equal(contents.textWidth(), 1062);
+			expect(contents.textWidth()).toBe(1062);
 		} finally {
 			document.createRange = originalCreateRange;
-			descriptors.forEach(function([target, property, descriptor]) {
-				if (descriptor) {
-					Object.defineProperty(target, property, descriptor);
-				} else {
-					delete target[property];
-				}
-			});
+			restoreDescriptors(descriptors);
 		}
 	});
 
-	it("does not add horizontal body padding as a second page when content fits one page", function() {
+	it("does not add horizontal body padding as a second page when content fits one page", () => {
 		let content = appendFixture(document.createElement("div"));
 		content.style.width = "1062px";
 		content.style.height = "709px";
@@ -175,10 +175,10 @@ describe("Contents textWidth", function() {
 		Object.defineProperty(content, "scrollWidth", { configurable: true, value: 1062 });
 		Object.defineProperty(document.body, "scrollWidth", { configurable: true, value: 1062 });
 		Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: 1062 });
-		document.createRange = function() {
+		document.createRange = () => {
 			return {
-				selectNodeContents: function() {},
-				getBoundingClientRect: function() {
+				selectNodeContents: () => {},
+				getBoundingClientRect: () => {
 					return {
 						left: 0,
 						right: 1062,
@@ -187,29 +187,21 @@ describe("Contents textWidth", function() {
 						bottom: 709
 					};
 				},
-				getClientRects: function() {
-					return [];
-				}
+				getClientRects: () => []
 			};
 		};
 
 		try {
 			let contents = new Contents(document, content);
 
-			assert.equal(contents.textWidth(), 1062);
+			expect(contents.textWidth()).toBe(1062);
 		} finally {
 			document.createRange = originalCreateRange;
-			descriptors.forEach(function([target, property, descriptor]) {
-				if (descriptor) {
-					Object.defineProperty(target, property, descriptor);
-				} else {
-					delete target[property];
-				}
-			});
+			restoreDescriptors(descriptors);
 		}
 	});
 
-	it("detects viewport-filling single media pages", function() {
+	it("detects viewport-filling single media pages", () => {
 		let content = appendFixture(document.createElement("div"));
 		content.style.width = "116639px";
 		content.style.height = "761px";
@@ -219,7 +211,7 @@ describe("Contents textWidth", function() {
 		image.style.display = "block";
 		image.style.position = "absolute";
 		image.style.objectFit = "contain";
-		image.getBoundingClientRect = function() {
+		image.getBoundingClientRect = () => {
 			return {
 				left: 0,
 				right: 116639,
@@ -242,19 +234,13 @@ describe("Contents textWidth", function() {
 		try {
 			let contents = new Contents(document, content);
 
-			assert.equal(contents.isViewportFillingSingleMediaPage(1296), true);
+			expect(contents.isViewportFillingSingleMediaPage(1296)).toBe(true);
 		} finally {
-			descriptors.forEach(function([target, property, descriptor]) {
-				if (descriptor) {
-					Object.defineProperty(target, property, descriptor);
-				} else {
-					delete target[property];
-				}
-			});
+			restoreDescriptors(descriptors);
 		}
 	});
 
-	it("detects viewport-filling svg image pages as one media item", function() {
+	it("detects viewport-filling svg image pages as one media item", () => {
 		let content = appendFixture(document.createElement("div"));
 		content.style.width = "116639px";
 		content.style.height = "761px";
@@ -264,7 +250,7 @@ describe("Contents textWidth", function() {
 		svg.style.display = "block";
 		svg.style.position = "absolute";
 		svg.style.objectFit = "contain";
-		svg.getBoundingClientRect = function() {
+		svg.getBoundingClientRect = () => {
 			return {
 				left: 0,
 				right: 116639,
@@ -277,7 +263,7 @@ describe("Contents textWidth", function() {
 
 		let image = document.createElementNS("http://www.w3.org/2000/svg", "image");
 		image.style.display = "block";
-		image.getBoundingClientRect = function() {
+		image.getBoundingClientRect = () => {
 			return {
 				left: 58025,
 				right: 58613,
@@ -302,15 +288,9 @@ describe("Contents textWidth", function() {
 		try {
 			let contents = new Contents(document, content);
 
-			assert.equal(contents.isViewportFillingSingleMediaPage(1296), true);
+			expect(contents.isViewportFillingSingleMediaPage(1296)).toBe(true);
 		} finally {
-			descriptors.forEach(function([target, property, descriptor]) {
-				if (descriptor) {
-					Object.defineProperty(target, property, descriptor);
-				} else {
-					delete target[property];
-				}
-			});
+			restoreDescriptors(descriptors);
 		}
 	});
 });

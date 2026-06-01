@@ -12,6 +12,22 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-01
 
+### P-0045
+- Why:
+  - `test/contents-text-width.js` covers synthetic `Contents#textWidth()` and single-media detection DOM measurements. It exercises browser range/layout APIs but does not load EPUB content, render reader iframes, navigate pagination, or touch CFI/request/archive paths.
+  - Moving it leaves Karma focused on the high-risk `vertical-rl-manager` pagination regression suite while continuing the no-new-Karma test modernization path.
+- Diff Scope:
+  - `test/contents-text-width.js`: remove the legacy Karma/Mocha Contents text width tests.
+  - `test/browser/contents-text-width.test.js`: add equivalent Vitest Browser Mode coverage.
+- Test:
+  - `npm test`
+  - `npm run test:browser`
+  - `npm run test:legacy`
+  - `npm run typecheck`
+  - `npm run lint`
+- Rollback:
+  - Revert this patch if Vitest Browser DOM range/layout measurement diverges from the legacy Karma runner for `Contents#textWidth()` or single-media detection.
+
 ### P-0044
 - Why:
   - `test/views.js` only covers one synthetic `IframeView#expand()` case for viewport-filling single media pages. It does not load EPUB content, perform iframe rendering, paginate real text, or touch CFI/request/archive paths.
