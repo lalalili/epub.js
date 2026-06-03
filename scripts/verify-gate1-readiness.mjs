@@ -91,6 +91,10 @@ assert(typeTests.includes("archive.handleResponse(\"{\\\"ok\\\":true}\", \"json\
 assert(typeTests.includes("type PackagingAssertions"), "type tests must assert the Packaging public surface");
 assert(typeTests.includes("new Packaging()"), "type tests must cover Packaging construction without a document");
 assert(typeTests.includes("packaging.load(packagingJson)"), "type tests must cover Packaging JSON manifest loading");
+assert(typeTests.includes("type PageListAssertions"), "type tests must assert the PageList public surface");
+assert(typeTests.includes("new PageList()"), "type tests must cover PageList construction without a document");
+assert(typeTests.includes("pageList.process(pageListItems)"), "type tests must cover PageList item processing");
+assert(typeTests.includes("pageList.pageFromCfi"), "type tests must cover PageList CFI lookup typing");
 assert(typeTests.includes("type ResourcesAssertions"), "type tests must assert the Resources public surface");
 assert(typeTests.includes("new Resources(resourceManifest, resourceOptions)"), "type tests must cover Resources options typing");
 assert(typeTests.includes("resources.get(\"Images/cover.jpg\")"), "type tests must cover Resources get replacement typing");

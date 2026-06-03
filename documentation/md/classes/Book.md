@@ -136,7 +136,7 @@
 
 ### pageList?
 
-> `optional` **pageList?**: `Pagelist`
+> `optional` **pageList?**: `PageList`
 
 ***
 

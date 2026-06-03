@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0272
+- Why:
+  - P-0271 aligned `Store` declarations with runtime behavior, leaving `PageList` as the next public typed surface before moving into higher-risk `Locations` / CFI-heavy declaration work.
+  - `PageList` is already TypeScript source, but its declaration still required constructor XML, hid public page-map state, omitted NCX/parser helpers, treated missing page/CFI lookups as always present, and did not model destroy-cleared state.
+  - Aligning `PageList` declarations lets consumers type-check EPUB 3 / NCX page-list parsing, page/href/CFI lookup maps, percentage helpers, optional document construction, and cleanup behavior before broader release or host gates.
+- Diff Scope:
+  - `types/pagelist.d.ts`: align page-list item/document/value types, public state fields, optional constructor, parser/helper methods, lookup fallbacks, percentage helpers, and destroy behavior with the TypeScript source behavior.
+  - `types/epubjs-tests.ts`: add `PageListAssertions` plus concrete construction, parse, process, page/href/CFI lookup, and percentage helper typing checks.
+  - `scripts/verify-gate1-readiness.mjs`: require the PageList typed public API assertions and constructor/process/CFI lookup coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/pagelist.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `PageList` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0271
 - Why:
   - P-0270 aligned `Resources` declarations with runtime behavior, leaving `Store` as the next low-risk resource-cache typed public API gap before moving into higher-risk location/CFI surfaces.

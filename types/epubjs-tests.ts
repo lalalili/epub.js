@@ -13,6 +13,7 @@ import Packaging, {
   PackagingSpineItem,
   PackagingTocItem,
 } from './packaging';
+import PageList, { PageListItem, PageValue } from './pagelist';
 import type { Location, RenditionOptions } from './rendition';
 import Resources, {
   ReplacementMode,
@@ -180,6 +181,33 @@ type PackagingAssertions = [
   Assert<IsExact<ReturnType<Packaging["getElementText"]>, string>>,
   Assert<IsExact<ReturnType<Packaging["getPropertyText"]>, string>>,
   Assert<IsExact<ReturnType<Packaging["destroy"]>, void>>
+];
+
+type PageListAssertions = [
+  Assert<IsExact<ConstructorParameters<typeof PageList>, [xml?: Document | XMLDocument | undefined]>>,
+  Assert<IsExact<PageList["pages"], PageValue[] | undefined>>,
+  Assert<IsExact<PageList["locations"], string[] | undefined>>,
+  Assert<IsExact<PageList["hrefs"], string[] | undefined>>,
+  Assert<IsExact<PageList["hrefByPage"], Record<string, string> | undefined>>,
+  Assert<IsExact<PageList["pageByHref"], Record<string, PageValue> | undefined>>,
+  Assert<IsExact<PageList["firstPage"], number>>,
+  Assert<IsExact<PageList["lastPage"], number>>,
+  Assert<IsExact<PageList["totalPages"], number>>,
+  Assert<IsExact<PageList["pageList"], PageListItem[] | undefined>>,
+  Assert<IsExact<ReturnType<PageList["parse"]>, PageListItem[] | undefined>>,
+  Assert<IsExact<ReturnType<PageList["parseNav"]>, PageListItem[]>>,
+  Assert<IsExact<ReturnType<PageList["parseNcx"]>, PageListItem[]>>,
+  Assert<IsExact<ReturnType<PageList["item"]>, PageListItem>>,
+  Assert<IsExact<ReturnType<PageList["ncxItem"]>, PageListItem>>,
+  Assert<IsExact<ReturnType<PageList["process"]>, void>>,
+  Assert<IsExact<ReturnType<PageList["pageFromCfi"]>, PageValue | -1>>,
+  Assert<IsExact<ReturnType<PageList["cfiFromPage"]>, string | -1>>,
+  Assert<IsExact<ReturnType<PageList["hrefFromPage"]>, string | undefined>>,
+  Assert<IsExact<ReturnType<PageList["pageFromHref"]>, PageValue | undefined>>,
+  Assert<IsExact<ReturnType<PageList["pageFromPercentage"]>, number>>,
+  Assert<IsExact<ReturnType<PageList["percentageFromPage"]>, number>>,
+  Assert<IsExact<ReturnType<PageList["percentageFromCfi"]>, number>>,
+  Assert<IsExact<ReturnType<PageList["destroy"]>, void>>
 ];
 
 type ResourcesAssertions = [
@@ -362,6 +390,22 @@ function testEpub() {
   const packagingManifestItem: PackagingManifestItem | undefined = loadedPackaging.manifest[0];
   const packagingMetadataTitle: string | undefined = loadedPackaging.metadata.title;
   const packagingTocItem: PackagingTocItem | undefined = loadedPackaging.toc?.[0];
+  const pageListItems: PageListItem[] = [{
+    page: "1",
+    href: "Text/chapter.xhtml#page-1",
+    cfi: "epubcfi(/6/2[chap]!/4/2/2)",
+    packageUrl: "package.opf",
+  }];
+  const pageList = new PageList();
+  const parsedPageList: PageListItem[] | undefined = pageList.parse(parsedDocument);
+  const loadedPageList: void = pageList.process(pageListItems);
+  const pageFromCfi: PageValue | -1 = pageList.pageFromCfi("epubcfi(/6/2[chap]!/4/2/2)");
+  const cfiFromPage: string | -1 = pageList.cfiFromPage("1");
+  const hrefFromPage: string | undefined = pageList.hrefFromPage("1");
+  const pageFromHref: PageValue | undefined = pageList.pageFromHref("Text/chapter.xhtml#page-1");
+  const pageFromPercentage: number = pageList.pageFromPercentage(0.5);
+  const percentageFromPage: number = pageList.percentageFromPage(1);
+  const percentageFromCfi: number = pageList.percentageFromCfi("epubcfi(/6/2[chap]!/4/2/2)");
   const resourceManifest: ResourceManifest = {
     chapter: {
       href: "Text/chapter.xhtml",
@@ -492,6 +536,15 @@ function testEpub() {
   void packagingManifestItem;
   void packagingMetadataTitle;
   void packagingTocItem;
+  void parsedPageList;
+  void loadedPageList;
+  void pageFromCfi;
+  void cfiFromPage;
+  void hrefFromPage;
+  void pageFromHref;
+  void pageFromPercentage;
+  void percentageFromPage;
+  void percentageFromCfi;
   void resourceUrl;
   void resourceReplacements;
   void resourceCssReplacements;
@@ -521,6 +574,7 @@ type _SectionAssertions = SectionAssertions;
 type _SpineAssertions = SpineAssertions;
 type _ArchiveAssertions = ArchiveAssertions;
 type _PackagingAssertions = PackagingAssertions;
+type _PageListAssertions = PageListAssertions;
 type _ResourcesAssertions = ResourcesAssertions;
 type _StoreAssertions = StoreAssertions;
 

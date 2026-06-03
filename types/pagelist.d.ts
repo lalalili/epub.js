@@ -1,33 +1,61 @@
+import EpubCFI from "./epubcfi";
+
+export type PageValue = string | number;
+
+export type PageLookup = Record<string, string>;
+
+export type PageReverseLookup = Record<string, PageValue>;
+
+export type PageListDocument = Document | XMLDocument;
+
 export interface PageListItem {
-  href: string,
-  page: string | number,
-  cfi?: string,
-  packageUrl?: string
+  href?: string;
+  page: PageValue;
+  cfi?: string | false;
+  packageUrl?: string;
 }
 
-export default class Pagelist {
-  constructor(xml: XMLDocument);
+export default class PageList {
+  pages?: PageValue[];
+  locations?: string[];
+  hrefs?: string[];
+  hrefByPage?: PageLookup;
+  pageByHref?: PageReverseLookup;
+  epubcfi?: EpubCFI;
+  firstPage: number;
+  lastPage: number;
+  totalPages: number;
+  toc?: unknown;
+  ncx?: unknown;
+  pageList?: PageListItem[];
 
-  parse(xml: XMLDocument): Array<PageListItem>;
+  constructor(xml?: PageListDocument);
 
-  pageFromCfi(cfi: string): string | number;
+  parse(xml: PageListDocument): PageListItem[] | undefined;
 
-  cfiFromPage(pg: string | number): string;
+  parseNav(navHtml: PageListDocument): PageListItem[];
 
-  hrefFromPage(pg: string | number): string | undefined;
+  parseNcx(navXml: PageListDocument): PageListItem[];
 
-  pageFromHref(href: string): string | number | undefined;
+  ncxItem(item: Element): PageListItem;
+
+  item(item: Element): PageListItem;
+
+  process(pageList: PageListItem[]): void;
+
+  pageFromCfi(cfi: string): PageValue | -1;
+
+  cfiFromPage(pg: PageValue): string | -1;
+
+  hrefFromPage(pg: PageValue): string | undefined;
+
+  pageFromHref(href: string): PageValue | undefined;
 
   pageFromPercentage(percent: number): number;
 
   percentageFromPage(pg: number): number;
 
+  percentageFromCfi(cfi: string): number;
+
   destroy(): void;
-
-  private parseNav(navHtml: Node): Array<PageListItem>;
-
-  private item(item: Node): PageListItem;
-
-  private process(pageList: Array<PageListItem>): void;
-
 }
