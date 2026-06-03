@@ -1,12 +1,17 @@
-import Section from "../section";
-import Contents from "../contents";
+export type LinkCallback = (href: string) => void;
 
-export function replaceBase(doc: Document, section: Section): void;
+export interface SectionLike {
+  canonical?: string;
+  idref?: string;
+  url?: string;
+}
 
-export function replaceCanonical(doc: Document, section: Section): void;
+export function replaceBase(doc?: Document, section?: SectionLike): void;
 
-export function replaceMeta(doc: Document, section: Section): void;
+export function replaceCanonical(doc?: Document, section?: SectionLike): void;
 
-export function replaceLinks(contents: Contents, fn: Function): void;
+export function replaceMeta(doc?: Document, section?: SectionLike): void;
 
-export function substitute(contents: Contents, urls: string[], replacements: string[]): void;
+export function replaceLinks(contents: Element, fn: LinkCallback, sectionHref?: string): void;
+
+export function substitute(content: string, urls: string[], replacements: string[]): string;

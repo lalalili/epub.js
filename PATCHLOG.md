@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0282
+- Why:
+  - P-0281 aligned `Url` declarations with runtime behavior, leaving `utils/replacements` as the next low-risk utility typed public API gap.
+  - The replacements helpers are already TypeScript source and browser-covered, but the declaration still required full `Section` / `Contents` instances, hid link callback and section-like shapes, omitted the optional `sectionHref`, and declared `substitute()` as returning `void` even though runtime returns the substituted string.
+  - Aligning these declarations lets consumers type-check content hook replacement helpers, element-based link rewriting, section-scoped hash links, and resource URL substitution before any release tag or host gate.
+- Diff Scope:
+  - `types/utils/replacements.d.ts`: add `LinkCallback` and `SectionLike`, align optional document/section inputs, element link rewriting, optional `sectionHref`, and `substitute()` string return.
+  - `types/epubjs-tests.ts`: add `ReplacementsAssertions` plus concrete replacement helper, link callback, section-like input, and substitution typing checks.
+  - `scripts/verify-gate1-readiness.mjs`: require the replacements helper typed public API assertions and link/substitution coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/replacements.test.js test/browser/resources.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower replacements helper declarations instead of the current runtime-compatible typed public API contract.
+
 ### P-0281
 - Why:
   - P-0280 aligned `Path` declarations with runtime behavior, leaving `Url` as the adjacent low-risk utility typed public API gap.

@@ -109,6 +109,9 @@ assert(typeTests.includes("type UrlAssertions"), "type tests must assert the Url
 assert(typeTests.includes("new Url(\"https://example.com/OPS/Text/chapter.xhtml?debug=true\")"), "type tests must cover Url construction without a base");
 assert(typeTests.includes("new Url(\"OPS/Text/chapter.xhtml\", urlBase)"), "type tests must cover Url false base typing");
 assert(typeTests.includes("urlHelper.path()"), "type tests must cover Url path return typing");
+assert(typeTests.includes("type ReplacementsAssertions"), "type tests must assert the replacements helper public surface");
+assert(typeTests.includes("replaceLinks(parsedDocument.documentElement, linkCallback"), "type tests must cover replaceLinks element/callback typing");
+assert(typeTests.includes("substitute(\"url(cover.jpg)\", [\"cover.jpg\"], [\"blob:cover\"])"), "type tests must cover substitute string return typing");
 assert(typeTests.includes("type PageListAssertions"), "type tests must assert the PageList public surface");
 assert(typeTests.includes("new PageList()"), "type tests must cover PageList construction without a document");
 assert(typeTests.includes("pageList.process(pageListItems)"), "type tests must cover PageList item processing");

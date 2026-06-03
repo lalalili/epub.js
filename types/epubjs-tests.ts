@@ -40,6 +40,15 @@ import Resources, {
   ResourceResolver,
   ResourceSettings,
 } from './resources';
+import {
+  LinkCallback,
+  replaceBase,
+  replaceCanonical,
+  replaceLinks,
+  replaceMeta,
+  SectionLike,
+  substitute,
+} from './utils/replacements';
 import Section, { LayoutSettings, SectionHookSet, SectionSearchResult, SpineItem } from './section';
 import Spine, { SpineLookup, SpineManifestItem, SpinePackage, SpinePackageItem, SpineResolver } from './spine';
 import Store, { StoreData, StoreHeaders, StoreRequest, StoreRequestType, StoreResources, StoreResolver, StoreStorage, StoreUrlOptions } from './store';
@@ -280,6 +289,19 @@ type UrlAssertions = [
   Assert<IsExact<ReturnType<Url["resolve"]>, string>>,
   Assert<IsExact<ReturnType<Url["relative"]>, string>>,
   Assert<IsExact<ReturnType<Url["toString"]>, string>>
+];
+
+type ReplacementsAssertions = [
+  Assert<IsExact<Parameters<typeof replaceBase>, [doc?: Document | undefined, section?: SectionLike | undefined]>>,
+  Assert<IsExact<ReturnType<typeof replaceBase>, void>>,
+  Assert<IsExact<Parameters<typeof replaceCanonical>, [doc?: Document | undefined, section?: SectionLike | undefined]>>,
+  Assert<IsExact<ReturnType<typeof replaceCanonical>, void>>,
+  Assert<IsExact<Parameters<typeof replaceMeta>, [doc?: Document | undefined, section?: SectionLike | undefined]>>,
+  Assert<IsExact<ReturnType<typeof replaceMeta>, void>>,
+  Assert<IsExact<Parameters<typeof replaceLinks>, [contents: Element, fn: LinkCallback, sectionHref?: string | undefined]>>,
+  Assert<IsExact<ReturnType<typeof replaceLinks>, void>>,
+  Assert<IsExact<Parameters<typeof substitute>, [content: string, urls: string[], replacements: string[]]>>,
+  Assert<IsExact<ReturnType<typeof substitute>, string>>
 ];
 
 type PageListAssertions = [
@@ -532,6 +554,19 @@ function testEpub() {
   const relativeUrl: string = urlHelper.relative("/OPS/Text/chapter.xhtml");
   const nativeUrl: URL | undefined = urlHelper.Url;
   const urlOrigin: string = urlHelper.origin;
+  const replacementSection: SectionLike = {
+    canonical: "https://example.com/books/one",
+    idref: "chapter-one",
+    url: "/OPS/Text/chapter.xhtml",
+  };
+  const linkCallback: LinkCallback = (href: string) => {
+    void href;
+  };
+  const replacementBase: void = replaceBase(parsedDocument, replacementSection);
+  const replacementCanonical: void = replaceCanonical(parsedDocument, replacementSection);
+  const replacementMeta: void = replaceMeta(parsedDocument, replacementSection);
+  const replacementLinks: void = replaceLinks(parsedDocument.documentElement, linkCallback, "OPS/Text/chapter.xhtml");
+  const substitutedContent: string = substitute("url(cover.jpg)", ["cover.jpg"], ["blob:cover"]);
   const legacyNavItems: NavigationInputItem[] = [{
     id: "chapter-one",
     href: "Text/chapter1.xhtml",
@@ -878,6 +913,11 @@ function testEpub() {
   void relativeUrl;
   void nativeUrl;
   void urlOrigin;
+  void replacementBase;
+  void replacementCanonical;
+  void replacementMeta;
+  void replacementLinks;
+  void substitutedContent;
   void emptyNavigation;
   void documentNavigation;
   void navigationToc;
@@ -979,6 +1019,7 @@ type _DisplayOptionsAssertions = DisplayOptionsAssertions;
 type _ContainerAssertions = ContainerAssertions;
 type _PathAssertions = PathAssertions;
 type _UrlAssertions = UrlAssertions;
+type _ReplacementsAssertions = ReplacementsAssertions;
 type _PageListAssertions = PageListAssertions;
 type _LocationsAssertions = LocationsAssertions;
 type _MappingAssertions = MappingAssertions;
