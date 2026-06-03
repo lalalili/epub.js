@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0270
+- Why:
+  - P-0269 aligned `Packaging` declarations with runtime behavior, leaving `Resources` as the next manifest/archive resource-chain typed public API gap.
+  - `Resources` is already TypeScript source, but its declaration still required options, hid public runtime state, treated `relativeTo()` as taking a boolean, typed `get()` as a synchronous string return, omitted null replacement results, and kept CSS replacement helpers private despite browser tests exercising them.
+  - Aligning `Resources` declarations lets consumers type-check manifest resource splitting, optional archive/request/resolver settings, replacement URL generation, CSS replacement, relative URL resolution, missing resource lookups, and destroy-cleared state before broader release or host gates.
+- Diff Scope:
+  - `types/resources.d.ts`: align resource manifest/settings/options/request/archive types, optional state fields, process/split helpers, replacement results, CSS helper methods, `relativeTo()`, `get()`, and destroy behavior with the TypeScript source behavior.
+  - `types/epubjs-tests.ts`: add `ResourcesAssertions` plus concrete resource manifest, options, createUrl, replacements, CSS replacement, relative URL, get, and substitute typing checks.
+  - `scripts/verify-gate1-readiness.mjs`: require the Resources typed public API assertions and options/get coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/resources.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `Resources` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0269
 - Why:
   - P-0268 aligned the archive/request typed public API surface, leaving `Packaging` as the next core Book structure declaration gap.

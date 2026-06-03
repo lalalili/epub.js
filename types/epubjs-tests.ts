@@ -14,6 +14,16 @@ import Packaging, {
   PackagingTocItem,
 } from './packaging';
 import type { Location, RenditionOptions } from './rendition';
+import Resources, {
+  ReplacementMode,
+  ResourceArchive,
+  ResourceManifest,
+  ResourceManifestItem,
+  ResourceOptions,
+  ResourceRequest,
+  ResourceResolver,
+  ResourceSettings,
+} from './resources';
 import Section, { LayoutSettings, SectionHookSet, SectionSearchResult, SpineItem } from './section';
 import Spine, { SpineLookup, SpineManifestItem, SpinePackage, SpinePackageItem, SpineResolver } from './spine';
 import { JsonValue, RequestHeaders, RequestMethod, RequestResponse } from './utils/request';
@@ -171,6 +181,30 @@ type PackagingAssertions = [
   Assert<IsExact<ReturnType<Packaging["destroy"]>, void>>
 ];
 
+type ResourcesAssertions = [
+  Assert<IsExact<ConstructorParameters<typeof Resources>, [manifest: ResourceManifest | PackagingManifestObject, options?: ResourceOptions | undefined]>>,
+  Assert<IsExact<Resources["settings"], ResourceSettings | undefined>>,
+  Assert<IsExact<Resources["manifest"], ResourceManifest | undefined>>,
+  Assert<IsExact<Resources["resources"], ResourceManifestItem[] | undefined>>,
+  Assert<IsExact<Resources["replacementUrls"], string[] | undefined>>,
+  Assert<IsExact<Resources["html"], ResourceManifestItem[] | undefined>>,
+  Assert<IsExact<Resources["assets"], ResourceManifestItem[] | undefined>>,
+  Assert<IsExact<Resources["css"], ResourceManifestItem[] | undefined>>,
+  Assert<IsExact<Resources["urls"], string[] | undefined>>,
+  Assert<IsExact<Resources["cssUrls"], string[] | undefined>>,
+  Assert<IsExact<ReturnType<Resources["process"]>, void>>,
+  Assert<IsExact<ReturnType<Resources["split"]>, void>>,
+  Assert<IsExact<ReturnType<Resources["splitUrls"]>, void>>,
+  Assert<IsExact<ReturnType<Resources["createUrl"]>, Promise<string>>>,
+  Assert<IsExact<ReturnType<Resources["replacements"]>, Promise<Array<string | null>>>>,
+  Assert<IsExact<ReturnType<Resources["replaceCss"]>, Promise<void[]>>>,
+  Assert<IsExact<ReturnType<Resources["createCssFile"]>, Promise<string | undefined>>>,
+  Assert<IsExact<ReturnType<Resources["relativeTo"]>, string[]>>,
+  Assert<IsExact<ReturnType<Resources["get"]>, Promise<string> | undefined>>,
+  Assert<IsExact<ReturnType<Resources["substitute"]>, string>>,
+  Assert<IsExact<ReturnType<Resources["destroy"]>, void>>
+];
+
 function testEpub() {
   const epub = ePub("https://s3.amazonaws.com/moby-dick/moby-dick.epub");
 
@@ -303,6 +337,45 @@ function testEpub() {
   const packagingManifestItem: PackagingManifestItem | undefined = loadedPackaging.manifest[0];
   const packagingMetadataTitle: string | undefined = loadedPackaging.metadata.title;
   const packagingTocItem: PackagingTocItem | undefined = loadedPackaging.toc?.[0];
+  const resourceManifest: ResourceManifest = {
+    chapter: {
+      href: "Text/chapter.xhtml",
+      type: "application/xhtml+xml",
+    },
+    style: {
+      href: "Styles/main.css",
+      type: "text/css",
+    },
+    cover: {
+      href: "Images/cover.jpg",
+      type: "image/jpeg",
+    },
+  };
+  const resourceResolver: ResourceResolver = (href: string) => `/OPS/${href}`;
+  const resourceRequest: ResourceRequest = (url: string, type: "blob" | "text") => (
+    type === "blob"
+      ? Promise.resolve(new Blob([url]))
+      : Promise.resolve("body { background: url(../Images/cover.jpg); }")
+  );
+  const resourceArchive: ResourceArchive = {
+    createUrl: (url: string) => Promise.resolve(url),
+    getText: () => Promise.resolve("body {}"),
+  };
+  const replacementMode: ReplacementMode = "base64";
+  const resourceOptions: ResourceOptions = {
+    replacements: replacementMode,
+    archive: resourceArchive,
+    resolver: resourceResolver,
+    request: resourceRequest,
+  };
+  const resources = new Resources(resourceManifest, resourceOptions);
+  const resourceUrl: Promise<string> = resources.createUrl("/OPS/Images/cover.jpg");
+  const resourceReplacements: Promise<Array<string | null>> = resources.replacements();
+  const resourceCssReplacements: Promise<void[]> = resources.replaceCss();
+  const resourceCssFile: Promise<string | undefined> = resources.createCssFile("Styles/main.css");
+  const relativeResourceUrls: string[] = resources.relativeTo("/OPS/Text/chapter.xhtml");
+  const resourceReplacement: Promise<string> | undefined = resources.get("Images/cover.jpg");
+  const substitutedResourceContent: string = resources.substitute("url(../Images/cover.jpg)", "/OPS/Text/chapter.xhtml");
 
   new StaticBook("https://s3.amazonaws.com/moby-dick/moby-dick.epub", {});
   new StaticRendition(epub, {});
@@ -369,6 +442,13 @@ function testEpub() {
   void packagingManifestItem;
   void packagingMetadataTitle;
   void packagingTocItem;
+  void resourceUrl;
+  void resourceReplacements;
+  void resourceCssReplacements;
+  void resourceCssFile;
+  void relativeResourceUrls;
+  void resourceReplacement;
+  void substitutedResourceContent;
   void location;
 }
 
@@ -379,5 +459,6 @@ type _SectionAssertions = SectionAssertions;
 type _SpineAssertions = SpineAssertions;
 type _ArchiveAssertions = ArchiveAssertions;
 type _PackagingAssertions = PackagingAssertions;
+type _ResourcesAssertions = ResourcesAssertions;
 
 testEpub();

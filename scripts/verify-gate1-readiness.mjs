@@ -91,6 +91,9 @@ assert(typeTests.includes("archive.handleResponse(\"{\\\"ok\\\":true}\", \"json\
 assert(typeTests.includes("type PackagingAssertions"), "type tests must assert the Packaging public surface");
 assert(typeTests.includes("new Packaging()"), "type tests must cover Packaging construction without a document");
 assert(typeTests.includes("packaging.load(packagingJson)"), "type tests must cover Packaging JSON manifest loading");
+assert(typeTests.includes("type ResourcesAssertions"), "type tests must assert the Resources public surface");
+assert(typeTests.includes("new Resources(resourceManifest, resourceOptions)"), "type tests must cover Resources options typing");
+assert(typeTests.includes("resources.get(\"Images/cover.jpg\")"), "type tests must cover Resources get replacement typing");
 assert(typeTests.includes("RequestMethod"), "type tests must assert request method typing");
 assert(typeTests.includes("InstanceType<typeof ePub.utils.defer"), "type tests must assert generic defer typing");
 
