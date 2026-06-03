@@ -466,7 +466,7 @@ class Packaging {
 		};
 	}
 
-	destroy() {
+	destroy(): void {
 		this.manifest = undefined;
 		this.navPath = undefined;
 		this.ncxPath = undefined;

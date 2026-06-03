@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0329
+- Why:
+  - P-0328 aligned `PageList.destroy()`, leaving `Packaging.destroy()` as the next public source/declaration return parity gap.
+  - Declarations and type smoke already expose `Packaging.destroy()` as `void`, while source still relied on inference for the cleanup method.
+  - Adding the source annotation keeps Packaging source, declarations, and Gate 1 readiness pointed at the same public cleanup contract before any release tag or host gate, without changing OPF parsing, JSON manifest loading, manifest/spine/metadata handling, or cleanup behavior.
+- Diff Scope:
+  - `src/packaging.ts`: add the declaration-facing `void` return annotation for `destroy()`.
+  - `scripts/verify-gate1-readiness.mjs`: require Packaging destroy return type smoke coverage.
+  - `documentation/md/*`: rerun TypeDoc to confirm the source annotation update does not change the rendered public markdown surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/packaging.test.js test/browser/book.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `Packaging.destroy()` to remain inference-only instead of matching the declaration contract.
+
 ### P-0328
 - Why:
   - P-0327 aligned Themes registration returns, leaving `PageList.destroy()` as a public source/declaration return parity gap.

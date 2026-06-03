@@ -210,6 +210,7 @@ assert(typeTests.includes("type PackagingAssertions"), "type tests must assert t
 assert(typeTests.includes("RootPackagingObject"), "type tests must assert root Packaging object typing");
 assert(typeTests.includes("new Packaging()"), "type tests must cover Packaging construction without a document");
 assert(typeTests.includes("packaging.load(packagingJson)"), "type tests must cover Packaging JSON manifest loading");
+assert(typeTests.includes("ReturnType<Packaging[\"destroy\"]>"), "type tests must cover Packaging destroy return typing");
 assert(typeTests.includes("type DisplayOptionsAssertions"), "type tests must assert the DisplayOptions public surface");
 assert(typeTests.includes("RootDisplayOptions"), "type tests must assert root DisplayOptions class typing");
 assert(typeTests.includes("new DisplayOptions()"), "type tests must cover DisplayOptions construction without a document");
