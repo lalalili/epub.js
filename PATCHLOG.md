@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0331
+- Why:
+  - P-0330 tightened the `Navigation` root export readiness guard, leaving `Resources` with the same guard-completeness gap.
+  - Source root exports, declaration root exports, and type smoke already cover `Resources`, `ReplacementMode`, `ResourceArchive`, `ResourceArchiveInput`, `ResourceManifest`, `ResourceManifestItem`, `ResourceOptions`, `ResourceRequest`, `ResourceResolver`, and `ResourceSettings`, but the readiness script only required a subset of that public root surface.
+  - Tightening the guard keeps Resources root/source/type-smoke parity enforceable before any release tag or host gate, without changing resource splitting, URL creation, CSS replacement, substitution, archive access, or runtime behavior.
+- Diff Scope:
+  - `scripts/verify-gate1-readiness.mjs`: require the complete Resources root type-smoke aliases and source root exports.
+  - `documentation/md/*`: rerun TypeDoc to confirm the guard-only update does not change the rendered public markdown surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/resources.test.js test/browser/book.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Gate 1 readiness should intentionally allow partial Resources root export coverage.
+
 ### P-0330
 - Why:
   - P-0329 aligned `Packaging.destroy()`, leaving `Navigation` with a Gate 1 readiness guard gap rather than a source or declaration export gap.

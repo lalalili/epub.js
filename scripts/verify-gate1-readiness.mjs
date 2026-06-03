@@ -163,10 +163,30 @@ assert(
 	sourceRoot.includes("ThemeRules") && sourceRoot.includes("ThemesRendition") && sourceRoot.includes("default as Themes"),
 	"source root must export Themes public types"
 );
-assert(typeTests.includes("RootResourceOptions"), "type tests must assert root Resources type exports");
-assert(typeTests.includes("RootResourceArchiveInput"), "type tests must assert root Resources archive input typing");
 assert(
-	sourceRoot.includes("ResourceArchiveInput") && sourceRoot.includes("ResourceOptions") && sourceRoot.includes("ResourceManifestItem") && sourceRoot.includes("ResourceSettings"),
+	typeTests.includes("RootResources") &&
+	typeTests.includes("RootReplacementMode") &&
+	typeTests.includes("RootResourceArchive") &&
+	typeTests.includes("RootResourceArchiveInput") &&
+	typeTests.includes("RootResourceManifest") &&
+	typeTests.includes("RootResourceManifestItem") &&
+	typeTests.includes("RootResourceOptions") &&
+	typeTests.includes("RootResourceRequest") &&
+	typeTests.includes("RootResourceResolver") &&
+	typeTests.includes("RootResourceSettings"),
+	"type tests must assert root Resources type exports"
+);
+assert(
+	sourceRoot.includes("default as Resources") &&
+	sourceRoot.includes("ReplacementMode") &&
+	sourceRoot.includes("ResourceArchive") &&
+	sourceRoot.includes("ResourceArchiveInput") &&
+	sourceRoot.includes("ResourceManifest") &&
+	sourceRoot.includes("ResourceManifestItem") &&
+	sourceRoot.includes("ResourceOptions") &&
+	sourceRoot.includes("ResourceRequest") &&
+	sourceRoot.includes("ResourceResolver") &&
+	sourceRoot.includes("ResourceSettings"),
 	"source root must export Resources public types"
 );
 assert(typeTests.includes("RootStoreRequest"), "type tests must assert root Store type exports");
