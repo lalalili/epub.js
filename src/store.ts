@@ -6,24 +6,25 @@ import Path from "./utils/path";
 import EventEmitter from "event-emitter";
 import localforage from "localforage";
 
-type StoreData = ArrayBuffer | Uint8Array | string | Blob | object;
-type StoreRequestType = string | undefined;
-type StoreHeaders = Record<string, string>;
-type StoreRequest = (url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders) => Promise<any>;
-type StoreResolver = (href: string) => string;
-type StoreStorage = {
-	getItem(key: string): Promise<any>;
-	setItem(key: string, value: any): Promise<any>;
-};
-type StoreResource = {
+export type StoreData = ArrayBuffer | Uint8Array | string | Blob | object;
+export type StoreRequestType = string | undefined;
+export type StoreHeaders = Record<string, string>;
+type StoreRequestResponse = ArrayBuffer | Blob | string | Document | XMLDocument | StoreData;
+export type StoreRequest = (url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders) => Promise<StoreRequestResponse>;
+export type StoreResolver = (href: string) => string;
+export interface StoreStorage {
+	getItem(key: string): Promise<StoreData | null | undefined>;
+	setItem(key: string, value: StoreData): Promise<StoreData>;
+}
+export interface StoreResource {
 	href: string;
-};
-type StoreResources = {
+}
+export interface StoreResources {
 	resources: StoreResource[];
-};
-type StoreUrlOptions = {
+}
+export interface StoreUrlOptions {
 	base64?: boolean;
-};
+}
 type UrlFactory = typeof URL & {
 	webkitURL?: typeof URL;
 	mozURL?: typeof URL;
@@ -267,7 +268,7 @@ class Store {
 
 			mimeType = mimeType || mime.lookup(url);
 
-			return new Blob([uint8array], {type : mimeType});
+			return new Blob([uint8array as BlobPart], {type : mimeType});
 		});
 
 	}
@@ -290,7 +291,7 @@ class Store {
 
 			if(!uint8array) return;
 
-			blob = new Blob([uint8array], {type : mimeType});
+			blob = new Blob([uint8array as BlobPart], {type : mimeType});
 
 			reader.addEventListener("loadend", () => {
 				deferred.resolve(reader.result);
@@ -320,7 +321,7 @@ class Store {
 
 			if(!uint8array) return;
 
-			blob = new Blob([uint8array], {type : mimeType});
+			blob = new Blob([uint8array as BlobPart], {type : mimeType});
 
 			reader.addEventListener("loadend", () => {
 				deferred.resolve(reader.result);
@@ -369,7 +370,7 @@ class Store {
 			if (response) {
 					response.then((blob) => {
 
-						tempUrl = _URL.createObjectURL(blob);
+						tempUrl = _URL.createObjectURL(blob as Blob);
 						this.urlCache[url] = tempUrl;
 						deferred.resolve(tempUrl);
 

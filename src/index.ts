@@ -54,6 +54,19 @@ export type {
 } from "./resources";
 
 export type {
+	StoreData,
+	StoreHeaders,
+	StoreRequest,
+	StoreRequestType,
+	StoreResolver,
+	StoreResource,
+	StoreResources,
+	StoreStorage,
+	StoreUrlOptions,
+	default as Store
+} from "./store";
+
+export type {
 	LayoutProperties as RenditionLayoutProperties,
 	Location,
 	ManagerLocationItem,

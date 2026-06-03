@@ -96,6 +96,11 @@ assert(
 	sourceRoot.includes("ResourceOptions") && sourceRoot.includes("ResourceManifestItem") && sourceRoot.includes("ResourceSettings"),
 	"source root must export Resources public types"
 );
+assert(typeTests.includes("RootStoreRequest"), "type tests must assert root Store type exports");
+assert(
+	sourceRoot.includes("StoreRequest") && sourceRoot.includes("StoreResources") && sourceRoot.includes("StoreUrlOptions"),
+	"source root must export Store public types"
+);
 assert(typeTests.includes("type CoreClassAssertions"), "type tests must assert the core class surface");
 assert(typeTests.includes("type LayoutAssertions"), "type tests must assert the Layout public surface");
 assert(typeTests.includes("new Layout()"), "type tests must cover Layout construction without settings");
@@ -169,6 +174,7 @@ assert(typeTests.includes("RootResourceManifest"), "type tests must assert root 
 assert(typeTests.includes("new Resources(resourceManifest, resourceOptions)"), "type tests must cover Resources options typing");
 assert(typeTests.includes("resources.get(\"Images/cover.jpg\")"), "type tests must cover Resources get replacement typing");
 assert(typeTests.includes("type StoreAssertions"), "type tests must assert the Store public surface");
+assert(typeTests.includes("RootStoreUrlOptions"), "type tests must assert root Store URL option typing");
 assert(typeTests.includes("new Store(\"epubjs-type-store\", storeRequest, storeResolver)"), "type tests must cover Store constructor typing");
 assert(typeTests.includes("store.createUrl(\"/OPS/images/cover.jpg\", storeUrlOptions)"), "type tests must cover Store createUrl optional options typing");
 assert(typeTests.includes("RequestMethod"), "type tests must assert request method typing");

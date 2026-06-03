@@ -27,6 +27,16 @@ import type {
   ResourceResolver as RootResourceResolver,
   Resources as RootResources,
   ResourceSettings as RootResourceSettings,
+  Store as RootStore,
+  StoreData as RootStoreData,
+  StoreHeaders as RootStoreHeaders,
+  StoreRequest as RootStoreRequest,
+  StoreRequestType as RootStoreRequestType,
+  StoreResolver as RootStoreResolver,
+  StoreResource as RootStoreResource,
+  StoreResources as RootStoreResources,
+  StoreStorage as RootStoreStorage,
+  StoreUrlOptions as RootStoreUrlOptions,
   RenditionLayoutProperties as RootRenditionLayoutProperties,
   RenditionOptions as RootRenditionOptions,
 } from '../';
@@ -98,7 +108,7 @@ import Queue, { QueuedItem, QueueTask, Task } from './utils/queue';
 import Hook, { HookRegistration, HooksObject, HookTask } from './utils/hook';
 import Section, { LayoutSettings, SectionHookSet, SectionSearchResult, SpineItem } from './section';
 import Spine, { SpineLookup, SpineManifestItem, SpinePackage, SpinePackageItem, SpineResolver } from './spine';
-import Store, { StoreData, StoreHeaders, StoreRequest, StoreRequestType, StoreResources, StoreResolver, StoreStorage, StoreUrlOptions } from './store';
+import Store, { StoreData, StoreHeaders, StoreRequest, StoreRequestType, StoreResource, StoreResources, StoreResolver, StoreStorage, StoreUrlOptions } from './store';
 import Themes, { ThemeInput, ThemeOverride, ThemeRules, ThemesContent, ThemesRendition } from './themes';
 import { AnimationFrameRequest, BlobContent, Deferred, RangeObject as CoreRangeObject, RectBounds, SizeBounds } from './utils/core';
 import { JsonValue, RequestHeaders, RequestMethod, RequestResponse } from './utils/request';
@@ -145,6 +155,16 @@ type PublicRootAssertions = [
   Assert<IsExact<RootResourceRequest, ResourceRequest>>,
   Assert<IsExact<RootResourceResolver, ResourceResolver>>,
   Assert<IsExact<RootResourceSettings, ResourceSettings>>,
+  Assert<IsExact<RootStore, Store>>,
+  Assert<IsExact<RootStoreData, StoreData>>,
+  Assert<IsExact<RootStoreHeaders, StoreHeaders>>,
+  Assert<IsExact<RootStoreRequest, StoreRequest>>,
+  Assert<IsExact<RootStoreRequestType, StoreRequestType>>,
+  Assert<IsExact<RootStoreResolver, StoreResolver>>,
+  Assert<IsExact<RootStoreResource, StoreResource>>,
+  Assert<IsExact<RootStoreResources, StoreResources>>,
+  Assert<IsExact<RootStoreStorage, StoreStorage>>,
+  Assert<IsExact<RootStoreUrlOptions, StoreUrlOptions>>,
   Assert<IsExact<typeof request, RequestMethod>>,
   Assert<IsExact<ReturnType<typeof ePub.utils.uuid>, string>>,
   Assert<IsExact<InstanceType<typeof ePub.utils.defer<string>>["promise"], Promise<string>>>

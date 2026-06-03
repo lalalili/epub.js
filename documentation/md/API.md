@@ -37,6 +37,11 @@
 - [ResourceOptions](interfaces/ResourceOptions.md)
 - [Resources](interfaces/Resources.md)
 - [ResourceSettings](interfaces/ResourceSettings.md)
+- [Store](interfaces/Store.md)
+- [StoreResource](interfaces/StoreResource.md)
+- [StoreResources](interfaces/StoreResources.md)
+- [StoreStorage](interfaces/StoreStorage.md)
+- [StoreUrlOptions](interfaces/StoreUrlOptions.md)
 
 ## Type Aliases
 
@@ -50,6 +55,11 @@
 - [ReplacementMode](type-aliases/ReplacementMode.md)
 - [ResourceRequest](type-aliases/ResourceRequest.md)
 - [ResourceResolver](type-aliases/ResourceResolver.md)
+- [StoreData](type-aliases/StoreData.md)
+- [StoreHeaders](type-aliases/StoreHeaders.md)
+- [StoreRequest](type-aliases/StoreRequest.md)
+- [StoreRequestType](type-aliases/StoreRequestType.md)
+- [StoreResolver](type-aliases/StoreResolver.md)
 
 ## Variables
 

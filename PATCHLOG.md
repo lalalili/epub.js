@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0296
+- Why:
+  - P-0295 aligned the `Resources` root type exports, leaving `Store` request/storage/url option types as the next source/declaration parity gap.
+  - The declaration surface already exposes `StoreData`, request/header/resolver aliases, storage/resource shapes, and URL options, but `src/store.ts` kept those shapes private and the package root did not expose them consistently.
+  - Aligning these exports lets consumers type-check offline store requesters, storage adapters, resource batches, headers, and URL creation options from the root package API before any release tag or host gate, without changing storage or reader behavior.
+- Diff Scope:
+  - `src/store.ts`: export existing `Store` public request, storage, resource, and URL option type shapes, and add narrow casts where the source now knows stored values can become `BlobPart`/`Blob` at runtime.
+  - `src/index.ts`, `types/index.d.ts`: export root `Store`, `StoreData`, `StoreHeaders`, `StoreRequest`, `StoreRequestType`, `StoreResolver`, `StoreResource`, `StoreResources`, `StoreStorage`, and `StoreUrlOptions` types.
+  - `types/epubjs-tests.ts`: extend public root assertions for the `Store` public type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `Store` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public store type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `Store` helper aliases to remain module-private instead of part of the root typed public API contract.
+
 ### P-0295
 - Why:
   - P-0294 aligned the `PageList` root type exports, leaving `Resources` public options/settings/resource manifest types as the next source/declaration parity gap.

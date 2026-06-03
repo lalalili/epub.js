@@ -182,7 +182,7 @@
 
 ### storage?
 
-> `optional` **storage?**: `Store`
+> `optional` **storage?**: [`Store`](../interfaces/Store.md)
 
 ***
 
@@ -630,7 +630,7 @@
 
 ### store()
 
-> **store**(`name`): `Store`
+> **store**(`name`): [`Store`](../interfaces/Store.md)
 
 #### Parameters
 
@@ -640,7 +640,7 @@
 
 #### Returns
 
-`Store`
+[`Store`](../interfaces/Store.md)
 
 ***
 
