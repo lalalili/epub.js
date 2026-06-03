@@ -67,9 +67,22 @@ type TraversalRoot = Element | Document;
 type NodeCallback = (node: Node) => boolean | void;
 type TextNodeCallback = (node: Text) => void;
 type TreeWalkerFilter = number | NodeFilter;
-type BlobContent = BlobPart[] | BlobPart | string | ArrayBuffer | ArrayBufferView;
+export type AnimationFrameRequest = (callback: FrameRequestCallback) => number;
+export type BlobContent = BlobPart[] | BlobPart | string | ArrayBuffer | ArrayBufferView;
 
-interface Deferred<T = unknown> {
+export interface SizeBounds {
+	width: number;
+	height: number;
+}
+
+export interface RectBounds extends SizeBounds {
+	top: number;
+	left: number;
+	right: number;
+	bottom: number;
+}
+
+export interface Deferred<T = unknown> {
 	resolve: ((value: T | PromiseLike<T>) => void) | null;
 	reject: ((reason?: unknown) => void) | null;
 	id: string;
@@ -81,7 +94,7 @@ interface Deferred<T = unknown> {
  * @returns {function} requestAnimationFrame
  * @memberof Core
  */
-export const requestAnimationFrame = platformRequestAnimationFrame;
+export const requestAnimationFrame: AnimationFrameRequest | false = platformRequestAnimationFrame;
 const COMMENT_NODE = 8;
 const DOCUMENT_NODE = 9;
 
@@ -222,7 +235,7 @@ export function indexOfSorted<T>(
  * @returns {{ width: Number, height: Number}}
  * @memberof Core
  */
-export function bounds(el: Element) {
+export function bounds(el: Element): SizeBounds {
 	return platformBounds(el);
 }
 
@@ -233,7 +246,7 @@ export function bounds(el: Element) {
  * @returns {{ width: Number, height: Number}}
  * @memberof Core
  */
-export function borders(el: Element) {
+export function borders(el: Element): SizeBounds {
 	return platformBorders(el);
 }
 
@@ -253,7 +266,7 @@ export function nodeBounds(node: Node): DOMRect {
  * @returns {{ width: Number, height: Number, top: Number, left: Number, right: Number, bottom: Number }}
  * @memberof Core
  */
-export function windowBounds() {
+export function windowBounds(): RectBounds {
 	return platformWindowBounds();
 }
 

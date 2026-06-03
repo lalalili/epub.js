@@ -275,6 +275,13 @@ assert(
 	"source root must export Contents public types"
 );
 assert(typeTests.includes("type CoreUtilsAssertions"), "type tests must assert the utils/core public surface");
+assert(typeTests.includes("RootAnimationFrameRequest"), "type tests must assert root utils/core animation frame type export");
+assert(typeTests.includes("RootBlobContent"), "type tests must assert root utils/core blob content type export");
+assert(typeTests.includes("RootDeferred"), "type tests must assert root utils/core deferred type export");
+assert(
+	sourceRoot.includes("AnimationFrameRequest") && sourceRoot.includes("BlobContent") && sourceRoot.includes("Deferred"),
+	"source root must export utils/core public types"
+);
 assert(typeTests.includes("ePub.utils.requestAnimationFrame"), "type tests must cover utils/core requestAnimationFrame typing");
 assert(typeTests.includes("ePub.utils.createBlob(coreBlobContent, \"text/plain\")"), "type tests must cover utils/core blob content typing");
 assert(typeTests.includes("new ePub.utils.RangeObject()"), "type tests must cover utils/core RangeObject typing");

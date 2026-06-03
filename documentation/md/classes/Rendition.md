@@ -48,7 +48,7 @@
 
 ### displaying?
 
-> `optional` **displaying?**: `Deferred`\<`any`\>
+> `optional` **displaying?**: [`Deferred`](../interfaces/Deferred.md)\<`any`\>
 
 ***
 
@@ -124,7 +124,7 @@
 
 ### starting?
 
-> `optional` **starting?**: `Deferred`\<`void`\>
+> `optional` **starting?**: [`Deferred`](../interfaces/Deferred.md)\<`void`\>
 
 ***
 

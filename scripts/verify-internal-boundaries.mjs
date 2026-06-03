@@ -14,6 +14,11 @@ const allowedLegacyCoreImporters = new Set([
 	"lib/utils/core.js"
 ]);
 const legacyCoreImportPattern = /from\s+["'][^"']*utils\/core["']|require\(["'][^"']*utils\/core["']\)/;
+const allowedLegacyCoreTypeExporters = new Set([
+	"src/index.ts"
+]);
+const legacyCoreTypeExportPattern = /export\s+type\s+\{[\s\S]*?\}\s+from\s+["'][^"']*utils\/core["']/;
+const runtimeLegacyCoreImportPattern = /import\s+(?!type\s)[\s\S]*?from\s+["'][^"']*utils\/core["']|export\s+(?!type\s)[\s\S]*?from\s+["'][^"']*utils\/core["']|require\(["'][^"']*utils\/core["']\)/;
 const publicTypeRoots = [
 	path.join(root, "types")
 ];
@@ -65,7 +70,15 @@ function collectSourceFiles(directory) {
 const violations = sourceRoots.flatMap((directory) => collectSourceFiles(directory))
 	.map((filePath) => path.relative(root, filePath).replace(/\\/g, "/"))
 	.filter((relativePath) => !allowedLegacyCoreImporters.has(relativePath))
-	.filter((relativePath) => legacyCoreImportPattern.test(readFileSync(path.join(root, relativePath), "utf8")));
+	.filter((relativePath) => {
+		const source = readFileSync(path.join(root, relativePath), "utf8");
+		const sourceWithoutAllowedTypeExports = allowedLegacyCoreTypeExporters.has(relativePath)
+			? source.replace(legacyCoreTypeExportPattern, "")
+			: source;
+
+		return legacyCoreImportPattern.test(sourceWithoutAllowedTypeExports) ||
+			runtimeLegacyCoreImportPattern.test(sourceWithoutAllowedTypeExports);
+	});
 
 assert(
 	violations.length === 0,

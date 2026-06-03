@@ -32,6 +32,7 @@
 - [BookOptions](interfaces/BookOptions.md)
 - [Container](interfaces/Container.md)
 - [ContentsSize](interfaces/ContentsSize.md)
+- [Deferred](interfaces/Deferred.md)
 - [DisplayOptions](interfaces/DisplayOptions.md)
 - [EpubCFIComponent](interfaces/EpubCFIComponent.md)
 - [EpubCFIPair](interfaces/EpubCFIPair.md)
@@ -69,6 +70,7 @@
 - [ParsedPath](interfaces/ParsedPath.md)
 - [Path](interfaces/Path.md)
 - [RangePair](interfaces/RangePair.md)
+- [RectBounds](interfaces/RectBounds.md)
 - [RenditionLayoutProperties](interfaces/RenditionLayoutProperties.md)
 - [RenditionOptions](interfaces/RenditionOptions.md)
 - [RequestMethod](interfaces/RequestMethod.md)
@@ -83,6 +85,7 @@
 - [SectionLayoutSettings](interfaces/SectionLayoutSettings.md)
 - [SectionLike](interfaces/SectionLike.md)
 - [SectionSearchResult](interfaces/SectionSearchResult.md)
+- [SizeBounds](interfaces/SizeBounds.md)
 - [Spine](interfaces/Spine.md)
 - [SpineItem](interfaces/SpineItem.md)
 - [SpineManifestItem](interfaces/SpineManifestItem.md)
@@ -106,6 +109,7 @@
 
 ## Type Aliases
 
+- [AnimationFrameRequest](type-aliases/AnimationFrameRequest.md)
 - [AnnotationCallback](type-aliases/AnnotationCallback.md)
 - [AnnotationData](type-aliases/AnnotationData.md)
 - [AnnotationMap](type-aliases/AnnotationMap.md)
@@ -113,6 +117,7 @@
 - [AnnotationType](type-aliases/AnnotationType.md)
 - [ArchiveInput](type-aliases/ArchiveInput.md)
 - [ArchiveRequestType](type-aliases/ArchiveRequestType.md)
+- [BlobContent](type-aliases/BlobContent.md)
 - [BookInput](type-aliases/BookInput.md)
 - [ContainerDocument](type-aliases/ContainerDocument.md)
 - [EpubCFIBase](type-aliases/EpubCFIBase.md)

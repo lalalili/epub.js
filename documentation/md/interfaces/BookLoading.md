@@ -10,46 +10,46 @@
 
 ### cover
 
-> **cover**: `Deferred`\<`string`\>
+> **cover**: [`Deferred`](Deferred.md)\<`string`\>
 
 ***
 
 ### displayOptions
 
-> **displayOptions**: `Deferred`\<[`DisplayOptions`](DisplayOptions.md)\>
+> **displayOptions**: [`Deferred`](Deferred.md)\<[`DisplayOptions`](DisplayOptions.md)\>
 
 ***
 
 ### manifest
 
-> **manifest**: `Deferred`\<[`PackagingManifestObject`](PackagingManifestObject.md)\>
+> **manifest**: [`Deferred`](Deferred.md)\<[`PackagingManifestObject`](PackagingManifestObject.md)\>
 
 ***
 
 ### metadata
 
-> **metadata**: `Deferred`\<[`PackagingMetadataObject`](PackagingMetadataObject.md)\>
+> **metadata**: [`Deferred`](Deferred.md)\<[`PackagingMetadataObject`](PackagingMetadataObject.md)\>
 
 ***
 
 ### navigation
 
-> **navigation**: `Deferred`\<[`Navigation`](Navigation.md)\>
+> **navigation**: [`Deferred`](Deferred.md)\<[`Navigation`](Navigation.md)\>
 
 ***
 
 ### pageList
 
-> **pageList**: `Deferred`\<[`PageList`](PageList.md)\>
+> **pageList**: [`Deferred`](Deferred.md)\<[`PageList`](PageList.md)\>
 
 ***
 
 ### resources
 
-> **resources**: `Deferred`\<[`Resources`](Resources.md)\>
+> **resources**: [`Deferred`](Deferred.md)\<[`Resources`](Resources.md)\>
 
 ***
 
 ### spine
 
-> **spine**: `Deferred`\<[`Spine`](Spine.md)\>
+> **spine**: [`Deferred`](Deferred.md)\<[`Spine`](Spine.md)\>

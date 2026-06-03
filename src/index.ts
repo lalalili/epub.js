@@ -82,6 +82,14 @@ export type {
 } from "./contents";
 
 export type {
+	AnimationFrameRequest,
+	BlobContent,
+	Deferred,
+	RectBounds,
+	SizeBounds
+} from "./utils/core";
+
+export type {
 	LayoutContent,
 	LayoutCount,
 	LayoutProps,

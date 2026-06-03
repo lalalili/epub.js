@@ -24,6 +24,7 @@ export type { default as DisplayOptions } from './displayoptions';
 export { default as Layout } from './layout';
 export type { LayoutContent, LayoutCount, LayoutProps, LayoutSettings } from './layout';
 export type { ContentsSize, VerticalRlMetricsCache, VerticalRlPageMetricsCache, ViewportSettings } from './contents';
+export type { AnimationFrameRequest, BlobContent, Deferred, RectBounds, SizeBounds } from './utils/core';
 export type { default as Navigation, LandmarkItem, NavItem, NavigationDocument, NavigationInput, NavigationInputItem } from './navigation';
 export type { default as Packaging, PackagingJsonManifest, PackagingManifestItem, PackagingManifestObject, PackagingMetadataObject, PackagingObject, PackagingSpineItem, PackagingTocItem } from './packaging';
 export type { default as PageList, PageListDocument, PageListItem, PageLookup, PageReverseLookup, PageValue } from './pagelist';

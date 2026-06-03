@@ -116,7 +116,7 @@
 
 ### opening?
 
-> `optional` **opening?**: `Deferred`\<`Book`\>
+> `optional` **opening?**: [`Deferred`](../interfaces/Deferred.md)\<`Book`\>
 
 ***
 
