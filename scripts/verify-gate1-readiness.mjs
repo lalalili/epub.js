@@ -8,6 +8,7 @@ const tsconfig = JSON.parse(readFileSync(path.join(root, "tsconfig.json"), "utf8
 const typeTests = readFileSync(path.join(root, "types/epubjs-tests.ts"), "utf8");
 const sourceRoot = readFileSync(path.join(root, "src/index.ts"), "utf8");
 const bookSource = readFileSync(path.join(root, "src/book.ts"), "utf8");
+const storeSource = readFileSync(path.join(root, "src/store.ts"), "utf8");
 const globalTypeTests = readFileSync(path.join(root, "types/global-namespace-tests.ts"), "utf8");
 const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.test.js"), "utf8");
 const umdGlobalTests = readFileSync(path.join(root, "test/browser/umd-global.test.js"), "utf8");
@@ -260,8 +261,17 @@ assert(typeTests.includes("new Resources(resourceManifest, resourceOptions)"), "
 assert(typeTests.includes("resources.get(\"Images/cover.jpg\")"), "type tests must cover Resources get replacement typing");
 assert(typeTests.includes("type StoreAssertions"), "type tests must assert the Store public surface");
 assert(typeTests.includes("RootStoreUrlOptions"), "type tests must assert root Store URL option typing");
+assert(typeTests.includes("ReturnType<Store[\"request\"]>"), "type tests must assert Store request fallback typing");
+assert(typeTests.includes("ReturnType<Store[\"retrieve\"]>"), "type tests must assert Store retrieve fallback typing");
+assert(typeTests.includes("ReturnType<Store[\"handleResponse\"]>"), "type tests must assert Store response handling fallback typing");
 assert(typeTests.includes("new Store(\"epubjs-type-store\", storeRequest, storeResolver)"), "type tests must cover Store constructor typing");
 assert(typeTests.includes("store.createUrl(\"/OPS/images/cover.jpg\", storeUrlOptions)"), "type tests must cover Store createUrl optional options typing");
+assert(
+	storeSource.includes("request(url: string, type: \"blob\"") &&
+	storeSource.includes("retrieve(url: string, type: \"blob\"") &&
+	storeSource.includes("handleResponse(response: string, type: \"json\")"),
+	"source Store must expose request, retrieve, and handleResponse overloads"
+);
 assert(typeTests.includes("RequestMethod"), "type tests must assert request method typing");
 assert(typeTests.includes("RootRequestMethod"), "type tests must assert root request method type export");
 assert(typeTests.includes("RootRequestResponse"), "type tests must assert root request response type export");

@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0318
+- Why:
+  - P-0317 aligned the adjacent `Queue` utility surface, leaving `Store` as the next offline/resource helper with a source/declaration parity gap.
+  - The declaration surface already exposes typed overloads for `Store.request()`, `Store.retrieve()`, and `Store.handleResponse()`, but source still used `Promise<any>` / `any` implementation signatures.
+  - Aligning the source overloads keeps root `Store` type consumers, TypeDoc output, and Gate 1 readiness pointed at the same public request/storage contract before any release tag or host gate, without changing storage lookup, network fallback, response parsing, URL creation, or event behavior.
+- Diff Scope:
+  - `src/store.ts`: add declaration-facing overloads for `request()`, `retrieve()`, and `handleResponse()`, and tighten `add()` / `put()` return annotations to the existing public data contract.
+  - `types/epubjs-tests.ts`: extend public `Store` assertions for request, retrieve, and response handling fallback typing.
+  - `scripts/verify-gate1-readiness.mjs`: require source `Store` overload coverage and matching type smoke assertions in Gate 1 readiness.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/store.test.js test/browser/resources.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require the `Store` source surface to remain loosely typed instead of matching the declaration overload contract.
+
 ### P-0317
 - Why:
   - P-0316 aligned `Hook` root type exports, leaving `Queue` as the adjacent public utility surface with source/declaration/root parity gaps.

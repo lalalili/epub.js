@@ -10,6 +10,7 @@ export type StoreData = ArrayBuffer | Uint8Array | string | Blob | object | Json
 export type StoreRequestType = string | undefined;
 export type StoreHeaders = Record<string, string>;
 type StoreRequestResponse = RequestResponse | StoreData;
+type StoreMarkupRequestType = "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm";
 export type StoreRequest = (url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders) => Promise<StoreRequestResponse>;
 export type StoreResolver = (href: string) => string;
 export interface StoreStorage {
@@ -127,7 +128,7 @@ class Store {
 	 * @param  {boolean} [force] force resaving resources
 	 * @return {Promise<object>} store objects
 	 */
-	add(resources: StoreResources, force?: boolean): Promise<any[]> {
+	add(resources: StoreResources, force?: boolean): Promise<StoreData[]> {
 		let mapped = resources.resources.map((item) => {
 			let { href } = item;
 			let url = this.resolver!(href);
@@ -155,7 +156,7 @@ class Store {
 	 * @param  {object} [headers]
 	 * @return {Promise<Blob>}
 	 */
-	put(url: string, withCredentials?: boolean, headers?: StoreHeaders): Promise<any> {
+	put(url: string, withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreData> {
 		let encodedUrl = window.encodeURIComponent(url);
 
 		return this.storage!.getItem(encodedUrl).then((result) => {
@@ -176,7 +177,11 @@ class Store {
 	 * @param  {object} [headers]
 	 * @return {Promise<Blob | string | JSON | Document | XMLDocument>}
 	 */
-	request(url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<any> {
+	request(url: string, type: "blob", withCredentials?: boolean, headers?: StoreHeaders): Promise<Blob>;
+	request(url: string, type: "json", withCredentials?: boolean, headers?: StoreHeaders): Promise<JsonValue>;
+	request(url: string, type: StoreMarkupRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<Document | XMLDocument>;
+	request(url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<RequestResponse>;
+	request(url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreRequestResponse> {
 		if (this.online) {
 			// From network
 			return this.requester(url, type, withCredentials, headers).then((data) => {
@@ -197,7 +202,11 @@ class Store {
 	 * @param  {string} [type] specify the type of the returned result
 	 * @return {Promise<Blob | string | JSON | Document | XMLDocument>}
 	 */
-	retrieve(url: string, type?: StoreRequestType): Promise<any> {
+	retrieve(url: string, type: "blob"): Promise<Blob>;
+	retrieve(url: string, type: "json"): Promise<JsonValue>;
+	retrieve(url: string, type: StoreMarkupRequestType): Promise<Document | XMLDocument>;
+	retrieve(url: string, type?: StoreRequestType): Promise<RequestResponse>;
+	retrieve(url: string, type?: StoreRequestType): Promise<RequestResponse> {
 		var response: Promise<any>;
 		var path = new Path(url);
 
@@ -236,17 +245,20 @@ class Store {
 	 * @param  {string} [type]
 	 * @return {any} the parsed result
 	 */
-	handleResponse(response: any, type?: StoreRequestType): any {
+	handleResponse(response: string, type: "json"): JsonValue;
+	handleResponse(response: string, type: StoreMarkupRequestType): Document | XMLDocument;
+	handleResponse(response: RequestResponse, type?: StoreRequestType): RequestResponse;
+	handleResponse(response: RequestResponse, type?: StoreRequestType): RequestResponse {
 		var r;
 
 		if(type == "json") {
-			r = JSON.parse(response);
+			r = JSON.parse(response as string);
 		} else if(isXml(type)) {
-			r = parse(response, "text/xml");
+			r = parse(response as string, "text/xml");
 		} else if(type == "xhtml") {
-			r = parse(response, "application/xhtml+xml");
+			r = parse(response as string, "application/xhtml+xml");
 		} else if(type == "html" || type == "htm") {
-			r = parse(response, "text/html");
+			r = parse(response as string, "text/html");
 		} else {
 			r = response;
 		}

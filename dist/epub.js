@@ -19414,14 +19414,6 @@
 				return result;
 			});
 		}
-		/**
-		* Request a url
-		* @param  {string} url  a url to request from storage
-		* @param  {string} [type] specify the type of the returned result
-		* @param  {boolean} [withCredentials]
-		* @param  {object} [headers]
-		* @return {Promise<Blob | string | JSON | Document | XMLDocument>}
-		*/
 		request(url, type, withCredentials, headers) {
 			if (this.online) return this.requester(url, type, withCredentials, headers).then((data) => {
 				this.put(url);
@@ -19429,12 +19421,6 @@
 			});
 			else return this.retrieve(url, type);
 		}
-		/**
-		* Request a url from storage
-		* @param  {string} url  a url to request from storage
-		* @param  {string} [type] specify the type of the returned result
-		* @return {Promise<Blob | string | JSON | Document | XMLDocument>}
-		*/
 		retrieve(url, type) {
 			var response;
 			var path = new Path(url);
@@ -19454,13 +19440,6 @@
 				return deferred.promise;
 			});
 		}
-		/**
-		* Handle the response from request
-		* @private
-		* @param  {any} response
-		* @param  {string} [type]
-		* @return {any} the parsed result
-		*/
 		handleResponse(response, type) {
 			var r;
 			if (type == "json") r = JSON.parse(response);
