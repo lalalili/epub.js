@@ -215,9 +215,14 @@ assert(typeTests.includes("new Queue({ prefix: \"ctx\" })"), "type tests must co
 assert(typeTests.includes("queue.enqueue(queueTask, \"ready\")"), "type tests must cover Queue enqueue variadic typing");
 assert(typeTests.includes("new Task((): void => undefined)"), "type tests must cover exported Task construction typing");
 assert(typeTests.includes("type HookAssertions"), "type tests must assert the Hook public surface");
+assert(typeTests.includes("RootHookRegistration"), "type tests must assert root Hook type exports");
 assert(typeTests.includes("new Hook({ prefix: \"ctx\" })"), "type tests must cover Hook optional context construction");
 assert(typeTests.includes("hook.register(hookTask, hookRegistration)"), "type tests must cover Hook variadic registration typing");
 assert(typeTests.includes("hook.trigger(\"ready\")"), "type tests must cover Hook trigger result typing");
+assert(
+	sourceRoot.includes("HookRegistration") && sourceRoot.includes("HookTask") && sourceRoot.includes("default as Hook"),
+	"source root must export Hook public types"
+);
 assert(typeTests.includes("type PageListAssertions"), "type tests must assert the PageList public surface");
 assert(typeTests.includes("RootPageValue"), "type tests must assert root PageList value typing");
 assert(typeTests.includes("new PageList()"), "type tests must cover PageList construction without a document");

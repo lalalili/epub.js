@@ -10,10 +10,10 @@
 
 ### content
 
-> **content**: `Hook`
+> **content**: [`Hook`](Hook.md)
 
 ***
 
 ### serialize
 
-> **serialize**: `Hook`
+> **serialize**: [`Hook`](Hook.md)

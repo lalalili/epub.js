@@ -5,9 +5,15 @@
  * @param {any} context scope of this
  * @example this.content = new EPUBJS.Hook(this);
  */
+export type HookTask = (...args: any[]) => any;
+export type HookRegistration = HookTask | HookTask[];
+export interface HooksObject {
+	[key: string]: Hook;
+}
+
 class Hook {
 	context: any;
-	hooks: Function[];
+	hooks: HookTask[];
 
 	constructor(context?: any){
 		this.context = context || this;
@@ -18,14 +24,14 @@ class Hook {
 	 * Adds a function to be run before a hook completes
 	 * @example this.content.register(function(){...});
 	 */
-	register(...items: Array<Function | Function[]>): void {
+	register(...items: HookRegistration[]): void {
 		for(var i = 0; i < arguments.length; ++i) {
 			if (typeof arguments[i]  === "function") {
-				this.hooks.push(arguments[i] as Function);
+				this.hooks.push(arguments[i] as HookTask);
 			} else {
 				// unpack array
-				for(var j = 0; j < (arguments[i] as Function[]).length; ++j) {
-					this.hooks.push((arguments[i] as Function[])[j]);
+				for(var j = 0; j < (arguments[i] as HookTask[]).length; ++j) {
+					this.hooks.push((arguments[i] as HookTask[])[j]);
 				}
 			}
 		}
@@ -35,7 +41,7 @@ class Hook {
 	 * Removes a function
 	 * @example this.content.deregister(function(){...});
 	 */
-	deregister(func: Function): void {
+	deregister(func: HookTask): void {
 		let hook;
 		for (let i = 0; i < this.hooks.length; i++) {
 			hook = this.hooks[i];
@@ -75,11 +81,11 @@ class Hook {
 	}
 
 	// Adds a function to be run before a hook completes
-	list(): Function[] {
+	list(): HookTask[] {
 		return this.hooks;
 	}
 
-	clear(): Function[] {
+	clear(): HookTask[] {
 		return this.hooks = [];
 	}
 }

@@ -132,6 +132,13 @@ export type {
 } from "./utils/path";
 
 export type {
+	HookRegistration,
+	HookTask,
+	HooksObject,
+	default as Hook
+} from "./utils/hook";
+
+export type {
 	UrlBase,
 	default as Url
 } from "./utils/url";

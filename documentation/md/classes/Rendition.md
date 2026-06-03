@@ -64,31 +64,31 @@
 
 #### content
 
-> **content**: `Hook`
+> **content**: [`Hook`](../interfaces/Hook.md)
 
 #### display
 
-> **display**: `Hook`
+> **display**: [`Hook`](../interfaces/Hook.md)
 
 #### layout
 
-> **layout**: `Hook`
+> **layout**: [`Hook`](../interfaces/Hook.md)
 
 #### render
 
-> **render**: `Hook`
+> **render**: [`Hook`](../interfaces/Hook.md)
 
 #### serialize
 
-> **serialize**: `Hook`
+> **serialize**: [`Hook`](../interfaces/Hook.md)
 
 #### show
 
-> **show**: `Hook`
+> **show**: [`Hook`](../interfaces/Hook.md)
 
 #### unloaded
 
-> **unloaded**: `Hook`
+> **unloaded**: [`Hook`](../interfaces/Hook.md)
 
 ***
 

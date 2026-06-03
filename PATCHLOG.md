@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0316
+- Why:
+  - P-0315 aligned `Book` with the shared request type contract, leaving `Hook` as a public utility surface with source/declaration/root parity gaps.
+  - The declaration surface already exposes `HookTask`, `HookRegistration`, `HooksObject`, and the `Hook` class shape, but source kept the helper shapes implicit with `Function` and the package root did not expose them consistently.
+  - Aligning these exports lets consumers type-check hook registrations, hook maps, task callbacks, and `Hook` instances from the package root before any release tag or host gate, without changing hook registration, deregistration, triggering, listing, or clearing behavior.
+- Diff Scope:
+  - `src/utils/hook.ts`: export declaration-facing Hook helper type shapes and align method/property annotations with them.
+  - `src/index.ts`, `types/index.d.ts`: export root `Hook` public helper types.
+  - `types/epubjs-tests.ts`: extend public root assertions for `Hook` type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `Hook` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public Hook type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/core-facade.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `Hook` helper aliases to remain module-private instead of part of the root typed public API contract.
+
 ### P-0315
 - Why:
   - P-0314 aligned `utils/core` root type exports, leaving `Book` as a public class surface that still duplicated request helper types in source.
