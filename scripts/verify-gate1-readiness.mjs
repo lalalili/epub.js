@@ -189,9 +189,30 @@ assert(
 	sourceRoot.includes("ResourceSettings"),
 	"source root must export Resources public types"
 );
-assert(typeTests.includes("RootStoreRequest"), "type tests must assert root Store type exports");
 assert(
-	sourceRoot.includes("StoreRequest") && sourceRoot.includes("StoreResources") && sourceRoot.includes("StoreUrlOptions"),
+	typeTests.includes("RootStore") &&
+	typeTests.includes("RootStoreData") &&
+	typeTests.includes("RootStoreHeaders") &&
+	typeTests.includes("RootStoreRequest") &&
+	typeTests.includes("RootStoreRequestType") &&
+	typeTests.includes("RootStoreResolver") &&
+	typeTests.includes("RootStoreResource") &&
+	typeTests.includes("RootStoreResources") &&
+	typeTests.includes("RootStoreStorage") &&
+	typeTests.includes("RootStoreUrlOptions"),
+	"type tests must assert root Store type exports"
+);
+assert(
+	sourceRoot.includes("default as Store") &&
+	sourceRoot.includes("StoreData") &&
+	sourceRoot.includes("StoreHeaders") &&
+	sourceRoot.includes("StoreRequest") &&
+	sourceRoot.includes("StoreRequestType") &&
+	sourceRoot.includes("StoreResolver") &&
+	sourceRoot.includes("StoreResource") &&
+	sourceRoot.includes("StoreResources") &&
+	sourceRoot.includes("StoreStorage") &&
+	sourceRoot.includes("StoreUrlOptions"),
 	"source root must export Store public types"
 );
 assert(typeTests.includes("RootArchiveInput"), "type tests must assert root Archive type exports");
