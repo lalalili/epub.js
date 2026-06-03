@@ -26,7 +26,7 @@
 
 ### addStylesheet()
 
-> **addStylesheet**(`url`): `unknown`
+> **addStylesheet**(`url`): `Promise`\<`boolean`\>
 
 #### Parameters
 
@@ -36,13 +36,13 @@
 
 #### Returns
 
-`unknown`
+`Promise`\<`boolean`\>
 
 ***
 
 ### addStylesheetCss()
 
-> **addStylesheetCss**(`css`, `name`): `unknown`
+> **addStylesheetCss**(`css`, `name`): `boolean`
 
 #### Parameters
 
@@ -56,13 +56,13 @@
 
 #### Returns
 
-`unknown`
+`boolean`
 
 ***
 
 ### addStylesheetRules()
 
-> **addStylesheetRules**(`rules`, `name`): `unknown`
+> **addStylesheetRules**(`rules`, `name`): `void`
 
 #### Parameters
 
@@ -76,13 +76,13 @@
 
 #### Returns
 
-`unknown`
+`void`
 
 ***
 
 ### css()
 
-> **css**(`name`, `value?`, `priority?`): `unknown`
+> **css**(`name`, `value?`, `priority?`): `string`
 
 #### Parameters
 
@@ -100,7 +100,7 @@
 
 #### Returns
 
-`unknown`
+`string`
 
 ***
 

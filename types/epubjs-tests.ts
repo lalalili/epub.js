@@ -843,6 +843,10 @@ type ThemesAssertions = [
   Assert<IsExact<Themes["_themes"], Record<string, { rules?: ThemeRules; url?: string; serialized?: string; injected?: boolean }> | undefined>>,
   Assert<IsExact<Themes["_overrides"], Record<string, ThemeOverride> | undefined>>,
   Assert<IsExact<Themes["_current"], string | undefined>>,
+  Assert<IsExact<ReturnType<ThemesContent["addStylesheet"]>, Promise<boolean>>>,
+  Assert<IsExact<ReturnType<ThemesContent["addStylesheetCss"]>, boolean>>,
+  Assert<IsExact<ReturnType<ThemesContent["addStylesheetRules"]>, void>>,
+  Assert<IsExact<ReturnType<ThemesContent["css"]>, string>>,
   Assert<IsExact<ReturnType<Themes["register"]>, void>>,
   Assert<IsExact<ReturnType<Themes["default"]>, void>>,
   Assert<IsExact<ReturnType<Themes["registerThemes"]>, void>>,
@@ -1295,10 +1299,10 @@ function testEpub() {
   const themeInput: ThemeInput = themeRules;
   const themesContent: ThemesContent = {
     addClass: () => undefined,
-    addStylesheet: () => undefined,
-    addStylesheetCss: () => undefined,
+    addStylesheet: () => Promise.resolve(true),
+    addStylesheetCss: () => true,
     addStylesheetRules: () => undefined,
-    css: () => undefined,
+    css: () => "",
     removeClass: () => undefined,
   };
   const themesRendition: ThemesRendition = {

@@ -21,10 +21,10 @@ export type ThemeInput = ThemeRules | string;
 
 export interface ThemesContent {
 	addClass(name: string): void;
-	addStylesheet(url: string): unknown;
-	addStylesheetCss(css: string, name: string): unknown;
-	addStylesheetRules(rules: ThemeRules, name: string): unknown;
-	css(name: string, value?: string, priority?: boolean): unknown;
+	addStylesheet(url: string): Promise<boolean>;
+	addStylesheetCss(css: string, name: string): boolean;
+	addStylesheetRules(rules: ThemeRules, name: string): void;
+	css(name: string, value?: string, priority?: boolean): string;
 	removeClass(name: string): void;
 }
 

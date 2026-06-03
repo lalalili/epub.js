@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0324
+- Why:
+  - P-0323 aligned `Resources` archive helper inputs, leaving `ThemesContent` as a public bridge interface whose method return values were still typed as `unknown`.
+  - The bridge mirrors the subset of `Contents` methods that `Themes` calls, and the concrete `Contents` contract already exposes specific returns for stylesheet injection and CSS mutation helpers.
+  - Aligning `ThemesContent` with those returns lets theme bridge consumers, mocks, TypeDoc, and Gate 1 readiness type-check against the same public contract before any release tag or host gate, without changing theme registration, stylesheet injection, override application, or content class behavior.
+- Diff Scope:
+  - `src/themes.ts`, `types/themes.d.ts`: tighten `ThemesContent` bridge method return types to the existing `Contents` public contract.
+  - `types/epubjs-tests.ts`: extend Themes assertions and bridge mocks for stylesheet/CSS method returns.
+  - `scripts/verify-gate1-readiness.mjs`: require Themes content bridge return type smoke coverage.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the updated `ThemesContent` surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/themes.test.js test/browser/contents.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream bridge mocks intentionally require `ThemesContent` helper methods to remain `unknown` instead of matching the concrete `Contents` return contract.
+
 ### P-0323
 - Why:
   - P-0322 aligned Rendition location-part aliases, leaving `Resources` with a smaller archive input parity gap.
