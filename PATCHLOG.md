@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0281
+- Why:
+  - P-0280 aligned `Path` declarations with runtime behavior, leaving `Url` as the adjacent low-risk utility typed public API gap.
+  - `Url` is already TypeScript source and browser-covered, but its declaration still required a string base, hid runtime URL/path state, and did not expose the `false` base mode used to keep relative EPUB paths from defaulting to `window.location`.
+  - Aligning `Url` declarations lets consumers type-check URL parsing, optional and `false` base construction, native URL state, derived path state, path helper access, resolving, relative path calculation, and string conversion before any release tag or host gate.
+- Diff Scope:
+  - `types/utils/url.d.ts`: add `UrlBase`, optional constructor base, public state fields, native `URL` field, and path/resolve/relative/toString return types aligned with runtime.
+  - `types/epubjs-tests.ts`: add `UrlAssertions` plus concrete absolute URL, false-base relative URL, path helper, resolve/relative, native URL, and origin typing checks.
+  - `scripts/verify-gate1-readiness.mjs`: require the Url typed public API assertions and construction/helper coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/core.test.js test/browser/core-facade.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `Url` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0280
 - Why:
   - P-0279 aligned `Container` declarations with runtime behavior, leaving low-risk utility declarations as the next typed public API gap.

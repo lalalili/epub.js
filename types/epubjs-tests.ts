@@ -16,6 +16,7 @@ import type { LayoutContent, LayoutCount, LayoutProps, LayoutSettings as EpubLay
 import Navigation, { LandmarkItem, NavItem, NavigationInputItem } from './navigation';
 import DisplayOptions from './displayoptions';
 import Path, { ParsedPath } from './utils/path';
+import Url, { UrlBase } from './utils/url';
 import Packaging, {
   PackagingJsonManifest,
   PackagingManifestItem,
@@ -262,6 +263,25 @@ type PathAssertions = [
   Assert<IsExact<ReturnType<Path["toString"]>, string>>
 ];
 
+type UrlAssertions = [
+  Assert<IsExact<ConstructorParameters<typeof Url>, [urlString: string, baseString?: UrlBase]>>,
+  Assert<IsExact<Url["Path"], Path>>,
+  Assert<IsExact<Url["Url"], URL | undefined>>,
+  Assert<IsExact<Url["base"], UrlBase>>,
+  Assert<IsExact<Url["directory"], string>>,
+  Assert<IsExact<Url["extension"], string>>,
+  Assert<IsExact<Url["filename"], string>>,
+  Assert<IsExact<Url["hash"], string>>,
+  Assert<IsExact<Url["href"], string>>,
+  Assert<IsExact<Url["origin"], string>>,
+  Assert<IsExact<Url["protocol"], string>>,
+  Assert<IsExact<Url["search"], string>>,
+  Assert<IsExact<ReturnType<Url["path"]>, Path>>,
+  Assert<IsExact<ReturnType<Url["resolve"]>, string>>,
+  Assert<IsExact<ReturnType<Url["relative"]>, string>>,
+  Assert<IsExact<ReturnType<Url["toString"]>, string>>
+];
+
 type PageListAssertions = [
   Assert<IsExact<ConstructorParameters<typeof PageList>, [xml?: Document | XMLDocument | undefined]>>,
   Assert<IsExact<PageList["pages"], PageValue[] | undefined>>,
@@ -504,6 +524,14 @@ function testEpub() {
   const pathIsAbsolute: boolean = pathHelper.isAbsolute();
   const pathDirectory: string = pathHelper.directory;
   const pathSegments: string[] = pathHelper.splitPath("OPS/Text/chapter.xhtml");
+  const urlBase: UrlBase = false;
+  const urlHelper = new Url("https://example.com/OPS/Text/chapter.xhtml?debug=true");
+  const relativeUrlHelper = new Url("OPS/Text/chapter.xhtml", urlBase);
+  const urlPath: Path = urlHelper.path();
+  const resolvedUrl: string = urlHelper.resolve("../Images/cover.jpg");
+  const relativeUrl: string = urlHelper.relative("/OPS/Text/chapter.xhtml");
+  const nativeUrl: URL | undefined = urlHelper.Url;
+  const urlOrigin: string = urlHelper.origin;
   const legacyNavItems: NavigationInputItem[] = [{
     id: "chapter-one",
     href: "Text/chapter1.xhtml",
@@ -844,6 +872,12 @@ function testEpub() {
   void pathIsAbsolute;
   void pathDirectory;
   void pathSegments;
+  void relativeUrlHelper;
+  void urlPath;
+  void resolvedUrl;
+  void relativeUrl;
+  void nativeUrl;
+  void urlOrigin;
   void emptyNavigation;
   void documentNavigation;
   void navigationToc;
@@ -944,6 +978,7 @@ type _PackagingAssertions = PackagingAssertions;
 type _DisplayOptionsAssertions = DisplayOptionsAssertions;
 type _ContainerAssertions = ContainerAssertions;
 type _PathAssertions = PathAssertions;
+type _UrlAssertions = UrlAssertions;
 type _PageListAssertions = PageListAssertions;
 type _LocationsAssertions = LocationsAssertions;
 type _MappingAssertions = MappingAssertions;
