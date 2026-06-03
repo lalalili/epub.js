@@ -22,10 +22,10 @@
 
 ### end?
 
-> `optional` **end?**: `DisplayedLocation`
+> `optional` **end?**: [`RenditionLocationPart`](RenditionLocationPart.md)
 
 ***
 
 ### start?
 
-> `optional` **start?**: `DisplayedLocation`
+> `optional` **start?**: [`RenditionLocationPart`](RenditionLocationPart.md)

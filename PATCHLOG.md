@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0322
+- Why:
+  - P-0321 aligned package manifest aliases, leaving `Rendition` location parts with a source/declaration naming gap.
+  - Source exposes `RenditionLocationPart` for `Location.start` / `Location.end`, while declarations exposed the same shape as `DisplayedLocation` and the package root did not export either location-part helper.
+  - Aligning both names preserves declaration compatibility while letting consumers type-check rendition location parts from the root public API contract before any release tag or host gate, without changing relocation, manager location mapping, currentLocation(), or display behavior.
+- Diff Scope:
+  - `src/rendition.ts`, `types/rendition.d.ts`: expose `RenditionLocationPart` and keep `DisplayedLocation` as a compatibility alias for the same shape.
+  - `src/index.ts`, `types/index.d.ts`: export root rendition location-part helper types.
+  - `types/epubjs-tests.ts`: extend public root, Rendition, Location, and compatibility alias assertions.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source rendition location-part export and type smoke coverage.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public rendition location-part surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/rendition.test.js test/browser/book.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require rendition location parts to remain named differently between source and declarations.
+
 ### P-0321
 - Why:
   - P-0320 aligned `PackagingMetadata`, leaving `PackagingManifest` as the matching source alias still missing from declarations and package-root exports.

@@ -94,7 +94,12 @@ assert(
 assert(typeTests.includes("RootDisplayOptions"), "type tests must assert root DisplayOptions type export");
 assert(sourceRoot.includes("default as DisplayOptions"), "source root must export DisplayOptions public type");
 assert(typeTests.includes("RootRenditionOptions"), "type tests must assert root Rendition type exports");
-assert(sourceRoot.includes("RenditionOptions") && sourceRoot.includes("RenditionLayoutProperties"), "source root must export Rendition public types");
+assert(typeTests.includes("RootRenditionLocationPart"), "type tests must assert root Rendition location part type export");
+assert(typeTests.includes("displayedLocation"), "type tests must cover DisplayedLocation compatibility typing");
+assert(
+	sourceRoot.includes("DisplayedLocation") && sourceRoot.includes("RenditionLocationPart") && sourceRoot.includes("RenditionOptions") && sourceRoot.includes("RenditionLayoutProperties"),
+	"source root must export Rendition public types"
+);
 assert(typeTests.includes("RootNavigationInputItem"), "type tests must assert root Navigation type exports");
 assert(
 	sourceRoot.includes("NavigationInputItem") && sourceRoot.includes("NavItem") && sourceRoot.includes("NavigationDocument"),

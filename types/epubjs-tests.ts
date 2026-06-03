@@ -42,6 +42,7 @@ import type {
   EpubCFIBase as RootEpubCFIBase,
   EpubCFIComponent as RootEpubCFIComponent,
   EpubCFIInput as RootEpubCFIInput,
+  DisplayedLocation as RootDisplayedLocation,
   Location as RootLocation,
   LocationInput as RootLocationInput,
   LocationRange as RootLocationRange,
@@ -153,6 +154,7 @@ import type {
   ThemesRendition as RootThemesRendition,
   Url as RootUrl,
   UrlBase as RootUrlBase,
+  RenditionLocationPart as RootRenditionLocationPart,
   RenditionLayoutProperties as RootRenditionLayoutProperties,
   RenditionOptions as RootRenditionOptions,
 } from '../';
@@ -207,7 +209,7 @@ import Packaging, {
 import PageList, { PageListDocument, PageListItem, PageLookup, PageReverseLookup, PageValue } from './pagelist';
 import Locations, { LocationInput, LocationRange, LocationsRequest, WordLocation } from './locations';
 import Mapping, { EpubCFIPair, MappingContents, MappingLayout, MappingTextNodeWalker, MappingView, RangePair } from './mapping';
-import type { LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionOptions } from './rendition';
+import type { DisplayedLocation, LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionLocationPart, RenditionOptions } from './rendition';
 import Resources, {
   ReplacementMode,
   ResourceArchive,
@@ -276,7 +278,9 @@ type PublicRootAssertions = [
   Assert<IsExact<RootLayoutProps, LayoutProps>>,
   Assert<IsExact<RootLayoutSettings, EpubLayoutSettings>>,
   Assert<IsExact<RootParsedEpubCFI, ParsedEpubCFI>>,
+  Assert<IsExact<RootDisplayedLocation, DisplayedLocation>>,
   Assert<IsExact<RootRenditionOptions, RenditionOptions>>,
+  Assert<IsExact<RootRenditionLocationPart, RenditionLocationPart>>,
   Assert<IsExact<RootRenditionLayoutProperties, RenditionLayoutProperties>>,
   Assert<IsExact<RootLocation, Location>>,
   Assert<IsExact<RootManagerLocationItem, ManagerLocationItem>>,
@@ -451,6 +455,9 @@ type CoreClassAssertions = [
   Assert<IsExact<Rendition["starting"], Deferred<void> | undefined>>,
   Assert<IsExact<Rendition["started"], Promise<void> | undefined>>,
   Assert<IsExact<Rendition["displaying"], Deferred<any> | undefined>>,
+  Assert<IsExact<DisplayedLocation, RenditionLocationPart>>,
+  Assert<IsExact<Location["start"], RenditionLocationPart | undefined>>,
+  Assert<IsExact<Location["end"], RenditionLocationPart | undefined>>,
   Assert<IsExact<ReturnType<Rendition["attachTo"]>, Promise<void>>>,
   Assert<IsExact<ReturnType<Rendition["currentLocation"]>, Location | Promise<Location> | undefined>>,
   Assert<IsExact<ReturnType<Rendition["display"]>, Promise<void>>>,
@@ -986,6 +993,18 @@ function testEpub() {
     pages: [1],
     totalPages: 1,
   };
+  const renditionLocationPart: RenditionLocationPart = {
+    index: 1,
+    href: "Text/chapter.xhtml",
+    cfi: "epubcfi(/6/2[chapter]!/4/2/1:0)",
+    displayed: {
+      page: 1,
+      total: 2,
+    },
+    page: 1,
+    percentage: 0.5,
+  };
+  const displayedLocation: DisplayedLocation = renditionLocationPart;
   const locatedRenditionLocation: Location = rendition.located([managerLocationItem]);
   const renditionDebugState: Record<string, any> = rendition.debugVerticalRlPage();
   const renditionRemeasure: Promise<any> = rendition.remeasure({ preserveLocation: true, waitForFonts: false });
@@ -1425,6 +1444,8 @@ function testEpub() {
   void rootOptionsOnlyBook;
   void renditionLayoutProperties;
   void managerLocationItem;
+  void renditionLocationPart;
+  void displayedLocation;
   void locatedRenditionLocation;
   void renditionDebugState;
   void renditionRemeasure;

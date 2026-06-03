@@ -243,8 +243,10 @@ export type {
 } from "./store";
 
 export type {
+	DisplayedLocation,
 	LayoutProperties as RenditionLayoutProperties,
 	Location,
 	ManagerLocationItem,
+	RenditionLocationPart,
 	RenditionOptions
 } from "./rendition";

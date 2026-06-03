@@ -44,7 +44,7 @@ export interface LayoutProperties {
   direction: string
 }
 
-export interface DisplayedLocation {
+export interface RenditionLocationPart {
   index: number,
   href: string,
   cfi: string,
@@ -57,9 +57,11 @@ export interface DisplayedLocation {
   }
 }
 
+export type DisplayedLocation = RenditionLocationPart;
+
 export interface Location {
-  start?: DisplayedLocation,
-	end?: DisplayedLocation,
+  start?: RenditionLocationPart,
+	end?: RenditionLocationPart,
   atStart?: boolean,
   atEnd?: boolean
 }

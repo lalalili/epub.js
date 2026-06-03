@@ -63,6 +63,8 @@ export interface RenditionLocationPart {
 	page?: number;
 }
 
+export type DisplayedLocation = RenditionLocationPart;
+
 export interface Location {
 	start?: RenditionLocationPart;
 	end?: RenditionLocationPart;
