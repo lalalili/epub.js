@@ -18,6 +18,8 @@ export interface PackagingMetadataObject {
   [key: string]: unknown
 }
 
+export type PackagingMetadata = PackagingMetadataObject;
+
 export interface PackagingSpineItem {
   id?: string | null,
   idref?: string | null,

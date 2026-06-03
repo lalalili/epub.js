@@ -208,6 +208,7 @@ export type {
 	PackagingJsonManifest,
 	PackagingManifestItem,
 	PackagingManifestObject,
+	PackagingMetadata,
 	PackagingMetadataObject,
 	PackagingObject,
 	PackagingSpineItem,

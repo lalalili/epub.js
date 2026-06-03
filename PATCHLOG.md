@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0320
+- Why:
+  - P-0319 aligned `Archive` source overloads, leaving `PackagingMetadata` as a small source/declaration/root parity gap on the package metadata surface.
+  - Source already exposes `PackagingMetadata` as the metadata alias used by `Packaging` and `Book` runtime state, but declarations and package-root exports only exposed `PackagingMetadataObject`.
+  - Aligning the alias lets consumers type-check package metadata and `Book.loading` / `Book.loaded` metadata from the same root public API contract before any release tag or host gate, without changing OPF parsing, JSON manifest loading, metadata extraction, or book loading behavior.
+- Diff Scope:
+  - `types/packaging.d.ts`, `types/book.d.ts`: expose `PackagingMetadata` and use it for Book metadata loading/loaded declarations.
+  - `src/index.ts`, `types/index.d.ts`: export root `PackagingMetadata`.
+  - `types/epubjs-tests.ts`: extend public root and Book/Packaging metadata assertions.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `PackagingMetadata` and Book metadata type smoke coverage.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public metadata alias surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/packaging.test.js test/browser/book.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require metadata typing to remain available only through `PackagingMetadataObject` instead of the source alias.
+
 ### P-0319
 - Why:
   - P-0318 aligned `Store` source overloads with the declaration contract, leaving `Archive` as the matching archive-backed request helper with the same source/declaration parity gap.
