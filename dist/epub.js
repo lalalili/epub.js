@@ -17378,12 +17378,6 @@
 				return this.zip.loadAsync(data, { "base64": isBase64 });
 			});
 		}
-		/**
-		* Request a url from the archive
-		* @param  {string} url  a url to request from the archive
-		* @param  {string} [type] specify the type of the returned result
-		* @return {Promise<Blob | string | JSON | Document | XMLDocument>}
-		*/
 		request(url, type) {
 			var deferred = new defer$1();
 			var response;
@@ -17401,13 +17395,6 @@
 			});
 			return deferred.promise;
 		}
-		/**
-		* Handle the response from request
-		* @private
-		* @param  {any} response
-		* @param  {string} [type]
-		* @return {any} the parsed result
-		*/
 		handleResponse(response, type) {
 			var r;
 			if (type == "json") r = JSON.parse(response);

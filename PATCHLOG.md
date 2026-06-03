@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0319
+- Why:
+  - P-0318 aligned `Store` source overloads with the declaration contract, leaving `Archive` as the matching archive-backed request helper with the same source/declaration parity gap.
+  - The declaration surface already exposes typed overloads for `Archive.request()` and `Archive.handleResponse()`, but source still used `Promise<any>` / `any` implementation signatures.
+  - Aligning the source overloads keeps archive request consumers, TypeDoc output, and Gate 1 readiness pointed at the same public response contract before any release tag or host gate, without changing zip loading, archive lookup, response parsing, blob/base64 URL creation, or cache cleanup behavior.
+- Diff Scope:
+  - `src/archive.ts`: add declaration-facing overloads for `request()` and `handleResponse()` using the shared request response value contract.
+  - `types/epubjs-tests.ts`: extend public `Archive` assertions for request and response handling fallback typing.
+  - `scripts/verify-gate1-readiness.mjs`: require source `Archive` overload coverage and matching type smoke assertions in Gate 1 readiness.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/archive.test.js test/browser/request.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require the `Archive` source surface to remain loosely typed instead of matching the declaration overload contract.
+
 ### P-0318
 - Why:
   - P-0317 aligned the adjacent `Queue` utility surface, leaving `Store` as the next offline/resource helper with a source/declaration parity gap.

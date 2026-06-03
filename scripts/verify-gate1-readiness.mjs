@@ -8,6 +8,7 @@ const tsconfig = JSON.parse(readFileSync(path.join(root, "tsconfig.json"), "utf8
 const typeTests = readFileSync(path.join(root, "types/epubjs-tests.ts"), "utf8");
 const sourceRoot = readFileSync(path.join(root, "src/index.ts"), "utf8");
 const bookSource = readFileSync(path.join(root, "src/book.ts"), "utf8");
+const archiveSource = readFileSync(path.join(root, "src/archive.ts"), "utf8");
 const storeSource = readFileSync(path.join(root, "src/store.ts"), "utf8");
 const globalTypeTests = readFileSync(path.join(root, "types/global-namespace-tests.ts"), "utf8");
 const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.test.js"), "utf8");
@@ -183,8 +184,15 @@ assert(typeTests.includes("spine.unpack(spinePackage"), "type tests must cover S
 assert(typeTests.includes("spine.remove(spineSection)"), "type tests must cover Spine remove result typing");
 assert(typeTests.includes("type ArchiveAssertions"), "type tests must assert the Archive public surface");
 assert(typeTests.includes("RootArchiveZip"), "type tests must assert root Archive zip typing");
+assert(typeTests.includes("ReturnType<Archive[\"request\"]>"), "type tests must assert Archive request fallback typing");
+assert(typeTests.includes("ReturnType<Archive[\"handleResponse\"]>"), "type tests must assert Archive response handling fallback typing");
 assert(typeTests.includes("archive.createUrl(\"/OPS/images/cover.jpg\")"), "type tests must cover Archive createUrl optional options typing");
 assert(typeTests.includes("archive.handleResponse(\"{\\\"ok\\\":true}\", \"json\")"), "type tests must cover Archive handleResponse typing");
+assert(
+	archiveSource.includes("request(url: string, type: \"blob\"") &&
+	archiveSource.includes("handleResponse(response: string, type: \"json\")"),
+	"source Archive must expose request and handleResponse overloads"
+);
 assert(typeTests.includes("type PackagingAssertions"), "type tests must assert the Packaging public surface");
 assert(typeTests.includes("RootPackagingObject"), "type tests must assert root Packaging object typing");
 assert(typeTests.includes("new Packaging()"), "type tests must cover Packaging construction without a document");

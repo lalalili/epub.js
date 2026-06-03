@@ -597,6 +597,8 @@ type ArchiveAssertions = [
   Assert<IsExact<Parameters<Archive["open"]>, [input: ArchiveInput, isBase64?: boolean | undefined]>>,
   Assert<IsExact<ReturnType<Archive["open"]>, Promise<ArchiveZip>>>,
   Assert<IsExact<Parameters<Archive["openUrl"]>, [zipUrl: string, isBase64?: boolean | undefined]>>,
+  Assert<IsExact<ReturnType<Archive["request"]>, Promise<RequestResponse>>>,
+  Assert<IsExact<ReturnType<Archive["handleResponse"]>, RequestResponse>>,
   Assert<IsExact<ReturnType<Archive["getBlob"]>, Promise<Blob> | undefined>>,
   Assert<IsExact<ReturnType<Archive["getText"]>, Promise<string> | undefined>>,
   Assert<IsExact<ReturnType<Archive["getBase64"]>, Promise<string> | undefined>>,
