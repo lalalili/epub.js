@@ -6,6 +6,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const packageJson = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
 const tsconfig = JSON.parse(readFileSync(path.join(root, "tsconfig.json"), "utf8"));
 const typeTests = readFileSync(path.join(root, "types/epubjs-tests.ts"), "utf8");
+const sourceRoot = readFileSync(path.join(root, "src/index.ts"), "utf8");
 const globalTypeTests = readFileSync(path.join(root, "types/global-namespace-tests.ts"), "utf8");
 const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.test.js"), "utf8");
 const umdGlobalTests = readFileSync(path.join(root, "test/browser/umd-global.test.js"), "utf8");
@@ -77,6 +78,7 @@ assert(typeTests.includes("type PublicRootAssertions"), "type tests must assert 
 assert(typeTests.includes("RootBookInput"), "type tests must assert root BookInput type export");
 assert(typeTests.includes("ePub(rootBlobInput"), "type tests must cover root Blob input overload");
 assert(typeTests.includes("ePub(rootOptions)"), "type tests must cover root options-only overload");
+assert(sourceRoot.includes("BookLoaded") && sourceRoot.includes("BookLoading"), "source root must export Book loaded/loading types");
 assert(typeTests.includes("type CoreClassAssertions"), "type tests must assert the core class surface");
 assert(typeTests.includes("type LayoutAssertions"), "type tests must assert the Layout public surface");
 assert(typeTests.includes("new Layout()"), "type tests must cover Layout construction without settings");

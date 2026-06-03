@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0291
+- Why:
+  - P-0290 aligned the root factory and root declaration exports, leaving a small source/declaration parity gap for the newly public `BookLoaded` and `BookLoading` types.
+  - The declaration surface exposes precise `BookLoading` / `BookLoaded` shapes, but `src/book.ts` still kept them internal as broad `Record<..., any>` aliases and `src/index.ts` did not re-export them from the source root.
+  - Aligning the source-side types keeps the TypeScript source pipeline, root source exports, and published declaration contract consistent before any release tag or host gate, without changing runtime loading behavior.
+- Diff Scope:
+  - `src/book.ts`: export precise `BookLoading` and `BookLoaded` interfaces using the existing runtime loading members.
+  - `src/index.ts`: re-export `BookLoaded` and `BookLoading` from the source package root alongside the existing `Book` type aliases.
+  - `scripts/verify-gate1-readiness.mjs`: require the source root to export the `Book` loaded/loading types.
+  - `dist/*.map`: refresh tracked source maps after the source type-only update.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/umd-global.test.js test/browser/epub.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require the older internal broad `BookLoading` / `BookLoaded` source aliases instead of the current root typed public API contract.
+
 ### P-0290
 - Why:
   - P-0289 aligned `Book` runtime state declarations, leaving the root `ePub()` factory and named type exports as the next small package-root typed public API gap.

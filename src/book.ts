@@ -6,7 +6,7 @@ import Path from "./utils/path";
 import Spine from "./spine";
 import Locations from "./locations";
 import Container from "./container";
-import Packaging from "./packaging";
+import Packaging, { type PackagingManifest, type PackagingMetadata } from "./packaging";
 import Navigation from "./navigation";
 import Resources from "./resources";
 import PageList from "./pagelist";
@@ -31,9 +31,27 @@ export type BookOptions = {
 	openAs?: string;
 	store?: string;
 };
-type LoadingKeys = "manifest" | "spine" | "metadata" | "cover" | "navigation" | "pageList" | "resources" | "displayOptions";
-type BookLoading = Record<LoadingKeys, CoreDeferred<any>>;
-type BookLoaded = Record<LoadingKeys, Promise<any>>;
+export interface BookLoading {
+	metadata: CoreDeferred<PackagingMetadata>;
+	spine: CoreDeferred<Spine>;
+	manifest: CoreDeferred<PackagingManifest>;
+	cover: CoreDeferred<string | undefined>;
+	navigation: CoreDeferred<Navigation>;
+	pageList: CoreDeferred<PageList | undefined>;
+	resources: CoreDeferred<Resources>;
+	displayOptions: CoreDeferred<DisplayOptions>;
+}
+
+export interface BookLoaded {
+	metadata: Promise<PackagingMetadata>;
+	spine: Promise<Spine>;
+	manifest: Promise<PackagingManifest>;
+	cover: Promise<string | undefined>;
+	navigation: Promise<Navigation>;
+	pageList: Promise<PageList | undefined>;
+	resources: Promise<Resources>;
+	displayOptions: Promise<DisplayOptions>;
+}
 type SectionLike = {
 	url: string;
 	output?: string;

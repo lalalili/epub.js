@@ -18,5 +18,7 @@ export {
 
 export type {
 	BookInput,
+	BookLoaded,
+	BookLoading,
 	BookOptions
 } from "./book";
