@@ -1,14 +1,15 @@
 import EpubCFI from "./epubcfi";
+import type Contents from "./contents";
 import { nodeBounds } from "./platform/layout";
 
-interface LayoutMetrics {
+export interface MappingLayout {
 	spreadWidth: number;
 	columnWidth: number;
 	gap: number;
 	divisor: number;
 }
 
-interface MappingContents {
+export interface MappingContents {
 	document?: Document;
 }
 
@@ -16,7 +17,7 @@ interface MappingSection {
 	cfiBase: string;
 }
 
-interface MappingView {
+export interface MappingView {
 	section: MappingSection;
 	contents: {
 		scrollWidth(): number;
@@ -34,7 +35,9 @@ export interface RangePair {
 	end: Range;
 }
 
-type TextNodeWalker = (node: Text) => Text | Node | Range | undefined | false | null;
+export type MappingTextNodeWalker = (node: Text) => Text | Node | Range | undefined | false | null;
+export type MappingDirection = string;
+export type MappingAxis = string;
 
 /**
  * Map text locations to CFI ranges
@@ -45,12 +48,12 @@ type TextNodeWalker = (node: Text) => Text | Node | Range | undefined | false | 
  * @param {boolean} [dev] toggle developer highlighting
  */
 class Mapping {
-	layout: LayoutMetrics;
+	layout: MappingLayout;
 	horizontal: boolean;
 	direction: string;
 	_dev: boolean;
 
-	constructor(layout: LayoutMetrics, direction?: string, axis?: string, dev=false) {
+	constructor(layout: MappingLayout, direction?: MappingDirection, axis?: MappingAxis, dev=false) {
 		this.layout = layout;
 		this.horizontal = (axis === "horizontal") ? true : false;
 		this.direction = direction || "ltr";
@@ -74,7 +77,7 @@ class Mapping {
 	 * @param {number} start position to start at
 	 * @param {number} end position to end at
 	 */
-	page(contents: MappingContents, cfiBase: string, start: number, end: number): EpubCFIPair | undefined {
+	page(contents: Contents | MappingContents | null | undefined, cfiBase: string, start: number, end: number): EpubCFIPair | undefined {
 		var root = contents && contents.document ? contents.document.body : false;
 		var result;
 
@@ -110,7 +113,7 @@ class Mapping {
 	 * @param {function} func walk function
 	 * @return {*} returns the result of the walk function
 	 */
-	walk(root: Node, func: TextNodeWalker) {
+	walk(root: Node, func: MappingTextNodeWalker) {
 		// IE11 has strange issue, if root is text node IE throws exception on
 		// calling treeWalker.nextNode(), saying
 		// Unexpected call to method or property access instead of returning null value

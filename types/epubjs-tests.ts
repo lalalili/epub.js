@@ -28,6 +28,15 @@ import type {
   Location as RootLocation,
   LinkCallback as RootLinkCallback,
   ManagerLocationItem as RootManagerLocationItem,
+  Mapping as RootMapping,
+  EpubCFIPair as RootEpubCFIPair,
+  MappingAxis as RootMappingAxis,
+  MappingContents as RootMappingContents,
+  MappingDirection as RootMappingDirection,
+  MappingLayout as RootMappingLayout,
+  MappingTextNodeWalker as RootMappingTextNodeWalker,
+  MappingView as RootMappingView,
+  RangePair as RootRangePair,
   LandmarkItem as RootLandmarkItem,
   NavItem as RootNavItem,
   Navigation as RootNavigation,
@@ -131,7 +140,7 @@ import Packaging, {
 } from './packaging';
 import PageList, { PageListDocument, PageListItem, PageLookup, PageReverseLookup, PageValue } from './pagelist';
 import Locations, { LocationRange, WordLocation } from './locations';
-import Mapping, { EpubCFIPair, MappingContents, MappingLayout, MappingView, RangePair } from './mapping';
+import Mapping, { EpubCFIPair, MappingContents, MappingLayout, MappingTextNodeWalker, MappingView, RangePair } from './mapping';
 import type { LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionOptions } from './rendition';
 import Resources, {
   ReplacementMode,
@@ -249,6 +258,15 @@ type PublicRootAssertions = [
   Assert<IsExact<RootSpinePackage, SpinePackage>>,
   Assert<IsExact<RootSpinePackageItem, SpinePackageItem>>,
   Assert<IsExact<RootSpineResolver, SpineResolver>>,
+  Assert<IsExact<RootMapping, Mapping>>,
+  Assert<IsExact<RootEpubCFIPair, EpubCFIPair>>,
+  Assert<IsExact<RootMappingAxis, string>>,
+  Assert<IsExact<RootMappingContents, MappingContents>>,
+  Assert<IsExact<RootMappingDirection, string>>,
+  Assert<IsExact<RootMappingLayout, MappingLayout>>,
+  Assert<IsExact<RootMappingTextNodeWalker, MappingTextNodeWalker>>,
+  Assert<IsExact<RootMappingView, MappingView>>,
+  Assert<IsExact<RootRangePair, RangePair>>,
   Assert<IsExact<typeof rootReplaceBase, typeof replaceBase>>,
   Assert<IsExact<typeof rootReplaceCanonical, typeof replaceCanonical>>,
   Assert<IsExact<typeof rootReplaceMeta, typeof replaceMeta>>,

@@ -123,6 +123,11 @@ assert(
 	sourceRoot.includes("SpinePackage") && sourceRoot.includes("SpineResolver") && sourceRoot.includes("default as Spine"),
 	"source root must export Spine public types"
 );
+assert(typeTests.includes("RootMappingLayout"), "type tests must assert root Mapping type exports");
+assert(
+	sourceRoot.includes("MappingLayout") && sourceRoot.includes("MappingTextNodeWalker") && sourceRoot.includes("default as Mapping"),
+	"source root must export Mapping public types"
+);
 assert(typeTests.includes("RootResourceOptions"), "type tests must assert root Resources type exports");
 assert(
 	sourceRoot.includes("ResourceOptions") && sourceRoot.includes("ResourceManifestItem") && sourceRoot.includes("ResourceSettings"),

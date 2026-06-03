@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0306
+- Why:
+  - P-0305 aligned `Spine` root type exports, leaving the adjacent `Mapping` CFI range mapper surface as the next source/declaration/root parity gap.
+  - The declaration surface already exposes `Mapping`, `EpubCFIPair`, `RangePair`, `MappingLayout`, `MappingView`, `MappingContents`, `MappingTextNodeWalker`, `MappingDirection`, and `MappingAxis`, but source kept several helper shapes private and the package root did not expose them consistently.
+  - Aligning these exports lets consumers type-check mapping layouts, page/section CFI pairs, text walker callbacks, and mapping inputs from the root package API before any release tag or host gate, without changing range walking, CFI conversion, pagination mapping, or axis behavior.
+- Diff Scope:
+  - `src/mapping.ts`: export existing `Mapping` public helper type shapes and align constructor/page/walk parameters with declaration-facing names.
+  - `src/index.ts`, `types/index.d.ts`: export root `Mapping` public types.
+  - `types/epubjs-tests.ts`: extend public root assertions for `Mapping` type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `Mapping` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public mapping type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/mapping.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `Mapping` helper aliases to remain module-private instead of part of the root typed public API contract.
+
 ### P-0305
 - Why:
   - P-0304 aligned `Section` root type exports, leaving the adjacent `Spine` collection surface as the next source/declaration/root parity gap.

@@ -106,6 +106,18 @@ export type {
 } from "./spine";
 
 export type {
+	EpubCFIPair,
+	MappingAxis,
+	MappingContents,
+	MappingDirection,
+	MappingLayout,
+	MappingTextNodeWalker,
+	MappingView,
+	RangePair,
+	default as Mapping
+} from "./mapping";
+
+export type {
 	PackagingJsonManifest,
 	PackagingManifestItem,
 	PackagingManifestObject,
