@@ -112,6 +112,10 @@ assert(typeTests.includes("urlHelper.path()"), "type tests must cover Url path r
 assert(typeTests.includes("type ReplacementsAssertions"), "type tests must assert the replacements helper public surface");
 assert(typeTests.includes("replaceLinks(parsedDocument.documentElement, linkCallback"), "type tests must cover replaceLinks element/callback typing");
 assert(typeTests.includes("substitute(\"url(cover.jpg)\", [\"cover.jpg\"], [\"blob:cover\"])"), "type tests must cover substitute string return typing");
+assert(typeTests.includes("type QueueAssertions"), "type tests must assert the Queue public surface");
+assert(typeTests.includes("new Queue({ prefix: \"ctx\" })"), "type tests must cover Queue optional context construction");
+assert(typeTests.includes("queue.enqueue(queueTask, \"ready\")"), "type tests must cover Queue enqueue variadic typing");
+assert(typeTests.includes("new Task((): void => undefined)"), "type tests must cover exported Task construction typing");
 assert(typeTests.includes("type PageListAssertions"), "type tests must assert the PageList public surface");
 assert(typeTests.includes("new PageList()"), "type tests must cover PageList construction without a document");
 assert(typeTests.includes("pageList.process(pageListItems)"), "type tests must cover PageList item processing");

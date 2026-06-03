@@ -49,6 +49,7 @@ import {
   SectionLike,
   substitute,
 } from './utils/replacements';
+import Queue, { QueuedItem, QueueTask, Task } from './utils/queue';
 import Section, { LayoutSettings, SectionHookSet, SectionSearchResult, SpineItem } from './section';
 import Spine, { SpineLookup, SpineManifestItem, SpinePackage, SpinePackageItem, SpineResolver } from './spine';
 import Store, { StoreData, StoreHeaders, StoreRequest, StoreRequestType, StoreResources, StoreResolver, StoreStorage, StoreUrlOptions } from './store';
@@ -302,6 +303,27 @@ type ReplacementsAssertions = [
   Assert<IsExact<ReturnType<typeof replaceLinks>, void>>,
   Assert<IsExact<Parameters<typeof substitute>, [content: string, urls: string[], replacements: string[]]>>,
   Assert<IsExact<ReturnType<typeof substitute>, string>>
+];
+
+type QueueAssertions = [
+  Assert<IsExact<ConstructorParameters<typeof Queue>, [context?: any]>>,
+  Assert<IsExact<Queue["_q"], QueuedItem[]>>,
+  Assert<IsExact<Queue["context"], any>>,
+  Assert<IsExact<Queue["paused"], boolean>>,
+  Assert<IsExact<Queue["running"], boolean | Promise<any> | undefined>>,
+  Assert<IsExact<Queue["tick"], any>>,
+  Assert<IsExact<Parameters<Queue["enqueue"]>, any[]>>,
+  Assert<IsExact<ReturnType<Queue["enqueue"]>, Promise<any>>>,
+  Assert<IsExact<ReturnType<Queue["dequeue"]>, Promise<any>>>,
+  Assert<IsExact<ReturnType<Queue["dump"]>, void>>,
+  Assert<IsExact<ReturnType<Queue["run"]>, Promise<any>>>,
+  Assert<IsExact<ReturnType<Queue["flush"]>, Promise<any> | boolean | undefined>>,
+  Assert<IsExact<ReturnType<Queue["clear"]>, void>>,
+  Assert<IsExact<ReturnType<Queue["length"]>, number>>,
+  Assert<IsExact<ReturnType<Queue["pause"]>, void>>,
+  Assert<IsExact<ReturnType<Queue["stop"]>, void>>,
+  Assert<IsExact<QueueTask, (...args: any[]) => any>>,
+  Assert<IsExact<ConstructorParameters<typeof Task>, [task: Function, args?: any[] | undefined, context?: any]>>
 ];
 
 type PageListAssertions = [
@@ -567,6 +589,19 @@ function testEpub() {
   const replacementMeta: void = replaceMeta(parsedDocument, replacementSection);
   const replacementLinks: void = replaceLinks(parsedDocument.documentElement, linkCallback, "OPS/Text/chapter.xhtml");
   const substitutedContent: string = substitute("url(cover.jpg)", ["cover.jpg"], ["blob:cover"]);
+  const queueTask: QueueTask = (value: string) => value;
+  const queue = new Queue({ prefix: "ctx" });
+  const queuedItem: QueuedItem = {
+    task: queueTask,
+    args: ["ready"],
+    promise: Promise.resolve("ready"),
+  };
+  const queuedPromise: Promise<any> = queue.enqueue(queueTask, "ready");
+  const dequeuedPromise: Promise<any> = queue.dequeue();
+  const queueRun: Promise<any> = queue.run();
+  const queueFlush: Promise<any> | boolean | undefined = queue.flush();
+  const queueLength: number = queue.length();
+  const taskWrapper: (...args: any[]) => Promise<any> = new Task((): void => undefined);
   const legacyNavItems: NavigationInputItem[] = [{
     id: "chapter-one",
     href: "Text/chapter1.xhtml",
@@ -918,6 +953,13 @@ function testEpub() {
   void replacementMeta;
   void replacementLinks;
   void substitutedContent;
+  void queuedItem;
+  void queuedPromise;
+  void dequeuedPromise;
+  void queueRun;
+  void queueFlush;
+  void queueLength;
+  void taskWrapper;
   void emptyNavigation;
   void documentNavigation;
   void navigationToc;
@@ -1020,6 +1062,7 @@ type _ContainerAssertions = ContainerAssertions;
 type _PathAssertions = PathAssertions;
 type _UrlAssertions = UrlAssertions;
 type _ReplacementsAssertions = ReplacementsAssertions;
+type _QueueAssertions = QueueAssertions;
 type _PageListAssertions = PageListAssertions;
 type _LocationsAssertions = LocationsAssertions;
 type _MappingAssertions = MappingAssertions;

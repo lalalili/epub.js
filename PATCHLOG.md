@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0283
+- Why:
+  - P-0282 aligned `utils/replacements` declarations with runtime behavior, leaving `Queue` as the next utility typed public API gap.
+  - `Queue` is already TypeScript source and browser-covered, but its declaration still required a context, returned a queued item from `dequeue()`, narrowed `run()` / `flush()`, hid public queue state, and did not expose the exported `Task` constructor shape.
+  - Aligning `Queue` declarations lets consumers type-check sequential task scheduling, promise passthrough tasks, paused/flush control, queue state, and the callback-to-promise `Task` wrapper before any release tag or host gate.
+- Diff Scope:
+  - `types/utils/queue.d.ts`: align queue item/task/deferred shapes, optional construction, public state fields, variadic enqueue, dequeue/run/flush return types, and exported `Task` constructor with runtime behavior.
+  - `types/epubjs-tests.ts`: add `QueueAssertions` plus concrete queue construction, task enqueue, dequeue/run/flush, queue item, length, and Task wrapper typing checks.
+  - `scripts/verify-gate1-readiness.mjs`: require the Queue typed public API assertions and construction/enqueue/Task coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/queue.test.js test/browser/rendition.test.js test/browser/locations.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `Queue` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0282
 - Why:
   - P-0281 aligned `Url` declarations with runtime behavior, leaving `utils/replacements` as the next low-risk utility typed public API gap.
