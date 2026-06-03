@@ -10,6 +10,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 - Test:
 - Rollback:
 
+## 2026-06-04
+
+### P-0294
+- Why:
+  - P-0293 aligned the `Navigation` root type exports, leaving the adjacent `PageList` value/item type shapes as the next source/declaration parity gap.
+  - The declaration surface already exposed `PageValue`, lookup aliases, `PageListDocument`, and `PageListItem`, but `src/pagelist.ts` kept most of those shapes private and the package root did not expose them consistently.
+  - Aligning these exports lets consumers type-check page-list documents, parsed page-list items, page values, and page lookup maps from the root package API before any release tag or host gate, without changing page-list parsing or reader behavior.
+- Diff Scope:
+  - `src/pagelist.ts`: export existing `PageList` public value, lookup, and document type aliases.
+  - `src/index.ts`, `types/index.d.ts`: export root `PageList`, `PageListDocument`, `PageListItem`, `PageLookup`, `PageReverseLookup`, and `PageValue` types.
+  - `types/epubjs-tests.ts`: extend public root assertions and align `PageList` constructor/lookup assertions with the public aliases.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `PageList` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public page-list type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `PageList` helper aliases to remain module-private instead of part of the root typed public API contract.
+
 ## 2026-06-03
 
 ### P-0293

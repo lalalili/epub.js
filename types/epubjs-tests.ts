@@ -12,6 +12,12 @@ import type {
   NavigationDocument as RootNavigationDocument,
   NavigationInput as RootNavigationInput,
   NavigationInputItem as RootNavigationInputItem,
+  PageList as RootPageList,
+  PageListDocument as RootPageListDocument,
+  PageListItem as RootPageListItem,
+  PageLookup as RootPageLookup,
+  PageReverseLookup as RootPageReverseLookup,
+  PageValue as RootPageValue,
   RenditionLayoutProperties as RootRenditionLayoutProperties,
   RenditionOptions as RootRenditionOptions,
 } from '../';
@@ -56,7 +62,7 @@ import Packaging, {
   PackagingSpineItem,
   PackagingTocItem,
 } from './packaging';
-import PageList, { PageListItem, PageValue } from './pagelist';
+import PageList, { PageListDocument, PageListItem, PageLookup, PageReverseLookup, PageValue } from './pagelist';
 import Locations, { LocationRange, WordLocation } from './locations';
 import Mapping, { EpubCFIPair, MappingContents, MappingLayout, MappingView, RangePair } from './mapping';
 import type { LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionOptions } from './rendition';
@@ -115,6 +121,12 @@ type PublicRootAssertions = [
   Assert<IsExact<RootNavigationDocument, NavigationDocument>>,
   Assert<IsExact<RootNavigationInput, NavigationInput>>,
   Assert<IsExact<RootNavigationInputItem, NavigationInputItem>>,
+  Assert<IsExact<RootPageList, PageList>>,
+  Assert<IsExact<RootPageListDocument, PageListDocument>>,
+  Assert<IsExact<RootPageListItem, PageListItem>>,
+  Assert<IsExact<RootPageLookup, PageLookup>>,
+  Assert<IsExact<RootPageReverseLookup, PageReverseLookup>>,
+  Assert<IsExact<RootPageValue, PageValue>>,
   Assert<IsExact<typeof request, RequestMethod>>,
   Assert<IsExact<ReturnType<typeof ePub.utils.uuid>, string>>,
   Assert<IsExact<InstanceType<typeof ePub.utils.defer<string>>["promise"], Promise<string>>>
@@ -457,12 +469,12 @@ type HookAssertions = [
 ];
 
 type PageListAssertions = [
-  Assert<IsExact<ConstructorParameters<typeof PageList>, [xml?: Document | XMLDocument | undefined]>>,
+  Assert<IsExact<ConstructorParameters<typeof PageList>, [xml?: PageListDocument | undefined]>>,
   Assert<IsExact<PageList["pages"], PageValue[] | undefined>>,
   Assert<IsExact<PageList["locations"], string[] | undefined>>,
   Assert<IsExact<PageList["hrefs"], string[] | undefined>>,
-  Assert<IsExact<PageList["hrefByPage"], Record<string, string> | undefined>>,
-  Assert<IsExact<PageList["pageByHref"], Record<string, PageValue> | undefined>>,
+  Assert<IsExact<PageList["hrefByPage"], PageLookup | undefined>>,
+  Assert<IsExact<PageList["pageByHref"], PageReverseLookup | undefined>>,
   Assert<IsExact<PageList["firstPage"], number>>,
   Assert<IsExact<PageList["lastPage"], number>>,
   Assert<IsExact<PageList["totalPages"], number>>,

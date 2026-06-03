@@ -33,6 +33,15 @@ export type {
 } from "./navigation";
 
 export type {
+	PageListDocument,
+	PageListItem,
+	PageLookup,
+	PageReverseLookup,
+	PageValue,
+	default as PageList
+} from "./pagelist";
+
+export type {
 	LayoutProperties as RenditionLayoutProperties,
 	Location,
 	ManagerLocationItem,

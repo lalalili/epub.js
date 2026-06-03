@@ -40,7 +40,7 @@
 
 ### pageList
 
-> **pageList**: `Deferred`\<`PageList`\>
+> **pageList**: `Deferred`\<[`PageList`](PageList.md)\>
 
 ***
 

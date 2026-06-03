@@ -18,4 +18,5 @@ export type { LayoutProperties as RenditionLayoutProperties, Location, ManagerLo
 export { default as Contents } from './contents';
 export { default as Layout } from './layout';
 export type { default as Navigation, LandmarkItem, NavItem, NavigationDocument, NavigationInput, NavigationInputItem } from './navigation';
+export type { default as PageList, PageListDocument, PageListItem, PageLookup, PageReverseLookup, PageValue } from './pagelist';
 export { default as request } from './utils/request';

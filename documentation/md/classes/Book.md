@@ -134,7 +134,7 @@
 
 ### pageList?
 
-> `optional` **pageList?**: `PageList`
+> `optional` **pageList?**: [`PageList`](../interfaces/PageList.md)
 
 ***
 

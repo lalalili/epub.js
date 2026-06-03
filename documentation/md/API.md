@@ -27,6 +27,8 @@
 - [Navigation](interfaces/Navigation.md)
 - [NavigationInputItem](interfaces/NavigationInputItem.md)
 - [NavItem](interfaces/NavItem.md)
+- [PageList](interfaces/PageList.md)
+- [PageListItem](interfaces/PageListItem.md)
 - [RenditionLayoutProperties](interfaces/RenditionLayoutProperties.md)
 - [RenditionOptions](interfaces/RenditionOptions.md)
 
@@ -35,6 +37,10 @@
 - [BookInput](type-aliases/BookInput.md)
 - [NavigationDocument](type-aliases/NavigationDocument.md)
 - [NavigationInput](type-aliases/NavigationInput.md)
+- [PageListDocument](type-aliases/PageListDocument.md)
+- [PageLookup](type-aliases/PageLookup.md)
+- [PageReverseLookup](type-aliases/PageReverseLookup.md)
+- [PageValue](type-aliases/PageValue.md)
 
 ## Variables
 

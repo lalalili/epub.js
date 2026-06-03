@@ -16,10 +16,10 @@ export interface PageListItem {
 	packageUrl?: string;
 }
 
-type PageValue = string | number;
-type PageLookup = Record<string, string>;
-type PageReverseLookup = Record<string, PageValue>;
-type PageListDocument = XMLDocument | Document;
+export type PageValue = string | number;
+export type PageLookup = Record<string, string>;
+export type PageReverseLookup = Record<string, PageValue>;
+export type PageListDocument = XMLDocument | Document;
 
 /**
  * Page List Parser

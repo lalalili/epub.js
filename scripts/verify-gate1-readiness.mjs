@@ -86,6 +86,11 @@ assert(
 	sourceRoot.includes("NavigationInputItem") && sourceRoot.includes("NavItem") && sourceRoot.includes("NavigationDocument"),
 	"source root must export Navigation public types"
 );
+assert(typeTests.includes("RootPageListItem"), "type tests must assert root PageList type exports");
+assert(
+	sourceRoot.includes("PageListItem") && sourceRoot.includes("PageValue") && sourceRoot.includes("PageListDocument"),
+	"source root must export PageList public types"
+);
 assert(typeTests.includes("type CoreClassAssertions"), "type tests must assert the core class surface");
 assert(typeTests.includes("type LayoutAssertions"), "type tests must assert the Layout public surface");
 assert(typeTests.includes("new Layout()"), "type tests must cover Layout construction without settings");
@@ -134,6 +139,7 @@ assert(typeTests.includes("new Hook({ prefix: \"ctx\" })"), "type tests must cov
 assert(typeTests.includes("hook.register(hookTask, hookRegistration)"), "type tests must cover Hook variadic registration typing");
 assert(typeTests.includes("hook.trigger(\"ready\")"), "type tests must cover Hook trigger result typing");
 assert(typeTests.includes("type PageListAssertions"), "type tests must assert the PageList public surface");
+assert(typeTests.includes("RootPageValue"), "type tests must assert root PageList value typing");
 assert(typeTests.includes("new PageList()"), "type tests must cover PageList construction without a document");
 assert(typeTests.includes("pageList.process(pageListItems)"), "type tests must cover PageList item processing");
 assert(typeTests.includes("pageList.pageFromCfi"), "type tests must cover PageList CFI lookup typing");

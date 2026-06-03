@@ -40,7 +40,7 @@
 
 ### pageList
 
-> **pageList**: `Promise`\<`PageList`\>
+> **pageList**: `Promise`\<[`PageList`](PageList.md)\>
 
 ***
 
