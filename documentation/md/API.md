@@ -18,8 +18,15 @@
 
 ## Interfaces
 
+- [BookLoaded](interfaces/BookLoaded.md)
+- [BookLoading](interfaces/BookLoading.md)
+- [BookOptions](interfaces/BookOptions.md)
 - [Location](interfaces/Location.md)
 - [NavItem](interfaces/NavItem.md)
+
+## Type Aliases
+
+- [BookInput](type-aliases/BookInput.md)
 
 ## Variables
 

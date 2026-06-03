@@ -16,11 +16,11 @@
 
 ##### url?
 
-`BookInput`
+[`BookInput`](../type-aliases/BookInput.md)
 
 ##### options?
 
-`BookOptions`
+[`BookOptions`](../interfaces/BookOptions.md)
 
 #### Returns
 
@@ -34,7 +34,7 @@
 
 ##### options?
 
-`BookOptions`
+[`BookOptions`](../interfaces/BookOptions.md)
 
 #### Returns
 
@@ -86,13 +86,13 @@
 
 ### loaded?
 
-> `optional` **loaded?**: `BookLoaded`
+> `optional` **loaded?**: [`BookLoaded`](../interfaces/BookLoaded.md)
 
 ***
 
 ### loading?
 
-> `optional` **loading?**: `BookLoading`
+> `optional` **loading?**: [`BookLoading`](../interfaces/BookLoading.md)
 
 ***
 
@@ -170,7 +170,7 @@
 
 ### settings
 
-> **settings**: `BookOptions`
+> **settings**: [`BookOptions`](../interfaces/BookOptions.md)
 
 ***
 
@@ -236,7 +236,7 @@
 
 ##### input
 
-`BookInput`
+[`BookInput`](../type-aliases/BookInput.md)
 
 #### Returns
 
@@ -460,7 +460,7 @@
 
 ##### data
 
-`BookInput`
+[`BookInput`](../type-aliases/BookInput.md)
 
 ##### encoding?
 
@@ -652,7 +652,7 @@
 
 ##### input
 
-`BookInput`
+[`BookInput`](../type-aliases/BookInput.md)
 
 ##### encoding?
 

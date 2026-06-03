@@ -11,6 +11,7 @@ declare global {
 export default Epub;
 
 export { default as Book } from './book';
+export type { BookInput, BookLoaded, BookLoading, BookOptions } from './book';
 export { default as EpubCFI } from './epubcfi';
 export { default as Rendition, Location } from './rendition';
 export { default as Contents } from './contents';

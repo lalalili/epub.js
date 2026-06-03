@@ -14924,7 +14924,7 @@ function qi(e, t) {
 	return de(e, t);
 }
 var Ji = class extends fe {}, Yi = function(e, t) {
-	return new si(e, t);
+	return t === void 0 && typeof e != "string" && !(e instanceof Blob) && !(e instanceof ArrayBuffer) ? new si(e) : new si(e, t);
 };
 Yi.VERSION = "0.3", globalThis.EPUBJS_VERSION = "0.3", Yi.Book = si, Yi.Rendition = Zr, Yi.Contents = Ft, Yi.CFI = X, Yi.utils = ci;
 //#endregion

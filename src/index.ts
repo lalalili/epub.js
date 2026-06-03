@@ -15,3 +15,8 @@ export {
 	Layout,
 	request
 };
+
+export type {
+	BookInput,
+	BookOptions
+} from "./book";

@@ -74,6 +74,9 @@ assert(tsconfig.include.includes("types/**/*.d.ts"), "tsconfig must include decl
 assert(tsconfig.include.includes("types/**/*-tests.ts"), "tsconfig must include type tests");
 
 assert(typeTests.includes("type PublicRootAssertions"), "type tests must assert the public root surface");
+assert(typeTests.includes("RootBookInput"), "type tests must assert root BookInput type export");
+assert(typeTests.includes("ePub(rootBlobInput"), "type tests must cover root Blob input overload");
+assert(typeTests.includes("ePub(rootOptions)"), "type tests must cover root options-only overload");
 assert(typeTests.includes("type CoreClassAssertions"), "type tests must assert the core class surface");
 assert(typeTests.includes("type LayoutAssertions"), "type tests must assert the Layout public surface");
 assert(typeTests.includes("new Layout()"), "type tests must cover Layout construction without settings");

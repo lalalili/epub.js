@@ -1,4 +1,10 @@
 import ePub, { Book, Contents, EpubCFI, Layout, Rendition, request } from '../';
+import type {
+  BookInput as RootBookInput,
+  BookLoaded as RootBookLoaded,
+  BookLoading as RootBookLoading,
+  BookOptions as RootBookOptions,
+} from '../';
 import Annotations, {
   Annotation,
   AnnotationData,
@@ -85,6 +91,10 @@ type PublicRootAssertions = [
   Assert<IsExact<typeof ePub.Rendition, typeof Rendition>>,
   Assert<IsExact<typeof ePub.Contents, typeof Contents>>,
   Assert<IsExact<typeof ePub.CFI, typeof EpubCFI>>,
+  Assert<IsExact<RootBookInput, BookInput>>,
+  Assert<IsExact<RootBookOptions, BookOptions>>,
+  Assert<IsExact<RootBookLoading, BookLoading>>,
+  Assert<IsExact<RootBookLoaded, BookLoaded>>,
   Assert<IsExact<typeof request, RequestMethod>>,
   Assert<IsExact<ReturnType<typeof ePub.utils.uuid>, string>>,
   Assert<IsExact<InstanceType<typeof ePub.utils.defer<string>>["promise"], Promise<string>>>
@@ -610,6 +620,8 @@ type StoreAssertions = [
 
 function testEpub() {
   const epub = ePub("https://s3.amazonaws.com/moby-dick/moby-dick.epub");
+  const rootBlobInput: RootBookInput = new Blob();
+  const rootBlobBook: Book = ePub(rootBlobInput, {});
 
   const headers: RequestHeaders = { Authorization: "Bearer token" };
   const book = new Book("https://s3.amazonaws.com/moby-dick/moby-dick.epub", {
@@ -620,6 +632,10 @@ function testEpub() {
   const rootBook = ePub({
     requestMethod: request,
   });
+  const rootOptions: RootBookOptions = {
+    requestCredentials: true,
+  };
+  const rootOptionsOnlyBook: Book = ePub(rootOptions);
   const blobBook = new Book(new Blob(), {});
   const bookInput: BookInput = new Blob();
   const bookOpening: Deferred<Book> | undefined = book.opening;
@@ -1091,6 +1107,8 @@ function testEpub() {
 
   void version;
   void rendition;
+  void rootBlobBook;
+  void rootOptionsOnlyBook;
   void renditionLayoutProperties;
   void managerLocationItem;
   void locatedRenditionLocation;

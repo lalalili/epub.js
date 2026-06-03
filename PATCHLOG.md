@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0290
+- Why:
+  - P-0289 aligned `Book` runtime state declarations, leaving the root `ePub()` factory and named type exports as the next small package-root typed public API gap.
+  - Runtime already supports URL/data construction, `Blob` input through `Book`, and options-only construction, but `src/epub.ts` still typed the factory as `string | ArrayBuffer` plus a broad `object`, while root declarations did not re-export the `Book` type aliases added for the public contract.
+  - Aligning this surface keeps the source factory, root declaration, global namespace tests, and generated docs consistent before any release tag or host gate, without changing book loading or rendering behavior.
+- Diff Scope:
+  - `src/book.ts`, `src/epub.ts`, `src/index.ts`: export source `Book` input/options types and align the root factory overloads with `Blob` and options-only construction.
+  - `types/epub.d.ts`, `types/index.d.ts`: reuse `BookInput` for the callable root and export `BookInput`, `BookOptions`, `BookLoading`, and `BookLoaded` from the package root.
+  - `types/epubjs-tests.ts`: extend public root assertions plus concrete type smoke coverage for root `Blob` input and options-only factory calls.
+  - `scripts/verify-gate1-readiness.mjs`: require the root `Book` type export and root factory overload checks in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for root `Book` type exports and factory parameter links.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/umd-global.test.js test/browser/epub.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower root factory and package-root type export surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0289
 - Why:
   - P-0288 aligned `Rendition` runtime state declarations, leaving adjacent package-root `Book` runtime state as the next high-value typed public API gap.

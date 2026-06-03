@@ -20665,6 +20665,7 @@
 	* @example ePub("/path/to/book.epub", {})
 	*/
 	var ePub = function(url, options) {
+		if (typeof options === "undefined" && typeof url !== "string" && url instanceof Blob === false && url instanceof ArrayBuffer === false) return new Book(url);
 		return new Book(url, options);
 	};
 	ePub.VERSION = "0.3";

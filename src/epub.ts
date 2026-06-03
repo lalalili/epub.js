@@ -1,4 +1,5 @@
 import Book from "./book";
+import type { BookInput, BookOptions } from "./book";
 import Rendition from "./rendition";
 import CFI from "./epubcfi";
 import Contents from "./contents";
@@ -10,7 +11,8 @@ import DefaultViewManager from "./managers/default";
 import ContinuousViewManager from "./managers/continuous";
 
 interface EpubFactory {
-	(url: string | ArrayBuffer, options?: object): Book;
+	(url: BookInput, options?: BookOptions): Book;
+	(options?: BookOptions): Book;
 	VERSION: string;
 	Book: typeof Book;
 	Rendition: typeof Rendition;
@@ -26,8 +28,15 @@ interface EpubFactory {
  * @returns {Book} a new Book object
  * @example ePub("/path/to/book.epub", {})
  */
-const ePub = function(url: string | ArrayBuffer, options?: object): Book {
-	return new Book(url, options);
+const ePub = function(url?: BookInput | BookOptions, options?: BookOptions): Book {
+	if (typeof options === "undefined" &&
+		typeof url !== "string" &&
+		url instanceof Blob === false &&
+		url instanceof ArrayBuffer === false) {
+		return new Book(url as BookOptions | undefined);
+	}
+
+	return new Book(url as BookInput | undefined, options);
 } as EpubFactory;
 
 ePub.VERSION = EPUBJS_VERSION;

@@ -18,10 +18,10 @@ import Store from "./store";
 import DisplayOptions from "./displayoptions";
 import { EPUBJS_VERSION, EVENTS } from "./utils/constants";
 
-type BookInput = string | ArrayBuffer | Blob;
-type RequestHeaders = Record<string, string>;
-type RequestMethod = (url: string, type?: string | null, withCredentials?: boolean, headers?: RequestHeaders) => Promise<any>;
-type BookOptions = {
+export type BookInput = string | ArrayBuffer | Blob;
+export type RequestHeaders = Record<string, string>;
+export type RequestMethod = (url: string, type?: string | null, withCredentials?: boolean, headers?: RequestHeaders) => Promise<any>;
+export type BookOptions = {
 	requestMethod?: RequestMethod;
 	requestCredentials?: boolean;
 	requestHeaders?: RequestHeaders;

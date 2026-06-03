@@ -14,11 +14,11 @@
 
 #### urlOrData
 
-`string` \| `ArrayBuffer` \| `Blob`
+[`BookInput`](../type-aliases/BookInput.md)
 
 #### options?
 
-`BookOptions`
+[`BookOptions`](../interfaces/BookOptions.md)
 
 ### Returns
 
@@ -32,7 +32,7 @@
 
 #### options?
 
-`BookOptions`
+[`BookOptions`](../interfaces/BookOptions.md)
 
 ### Returns
 
