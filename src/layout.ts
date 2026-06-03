@@ -1,8 +1,9 @@
 import { extend } from "./core/collections";
 import { EVENTS } from "./utils/constants";
 import EventEmitter from "event-emitter";
+import type Contents from "./contents";
 
-interface LayoutSettings {
+export interface LayoutSettings {
 	layout?: string;
 	spread?: string;
 	minSpreadWidth?: number;
@@ -11,7 +12,7 @@ interface LayoutSettings {
 	direction?: string;
 }
 
-interface LayoutProps {
+export interface LayoutProps {
 	name: string;
 	spread: boolean;
 	flow: string;
@@ -30,10 +31,15 @@ interface LayoutProps {
 	[key: string]: string | boolean | number | undefined;
 }
 
-interface LayoutContent {
+export interface LayoutContent {
 	fit(width: number, height: number, section?: unknown): unknown;
 	columns(width: number, height: number, columnWidth: number, gap: number, direction?: string): unknown;
 	size(width: number | null, height: number | null): unknown;
+}
+
+export interface LayoutCount {
+	spreads: number;
+	pages: number;
 }
 
 /**
@@ -259,7 +265,7 @@ class Layout {
 	 * @param  {Contents} contents
 	 * @return {Promise}
 	 */
-	format(contents: LayoutContent, section?: unknown, axis?: string): unknown {
+	format(contents: Contents | LayoutContent, section?: unknown, axis?: string): unknown {
 		var formating;
 
 		if (this.name === "pre-paginated") {
@@ -281,7 +287,7 @@ class Layout {
 	 * @param  {number} pageLength
 	 * @return {{spreads: Number, pages: Number}}
 	 */
-	count(totalLength: number, pageLength?: number): { spreads: number; pages: number } {
+	count(totalLength: number, pageLength?: number): LayoutCount {
 
 		let spreads, pages;
 		let visiblePageWidth = this.viewportPageWidth || this.pageWidth || this.width || pageLength;

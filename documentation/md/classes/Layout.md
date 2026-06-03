@@ -16,7 +16,7 @@
 
 ##### settings?
 
-`LayoutSettings`
+[`LayoutSettings`](../interfaces/LayoutSettings.md)
 
 #### Returns
 
@@ -110,13 +110,13 @@
 
 ### props
 
-> **props**: `LayoutProps`
+> **props**: [`LayoutProps`](../interfaces/LayoutProps.md)
 
 ***
 
 ### settings
 
-> **settings**: `LayoutSettings`
+> **settings**: [`LayoutSettings`](../interfaces/LayoutSettings.md)
 
 ***
 
@@ -164,7 +164,7 @@
 
 ### count()
 
-> **count**(`totalLength`, `pageLength?`): `LayoutCount`
+> **count**(`totalLength`, `pageLength?`): [`LayoutCount`](../interfaces/LayoutCount.md)
 
 #### Parameters
 
@@ -178,7 +178,7 @@
 
 #### Returns
 
-`LayoutCount`
+[`LayoutCount`](../interfaces/LayoutCount.md)
 
 ***
 
@@ -226,7 +226,7 @@
 
 ##### contents
 
-[`Contents`](Contents.md) \| `LayoutContent`
+[`Contents`](Contents.md) \| [`LayoutContent`](../interfaces/LayoutContent.md)
 
 ##### section?
 
@@ -330,7 +330,7 @@
 
 ##### props
 
-`Partial`\<`LayoutProps`\>
+`Partial`\<[`LayoutProps`](../interfaces/LayoutProps.md)\>
 
 #### Returns
 

@@ -160,9 +160,14 @@ assert(
 );
 assert(typeTests.includes("type CoreClassAssertions"), "type tests must assert the core class surface");
 assert(typeTests.includes("type LayoutAssertions"), "type tests must assert the Layout public surface");
+assert(typeTests.includes("RootLayoutSettings"), "type tests must assert root Layout type exports");
 assert(typeTests.includes("new Layout()"), "type tests must cover Layout construction without settings");
 assert(typeTests.includes("runtimeLayout.format(layoutContent"), "type tests must cover Layout format content typing");
 assert(typeTests.includes("runtimeLayout.count(4100)"), "type tests must cover Layout count typing");
+assert(
+	sourceRoot.includes("LayoutContent") && sourceRoot.includes("LayoutCount") && sourceRoot.includes("LayoutSettings"),
+	"source root must export Layout public types"
+);
 assert(typeTests.includes("type NavigationAssertions"), "type tests must assert the Navigation public surface");
 assert(typeTests.includes("ConstructorParameters<typeof Navigation>"), "type tests must cover Navigation constructor input typing");
 assert(typeTests.includes("new Navigation(legacyNavItems)"), "type tests must cover legacy JSON Navigation construction");

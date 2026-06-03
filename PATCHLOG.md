@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0311
+- Why:
+  - P-0310 aligned `EpubCFI` root type exports, leaving `Layout` as the next public pagination/layout surface with source/declaration/root parity gaps.
+  - The declaration surface already exposes `LayoutSettings`, `LayoutProps`, `LayoutContent`, and `LayoutCount`, but source kept those helper shapes private and the package root did not expose them consistently.
+  - Aligning these exports lets consumers type-check layout configuration, runtime layout props, formatting content adapters, and page/spread counts from the root package API before any release tag or host gate, without changing flow selection, spread calculation, column sizing, count logic, or layout update events.
+- Diff Scope:
+  - `src/layout.ts`: export existing `Layout` public helper type shapes and align `format()` / `count()` signatures with declaration-facing types.
+  - `src/index.ts`, `types/index.d.ts`: export root `Layout` public helper types.
+  - `types/epubjs-tests.ts`: extend public root assertions for `Layout` helper type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `Layout` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public layout type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/layout.test.js test/browser/platform-layout.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `Layout` helper aliases to remain module-private instead of part of the root typed public API contract.
+
 ### P-0310
 - Why:
   - P-0309 aligned `Annotations` root type exports, leaving `EpubCFI` as the next public parser/constructor surface with source/declaration/root parity gaps.

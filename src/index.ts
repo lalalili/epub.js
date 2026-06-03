@@ -75,6 +75,13 @@ export type {
 } from "./container";
 
 export type {
+	LayoutContent,
+	LayoutCount,
+	LayoutProps,
+	LayoutSettings
+} from "./layout";
+
+export type {
 	default as DisplayOptions
 } from "./displayoptions";
 
