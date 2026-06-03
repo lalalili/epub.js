@@ -267,6 +267,7 @@ assert(typeTests.includes("mapping.rangePairToCfiPair"), "type tests must cover 
 assert(typeTests.includes("type ThemesAssertions"), "type tests must assert the Themes public surface");
 assert(typeTests.includes("new Themes(themesRendition)"), "type tests must cover Themes construction typing");
 assert(typeTests.includes("ReturnType<ThemesContent[\"addStylesheet\"]>"), "type tests must cover Themes content bridge method return typing");
+assert(typeTests.includes("ReturnType<Themes[\"default\"]>"), "type tests must cover Themes default return typing");
 assert(typeTests.includes("themes.register(\"night\", themeRules)"), "type tests must cover Themes rule registration typing");
 assert(typeTests.includes("themes.removeOverride(\"font-size\")"), "type tests must cover Themes override removal typing");
 assert(typeTests.includes("type AnnotationsAssertions"), "type tests must assert the Annotations public surface");

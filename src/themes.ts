@@ -73,7 +73,7 @@ class Themes {
 	 * @example themes.register("light", { "body": { "color": "purple"}})
 	 * @example themes.register({ "light" : {...}, "dark" : {...}})
 	 */
-	register (...args: [Record<string, ThemeInput>] | [string] | [string, string] | [string, ThemeRules] | []) {
+	register (...args: [Record<string, ThemeInput>] | [string] | [string, string] | [string, ThemeRules] | []): void {
 		if (args.length === 0) {
 			return;
 		}
@@ -97,7 +97,7 @@ class Themes {
 	 * @example themes.register("http://example.com/default.css")
 	 * @example themes.register({ "body": { "color": "purple"}})
 	 */
-	default (theme?: ThemeInput) {
+	default (theme?: ThemeInput): void {
 		if (!theme) {
 			return;
 		}

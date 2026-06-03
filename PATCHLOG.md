@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0327
+- Why:
+  - P-0326 aligned `Mapping` source return annotations, leaving `Themes.register()` and `Themes.default()` as public overload entry points whose source return contracts still relied on inference.
+  - Declarations and type smoke already expose both methods as `void`, while source forwarded through helper methods without explicit annotations.
+  - Adding source annotations keeps Themes source, declarations, and Gate 1 readiness pointed at the same public registration/default-theme contract before any release tag or host gate, without changing theme registration, default theme selection, stylesheet injection, or override behavior.
+- Diff Scope:
+  - `src/themes.ts`: add declaration-facing `void` return annotations for `register()` and `default()`.
+  - `scripts/verify-gate1-readiness.mjs`: require Themes default return type smoke coverage.
+  - `documentation/md/*`: rerun TypeDoc to confirm the source annotation update does not change the rendered public markdown surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/themes.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require Themes registration methods to remain inference-only instead of matching the declaration contract.
+
 ### P-0326
 - Why:
   - P-0325 aligned the `LayoutContent` bridge returns, leaving `Mapping` with a smaller source/declaration parity gap on public method return annotations.
