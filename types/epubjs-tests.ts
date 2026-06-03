@@ -15,6 +15,7 @@ import type EpubRoot from './epub';
 import type { LayoutContent, LayoutCount, LayoutProps, LayoutSettings as EpubLayoutSettings } from './layout';
 import Navigation, { LandmarkItem, NavItem, NavigationInputItem } from './navigation';
 import DisplayOptions from './displayoptions';
+import Path, { ParsedPath } from './utils/path';
 import Packaging, {
   PackagingJsonManifest,
   PackagingManifestItem,
@@ -243,6 +244,22 @@ type ContainerAssertions = [
   Assert<IsExact<Container["encoding"], string | null | undefined>>,
   Assert<IsExact<ReturnType<Container["parse"]>, void>>,
   Assert<IsExact<ReturnType<Container["destroy"]>, void>>
+];
+
+type PathAssertions = [
+  Assert<IsExact<ConstructorParameters<typeof Path>, [pathString: string]>>,
+  Assert<IsExact<Path["path"], string>>,
+  Assert<IsExact<Path["directory"], string>>,
+  Assert<IsExact<Path["filename"], string>>,
+  Assert<IsExact<Path["extension"], string>>,
+  Assert<IsExact<Path["splitPathRe"], RegExp>>,
+  Assert<IsExact<ReturnType<Path["parse"]>, ParsedPath>>,
+  Assert<IsExact<Parameters<Path["isAbsolute"]>, [what?: string | undefined]>>,
+  Assert<IsExact<ReturnType<Path["isDirectory"]>, boolean>>,
+  Assert<IsExact<ReturnType<Path["resolve"]>, string>>,
+  Assert<IsExact<ReturnType<Path["relative"]>, string>>,
+  Assert<IsExact<ReturnType<Path["splitPath"]>, string[]>>,
+  Assert<IsExact<ReturnType<Path["toString"]>, string>>
 ];
 
 type PageListAssertions = [
@@ -482,6 +499,11 @@ function testEpub() {
   const parsedDocument: Document = ePub.utils.parse("<html><body><p>Text</p></body></html>", "text/html");
   const paragraph = ePub.utils.qs(parsedDocument, "p");
   const paragraphText: string | null | undefined = paragraph?.textContent;
+  const pathHelper = new Path("/OPS/Text/chapter.xhtml");
+  const parsedPath: ParsedPath = pathHelper.parse("/OPS/Text/chapter.xhtml");
+  const pathIsAbsolute: boolean = pathHelper.isAbsolute();
+  const pathDirectory: string = pathHelper.directory;
+  const pathSegments: string[] = pathHelper.splitPath("OPS/Text/chapter.xhtml");
   const legacyNavItems: NavigationInputItem[] = [{
     id: "chapter-one",
     href: "Text/chapter1.xhtml",
@@ -818,6 +840,10 @@ function testEpub() {
   void uuid;
   void deferred;
   void paragraphText;
+  void parsedPath;
+  void pathIsAbsolute;
+  void pathDirectory;
+  void pathSegments;
   void emptyNavigation;
   void documentNavigation;
   void navigationToc;
@@ -917,6 +943,7 @@ type _ArchiveAssertions = ArchiveAssertions;
 type _PackagingAssertions = PackagingAssertions;
 type _DisplayOptionsAssertions = DisplayOptionsAssertions;
 type _ContainerAssertions = ContainerAssertions;
+type _PathAssertions = PathAssertions;
 type _PageListAssertions = PageListAssertions;
 type _LocationsAssertions = LocationsAssertions;
 type _MappingAssertions = MappingAssertions;

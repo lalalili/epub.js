@@ -1,9 +1,23 @@
+export interface ParsedPath {
+  base: string;
+  dir: string;
+  ext: string;
+  name: string;
+  root: string;
+}
+
 export default class Path {
   constructor(pathString: string);
 
-  parse(what: string): object;
+  path: string;
+  directory: string;
+  filename: string;
+  extension: string;
+  splitPathRe: RegExp;
 
-  isAbsolute(what: string): boolean;
+  parse(what: string): ParsedPath;
+
+  isAbsolute(what?: string): boolean;
 
   isDirectory(what: string): boolean;
 
@@ -11,7 +25,7 @@ export default class Path {
 
   relative(what: string): string;
 
-  splitPath(filename: string): string;
+  splitPath(filename: string): string[];
 
   toString(): string;
 }

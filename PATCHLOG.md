@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0280
+- Why:
+  - P-0279 aligned `Container` declarations with runtime behavior, leaving low-risk utility declarations as the next typed public API gap.
+  - `Path` is already TypeScript source and browser-covered, but its declaration hid public parser state, returned a generic `object` from `parse()`, required an argument for `isAbsolute()`, and typed `splitPath()` as a string even though runtime returns capture groups.
+  - Aligning `Path` declarations lets consumers type-check EPUB path parsing, directory/filename/extension state, optional absolute checks, path resolution, relative-path calculation, and split-path results before any release tag or host gate.
+- Diff Scope:
+  - `types/utils/path.d.ts`: add `ParsedPath`, public state fields, optional `isAbsolute()` argument, and accurate `splitPath()` array return typing.
+  - `types/epubjs-tests.ts`: add `PathAssertions` plus concrete construction, parse, optional `isAbsolute()`, public field, and `splitPath()` typing checks.
+  - `scripts/verify-gate1-readiness.mjs`: require the Path typed public API assertions and construction/helper coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/core.test.js test/browser/core-facade.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `Path` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0279
 - Why:
   - P-0278 added the missing `DisplayOptions` declaration, leaving `Container` as the adjacent package metadata parser typed public API gap.

@@ -101,6 +101,10 @@ assert(typeTests.includes("displayOptions.parse(parsedDocument)"), "type tests m
 assert(typeTests.includes("type ContainerAssertions"), "type tests must assert the Container public surface");
 assert(typeTests.includes("new Container()"), "type tests must cover Container construction without a document");
 assert(typeTests.includes("container.parse(containerDocument)"), "type tests must cover Container parse argument typing");
+assert(typeTests.includes("type PathAssertions"), "type tests must assert the Path public surface");
+assert(typeTests.includes("new Path(\"/OPS/Text/chapter.xhtml\")"), "type tests must cover Path construction typing");
+assert(typeTests.includes("pathHelper.isAbsolute()"), "type tests must cover Path optional isAbsolute typing");
+assert(typeTests.includes("pathHelper.splitPath(\"OPS/Text/chapter.xhtml\")"), "type tests must cover Path splitPath array typing");
 assert(typeTests.includes("type PageListAssertions"), "type tests must assert the PageList public surface");
 assert(typeTests.includes("new PageList()"), "type tests must cover PageList construction without a document");
 assert(typeTests.includes("pageList.process(pageListItems)"), "type tests must cover PageList item processing");
