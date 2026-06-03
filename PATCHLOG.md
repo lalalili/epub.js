@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0275
+- Why:
+  - P-0274 aligned `Mapping` declarations with runtime behavior, leaving `Layout` as the next low-risk root-exported typed public API gap.
+  - `Layout` is already TypeScript source, but its declaration still required constructor settings, typed `props.spread` as a string, omitted page/advance/boundary metrics, narrowed `flow()` / `spread()` arguments, hid `update()`, and used boxed `Number` return types for page counts.
+  - Aligning `Layout` declarations lets consumers type-check layout settings, metric state, content formatting, flow/spread normalization, page counting, update events, and root `Layout` construction before any release tag or host gate.
+- Diff Scope:
+  - `types/layout.d.ts`: align settings/props/content/count types, optional construction, public metric fields, flow/spread optional arguments, format arguments, count return, update method, and event-emitter methods with the TypeScript source behavior.
+  - `types/epubjs-tests.ts`: add `LayoutAssertions` plus concrete default construction, settings, flow/spread, calculate, format, count, props, and update typing checks.
+  - `scripts/verify-gate1-readiness.mjs`: require the Layout typed public API assertions and construction/format/count coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/layout.test.js test/browser/public-api.test.js test/browser/rendition.test.js test/browser/views.test.js test/browser/contents-text-width.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `Layout` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0274
 - Why:
   - P-0273 aligned `Locations` declarations with runtime behavior, leaving `Mapping` as the adjacent page/CFI typed public API gap.

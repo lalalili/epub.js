@@ -3,6 +3,7 @@ import Archive, { ArchiveInput, ArchiveRequestType, ArchiveUrlOptions, ArchiveZi
 import type { BookOptions } from './book';
 import type { ViewportSettings } from './contents';
 import type EpubRoot from './epub';
+import type { LayoutContent, LayoutCount, LayoutProps, LayoutSettings as EpubLayoutSettings } from './layout';
 import Navigation, { LandmarkItem, NavItem, NavigationInputItem } from './navigation';
 import Packaging, {
   PackagingJsonManifest,
@@ -88,6 +89,35 @@ type CoreClassAssertions = [
   }>>,
   Assert<IsExact<ReturnType<Contents["viewport"]>, ViewportSettings>>,
   Assert<IsExact<ReturnType<Contents["writingMode"]>, string>>
+];
+
+type LayoutAssertions = [
+  Assert<IsExact<ConstructorParameters<typeof Layout>, [settings?: EpubLayoutSettings | undefined]>>,
+  Assert<IsExact<Layout["settings"], EpubLayoutSettings>>,
+  Assert<IsExact<Layout["name"], string>>,
+  Assert<IsExact<Layout["_spread"], boolean>>,
+  Assert<IsExact<Layout["_minSpreadWidth"], number>>,
+  Assert<IsExact<Layout["_evenSpreads"], boolean>>,
+  Assert<IsExact<Layout["_flow"], string>>,
+  Assert<IsExact<Layout["width"], number>>,
+  Assert<IsExact<Layout["height"], number>>,
+  Assert<IsExact<Layout["spreadWidth"], number>>,
+  Assert<IsExact<Layout["pageWidth"], number>>,
+  Assert<IsExact<Layout["delta"], number>>,
+  Assert<IsExact<Layout["effectivePageAdvance"], number>>,
+  Assert<IsExact<Layout["viewportPageWidth"], number>>,
+  Assert<IsExact<Layout["pageBoundaryShift"], number>>,
+  Assert<IsExact<Layout["edgeGuardPx"], number>>,
+  Assert<IsExact<Layout["columnWidth"], number>>,
+  Assert<IsExact<Layout["gap"], number>>,
+  Assert<IsExact<Layout["divisor"], number>>,
+  Assert<IsExact<Layout["props"], LayoutProps>>,
+  Assert<IsExact<ReturnType<Layout["flow"]>, string>>,
+  Assert<IsExact<ReturnType<Layout["spread"]>, boolean>>,
+  Assert<IsExact<ReturnType<Layout["calculate"]>, void>>,
+  Assert<IsExact<ReturnType<Layout["format"]>, unknown>>,
+  Assert<IsExact<ReturnType<Layout["count"]>, LayoutCount>>,
+  Assert<IsExact<ReturnType<Layout["update"]>, void>>
 ];
 
 type NavigationAssertions = [
@@ -350,6 +380,21 @@ function testEpub() {
     minSpreadWidth: 800,
     evenSpreads: false,
   });
+  const defaultLayout = new Layout();
+  const layoutSettings: EpubLayoutSettings = { flow: "scrolled-continuous", direction: "rtl" };
+  const runtimeLayout = new Layout(layoutSettings);
+  const layoutFlow: string = runtimeLayout.flow("paginated");
+  const layoutSpread: boolean = runtimeLayout.spread("none", 0);
+  const layoutCalculate: void = runtimeLayout.calculate(1000, 600, 20);
+  const layoutContent: LayoutContent = {
+    fit: () => undefined,
+    columns: () => "columns-result",
+    size: () => undefined,
+  };
+  const formattedLayout: unknown = runtimeLayout.format(layoutContent, undefined, "horizontal");
+  const layoutCount: LayoutCount = runtimeLayout.count(4100);
+  const layoutProps: LayoutProps = runtimeLayout.props;
+  runtimeLayout.update({ flow: "scrolled" });
   const uuid: string = ePub.utils.uuid();
   const deferred = new ePub.utils.defer<string>();
   const parsedDocument: Document = ePub.utils.parse("<html><body><p>Text</p></body></html>", "text/html");
@@ -600,6 +645,13 @@ function testEpub() {
   void StaticContents;
   void cfi;
   void layout;
+  void defaultLayout;
+  void layoutFlow;
+  void layoutSpread;
+  void layoutCalculate;
+  void formattedLayout;
+  void layoutCount;
+  void layoutProps;
   void uuid;
   void deferred;
   void paragraphText;
@@ -685,6 +737,7 @@ function testEpub() {
 
 type _PublicRootAssertions = PublicRootAssertions;
 type _CoreClassAssertions = CoreClassAssertions;
+type _LayoutAssertions = LayoutAssertions;
 type _NavigationAssertions = NavigationAssertions;
 type _SectionAssertions = SectionAssertions;
 type _SpineAssertions = SpineAssertions;

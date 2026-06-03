@@ -10,11 +10,11 @@
 
 ### Constructor
 
-> **new Layout**(`settings`): `Layout`
+> **new Layout**(`settings?`): `Layout`
 
 #### Parameters
 
-##### settings
+##### settings?
 
 `LayoutSettings`
 
@@ -24,61 +24,117 @@
 
 ## Properties
 
+### \_evenSpreads
+
+> **\_evenSpreads**: `boolean`
+
+***
+
+### \_flow
+
+> **\_flow**: `string`
+
+***
+
+### \_minSpreadWidth
+
+> **\_minSpreadWidth**: `number`
+
+***
+
+### \_spread
+
+> **\_spread**: `boolean`
+
+***
+
+### columnWidth
+
+> **columnWidth**: `number`
+
+***
+
+### delta
+
+> **delta**: `number`
+
+***
+
+### divisor
+
+> **divisor**: `number`
+
+***
+
+### edgeGuardPx
+
+> **edgeGuardPx**: `number`
+
+***
+
+### effectivePageAdvance
+
+> **effectivePageAdvance**: `number`
+
+***
+
+### gap
+
+> **gap**: `number`
+
+***
+
+### height
+
+> **height**: `number`
+
+***
+
 ### name
 
 > **name**: `string`
 
 ***
 
+### pageBoundaryShift
+
+> **pageBoundaryShift**: `number`
+
+***
+
+### pageWidth
+
+> **pageWidth**: `number`
+
+***
+
 ### props
 
-> **props**: `object`
-
-#### columnWidth
-
-> **columnWidth**: `number`
-
-#### delta
-
-> **delta**: `number`
-
-#### divisor
-
-> **divisor**: `number`
-
-#### flow
-
-> **flow**: `string`
-
-#### gap
-
-> **gap**: `number`
-
-#### height
-
-> **height**: `number`
-
-#### name
-
-> **name**: `string`
-
-#### spread
-
-> **spread**: `string`
-
-#### spreadWidth
-
-> **spreadWidth**: `number`
-
-#### width
-
-> **width**: `number`
+> **props**: `LayoutProps`
 
 ***
 
 ### settings
 
 > **settings**: `LayoutSettings`
+
+***
+
+### spreadWidth
+
+> **spreadWidth**: `number`
+
+***
+
+### viewportPageWidth
+
+> **viewportPageWidth**: `number`
+
+***
+
+### width
+
+> **width**: `number`
 
 ## Methods
 
@@ -108,7 +164,7 @@
 
 ### count()
 
-> **count**(`totalLength`, `pageLength`): `object`
+> **count**(`totalLength`, `pageLength?`): `LayoutCount`
 
 #### Parameters
 
@@ -116,21 +172,13 @@
 
 `number`
 
-##### pageLength
+##### pageLength?
 
 `number`
 
 #### Returns
 
-`object`
-
-##### pages
-
-> **pages**: `Number`
-
-##### spreads
-
-> **spreads**: `Number`
+`LayoutCount`
 
 ***
 
@@ -142,11 +190,11 @@
 
 ##### type
 
-`any`
+`string`
 
 ##### args
 
-...`any`[]
+...`unknown`[]
 
 #### Returns
 
@@ -156,11 +204,11 @@
 
 ### flow()
 
-> **flow**(`flow`): `string`
+> **flow**(`flow?`): `string`
 
 #### Parameters
 
-##### flow
+##### flow?
 
 `string`
 
@@ -172,98 +220,118 @@
 
 ### format()
 
-> **format**(`contents`): `void` \| `Promise`\<`void`\>
+> **format**(`contents`, `section?`, `axis?`): `unknown`
 
 #### Parameters
 
 ##### contents
 
-[`Contents`](Contents.md)
+[`Contents`](Contents.md) \| `LayoutContent`
+
+##### section?
+
+`unknown`
+
+##### axis?
+
+`string`
 
 #### Returns
 
-`void` \| `Promise`\<`void`\>
+`unknown`
 
 ***
 
 ### off()
 
-> **off**(`type`, `listener`): `any`
+> **off**(`type`, `listener`): `unknown`
 
 #### Parameters
 
 ##### type
 
-`any`
+`string`
 
 ##### listener
 
-`any`
+(...`args`) => `void`
 
 #### Returns
 
-`any`
+`unknown`
 
 ***
 
 ### on()
 
-> **on**(`type`, `listener`): `any`
+> **on**(`type`, `listener`): `unknown`
 
 #### Parameters
 
 ##### type
 
-`any`
+`string`
 
 ##### listener
 
-`any`
+(...`args`) => `void`
 
 #### Returns
 
-`any`
+`unknown`
 
 ***
 
 ### once()
 
-> **once**(`type`, `listener`, ...`args`): `any`
+> **once**(`type`, `listener`): `unknown`
 
 #### Parameters
 
 ##### type
 
-`any`
+`string`
 
 ##### listener
 
-`any`
-
-##### args
-
-...`any`[]
+(...`args`) => `void`
 
 #### Returns
 
-`any`
+`unknown`
 
 ***
 
 ### spread()
 
-> **spread**(`spread`, `min`): `boolean`
+> **spread**(`spread?`, `min?`): `boolean`
 
 #### Parameters
 
-##### spread
+##### spread?
 
 `string`
 
-##### min
+##### min?
 
 `number`
 
 #### Returns
 
 `boolean`
+
+***
+
+### update()
+
+> **update**(`props`): `void`
+
+#### Parameters
+
+##### props
+
+`Partial`\<`LayoutProps`\>
+
+#### Returns
+
+`void`

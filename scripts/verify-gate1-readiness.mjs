@@ -75,6 +75,10 @@ assert(tsconfig.include.includes("types/**/*-tests.ts"), "tsconfig must include 
 
 assert(typeTests.includes("type PublicRootAssertions"), "type tests must assert the public root surface");
 assert(typeTests.includes("type CoreClassAssertions"), "type tests must assert the core class surface");
+assert(typeTests.includes("type LayoutAssertions"), "type tests must assert the Layout public surface");
+assert(typeTests.includes("new Layout()"), "type tests must cover Layout construction without settings");
+assert(typeTests.includes("runtimeLayout.format(layoutContent"), "type tests must cover Layout format content typing");
+assert(typeTests.includes("runtimeLayout.count(4100)"), "type tests must cover Layout count typing");
 assert(typeTests.includes("type NavigationAssertions"), "type tests must assert the Navigation public surface");
 assert(typeTests.includes("new Navigation(legacyNavItems)"), "type tests must cover legacy JSON Navigation construction");
 assert(typeTests.includes("legacyNavigation.get()"), "type tests must cover Navigation get() toc overload");
