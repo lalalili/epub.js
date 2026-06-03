@@ -79,6 +79,9 @@ assert(typeTests.includes("type NavigationAssertions"), "type tests must assert 
 assert(typeTests.includes("new Navigation(legacyNavItems)"), "type tests must cover legacy JSON Navigation construction");
 assert(typeTests.includes("legacyNavigation.get()"), "type tests must cover Navigation get() toc overload");
 assert(typeTests.includes("legacyNavigation.landmark()"), "type tests must cover Navigation landmark() list overload");
+assert(typeTests.includes("type SectionAssertions"), "type tests must assert the Section public surface");
+assert(typeTests.includes("new Section(spineItem)"), "type tests must cover Section construction without explicit hooks");
+assert(typeTests.includes("section.search(\"Text\")"), "type tests must cover Section search result typing");
 assert(typeTests.includes("RequestMethod"), "type tests must assert request method typing");
 assert(typeTests.includes("InstanceType<typeof ePub.utils.defer"), "type tests must assert generic defer typing");
 

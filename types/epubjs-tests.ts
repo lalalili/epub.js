@@ -4,6 +4,7 @@ import type { ViewportSettings } from './contents';
 import type EpubRoot from './epub';
 import Navigation, { LandmarkItem, NavItem, NavigationInputItem } from './navigation';
 import type { Location, RenditionOptions } from './rendition';
+import Section, { LayoutSettings, SectionHookSet, SectionSearchResult, SpineItem } from './section';
 import { JsonValue, RequestHeaders, RequestMethod, RequestResponse } from './utils/request';
 
 type Assert<T extends true> = T;
@@ -77,6 +78,24 @@ type NavigationAssertions = [
   Assert<IsExact<ReturnType<Navigation["forEach"]>, void>>
 ];
 
+type SectionAssertions = [
+  Assert<IsExact<ConstructorParameters<typeof Section>, [item: SpineItem, hooks?: SectionHookSet | undefined]>>,
+  Assert<IsExact<Section["idref"], string | undefined>>,
+  Assert<IsExact<Section["linear"], boolean | undefined>>,
+  Assert<IsExact<Section["properties"], string[] | undefined>>,
+  Assert<IsExact<Section["document"], Document | undefined>>,
+  Assert<IsExact<Section["contents"], Element | undefined>>,
+  Assert<IsExact<Section["output"], string | undefined>>,
+  Assert<IsExact<Section["hooks"], SectionHookSet | undefined>>,
+  Assert<IsExact<ReturnType<Section["load"]>, Promise<Element>>>,
+  Assert<IsExact<ReturnType<Section["render"]>, Promise<string>>>,
+  Assert<IsExact<ReturnType<Section["find"]>, SectionSearchResult[]>>,
+  Assert<IsExact<ReturnType<Section["search"]>, SectionSearchResult[]>>,
+  Assert<IsExact<ReturnType<Section["reconcileLayoutSettings"]>, LayoutSettings>>,
+  Assert<IsExact<ReturnType<Section["unload"]>, void>>,
+  Assert<IsExact<ReturnType<Section["destroy"]>, void>>
+];
+
 function testEpub() {
   const epub = ePub("https://s3.amazonaws.com/moby-dick/moby-dick.epub");
 
@@ -134,6 +153,26 @@ function testEpub() {
   const navigationLandmarks: LandmarkItem[] = legacyNavigation.landmark();
   const navigationLandmark: LandmarkItem | undefined = legacyNavigation.landmark("cover");
   const loadedNavigationItems: NavItem[] = legacyNavigation.load(legacyNavItems);
+  const spineItem: SpineItem = {
+    idref: "chapter-one",
+    linear: "yes",
+    properties: ["rendition:layout-pre-paginated"],
+    index: 0,
+    href: "Text/chapter1.xhtml",
+    url: "https://example.com/Text/chapter1.xhtml",
+    canonical: "Text/chapter1.xhtml",
+    cfiBase: "/6/2",
+  };
+  const section = new Section(spineItem);
+  const sectionLoad: Promise<Element> = section.load(() => Promise.resolve(parsedDocument));
+  const sectionRender: Promise<string> = section.render(() => Promise.resolve(parsedDocument));
+  const sectionFind: SectionSearchResult[] = section.find("Text");
+  const sectionSearch: SectionSearchResult[] = section.search("Text");
+  const sectionLayout: LayoutSettings = section.reconcileLayoutSettings({
+    layout: "reflowable",
+    spread: "auto",
+    orientation: "auto",
+  });
 
   new StaticBook("https://s3.amazonaws.com/moby-dick/moby-dick.epub", {});
   new StaticRendition(epub, {});
@@ -174,11 +213,17 @@ function testEpub() {
   void navigationLandmarks;
   void navigationLandmark;
   void loadedNavigationItems;
+  void sectionLoad;
+  void sectionRender;
+  void sectionFind;
+  void sectionSearch;
+  void sectionLayout;
   void location;
 }
 
 type _PublicRootAssertions = PublicRootAssertions;
 type _CoreClassAssertions = CoreClassAssertions;
 type _NavigationAssertions = NavigationAssertions;
+type _SectionAssertions = SectionAssertions;
 
 testEpub();
