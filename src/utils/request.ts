@@ -3,8 +3,37 @@ import { parseMarkup as parse } from "../platform/parser";
 import { isXml } from "./mime";
 import Path from "./path";
 
+export type JsonValue =
+	| null
+	| boolean
+	| number
+	| string
+	| JsonValue[]
+	| { [key: string]: JsonValue };
+
+export type RequestType =
+	| "binary"
+	| "blob"
+	| "json"
+	| "xml"
+	| "opf"
+	| "ncx"
+	| "xhtml"
+	| "html"
+	| "htm"
+	| "text"
+	| string;
+
 export type RequestHeaders = Record<string, string>;
-export type RequestType = string | null | undefined;
+export type RequestResponse = ArrayBuffer | Blob | string | JsonValue | Document | XMLDocument;
+
+export interface RequestMethod {
+	(url: string, type: "binary", withCredentials?: boolean, headers?: RequestHeaders): Promise<ArrayBuffer>;
+	(url: string, type: "blob", withCredentials?: boolean, headers?: RequestHeaders): Promise<Blob>;
+	(url: string, type: "json", withCredentials?: boolean, headers?: RequestHeaders): Promise<JsonValue>;
+	(url: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm", withCredentials?: boolean, headers?: RequestHeaders): Promise<Document | XMLDocument>;
+	(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders): Promise<RequestResponse>;
+}
 
 type DeferConstructor = new () => {
 	promise: Promise<any>;
@@ -12,7 +41,12 @@ type DeferConstructor = new () => {
 	reject(error?: any): void;
 };
 
-function request(url: string, type?: RequestType, withCredentials?: boolean, headers?: RequestHeaders): Promise<any> {
+function request(url: string, type: "binary", withCredentials?: boolean, headers?: RequestHeaders): Promise<ArrayBuffer>;
+function request(url: string, type: "blob", withCredentials?: boolean, headers?: RequestHeaders): Promise<Blob>;
+function request(url: string, type: "json", withCredentials?: boolean, headers?: RequestHeaders): Promise<JsonValue>;
+function request(url: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm", withCredentials?: boolean, headers?: RequestHeaders): Promise<Document | XMLDocument>;
+function request(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders): Promise<RequestResponse>;
+function request(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders): Promise<any> {
 	var supportsURL = (typeof window != "undefined") ? window.URL : false; // TODO: fallback for url if window isn't defined
 	var BLOB_RESPONSE: XMLHttpRequestResponseType = supportsURL ? "blob" : "arraybuffer";
 

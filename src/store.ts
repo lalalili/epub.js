@@ -1,15 +1,15 @@
 import { defer } from "./core/async";
 import { parseMarkup as parse } from "./platform/parser";
-import httpRequest from "./utils/request";
+import httpRequest, { JsonValue, RequestResponse } from "./utils/request";
 import mime, { isXml } from "./utils/mime";
 import Path from "./utils/path";
 import EventEmitter from "event-emitter";
 import localforage from "localforage";
 
-export type StoreData = ArrayBuffer | Uint8Array | string | Blob | object;
+export type StoreData = ArrayBuffer | Uint8Array | string | Blob | object | JsonValue;
 export type StoreRequestType = string | undefined;
 export type StoreHeaders = Record<string, string>;
-type StoreRequestResponse = ArrayBuffer | Blob | string | Document | XMLDocument | StoreData;
+type StoreRequestResponse = RequestResponse | StoreData;
 export type StoreRequest = (url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders) => Promise<StoreRequestResponse>;
 export type StoreResolver = (href: string) => string;
 export interface StoreStorage {

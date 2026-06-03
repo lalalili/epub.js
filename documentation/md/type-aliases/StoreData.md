@@ -6,4 +6,4 @@
 
 # Type Alias: StoreData
 
-> **StoreData** = `ArrayBuffer` \| `Uint8Array` \| `string` \| `Blob` \| `object`
+> **StoreData** = `ArrayBuffer` \| `Uint8Array` \| `string` \| `Blob` \| `object` \| [`JsonValue`](JsonValue.md)

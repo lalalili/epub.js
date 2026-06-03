@@ -6,4 +6,4 @@
 
 # Variable: request
 
-> `const` **request**: `RequestMethod`
+> `const` **request**: [`RequestMethod`](../interfaces/RequestMethod.md)

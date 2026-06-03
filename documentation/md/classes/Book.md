@@ -158,7 +158,7 @@
 
 ### request
 
-> **request**: `RequestMethod`
+> **request**: [`RequestMethod`](../interfaces/RequestMethod.md)
 
 ***
 
@@ -298,7 +298,7 @@
 
 ### load()
 
-> **load**(`path`, `type?`): `Promise`\<`RequestResponse`\>
+> **load**(`path`, `type?`): `Promise`\<[`RequestResponse`](../type-aliases/RequestResponse.md)\>
 
 #### Parameters
 
@@ -312,7 +312,7 @@
 
 #### Returns
 
-`Promise`\<`RequestResponse`\>
+`Promise`\<[`RequestResponse`](../type-aliases/RequestResponse.md)\>
 
 ***
 
@@ -620,7 +620,7 @@
 
 ##### headers
 
-`RequestHeaders`
+[`RequestHeaders`](../type-aliases/RequestHeaders.md)
 
 #### Returns
 

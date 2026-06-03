@@ -252,6 +252,12 @@ assert(typeTests.includes("RootStoreUrlOptions"), "type tests must assert root S
 assert(typeTests.includes("new Store(\"epubjs-type-store\", storeRequest, storeResolver)"), "type tests must cover Store constructor typing");
 assert(typeTests.includes("store.createUrl(\"/OPS/images/cover.jpg\", storeUrlOptions)"), "type tests must cover Store createUrl optional options typing");
 assert(typeTests.includes("RequestMethod"), "type tests must assert request method typing");
+assert(typeTests.includes("RootRequestMethod"), "type tests must assert root request method type export");
+assert(typeTests.includes("RootRequestResponse"), "type tests must assert root request response type export");
+assert(
+	sourceRoot.includes("RequestMethod") && sourceRoot.includes("RequestResponse") && sourceRoot.includes("RequestType"),
+	"source root must export request public types"
+);
 assert(typeTests.includes("InstanceType<typeof ePub.utils.defer"), "type tests must assert generic defer typing");
 assert(typeTests.includes("Book[\"loading\"]"), "type tests must assert Book runtime loading state typing");
 assert(typeTests.includes("book.loaded?.spine"), "type tests must cover Book loaded spine typing");

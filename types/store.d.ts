@@ -1,6 +1,6 @@
 import { JsonValue, RequestResponse } from "./utils/request";
 
-export type StoreData = ArrayBuffer | Uint8Array | string | Blob | object;
+export type StoreData = ArrayBuffer | Uint8Array | string | Blob | object | JsonValue;
 
 export type StoreRequestType = string | undefined;
 

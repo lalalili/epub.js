@@ -12,6 +12,28 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0313
+- Why:
+  - P-0312 aligned `Contents` root type exports, leaving the root `request` helper as the next public utility surface with source/declaration/root parity gaps.
+  - The declaration surface already exposes `JsonValue`, `RequestType`, `RequestHeaders`, `RequestResponse`, and `RequestMethod`, but the source helper only exported a loose request type/header shape and the package root did not expose the helper types consistently.
+  - Aligning these exports lets consumers type-check root `request()` overloads, JSON response values, request headers, request type hints, and request response unions from the package root before any release tag or host gate, without changing XHR setup, response parsing, archive loading, storage writes, or error handling.
+- Diff Scope:
+  - `src/utils/request.ts`: export declaration-facing request helper types and add overload signatures for typed response promises while preserving the existing implementation flow.
+  - `src/store.ts`, `types/store.d.ts`: align `StoreData` with JSON request responses so source and declaration request contracts remain assignable.
+  - `src/index.ts`, `types/index.d.ts`: export root `request` public helper types.
+  - `types/epubjs-tests.ts`: extend public root assertions for `request` helper type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `request` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public request type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/request.test.js test/browser/public-api.test.js test/browser/umd-global.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `request` helper aliases to remain module-private instead of part of the root typed public API contract.
+
 ### P-0312
 - Why:
   - P-0311 aligned `Layout` root type exports, leaving `Contents` as the next public view-content surface with source/declaration/root parity gaps.

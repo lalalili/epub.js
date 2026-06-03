@@ -111,6 +111,14 @@ export type {
 } from "./pagelist";
 
 export type {
+	JsonValue,
+	RequestHeaders,
+	RequestMethod,
+	RequestResponse,
+	RequestType
+} from "./utils/request";
+
+export type {
 	ParsedPath,
 	default as Path
 } from "./utils/path";

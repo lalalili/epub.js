@@ -6,7 +6,7 @@
 
 # Type Alias: StoreRequest
 
-> **StoreRequest** = (`url`, `type?`, `withCredentials?`, `headers?`) => `Promise`\<`RequestResponse` \| [`StoreData`](StoreData.md)\>
+> **StoreRequest** = (`url`, `type?`, `withCredentials?`, `headers?`) => `Promise`\<[`RequestResponse`](RequestResponse.md) \| [`StoreData`](StoreData.md)\>
 
 ## Parameters
 
@@ -28,4 +28,4 @@
 
 ## Returns
 
-`Promise`\<`RequestResponse` \| [`StoreData`](StoreData.md)\>
+`Promise`\<[`RequestResponse`](RequestResponse.md) \| [`StoreData`](StoreData.md)\>

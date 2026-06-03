@@ -39,3 +39,4 @@ export type { default as Themes, InjectedThemes, Theme, ThemeInput, ThemeOverrid
 export type { default as Resources, ReplacementMode, ResourceArchive, ResourceManifest, ResourceManifestItem, ResourceOptions, ResourceRequest, ResourceResolver, ResourceSettings } from './resources';
 export type { default as Store, StoreData, StoreHeaders, StoreRequest, StoreRequestType, StoreResolver, StoreResource, StoreResources, StoreStorage, StoreUrlOptions } from './store';
 export { default as request } from './utils/request';
+export type { JsonValue, RequestHeaders, RequestMethod, RequestResponse, RequestType } from './utils/request';

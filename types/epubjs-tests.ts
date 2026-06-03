@@ -64,6 +64,11 @@ import type {
   LayoutSettings as RootLayoutSettings,
   ParsedEpubCFI as RootParsedEpubCFI,
   RangePair as RootRangePair,
+  JsonValue as RootJsonValue,
+  RequestHeaders as RootRequestHeaders,
+  RequestMethod as RootRequestMethod,
+  RequestResponse as RootRequestResponse,
+  RequestType as RootRequestType,
   VerticalRlMetricsCache as RootVerticalRlMetricsCache,
   VerticalRlPageMetricsCache as RootVerticalRlPageMetricsCache,
   ViewportSettings as RootViewportSettings,
@@ -213,7 +218,7 @@ import Spine, { SpineLookup, SpineManifestItem, SpinePackage, SpinePackageItem, 
 import Store, { StoreData, StoreHeaders, StoreRequest, StoreRequestType, StoreResource, StoreResources, StoreResolver, StoreStorage, StoreUrlOptions } from './store';
 import Themes, { InjectedThemes, Theme, ThemeInput, ThemeOverride, ThemeRules, ThemesContent, ThemesRendition } from './themes';
 import { AnimationFrameRequest, BlobContent, Deferred, RangeObject as CoreRangeObject, RectBounds, SizeBounds } from './utils/core';
-import { JsonValue, RequestHeaders, RequestMethod, RequestResponse } from './utils/request';
+import { JsonValue, RequestHeaders, RequestMethod, RequestResponse, RequestType } from './utils/request';
 
 type Assert<T extends true> = T;
 type IsExact<T, U> =
@@ -301,6 +306,11 @@ type PublicRootAssertions = [
   Assert<IsExact<RootParsedPath, ParsedPath>>,
   Assert<IsExact<RootUrl, Url>>,
   Assert<IsExact<RootUrlBase, UrlBase>>,
+  Assert<IsExact<RootJsonValue, JsonValue>>,
+  Assert<IsExact<RootRequestHeaders, RequestHeaders>>,
+  Assert<IsExact<RootRequestMethod, RequestMethod>>,
+  Assert<IsExact<RootRequestResponse, RequestResponse>>,
+  Assert<IsExact<RootRequestType, RequestType>>,
   Assert<IsExact<RootVerticalRlMetricsCache, VerticalRlMetricsCache>>,
   Assert<IsExact<RootVerticalRlPageMetricsCache, VerticalRlPageMetricsCache>>,
   Assert<IsExact<RootViewportSettings, ViewportSettings>>,

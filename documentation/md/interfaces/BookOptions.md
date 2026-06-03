@@ -50,13 +50,13 @@
 
 ### requestHeaders?
 
-> `optional` **requestHeaders?**: `RequestHeaders`
+> `optional` **requestHeaders?**: [`RequestHeaders`](../type-aliases/RequestHeaders.md)
 
 ***
 
 ### requestMethod?
 
-> `optional` **requestMethod?**: `RequestMethod`
+> `optional` **requestMethod?**: [`RequestMethod`](RequestMethod.md)
 
 ***
 

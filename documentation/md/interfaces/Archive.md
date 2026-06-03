@@ -124,7 +124,7 @@
 
 #### Call Signature
 
-> **handleResponse**(`response`, `type`): `JsonValue`
+> **handleResponse**(`response`, `type`): [`JsonValue`](../type-aliases/JsonValue.md)
 
 ##### Parameters
 
@@ -138,7 +138,7 @@
 
 ##### Returns
 
-`JsonValue`
+[`JsonValue`](../type-aliases/JsonValue.md)
 
 #### Call Signature
 
@@ -160,13 +160,13 @@
 
 #### Call Signature
 
-> **handleResponse**(`response`, `type?`): `RequestResponse`
+> **handleResponse**(`response`, `type?`): [`RequestResponse`](../type-aliases/RequestResponse.md)
 
 ##### Parameters
 
 ###### response
 
-`RequestResponse`
+[`RequestResponse`](../type-aliases/RequestResponse.md)
 
 ###### type?
 
@@ -174,7 +174,7 @@
 
 ##### Returns
 
-`RequestResponse`
+[`RequestResponse`](../type-aliases/RequestResponse.md)
 
 ***
 
@@ -240,7 +240,7 @@
 
 #### Call Signature
 
-> **request**(`url`, `type`): `Promise`\<`JsonValue`\>
+> **request**(`url`, `type`): `Promise`\<[`JsonValue`](../type-aliases/JsonValue.md)\>
 
 ##### Parameters
 
@@ -254,7 +254,7 @@
 
 ##### Returns
 
-`Promise`\<`JsonValue`\>
+`Promise`\<[`JsonValue`](../type-aliases/JsonValue.md)\>
 
 #### Call Signature
 
@@ -276,7 +276,7 @@
 
 #### Call Signature
 
-> **request**(`url`, `type?`): `Promise`\<`RequestResponse`\>
+> **request**(`url`, `type?`): `Promise`\<[`RequestResponse`](../type-aliases/RequestResponse.md)\>
 
 ##### Parameters
 
@@ -290,7 +290,7 @@
 
 ##### Returns
 
-`Promise`\<`RequestResponse`\>
+`Promise`\<[`RequestResponse`](../type-aliases/RequestResponse.md)\>
 
 ***
 
