@@ -7,6 +7,8 @@ import Themes from "./themes";
 import EpubCFI from "./epubcfi";
 import Annotations from "./annotations";
 import Queue from "./utils/queue";
+import { Deferred } from "./utils/core";
+import Layout from "./layout";
 
 export interface RenditionOptions {
   width?: number | string | null,
@@ -32,12 +34,23 @@ export interface RenditionOptions {
   globalLayoutProperties?: object
 }
 
+export interface LayoutProperties {
+  layout: string,
+  spread: string | boolean,
+  orientation: string,
+  flow: string,
+  viewport: string,
+  minSpreadWidth: number,
+  direction: string
+}
+
 export interface DisplayedLocation {
   index: number,
   href: string,
   cfi: string,
-  location: number,
-  percentage: number,
+  location?: number,
+  percentage?: number,
+  page?: number,
   displayed: {
     page: number,
     total: number
@@ -45,10 +58,21 @@ export interface DisplayedLocation {
 }
 
 export interface Location {
-  start: DisplayedLocation,
-	end: DisplayedLocation,
-  atStart: boolean,
-  atEnd: boolean
+  start?: DisplayedLocation,
+	end?: DisplayedLocation,
+  atStart?: boolean,
+  atEnd?: boolean
+}
+
+export interface ManagerLocationItem {
+  index: number,
+  href: string,
+  mapping: {
+    start: string,
+    end: string
+  },
+  pages: number[],
+  totalPages: number
 }
 
 export default class Rendition {
@@ -65,12 +89,18 @@ export default class Rendition {
       render: Hook,
       show: Hook
     }
-    themes: Themes;
-    annotations: Annotations;
-    epubcfi: EpubCFI;
+    manager?: any;
+    ViewManager?: any;
+    View?: any;
+    _layout?: Layout;
+    themes?: Themes;
+    annotations?: Annotations;
+    epubcfi?: EpubCFI;
     q: Queue;
     location?: Location;
-    started: Promise<void>;
+    starting?: Deferred<void>;
+    started?: Promise<void>;
+    displaying?: Deferred<any>;
 
     adjustImages(contents: Contents): Promise<void>;
 
@@ -82,7 +112,9 @@ export default class Rendition {
 
     destroy(): void;
 
-    determineLayoutProperties(metadata: object): object;
+    debugVerticalRlPage(): Record<string, any>;
+
+    determineLayoutProperties(metadata: Record<string, any>): LayoutProperties;
 
     direction(dir: string): void;
 
@@ -105,7 +137,7 @@ export default class Rendition {
 
     layout(settings: any): any;
 
-    located(location: any[]): Location | {};
+    located(location: Array<ManagerLocationItem | null | undefined> | any[]): Location;
 
     moveTo(offset: object): void;
 
@@ -119,9 +151,13 @@ export default class Rendition {
 
     reportLocation(): Promise<void>;
 
+    remeasure(options?: { preserveLocation?: boolean, waitForFonts?: boolean }): Promise<any>;
+
     requireManager(manager: string | Function | object): any;
 
     requireView(view: string | Function | object): any;
+
+    resolveLinkHref(href: string, contents?: { sectionHref?: string }): string;
 
     resize(width?: number | string, height?: number | string, epubcfi?: string): void;
 

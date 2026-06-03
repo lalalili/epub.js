@@ -43,7 +43,7 @@ import Packaging, {
 import PageList, { PageListItem, PageValue } from './pagelist';
 import Locations, { LocationRange, WordLocation } from './locations';
 import Mapping, { EpubCFIPair, MappingContents, MappingLayout, MappingView, RangePair } from './mapping';
-import type { Location, RenditionOptions } from './rendition';
+import type { LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionOptions } from './rendition';
 import Resources, {
   ReplacementMode,
   ResourceArchive,
@@ -69,7 +69,7 @@ import Section, { LayoutSettings, SectionHookSet, SectionSearchResult, SpineItem
 import Spine, { SpineLookup, SpineManifestItem, SpinePackage, SpinePackageItem, SpineResolver } from './spine';
 import Store, { StoreData, StoreHeaders, StoreRequest, StoreRequestType, StoreResources, StoreResolver, StoreStorage, StoreUrlOptions } from './store';
 import Themes, { ThemeInput, ThemeOverride, ThemeRules, ThemesContent, ThemesRendition } from './themes';
-import { AnimationFrameRequest, BlobContent, RangeObject as CoreRangeObject, RectBounds, SizeBounds } from './utils/core';
+import { AnimationFrameRequest, BlobContent, Deferred, RangeObject as CoreRangeObject, RectBounds, SizeBounds } from './utils/core';
 import { JsonValue, RequestHeaders, RequestMethod, RequestResponse } from './utils/request';
 
 type Assert<T extends true> = T;
@@ -115,12 +115,23 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Book["setRequestHeaders"]>, void>>,
   Assert<IsExact<Rendition["settings"], RenditionOptions>>,
   Assert<IsExact<Rendition["book"], Book>>,
-  Assert<IsExact<Rendition["started"], Promise<void>>>,
+  Assert<IsExact<Rendition["manager"], any>>,
+  Assert<IsExact<Rendition["ViewManager"], any>>,
+  Assert<IsExact<Rendition["View"], any>>,
+  Assert<IsExact<Rendition["_layout"], Layout | undefined>>,
+  Assert<IsExact<Rendition["starting"], Deferred<void> | undefined>>,
+  Assert<IsExact<Rendition["started"], Promise<void> | undefined>>,
+  Assert<IsExact<Rendition["displaying"], Deferred<any> | undefined>>,
   Assert<IsExact<ReturnType<Rendition["attachTo"]>, Promise<void>>>,
   Assert<IsExact<ReturnType<Rendition["currentLocation"]>, Location | Promise<Location> | undefined>>,
   Assert<IsExact<ReturnType<Rendition["display"]>, Promise<void>>>,
+  Assert<IsExact<ReturnType<Rendition["determineLayoutProperties"]>, RenditionLayoutProperties>>,
+  Assert<IsExact<ReturnType<Rendition["debugVerticalRlPage"]>, Record<string, any>>>,
   Assert<IsExact<ReturnType<Rendition["getContents"]>, Contents[]>>,
   Assert<IsExact<ReturnType<Rendition["getRange"]>, Range | undefined>>,
+  Assert<IsExact<ReturnType<Rendition["located"]>, Location>>,
+  Assert<IsExact<ReturnType<Rendition["remeasure"]>, Promise<any>>>,
+  Assert<IsExact<ReturnType<Rendition["resolveLinkHref"]>, string>>,
   Assert<IsExact<ReturnType<Rendition["resize"]>, void>>,
   Assert<IsExact<Contents["document"], Document>>,
   Assert<IsExact<Contents["documentElement"], HTMLElement>>,
@@ -599,6 +610,28 @@ function testEpub() {
   const blobBook = new Book(new Blob(), {});
 
   const rendition = new Rendition(book, {});
+  const renditionLayoutProperties: RenditionLayoutProperties = rendition.determineLayoutProperties({
+    layout: "reflowable",
+    spread: "none",
+    orientation: "auto",
+    flow: "paginated",
+    viewport: "",
+    direction: "ltr",
+  });
+  const managerLocationItem: ManagerLocationItem = {
+    index: 1,
+    href: "Text/chapter.xhtml",
+    mapping: {
+      start: "epubcfi(/6/2[chapter]!/4/2/1:0)",
+      end: "epubcfi(/6/2[chapter]!/4/2/1:10)",
+    },
+    pages: [1],
+    totalPages: 1,
+  };
+  const locatedRenditionLocation: Location = rendition.located([managerLocationItem]);
+  const renditionDebugState: Record<string, any> = rendition.debugVerticalRlPage();
+  const renditionRemeasure: Promise<any> = rendition.remeasure({ preserveLocation: true, waitForFonts: false });
+  const resolvedRenditionHref: string = rendition.resolveLinkHref("#note", { sectionHref: "Text/chapter.xhtml" });
 
   const binaryRequest: Promise<ArrayBuffer> = request("https://s3.amazonaws.com/moby-dick/moby-dick.epub", "binary", true, headers);
   const blobRequest: Promise<Blob> = request("https://s3.amazonaws.com/moby-dick/moby-dick.epub", "blob");
@@ -1028,6 +1061,12 @@ function testEpub() {
 
   void version;
   void rendition;
+  void renditionLayoutProperties;
+  void managerLocationItem;
+  void locatedRenditionLocation;
+  void renditionDebugState;
+  void renditionRemeasure;
+  void resolvedRenditionHref;
   void epubAsBook;
   void rootBookAsBook;
   void blobBook;

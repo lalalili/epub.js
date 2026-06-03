@@ -28,9 +28,15 @@
 
 ## Properties
 
-### annotations
+### \_layout?
 
-> **annotations**: `Annotations`
+> `optional` **\_layout?**: [`Layout`](Layout.md)
+
+***
+
+### annotations?
+
+> `optional` **annotations?**: `Annotations`
 
 ***
 
@@ -40,9 +46,15 @@
 
 ***
 
-### epubcfi
+### displaying?
 
-> **epubcfi**: [`EpubCFI`](EpubCFI.md)
+> `optional` **displaying?**: `Deferred`\<`any`\>
+
+***
+
+### epubcfi?
+
+> `optional` **epubcfi?**: [`EpubCFI`](EpubCFI.md)
 
 ***
 
@@ -86,6 +98,12 @@
 
 ***
 
+### manager?
+
+> `optional` **manager?**: `any`
+
+***
+
 ### q
 
 > **q**: `Queue`
@@ -98,15 +116,33 @@
 
 ***
 
-### started
+### started?
 
-> **started**: `Promise`\<`void`\>
+> `optional` **started?**: `Promise`\<`void`\>
 
 ***
 
-### themes
+### starting?
 
-> **themes**: `Themes`
+> `optional` **starting?**: `Deferred`\<`void`\>
+
+***
+
+### themes?
+
+> `optional` **themes?**: `Themes`
+
+***
+
+### View?
+
+> `optional` **View?**: `any`
+
+***
+
+### ViewManager?
+
+> `optional` **ViewManager?**: `any`
 
 ## Methods
 
@@ -162,6 +198,16 @@
 
 ***
 
+### debugVerticalRlPage()
+
+> **debugVerticalRlPage**(): `Record`\<`string`, `any`\>
+
+#### Returns
+
+`Record`\<`string`, `any`\>
+
+***
+
 ### destroy()
 
 > **destroy**(): `void`
@@ -174,17 +220,17 @@
 
 ### determineLayoutProperties()
 
-> **determineLayoutProperties**(`metadata`): `object`
+> **determineLayoutProperties**(`metadata`): `LayoutProperties`
 
 #### Parameters
 
 ##### metadata
 
-`object`
+`Record`\<`string`, `any`\>
 
 #### Returns
 
-`object`
+`LayoutProperties`
 
 ***
 
@@ -396,17 +442,17 @@
 
 ### located()
 
-> **located**(`location`): \{ \} \| [`Location`](../interfaces/Location.md)
+> **located**(`location`): [`Location`](../interfaces/Location.md)
 
 #### Parameters
 
 ##### location
 
-`any`[]
+`any`[] \| `ManagerLocationItem`[]
 
 #### Returns
 
-\{ \} \| [`Location`](../interfaces/Location.md)
+[`Location`](../interfaces/Location.md)
 
 ***
 
@@ -542,6 +588,28 @@
 
 ***
 
+### remeasure()
+
+> **remeasure**(`options?`): `Promise`\<`any`\>
+
+#### Parameters
+
+##### options?
+
+###### preserveLocation?
+
+`boolean`
+
+###### waitForFonts?
+
+`boolean`
+
+#### Returns
+
+`Promise`\<`any`\>
+
+***
+
 ### reportLocation()
 
 > **reportLocation**(): `Promise`\<`void`\>
@@ -605,6 +673,28 @@
 #### Returns
 
 `void`
+
+***
+
+### resolveLinkHref()
+
+> **resolveLinkHref**(`href`, `contents?`): `string`
+
+#### Parameters
+
+##### href
+
+`string`
+
+##### contents?
+
+###### sectionHref?
+
+`string`
+
+#### Returns
+
+`string`
 
 ***
 

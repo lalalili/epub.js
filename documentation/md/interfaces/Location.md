@@ -8,24 +8,24 @@
 
 ## Properties
 
-### atEnd
+### atEnd?
 
-> **atEnd**: `boolean`
-
-***
-
-### atStart
-
-> **atStart**: `boolean`
+> `optional` **atEnd?**: `boolean`
 
 ***
 
-### end
+### atStart?
 
-> **end**: `DisplayedLocation`
+> `optional` **atStart?**: `boolean`
 
 ***
 
-### start
+### end?
 
-> **start**: `DisplayedLocation`
+> `optional` **end?**: `DisplayedLocation`
+
+***
+
+### start?
+
+> `optional` **start?**: `DisplayedLocation`

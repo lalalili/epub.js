@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0288
+- Why:
+  - P-0287 aligned `Contents` runtime state declarations, leaving adjacent `Rendition` runtime state and helper methods as the next high-value typed public API gap.
+  - `Rendition` is already TypeScript source and Browser Mode-covered, but its declaration still hid manager/view/layout/deferred state, treated constructed helper objects as always present, omitted public diagnostics/link-resolution helpers, and returned a broad object from layout property calculation.
+  - Aligning this surface lets consumers type-check rendition manager state, layout properties, manager locations, remeasure/debug helpers, and link resolution before any release tag or host gate, without changing rendering or navigation behavior.
+- Diff Scope:
+  - `types/rendition.d.ts`: add `LayoutProperties` and `ManagerLocationItem`, optional runtime state for manager/view/layout/deferred helpers, optional location parts, and declarations for `debugVerticalRlPage()`, `remeasure()`, and `resolveLinkHref()`.
+  - `types/epubjs-tests.ts`: extend `Rendition` assertions plus concrete type smoke coverage for layout property calculation, manager location mapping, debug state, remeasure, and link resolution.
+  - `scripts/verify-gate1-readiness.mjs`: require the `Rendition` state/helper typed public API checks in Gate 1 readiness.
+  - `documentation/md/classes/Rendition.md`, `documentation/md/interfaces/Location.md`: refresh generated TypeDoc markdown for the updated `Rendition` declaration surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/rendition.test.js test/browser/manager-listeners.test.js test/browser/teardown-raf.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `Rendition` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0287
 - Why:
   - P-0286 aligned the legacy `ePub.utils` facade declarations, leaving `Contents` runtime state as the next package-root typed public API gap.
