@@ -9,6 +9,7 @@ import Annotations, {
 } from './annotations';
 import Archive, { ArchiveInput, ArchiveRequestType, ArchiveUrlOptions, ArchiveZip } from './archive';
 import type { BookOptions } from './book';
+import Container, { ContainerDocument } from './container';
 import type { ViewportSettings } from './contents';
 import type EpubRoot from './epub';
 import type { LayoutContent, LayoutCount, LayoutProps, LayoutSettings as EpubLayoutSettings } from './layout';
@@ -233,6 +234,15 @@ type DisplayOptionsAssertions = [
   Assert<IsExact<DisplayOptions["orientationLock"], string | undefined>>,
   Assert<IsExact<ReturnType<DisplayOptions["parse"]>, DisplayOptions>>,
   Assert<IsExact<ReturnType<DisplayOptions["destroy"]>, void>>
+];
+
+type ContainerAssertions = [
+  Assert<IsExact<ConstructorParameters<typeof Container>, [containerDocument?: ContainerDocument | undefined]>>,
+  Assert<IsExact<Container["packagePath"], string | null | undefined>>,
+  Assert<IsExact<Container["directory"], string | undefined>>,
+  Assert<IsExact<Container["encoding"], string | null | undefined>>,
+  Assert<IsExact<ReturnType<Container["parse"]>, void>>,
+  Assert<IsExact<ReturnType<Container["destroy"]>, void>>
 ];
 
 type PageListAssertions = [
@@ -568,6 +578,10 @@ function testEpub() {
   const displayOptions = new DisplayOptions();
   const parsedDisplayOptions: DisplayOptions = displayOptions.parse(parsedDocument);
   const displayOptionsInteractive: string | undefined = displayOptions.interactive;
+  const containerDocument = parsedDocument as ContainerDocument;
+  const container = new Container();
+  const parsedContainer: void = container.parse(containerDocument);
+  const containerPackagePath: string | null | undefined = container.packagePath;
   const pageListItems: PageListItem[] = [{
     page: "1",
     href: "Text/chapter.xhtml#page-1",
@@ -839,6 +853,8 @@ function testEpub() {
   void packagingTocItem;
   void parsedDisplayOptions;
   void displayOptionsInteractive;
+  void parsedContainer;
+  void containerPackagePath;
   void parsedPageList;
   void loadedPageList;
   void pageFromCfi;
@@ -900,6 +916,7 @@ type _SpineAssertions = SpineAssertions;
 type _ArchiveAssertions = ArchiveAssertions;
 type _PackagingAssertions = PackagingAssertions;
 type _DisplayOptionsAssertions = DisplayOptionsAssertions;
+type _ContainerAssertions = ContainerAssertions;
 type _PageListAssertions = PageListAssertions;
 type _LocationsAssertions = LocationsAssertions;
 type _MappingAssertions = MappingAssertions;

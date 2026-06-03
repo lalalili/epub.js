@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0279
+- Why:
+  - P-0278 added the missing `DisplayOptions` declaration, leaving `Container` as the adjacent package metadata parser typed public API gap.
+  - `Container` is already TypeScript source and browser-covered, but its declaration still required a document for construction/parsing and hid runtime parser state fields.
+  - Aligning `Container` declarations lets consumers type-check optional parser construction, container XML parsing inputs, package path/directory/encoding state, and cleanup behavior before any release tag or host gate.
+- Diff Scope:
+  - `types/container.d.ts`: align the constructor, parse input, public parser state fields, and `ContainerDocument` shape with the TypeScript source behavior.
+  - `types/epubjs-tests.ts`: add `ContainerAssertions` plus concrete construction, parse input, and parsed-field typing checks.
+  - `scripts/verify-gate1-readiness.mjs`: require the Container typed public API assertions and construction/parse coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/container.test.js test/browser/book.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `Container` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0278
 - Why:
   - P-0277 aligned `Annotations` declarations with runtime behavior, leaving small package metadata parser declarations as the next low-risk typed public API gap.

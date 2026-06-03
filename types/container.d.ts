@@ -1,7 +1,15 @@
-export default class Container {
-  constructor(containerDocument: Document);
+export type ContainerDocument = XMLDocument & {
+  xmlEncoding?: string | null;
+};
 
-  parse(containerDocument: Document): void;
+export default class Container {
+  constructor(containerDocument?: ContainerDocument);
+
+  packagePath?: string | null;
+  directory?: string;
+  encoding?: string | null;
+
+  parse(containerDocument?: ContainerDocument): void;
 
   destroy(): void;
 }

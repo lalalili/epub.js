@@ -98,6 +98,9 @@ assert(typeTests.includes("packaging.load(packagingJson)"), "type tests must cov
 assert(typeTests.includes("type DisplayOptionsAssertions"), "type tests must assert the DisplayOptions public surface");
 assert(typeTests.includes("new DisplayOptions()"), "type tests must cover DisplayOptions construction without a document");
 assert(typeTests.includes("displayOptions.parse(parsedDocument)"), "type tests must cover DisplayOptions parse return typing");
+assert(typeTests.includes("type ContainerAssertions"), "type tests must assert the Container public surface");
+assert(typeTests.includes("new Container()"), "type tests must cover Container construction without a document");
+assert(typeTests.includes("container.parse(containerDocument)"), "type tests must cover Container parse argument typing");
 assert(typeTests.includes("type PageListAssertions"), "type tests must assert the PageList public surface");
 assert(typeTests.includes("new PageList()"), "type tests must cover PageList construction without a document");
 assert(typeTests.includes("pageList.process(pageListItems)"), "type tests must cover PageList item processing");
