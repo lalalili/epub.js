@@ -99,6 +99,10 @@ assert(typeTests.includes("type LocationsAssertions"), "type tests must assert t
 assert(typeTests.includes("new Locations(spine"), "type tests must cover Locations construction with spine/request typing");
 assert(typeTests.includes("locations.generateForSection"), "type tests must cover Locations section refinement typing");
 assert(typeTests.includes("locations.parseWords"), "type tests must cover Locations word-location typing");
+assert(typeTests.includes("type MappingAssertions"), "type tests must assert the Mapping public surface");
+assert(typeTests.includes("new Mapping(mappingLayout"), "type tests must cover Mapping construction typing");
+assert(typeTests.includes("mapping.page(mappingContents"), "type tests must cover Mapping page typing");
+assert(typeTests.includes("mapping.rangePairToCfiPair"), "type tests must cover Mapping range-to-CFI typing");
 assert(typeTests.includes("type ResourcesAssertions"), "type tests must assert the Resources public surface");
 assert(typeTests.includes("new Resources(resourceManifest, resourceOptions)"), "type tests must cover Resources options typing");
 assert(typeTests.includes("resources.get(\"Images/cover.jpg\")"), "type tests must cover Resources get replacement typing");

@@ -15,6 +15,7 @@ import Packaging, {
 } from './packaging';
 import PageList, { PageListItem, PageValue } from './pagelist';
 import Locations, { LocationRange, WordLocation } from './locations';
+import Mapping, { EpubCFIPair, MappingContents, MappingLayout, MappingView, RangePair } from './mapping';
 import type { Location, RenditionOptions } from './rendition';
 import Resources, {
   ReplacementMode,
@@ -248,6 +249,25 @@ type LocationsAssertions = [
   Assert<IsExact<ReturnType<Locations["destroy"]>, void>>
 ];
 
+type MappingAssertions = [
+  Assert<IsExact<ConstructorParameters<typeof Mapping>, [layout: MappingLayout, direction?: string | undefined, axis?: string | undefined, dev?: boolean | undefined]>>,
+  Assert<IsExact<Mapping["layout"], MappingLayout>>,
+  Assert<IsExact<Mapping["horizontal"], boolean>>,
+  Assert<IsExact<Mapping["direction"], string>>,
+  Assert<IsExact<Mapping["_dev"], boolean>>,
+  Assert<IsExact<ReturnType<Mapping["section"]>, EpubCFIPair[]>>,
+  Assert<IsExact<ReturnType<Mapping["page"]>, EpubCFIPair | undefined>>,
+  Assert<IsExact<ReturnType<Mapping["findRanges"]>, RangePair[]>>,
+  Assert<IsExact<ReturnType<Mapping["findStart"]>, Range>>,
+  Assert<IsExact<ReturnType<Mapping["findEnd"]>, Range>>,
+  Assert<IsExact<ReturnType<Mapping["findTextStartRange"]>, Range>>,
+  Assert<IsExact<ReturnType<Mapping["findTextEndRange"]>, Range>>,
+  Assert<IsExact<ReturnType<Mapping["splitTextNodeIntoRanges"]>, Range[]>>,
+  Assert<IsExact<ReturnType<Mapping["rangePairToCfiPair"]>, EpubCFIPair>>,
+  Assert<IsExact<ReturnType<Mapping["rangeListToCfiList"]>, EpubCFIPair[]>>,
+  Assert<IsExact<ReturnType<Mapping["axis"]>, boolean>>
+];
+
 type ResourcesAssertions = [
   Assert<IsExact<ConstructorParameters<typeof Resources>, [manifest: ResourceManifest | PackagingManifestObject, options?: ResourceOptions | undefined]>>,
   Assert<IsExact<Resources["settings"], ResourceSettings | undefined>>,
@@ -463,6 +483,29 @@ function testEpub() {
   locations.currentLocation = loadedLocations[0];
   locations.setCurrent(0);
   locations.on("changed", () => undefined);
+  const mappingLayout: MappingLayout = {
+    spreadWidth: 200,
+    columnWidth: 100,
+    gap: 0,
+    divisor: 1,
+  };
+  const mapping = new Mapping(mappingLayout, "ltr", "horizontal");
+  const mappingContents: MappingContents = { document: parsedDocument };
+  const mappingPage: EpubCFIPair | undefined = mapping.page(mappingContents, "/6/2[chap]", 0, 100);
+  const mappingTextNode = parsedDocument.querySelector("p")?.firstChild;
+  const mappingRanges: Range[] = mappingTextNode ? mapping.splitTextNodeIntoRanges(mappingTextNode) : [];
+  const mappingRangePair: RangePair | undefined = mappingRanges[0] && mappingRanges[1]
+    ? { start: mappingRanges[0], end: mappingRanges[1] }
+    : undefined;
+  const mappingCfiPair: EpubCFIPair | undefined = mappingRangePair ? mapping.rangePairToCfiPair("/6/2[chap]", mappingRangePair) : undefined;
+  const mappingCfiList: EpubCFIPair[] = mappingRangePair ? mapping.rangeListToCfiList("/6/2[chap]", [mappingRangePair]) : [];
+  const mappingView: MappingView = {
+    section: { cfiBase: "/6/2[chap]" },
+    contents: { scrollWidth: () => 200 },
+    document: parsedDocument,
+  };
+  const mappingSection: EpubCFIPair[] = mapping.section(mappingView);
+  const mappingAxis: boolean = mapping.axis("vertical");
   const resourceManifest: ResourceManifest = {
     chapter: {
       href: "Text/chapter.xhtml",
@@ -613,6 +656,11 @@ function testEpub() {
   void generatedSectionLocations;
   void wordLocations;
   void generatedWordLocations;
+  void mappingPage;
+  void mappingCfiPair;
+  void mappingCfiList;
+  void mappingSection;
+  void mappingAxis;
   void resourceUrl;
   void resourceReplacements;
   void resourceCssReplacements;
@@ -644,6 +692,7 @@ type _ArchiveAssertions = ArchiveAssertions;
 type _PackagingAssertions = PackagingAssertions;
 type _PageListAssertions = PageListAssertions;
 type _LocationsAssertions = LocationsAssertions;
+type _MappingAssertions = MappingAssertions;
 type _ResourcesAssertions = ResourcesAssertions;
 type _StoreAssertions = StoreAssertions;
 

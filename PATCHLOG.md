@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0274
+- Why:
+  - P-0273 aligned `Locations` declarations with runtime behavior, leaving `Mapping` as the adjacent page/CFI typed public API gap.
+  - `Mapping` is already TypeScript source, but its declaration still hid constructor state, section/page range mapping helpers, range-list conversion, and text-node walking helpers despite browser coverage exercising those runtime methods.
+  - Aligning `Mapping` declarations lets consumers type-check page-to-CFI mapping, section-wide CFI pair generation, range splitting, range-to-CFI conversion, axis switching, and layout metrics before any release tag or host gate.
+- Diff Scope:
+  - `types/mapping.d.ts`: align mapping layout/view/content types, public state fields, section/page helpers, text walking, range discovery, text range splitting, range-pair conversion, range-list conversion, and axis behavior with the TypeScript source behavior.
+  - `types/epubjs-tests.ts`: add `MappingAssertions` plus concrete construction, page, section, range splitting, range-to-CFI, range-list, and axis typing checks.
+  - `scripts/verify-gate1-readiness.mjs`: require the Mapping typed public API assertions and construction/page/range-to-CFI coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/mapping.test.js test/browser/locations.test.js test/browser/epubcfi.test.js test/browser/rendition.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `Mapping` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0273
 - Why:
   - P-0272 aligned `PageList` declarations with runtime behavior, leaving `Locations` as the next CFI/page-map typed public API gap.
