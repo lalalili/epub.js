@@ -79,6 +79,11 @@ assert(typeTests.includes("RootBookInput"), "type tests must assert root BookInp
 assert(typeTests.includes("ePub(rootBlobInput"), "type tests must cover root Blob input overload");
 assert(typeTests.includes("ePub(rootOptions)"), "type tests must cover root options-only overload");
 assert(sourceRoot.includes("BookLoaded") && sourceRoot.includes("BookLoading"), "source root must export Book loaded/loading types");
+assert(typeTests.includes("RootContainerDocument"), "type tests must assert root Container type exports");
+assert(
+	sourceRoot.includes("ContainerDocument") && sourceRoot.includes("default as Container"),
+	"source root must export Container public types"
+);
 assert(typeTests.includes("RootRenditionOptions"), "type tests must assert root Rendition type exports");
 assert(sourceRoot.includes("RenditionOptions") && sourceRoot.includes("RenditionLayoutProperties"), "source root must export Rendition public types");
 assert(typeTests.includes("RootNavigationInputItem"), "type tests must assert root Navigation type exports");
@@ -139,6 +144,7 @@ assert(typeTests.includes("type DisplayOptionsAssertions"), "type tests must ass
 assert(typeTests.includes("new DisplayOptions()"), "type tests must cover DisplayOptions construction without a document");
 assert(typeTests.includes("displayOptions.parse(parsedDocument)"), "type tests must cover DisplayOptions parse return typing");
 assert(typeTests.includes("type ContainerAssertions"), "type tests must assert the Container public surface");
+assert(typeTests.includes("RootContainer"), "type tests must assert root Container class typing");
 assert(typeTests.includes("new Container()"), "type tests must cover Container construction without a document");
 assert(typeTests.includes("container.parse(containerDocument)"), "type tests must cover Container parse argument typing");
 assert(typeTests.includes("type PathAssertions"), "type tests must assert the Path public surface");

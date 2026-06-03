@@ -17,6 +17,7 @@ export { default as EpubCFI } from './epubcfi';
 export { default as Rendition } from './rendition';
 export type { LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionOptions } from './rendition';
 export { default as Contents } from './contents';
+export type { default as Container, ContainerDocument } from './container';
 export { default as Layout } from './layout';
 export type { default as Navigation, LandmarkItem, NavItem, NavigationDocument, NavigationInput, NavigationInputItem } from './navigation';
 export type { default as Packaging, PackagingJsonManifest, PackagingManifestItem, PackagingManifestObject, PackagingMetadataObject, PackagingObject, PackagingSpineItem, PackagingTocItem } from './packaging';

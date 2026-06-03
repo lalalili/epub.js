@@ -1,7 +1,7 @@
 import path from "path-webpack";
 import { qs } from "./platform/dom";
 
-type ContainerDocument = XMLDocument & {
+export type ContainerDocument = XMLDocument & {
 	xmlEncoding?: string | null;
 };
 

@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0299
+- Why:
+  - P-0298 aligned the `Packaging` root type exports, leaving adjacent parser helper surfaces such as `Container` as the next source/declaration parity gap.
+  - The declaration surface already exposes `ContainerDocument`, but `src/container.ts` kept it private and the package root did not expose `Container` or its document input shape consistently.
+  - Aligning these exports lets consumers type-check container XML inputs and parser instances from the root package API before any release tag or host gate, without changing container parsing behavior.
+- Diff Scope:
+  - `src/container.ts`: export the existing `ContainerDocument` input type.
+  - `src/index.ts`, `types/index.d.ts`: export root `Container` and `ContainerDocument` types.
+  - `types/epubjs-tests.ts`: extend public root assertions for the `Container` public type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `Container` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public container type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `ContainerDocument` to remain module-private instead of part of the root typed public API contract.
+
 ### P-0298
 - Why:
   - P-0297 aligned the `Archive` root type exports, leaving `Packaging` manifest/metadata/spine/toc shapes as the next source/declaration parity gap.

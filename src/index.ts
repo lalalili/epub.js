@@ -33,6 +33,11 @@ export type {
 } from "./book";
 
 export type {
+	ContainerDocument,
+	default as Container
+} from "./container";
+
+export type {
 	LandmarkItem,
 	NavItem,
 	NavigationDocument,
