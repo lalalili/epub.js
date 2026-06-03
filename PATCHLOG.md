@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0325
+- Why:
+  - P-0324 aligned the `ThemesContent` bridge returns, leaving `LayoutContent` with the same class of public bridge methods still typed as `unknown`.
+  - The bridge mirrors the subset of `Contents` methods that `Layout.format()` calls, and the concrete `Contents` contract already exposes `void` returns for `fit()`, `columns()`, and `size()`.
+  - Aligning `LayoutContent` with those returns lets layout bridge mocks, TypeDoc, and Gate 1 readiness type-check against the same public content sizing contract before any release tag or host gate, while preserving the broader `Layout.format()` return type and without changing pagination, sizing, spread calculation, or content formatting behavior.
+- Diff Scope:
+  - `src/layout.ts`, `types/layout.d.ts`: tighten `LayoutContent` bridge method return types to the existing `Contents` public contract.
+  - `types/epubjs-tests.ts`: extend Layout assertions and bridge mocks for content sizing method returns.
+  - `scripts/verify-gate1-readiness.mjs`: require Layout content bridge return type smoke coverage.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the updated `LayoutContent` surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/layout.test.js test/browser/contents-text-width.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream layout bridge mocks intentionally require `LayoutContent` helper methods to return arbitrary values instead of matching the concrete `Contents` return contract.
+
 ### P-0324
 - Why:
   - P-0323 aligned `Resources` archive helper inputs, leaving `ThemesContent` as a public bridge interface whose method return values were still typed as `unknown`.

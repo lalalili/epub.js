@@ -10,7 +10,7 @@
 
 ### columns()
 
-> **columns**(`width`, `height`, `columnWidth`, `gap`, `direction?`): `unknown`
+> **columns**(`width`, `height`, `columnWidth`, `gap`, `direction?`): `void`
 
 #### Parameters
 
@@ -36,13 +36,13 @@
 
 #### Returns
 
-`unknown`
+`void`
 
 ***
 
 ### fit()
 
-> **fit**(`width`, `height`, `section?`): `unknown`
+> **fit**(`width`, `height`, `section?`): `void`
 
 #### Parameters
 
@@ -60,13 +60,13 @@
 
 #### Returns
 
-`unknown`
+`void`
 
 ***
 
 ### size()
 
-> **size**(`width`, `height`): `unknown`
+> **size**(`width`, `height`): `void`
 
 #### Parameters
 
@@ -80,4 +80,4 @@
 
 #### Returns
 
-`unknown`
+`void`

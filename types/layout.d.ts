@@ -29,9 +29,9 @@ export interface LayoutProps {
 }
 
 export interface LayoutContent {
-  fit(width: number, height: number, section?: unknown): unknown;
-  columns(width: number, height: number, columnWidth: number, gap: number, direction?: string): unknown;
-  size(width: number | null, height: number | null): unknown;
+  fit(width: number, height: number, section?: unknown): void;
+  columns(width: number, height: number, columnWidth: number, gap: number, direction?: string): void;
+  size(width: number | null, height: number | null): void;
 }
 
 export interface LayoutCount {

@@ -177,6 +177,7 @@ assert(typeTests.includes("type CoreClassAssertions"), "type tests must assert t
 assert(typeTests.includes("type LayoutAssertions"), "type tests must assert the Layout public surface");
 assert(typeTests.includes("RootLayoutSettings"), "type tests must assert root Layout type exports");
 assert(typeTests.includes("new Layout()"), "type tests must cover Layout construction without settings");
+assert(typeTests.includes("ReturnType<LayoutContent[\"fit\"]>"), "type tests must cover Layout content bridge method return typing");
 assert(typeTests.includes("runtimeLayout.format(layoutContent"), "type tests must cover Layout format content typing");
 assert(typeTests.includes("runtimeLayout.count(4100)"), "type tests must cover Layout count typing");
 assert(
