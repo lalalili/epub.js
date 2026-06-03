@@ -215,9 +215,22 @@ assert(
 	sourceRoot.includes("StoreUrlOptions"),
 	"source root must export Store public types"
 );
-assert(typeTests.includes("RootArchiveInput"), "type tests must assert root Archive type exports");
 assert(
-	sourceRoot.includes("ArchiveInput") && sourceRoot.includes("ArchiveZip") && sourceRoot.includes("ArchiveUrlOptions"),
+	typeTests.includes("RootArchive") &&
+	typeTests.includes("RootArchiveEntry") &&
+	typeTests.includes("RootArchiveInput") &&
+	typeTests.includes("RootArchiveRequestType") &&
+	typeTests.includes("RootArchiveUrlOptions") &&
+	typeTests.includes("RootArchiveZip"),
+	"type tests must assert root Archive type exports"
+);
+assert(
+	sourceRoot.includes("default as Archive") &&
+	sourceRoot.includes("ArchiveEntry") &&
+	sourceRoot.includes("ArchiveInput") &&
+	sourceRoot.includes("ArchiveRequestType") &&
+	sourceRoot.includes("ArchiveUrlOptions") &&
+	sourceRoot.includes("ArchiveZip"),
 	"source root must export Archive public types"
 );
 assert(typeTests.includes("RootPackagingJsonManifest"), "type tests must assert root Packaging type exports");
