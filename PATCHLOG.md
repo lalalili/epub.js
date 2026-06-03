@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0305
+- Why:
+  - P-0304 aligned `Section` root type exports, leaving the adjacent `Spine` collection surface as the next source/declaration/root parity gap.
+  - The declaration surface already exposes `Spine`, `SpineLookup`, `SpineManifestItem`, `SpinePackageItem`, `SpinePackage`, and `SpineResolver`, but source kept those helper shapes private or under internal names and the package root did not expose them consistently.
+  - Aligning these exports lets consumers type-check spine package unpacking, manifest fallback data, href/id lookup maps, and resolver callbacks from the root package API before any release tag or host gate, without changing spine unpacking, fallback resolution, or section navigation behavior.
+- Diff Scope:
+  - `src/spine.ts`: export existing `Spine` public helper type shapes and align internal manifest item naming with declaration-facing `SpineManifestItem`.
+  - `src/index.ts`, `types/index.d.ts`: export root `Spine` public types.
+  - `types/epubjs-tests.ts`: extend public root assertions for `Spine` type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `Spine` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public spine type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/spine.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `Spine` helper aliases to remain module-private instead of part of the root typed public API contract.
+
 ### P-0304
 - Why:
   - P-0303 aligned replacement helper root exports, leaving `Section` as the next public class surface with source/declaration/root parity gaps.

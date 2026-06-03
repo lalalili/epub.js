@@ -52,4 +52,4 @@
 
 ### spine
 
-> **spine**: `Deferred`\<`Spine`\>
+> **spine**: `Deferred`\<[`Spine`](Spine.md)\>

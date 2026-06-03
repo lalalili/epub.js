@@ -52,4 +52,4 @@
 
 ### spine
 
-> **spine**: `Promise`\<`Spine`\>
+> **spine**: `Promise`\<[`Spine`](Spine.md)\>

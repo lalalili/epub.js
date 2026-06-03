@@ -176,7 +176,7 @@
 
 ### spine?
 
-> `optional` **spine?**: `Spine`
+> `optional` **spine?**: [`Spine`](../interfaces/Spine.md)
 
 ***
 

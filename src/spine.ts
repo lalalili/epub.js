@@ -1,17 +1,12 @@
 import EpubCFI from "./epubcfi";
 import Hook from "./utils/hook";
-import Section from "./section";
+import Section, { SectionHookSet } from "./section";
 import {replaceBase, replaceCanonical, replaceMeta} from "./utils/replacements";
 
-type SpineHookSet = {
-	serialize: Hook;
-	content: Hook;
-};
-
 type HookConstructor = new (context?: any) => Hook;
-type SpineLookup = Record<string, number>;
+export type SpineLookup = Record<string, number>;
 
-type ManifestItem = {
+export type SpineManifestItem = {
 	href: string;
 	type?: string;
 	properties: string[];
@@ -19,7 +14,7 @@ type ManifestItem = {
 	fallbackChain?: string[];
 };
 
-type SpinePackageItem = {
+export type SpinePackageItem = {
 	id: string;
 	idref: string;
 	linear: string;
@@ -38,15 +33,15 @@ type SpinePackageItem = {
 	prev?: () => Section | undefined;
 };
 
-type SpinePackage = {
+export type SpinePackage = {
 	spine: SpinePackageItem[];
-	manifest: Record<string, ManifestItem>;
+	manifest: Record<string, SpineManifestItem>;
 	spineNodeIndex: number;
 	baseUrl?: string;
 	basePath?: string;
 };
 
-type SpineResolver = (href: string, absolute?: boolean) => string;
+export type SpineResolver = (href: string, absolute?: boolean) => string;
 
 /**
  * A collection of Spine Items
@@ -55,11 +50,11 @@ class Spine {
 	spineItems?: Section[];
 	spineByHref?: SpineLookup;
 	spineById?: SpineLookup;
-	hooks?: SpineHookSet;
+	hooks?: SectionHookSet;
 	epubcfi?: EpubCFI;
 	loaded: boolean;
 	items?: SpinePackageItem[];
-	manifest?: Record<string, ManifestItem>;
+	manifest?: Record<string, SpineManifestItem>;
 	spineNodeIndex?: number;
 	baseUrl?: string;
 	length?: number;
@@ -106,7 +101,7 @@ class Spine {
 
 		this.items.forEach( (item, index) => {
 			var manifestItem = this.manifest![item.idref];
-			var resolvedManifestItem: ManifestItem;
+			var resolvedManifestItem: SpineManifestItem;
 			var spineItem: Section;
 
 			item.index = index;
@@ -186,14 +181,14 @@ class Spine {
 	 * @param  {PackagingManifestItem} manifestItem
 	 * @return {PackagingManifestItem} manifestItem
 	 */
-	resolveFallbackItem(manifestItem: ManifestItem): ManifestItem {
+	resolveFallbackItem(manifestItem: SpineManifestItem): SpineManifestItem {
 		if (this.isRenderableType(manifestItem.type)) {
 			return manifestItem;
 		}
 
 		var fallbackChain = manifestItem.fallbackChain || [];
 		var index = 0;
-		var fallbackItem: ManifestItem | undefined;
+		var fallbackItem: SpineManifestItem | undefined;
 
 		while(index < fallbackChain.length) {
 			fallbackItem = this.manifest![fallbackChain[index]];

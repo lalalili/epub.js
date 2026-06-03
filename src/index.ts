@@ -97,6 +97,15 @@ export type {
 } from "./section";
 
 export type {
+	SpineLookup,
+	SpineManifestItem,
+	SpinePackage,
+	SpinePackageItem,
+	SpineResolver,
+	default as Spine
+} from "./spine";
+
+export type {
 	PackagingJsonManifest,
 	PackagingManifestItem,
 	PackagingManifestObject,

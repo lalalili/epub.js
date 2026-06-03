@@ -118,6 +118,11 @@ assert(
 	sourceRoot.includes("SectionHookSet") && sourceRoot.includes("SectionSearchResult") && sourceRoot.includes("default as Section"),
 	"source root must export Section public types"
 );
+assert(typeTests.includes("RootSpinePackage"), "type tests must assert root Spine type exports");
+assert(
+	sourceRoot.includes("SpinePackage") && sourceRoot.includes("SpineResolver") && sourceRoot.includes("default as Spine"),
+	"source root must export Spine public types"
+);
 assert(typeTests.includes("RootResourceOptions"), "type tests must assert root Resources type exports");
 assert(
 	sourceRoot.includes("ResourceOptions") && sourceRoot.includes("ResourceManifestItem") && sourceRoot.includes("ResourceSettings"),
