@@ -24,8 +24,11 @@ export interface NavigationInputItem {
   parent?: string
 }
 
+export type NavigationDocument = Document | XMLDocument;
+export type NavigationInput = NavigationDocument | Array<NavigationInputItem>;
+
 export default class Navigation {
-  constructor(xml?: Document | XMLDocument | Array<NavigationInputItem>);
+  constructor(xml?: NavigationInput);
 
   toc: Array<NavItem>;
   tocByHref: Record<string, number>;
@@ -34,7 +37,7 @@ export default class Navigation {
   landmarksByType: Record<string, number>;
   length: number;
 
-  parse(xml: Document | XMLDocument | Array<NavigationInputItem>): void;
+  parse(xml: NavigationInput): void;
 
   get(): Array<NavItem>;
   get(target: string) : NavItem | undefined;

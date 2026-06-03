@@ -81,12 +81,18 @@ assert(typeTests.includes("ePub(rootOptions)"), "type tests must cover root opti
 assert(sourceRoot.includes("BookLoaded") && sourceRoot.includes("BookLoading"), "source root must export Book loaded/loading types");
 assert(typeTests.includes("RootRenditionOptions"), "type tests must assert root Rendition type exports");
 assert(sourceRoot.includes("RenditionOptions") && sourceRoot.includes("RenditionLayoutProperties"), "source root must export Rendition public types");
+assert(typeTests.includes("RootNavigationInputItem"), "type tests must assert root Navigation type exports");
+assert(
+	sourceRoot.includes("NavigationInputItem") && sourceRoot.includes("NavItem") && sourceRoot.includes("NavigationDocument"),
+	"source root must export Navigation public types"
+);
 assert(typeTests.includes("type CoreClassAssertions"), "type tests must assert the core class surface");
 assert(typeTests.includes("type LayoutAssertions"), "type tests must assert the Layout public surface");
 assert(typeTests.includes("new Layout()"), "type tests must cover Layout construction without settings");
 assert(typeTests.includes("runtimeLayout.format(layoutContent"), "type tests must cover Layout format content typing");
 assert(typeTests.includes("runtimeLayout.count(4100)"), "type tests must cover Layout count typing");
 assert(typeTests.includes("type NavigationAssertions"), "type tests must assert the Navigation public surface");
+assert(typeTests.includes("ConstructorParameters<typeof Navigation>"), "type tests must cover Navigation constructor input typing");
 assert(typeTests.includes("new Navigation(legacyNavItems)"), "type tests must cover legacy JSON Navigation construction");
 assert(typeTests.includes("legacyNavigation.get()"), "type tests must cover Navigation get() toc overload");
 assert(typeTests.includes("legacyNavigation.landmark()"), "type tests must cover Navigation landmark() list overload");

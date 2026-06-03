@@ -24,6 +24,15 @@ export type {
 } from "./book";
 
 export type {
+	LandmarkItem,
+	NavItem,
+	NavigationDocument,
+	NavigationInput,
+	NavigationInputItem,
+	default as Navigation
+} from "./navigation";
+
+export type {
 	LayoutProperties as RenditionLayoutProperties,
 	Location,
 	ManagerLocationItem,

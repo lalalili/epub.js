@@ -104,7 +104,7 @@
 
 ### navigation?
 
-> `optional` **navigation?**: `Navigation`
+> `optional` **navigation?**: [`Navigation`](../interfaces/Navigation.md)
 
 ***
 
@@ -318,7 +318,7 @@
 
 ### loadNavigation()
 
-> **loadNavigation**(`packaging`): `Promise`\<`Navigation`\>
+> **loadNavigation**(`packaging`): `Promise`\<[`Navigation`](../interfaces/Navigation.md)\>
 
 #### Parameters
 
@@ -328,7 +328,7 @@
 
 #### Returns
 
-`Promise`\<`Navigation`\>
+`Promise`\<[`Navigation`](../interfaces/Navigation.md)\>
 
 ***
 

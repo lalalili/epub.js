@@ -5404,7 +5404,10 @@ var Xe = class {
 		};
 	}
 	load(e) {
-		return e.map((e) => (e.label = e.title, e.subitems = e.children ? this.load(e.children) : [], e));
+		return e.map((e) => {
+			let t = e;
+			return t.label = e.title, t.subitems = e.children ? this.load(e.children) : [], t;
+		});
 	}
 	forEach(e) {
 		return this.toc.forEach(e);

@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0293
+- Why:
+  - P-0292 aligned the adjacent `Rendition` root type exports, leaving `Navigation` as the next package-root source/declaration parity gap.
+  - The declaration surface exposed `NavItem` from the root but omitted the default `Navigation` type plus landmark, document, input, and legacy JSON item shapes, while `src/navigation.ts` kept the document/input aliases private and used the stricter runtime nav item shape for legacy input.
+  - Aligning these type exports lets consumers type-check navigation documents, legacy JSON navigation trees, landmarks, and root package navigation types before any release tag or host gate, without changing EPUB parsing or reader behavior.
+- Diff Scope:
+  - `src/navigation.ts`: export the existing `Navigation` document/input aliases and add a source `NavigationInputItem` shape for legacy JSON navigation trees.
+  - `src/index.ts`, `types/index.d.ts`, `types/navigation.d.ts`: align package-root `Navigation`, `NavItem`, `LandmarkItem`, `NavigationDocument`, `NavigationInput`, and `NavigationInputItem` type exports.
+  - `types/epubjs-tests.ts`: extend public root assertions and `Navigation` constructor/parse type coverage.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `Navigation` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public navigation type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `Navigation` helper types to remain module-private instead of part of the root typed public API contract.
+
 ### P-0292
 - Why:
   - P-0291 aligned the source root for `Book` loading type exports, leaving the adjacent `Rendition` public type shapes as the next source/declaration parity gap.

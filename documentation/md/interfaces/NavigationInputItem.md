@@ -2,15 +2,15 @@
 
 ***
 
-[epubjs](../API.md) / NavItem
+[epubjs](../API.md) / NavigationInputItem
 
-# Interface: NavItem
+# Interface: NavigationInputItem
 
 ## Properties
 
 ### children?
 
-> `optional` **children?**: [`NavigationInputItem`](NavigationInputItem.md)[]
+> `optional` **children?**: `NavigationInputItem`[]
 
 ***
 
@@ -26,9 +26,9 @@
 
 ***
 
-### label
+### label?
 
-> **label**: `string`
+> `optional` **label?**: `string`
 
 ***
 
@@ -38,9 +38,9 @@
 
 ***
 
-### subitems
+### subitems?
 
-> **subitems**: `NavItem`[]
+> `optional` **subitems?**: `NavigationInputItem`[]
 
 ***
 

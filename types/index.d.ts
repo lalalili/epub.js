@@ -17,5 +17,5 @@ export { default as Rendition } from './rendition';
 export type { LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionOptions } from './rendition';
 export { default as Contents } from './contents';
 export { default as Layout } from './layout';
-export { NavItem } from './navigation';
+export type { default as Navigation, LandmarkItem, NavItem, NavigationDocument, NavigationInput, NavigationInputItem } from './navigation';
 export { default as request } from './utils/request';

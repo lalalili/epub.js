@@ -8,7 +8,7 @@ export interface NavItem {
 	subitems: NavItem[];
 	parent?: string;
 	title?: string;
-	children?: NavItem[];
+	children?: NavigationInputItem[];
 }
 
 export interface LandmarkItem {
@@ -17,8 +17,18 @@ export interface LandmarkItem {
 	type?: string;
 }
 
-type NavigationDocument = Document | XMLDocument;
-type NavigationInput = NavigationDocument | NavItem[];
+export interface NavigationInputItem {
+	id: string;
+	href: string;
+	label?: string;
+	title?: string;
+	subitems?: NavigationInputItem[];
+	children?: NavigationInputItem[];
+	parent?: string;
+}
+
+export type NavigationDocument = Document | XMLDocument;
+export type NavigationInput = NavigationDocument | NavigationInputItem[];
 type TocByIndex = Record<string, number>;
 type TocById = Record<string, NavItem>;
 
@@ -63,7 +73,7 @@ class Navigation {
 		}
 
 		if (!isXml) {
-			this.toc = this.load(xml as NavItem[]);
+			this.toc = this.load(xml as NavigationInputItem[]);
 		} else if(html) {
 			this.toc = this.parseNav(xml as NavigationDocument);
 			this.landmarks = this.parseLandmarks(xml as NavigationDocument);
@@ -373,11 +383,12 @@ class Navigation {
 	 * @param  {object} json the items to be loaded
 	 * @return {Array} navItems
 	 */
-	load(json: NavItem[]): NavItem[] {
+	load(json: NavigationInputItem[]): NavItem[] {
 		return json.map(item => {
-			item.label = item.title;
-			item.subitems = item.children ? this.load(item.children) : [];
-			return item;
+			const navItem = item as NavItem;
+			navItem.label = item.title as string;
+			navItem.subitems = item.children ? this.load(item.children) : [];
+			return navItem;
 		});
 	}
 

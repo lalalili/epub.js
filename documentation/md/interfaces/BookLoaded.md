@@ -34,7 +34,7 @@
 
 ### navigation
 
-> **navigation**: `Promise`\<`Navigation`\>
+> **navigation**: `Promise`\<[`Navigation`](Navigation.md)\>
 
 ***
 

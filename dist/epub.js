@@ -8881,9 +8881,10 @@
 		*/
 		load(json) {
 			return json.map((item) => {
-				item.label = item.title;
-				item.subitems = item.children ? this.load(item.children) : [];
-				return item;
+				const navItem = item;
+				navItem.label = item.title;
+				navItem.subitems = item.children ? this.load(item.children) : [];
+				return navItem;
 			});
 		}
 		/**

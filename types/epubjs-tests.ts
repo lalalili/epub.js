@@ -6,6 +6,12 @@ import type {
   BookOptions as RootBookOptions,
   Location as RootLocation,
   ManagerLocationItem as RootManagerLocationItem,
+  LandmarkItem as RootLandmarkItem,
+  NavItem as RootNavItem,
+  Navigation as RootNavigation,
+  NavigationDocument as RootNavigationDocument,
+  NavigationInput as RootNavigationInput,
+  NavigationInputItem as RootNavigationInputItem,
   RenditionLayoutProperties as RootRenditionLayoutProperties,
   RenditionOptions as RootRenditionOptions,
 } from '../';
@@ -37,7 +43,7 @@ import type {
 } from './epubcfi';
 import type EpubRoot from './epub';
 import type { LayoutContent, LayoutCount, LayoutProps, LayoutSettings as EpubLayoutSettings } from './layout';
-import Navigation, { LandmarkItem, NavItem, NavigationInputItem } from './navigation';
+import Navigation, { LandmarkItem, NavItem, NavigationDocument, NavigationInput, NavigationInputItem } from './navigation';
 import DisplayOptions from './displayoptions';
 import Path, { ParsedPath } from './utils/path';
 import Url, { UrlBase } from './utils/url';
@@ -103,6 +109,12 @@ type PublicRootAssertions = [
   Assert<IsExact<RootRenditionLayoutProperties, RenditionLayoutProperties>>,
   Assert<IsExact<RootLocation, Location>>,
   Assert<IsExact<RootManagerLocationItem, ManagerLocationItem>>,
+  Assert<IsExact<RootNavigation, Navigation>>,
+  Assert<IsExact<RootNavItem, NavItem>>,
+  Assert<IsExact<RootLandmarkItem, LandmarkItem>>,
+  Assert<IsExact<RootNavigationDocument, NavigationDocument>>,
+  Assert<IsExact<RootNavigationInput, NavigationInput>>,
+  Assert<IsExact<RootNavigationInputItem, NavigationInputItem>>,
   Assert<IsExact<typeof request, RequestMethod>>,
   Assert<IsExact<ReturnType<typeof ePub.utils.uuid>, string>>,
   Assert<IsExact<InstanceType<typeof ePub.utils.defer<string>>["promise"], Promise<string>>>
@@ -254,7 +266,8 @@ type NavigationAssertions = [
   Assert<IsExact<Navigation["landmarks"], LandmarkItem[]>>,
   Assert<IsExact<Navigation["landmarksByType"], Record<string, number>>>,
   Assert<IsExact<Navigation["length"], number>>,
-  Assert<IsExact<Parameters<Navigation["parse"]>[0], Document | XMLDocument | NavigationInputItem[]>>,
+  Assert<IsExact<ConstructorParameters<typeof Navigation>, [xml?: NavigationInput | undefined]>>,
+  Assert<IsExact<Parameters<Navigation["parse"]>[0], NavigationInput>>,
   Assert<IsExact<Parameters<Navigation["load"]>[0], NavigationInputItem[]>>,
   Assert<IsExact<ReturnType<Navigation["load"]>, NavItem[]>>,
   Assert<IsExact<ReturnType<Navigation["forEach"]>, void>>

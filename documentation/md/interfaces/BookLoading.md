@@ -34,7 +34,7 @@
 
 ### navigation
 
-> **navigation**: `Deferred`\<`Navigation`\>
+> **navigation**: `Deferred`\<[`Navigation`](Navigation.md)\>
 
 ***
 
