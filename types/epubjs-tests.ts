@@ -31,6 +31,7 @@ import Resources, {
 import Section, { LayoutSettings, SectionHookSet, SectionSearchResult, SpineItem } from './section';
 import Spine, { SpineLookup, SpineManifestItem, SpinePackage, SpinePackageItem, SpineResolver } from './spine';
 import Store, { StoreData, StoreHeaders, StoreRequest, StoreRequestType, StoreResources, StoreResolver, StoreStorage, StoreUrlOptions } from './store';
+import Themes, { ThemeInput, ThemeOverride, ThemeRules, ThemesContent, ThemesRendition } from './themes';
 import { JsonValue, RequestHeaders, RequestMethod, RequestResponse } from './utils/request';
 
 type Assert<T extends true> = T;
@@ -298,6 +299,30 @@ type MappingAssertions = [
   Assert<IsExact<ReturnType<Mapping["axis"]>, boolean>>
 ];
 
+type ThemesAssertions = [
+  Assert<IsExact<ConstructorParameters<typeof Themes>, [rendition: ThemesRendition]>>,
+  Assert<IsExact<Themes["rendition"], ThemesRendition | undefined>>,
+  Assert<IsExact<Themes["_themes"], Record<string, { rules?: ThemeRules; url?: string; serialized?: string; injected?: boolean }> | undefined>>,
+  Assert<IsExact<Themes["_overrides"], Record<string, ThemeOverride> | undefined>>,
+  Assert<IsExact<Themes["_current"], string | undefined>>,
+  Assert<IsExact<ReturnType<Themes["register"]>, void>>,
+  Assert<IsExact<ReturnType<Themes["default"]>, void>>,
+  Assert<IsExact<ReturnType<Themes["registerThemes"]>, void>>,
+  Assert<IsExact<ReturnType<Themes["registerCss"]>, void>>,
+  Assert<IsExact<ReturnType<Themes["registerUrl"]>, void>>,
+  Assert<IsExact<ReturnType<Themes["registerRules"]>, void>>,
+  Assert<IsExact<ReturnType<Themes["select"]>, void>>,
+  Assert<IsExact<ReturnType<Themes["update"]>, void>>,
+  Assert<IsExact<ReturnType<Themes["inject"]>, void>>,
+  Assert<IsExact<ReturnType<Themes["add"]>, void>>,
+  Assert<IsExact<ReturnType<Themes["override"]>, void>>,
+  Assert<IsExact<ReturnType<Themes["removeOverride"]>, void>>,
+  Assert<IsExact<ReturnType<Themes["overrides"]>, void>>,
+  Assert<IsExact<ReturnType<Themes["fontSize"]>, void>>,
+  Assert<IsExact<ReturnType<Themes["font"]>, void>>,
+  Assert<IsExact<ReturnType<Themes["destroy"]>, void>>
+];
+
 type ResourcesAssertions = [
   Assert<IsExact<ConstructorParameters<typeof Resources>, [manifest: ResourceManifest | PackagingManifestObject, options?: ResourceOptions | undefined]>>,
   Assert<IsExact<Resources["settings"], ResourceSettings | undefined>>,
@@ -551,6 +576,46 @@ function testEpub() {
   };
   const mappingSection: EpubCFIPair[] = mapping.section(mappingView);
   const mappingAxis: boolean = mapping.axis("vertical");
+  const themeRules: ThemeRules = {
+    body: {
+      color: "purple",
+    },
+  };
+  const themeInput: ThemeInput = themeRules;
+  const themesContent: ThemesContent = {
+    addClass: () => undefined,
+    addStylesheet: () => undefined,
+    addStylesheetCss: () => undefined,
+    addStylesheetRules: () => undefined,
+    css: () => undefined,
+    removeClass: () => undefined,
+  };
+  const themesRendition: ThemesRendition = {
+    getContents: () => [themesContent],
+    hooks: {
+      content: {
+        register: () => undefined,
+      },
+    },
+  };
+  const themes = new Themes(themesRendition);
+  themes.register();
+  themes.register("default.css");
+  themes.register("night", themeRules);
+  themes.registerThemes({ night: themeInput });
+  themes.default(themeRules);
+  themes.registerCss("print", "body { color: black; }");
+  themes.registerUrl("light", "light.css");
+  themes.registerRules("rules", themeRules);
+  themes.select("night");
+  themes.update("night");
+  themes.inject(themesContent);
+  themes.add("night", themesContent);
+  themes.override("font-size", "120%", true);
+  themes.removeOverride("font-size");
+  themes.overrides(themesContent);
+  themes.fontSize("120%");
+  themes.font("serif");
   const resourceManifest: ResourceManifest = {
     chapter: {
       href: "Text/chapter.xhtml",
@@ -713,6 +778,7 @@ function testEpub() {
   void mappingCfiList;
   void mappingSection;
   void mappingAxis;
+  void themes;
   void resourceUrl;
   void resourceReplacements;
   void resourceCssReplacements;
@@ -746,6 +812,7 @@ type _PackagingAssertions = PackagingAssertions;
 type _PageListAssertions = PageListAssertions;
 type _LocationsAssertions = LocationsAssertions;
 type _MappingAssertions = MappingAssertions;
+type _ThemesAssertions = ThemesAssertions;
 type _ResourcesAssertions = ResourcesAssertions;
 type _StoreAssertions = StoreAssertions;
 

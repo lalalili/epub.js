@@ -107,6 +107,10 @@ assert(typeTests.includes("type MappingAssertions"), "type tests must assert the
 assert(typeTests.includes("new Mapping(mappingLayout"), "type tests must cover Mapping construction typing");
 assert(typeTests.includes("mapping.page(mappingContents"), "type tests must cover Mapping page typing");
 assert(typeTests.includes("mapping.rangePairToCfiPair"), "type tests must cover Mapping range-to-CFI typing");
+assert(typeTests.includes("type ThemesAssertions"), "type tests must assert the Themes public surface");
+assert(typeTests.includes("new Themes(themesRendition)"), "type tests must cover Themes construction typing");
+assert(typeTests.includes("themes.register(\"night\", themeRules)"), "type tests must cover Themes rule registration typing");
+assert(typeTests.includes("themes.removeOverride(\"font-size\")"), "type tests must cover Themes override removal typing");
 assert(typeTests.includes("type ResourcesAssertions"), "type tests must assert the Resources public surface");
 assert(typeTests.includes("new Resources(resourceManifest, resourceOptions)"), "type tests must cover Resources options typing");
 assert(typeTests.includes("resources.get(\"Images/cover.jpg\")"), "type tests must cover Resources get replacement typing");

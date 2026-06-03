@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0276
+- Why:
+  - P-0275 aligned `Layout` declarations with runtime behavior, leaving `Themes` as the next low-risk Rendition-owned typed public API gap.
+  - `Themes` is already TypeScript source, but its declaration still hid runtime theme/override state, required a full `Rendition` instead of the hook/content shape it actually uses, missed `removeOverride()`, and did not model default string dispatch or empty register calls.
+  - Aligning `Themes` declarations lets consumers type-check stylesheet URL/rule/CSS registration, theme selection, injection, overrides, font helpers, hook-compatible rendition stubs, and cleanup behavior before any release tag or host gate.
+- Diff Scope:
+  - `types/themes.d.ts`: align theme/rule/override/content/rendition shapes, public state fields, register/default overloads, removeOverride, injection/add/override helpers, and destroy behavior with the TypeScript source behavior.
+  - `types/epubjs-tests.ts`: add `ThemesAssertions` plus concrete construction, registration, default theme, injection, override/removeOverride, font helper, and hook-compatible rendition typing checks.
+  - `scripts/verify-gate1-readiness.mjs`: require the Themes typed public API assertions and construction/rule-registration/removeOverride coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/themes.test.js test/browser/rendition.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `Themes` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0275
 - Why:
   - P-0274 aligned `Mapping` declarations with runtime behavior, leaving `Layout` as the next low-risk root-exported typed public API gap.
