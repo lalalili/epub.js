@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0271
+- Why:
+  - P-0270 aligned `Resources` declarations with runtime behavior, leaving `Store` as the next low-risk resource-cache typed public API gap before moving into higher-risk location/CFI surfaces.
+  - `Store` is already TypeScript source, but its declaration still hid public cache/storage/network state, required `createUrl()` options, modeled missing stored entries as always present, omitted listener/status methods, and kept `handleResponse()` private despite browser tests exercising the storage parsing path.
+  - Aligning `Store` declarations lets consumers type-check cached resource storage, offline retrieval, request overloads, data URL/object URL creation, event status updates, and destroy listener cleanup before broader release or host gates.
+- Diff Scope:
+  - `types/store.d.ts`: align store data/request/storage/resource/options types, public state fields, request/retrieve overloads, missing-entry blob/text/base64 returns, createUrl options, listener/status helpers, and handleResponse overloads with the TypeScript source behavior.
+  - `types/epubjs-tests.ts`: add `StoreAssertions` plus concrete constructor, add, put, request, retrieve, blob/text/base64, createUrl, and handleResponse typing checks.
+  - `scripts/verify-gate1-readiness.mjs`: require the Store typed public API assertions and constructor/createUrl coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/store.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `Store` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0270
 - Why:
   - P-0269 aligned `Packaging` declarations with runtime behavior, leaving `Resources` as the next manifest/archive resource-chain typed public API gap.

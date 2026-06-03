@@ -26,6 +26,7 @@ import Resources, {
 } from './resources';
 import Section, { LayoutSettings, SectionHookSet, SectionSearchResult, SpineItem } from './section';
 import Spine, { SpineLookup, SpineManifestItem, SpinePackage, SpinePackageItem, SpineResolver } from './spine';
+import Store, { StoreData, StoreHeaders, StoreRequest, StoreRequestType, StoreResources, StoreResolver, StoreStorage, StoreUrlOptions } from './store';
 import { JsonValue, RequestHeaders, RequestMethod, RequestResponse } from './utils/request';
 
 type Assert<T extends true> = T;
@@ -205,6 +206,30 @@ type ResourcesAssertions = [
   Assert<IsExact<ReturnType<Resources["destroy"]>, void>>
 ];
 
+type StoreAssertions = [
+  Assert<IsExact<ConstructorParameters<typeof Store>, [name: string, requester?: StoreRequest | undefined, resolver?: StoreResolver | undefined]>>,
+  Assert<IsExact<Store["urlCache"], Record<string, string>>>,
+  Assert<IsExact<Store["storage"], StoreStorage | undefined>>,
+  Assert<IsExact<Store["name"], string>>,
+  Assert<IsExact<Store["requester"], StoreRequest>>,
+  Assert<IsExact<Store["resolver"], StoreResolver | undefined>>,
+  Assert<IsExact<Store["online"], boolean>>,
+  Assert<IsExact<Store["_status"], ((event?: Event) => void) | undefined>>,
+  Assert<IsExact<Parameters<Store["add"]>, [resources: StoreResources, force?: boolean | undefined]>>,
+  Assert<IsExact<ReturnType<Store["add"]>, Promise<StoreData[]>>>,
+  Assert<IsExact<ReturnType<Store["put"]>, Promise<StoreData>>>,
+  Assert<IsExact<ReturnType<Store["getBlob"]>, Promise<Blob | undefined>>>,
+  Assert<IsExact<ReturnType<Store["getText"]>, Promise<string | ArrayBuffer | null | undefined>>>,
+  Assert<IsExact<ReturnType<Store["getBase64"]>, Promise<string | ArrayBuffer | null | undefined>>>,
+  Assert<IsExact<ReturnType<Store["createUrl"]>, Promise<string>>>,
+  Assert<IsExact<ReturnType<Store["revokeUrl"]>, void>>,
+  Assert<IsExact<ReturnType<Store["checkRequirements"]>, void>>,
+  Assert<IsExact<ReturnType<Store["addListeners"]>, void>>,
+  Assert<IsExact<ReturnType<Store["removeListeners"]>, void>>,
+  Assert<IsExact<ReturnType<Store["status"]>, void>>,
+  Assert<IsExact<ReturnType<Store["destroy"]>, void>>
+];
+
 function testEpub() {
   const epub = ePub("https://s3.amazonaws.com/moby-dick/moby-dick.epub");
 
@@ -376,6 +401,31 @@ function testEpub() {
   const relativeResourceUrls: string[] = resources.relativeTo("/OPS/Text/chapter.xhtml");
   const resourceReplacement: Promise<string> | undefined = resources.get("Images/cover.jpg");
   const substitutedResourceContent: string = resources.substitute("url(../Images/cover.jpg)", "/OPS/Text/chapter.xhtml");
+  const storeHeaders: StoreHeaders = { Accept: "application/json" };
+  const storeRequestType: StoreRequestType = "json";
+  const storeResolver: StoreResolver = (href: string) => `/OPS/${href}`;
+  const storeRequest: StoreRequest = (url: string, type?: StoreRequestType) => (
+    type === "json"
+      ? Promise.resolve({ ok: true })
+      : Promise.resolve(new ArrayBuffer(0))
+  );
+  const storeUrlOptions: StoreUrlOptions = { base64: true };
+  const storeResources: StoreResources = {
+    resources: [{ href: "Text/chapter.xhtml" }],
+  };
+  const store = new Store("epubjs-type-store", storeRequest, storeResolver);
+  const storedResources: Promise<StoreData[]> = store.add(storeResources);
+  const storedData: Promise<StoreData> = store.put("/OPS/data.json", true, storeHeaders);
+  const storedRequest: Promise<JsonValue> = store.request("/OPS/data.json", "json", true, storeHeaders);
+  const storedFallbackRequest: Promise<RequestResponse> = store.request("/OPS/data.json", storeRequestType, true, storeHeaders);
+  const storedRetrieve: Promise<Document | XMLDocument> = store.retrieve("/OPS/package.opf", "opf");
+  const storedBlob: Promise<Blob | undefined> = store.getBlob("/OPS/images/cover.jpg");
+  const storedText: Promise<string | ArrayBuffer | null | undefined> = store.getText("/OPS/chapter.xhtml");
+  const storedBase64: Promise<string | ArrayBuffer | null | undefined> = store.getBase64("/OPS/images/cover.jpg");
+  const storedUrl: Promise<string> = store.createUrl("/OPS/images/cover.jpg");
+  const storedBase64Url: Promise<string> = store.createUrl("/OPS/images/cover.jpg", storeUrlOptions);
+  const storedParsedJson: JsonValue = store.handleResponse("{\"ok\":true}", "json");
+  const storedParsedDocument: Document | XMLDocument = store.handleResponse("<html></html>", "xhtml");
 
   new StaticBook("https://s3.amazonaws.com/moby-dick/moby-dick.epub", {});
   new StaticRendition(epub, {});
@@ -449,6 +499,18 @@ function testEpub() {
   void relativeResourceUrls;
   void resourceReplacement;
   void substitutedResourceContent;
+  void storedResources;
+  void storedData;
+  void storedRequest;
+  void storedFallbackRequest;
+  void storedRetrieve;
+  void storedBlob;
+  void storedText;
+  void storedBase64;
+  void storedUrl;
+  void storedBase64Url;
+  void storedParsedJson;
+  void storedParsedDocument;
   void location;
 }
 
@@ -460,5 +522,6 @@ type _SpineAssertions = SpineAssertions;
 type _ArchiveAssertions = ArchiveAssertions;
 type _PackagingAssertions = PackagingAssertions;
 type _ResourcesAssertions = ResourcesAssertions;
+type _StoreAssertions = StoreAssertions;
 
 testEpub();

@@ -1,30 +1,79 @@
-import localForage = require('localforage');
-import Resources from "./resources";
+import { JsonValue, RequestResponse } from "./utils/request";
+
+export type StoreData = ArrayBuffer | Uint8Array | string | Blob | object;
+
+export type StoreRequestType = string | undefined;
+
+export type StoreHeaders = Record<string, string>;
+
+export type StoreRequest = (url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders) => Promise<RequestResponse | StoreData>;
+
+export type StoreResolver = (href: string) => string;
+
+export interface StoreStorage {
+  getItem(key: string): Promise<StoreData | null | undefined>;
+  setItem(key: string, value: StoreData): Promise<StoreData>;
+}
+
+export interface StoreResource {
+  href: string
+}
+
+export interface StoreResources {
+  resources: Array<StoreResource>
+}
+
+export interface StoreUrlOptions {
+  base64?: boolean
+}
 
 export default class Store {
-  constructor(name: string, request?: Function, resolver?: Function);
+  constructor(name: string, requester?: StoreRequest, resolver?: StoreResolver);
 
-  add(resources: Resources, force?: boolean): Promise<Array<object>>;
+  urlCache: Record<string, string>;
+  storage?: StoreStorage;
+  name: string;
+  requester: StoreRequest;
+  resolver?: StoreResolver;
+  online: boolean;
+  _status?: (event?: Event) => void;
+  emit(eventName: string, ...args: any[]): void;
 
-  put(url: string, withCredentials?: boolean, headers?: object): Promise<Blob>;
+  add(resources: StoreResources, force?: boolean): Promise<Array<StoreData>>;
 
-  request(url: string, type?: string, withCredentials?: boolean, headers?: object): Promise<Blob | string | JSON | Document | XMLDocument>;
+  put(url: string, withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreData>;
 
-  retrieve(url: string, type?: string): Promise<Blob | string | JSON | Document | XMLDocument>;
+  request(url: string, type: "blob", withCredentials?: boolean, headers?: StoreHeaders): Promise<Blob>;
+  request(url: string, type: "json", withCredentials?: boolean, headers?: StoreHeaders): Promise<JsonValue>;
+  request(url: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm", withCredentials?: boolean, headers?: StoreHeaders): Promise<Document | XMLDocument>;
+  request(url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<RequestResponse>;
 
-  getBlob(url: string, mimeType?: string): Promise<Blob>;
+  retrieve(url: string, type: "blob"): Promise<Blob>;
+  retrieve(url: string, type: "json"): Promise<JsonValue>;
+  retrieve(url: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm"): Promise<Document | XMLDocument>;
+  retrieve(url: string, type?: StoreRequestType): Promise<RequestResponse>;
 
-  getText(url: string): Promise<string>;
+  handleResponse(response: string, type: "json"): JsonValue;
+  handleResponse(response: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm"): Document | XMLDocument;
+  handleResponse(response: RequestResponse, type?: StoreRequestType): RequestResponse;
 
-  getBase64(url: string, mimeType?: string): Promise<string>;
+  getBlob(url: string, mimeType?: string): Promise<Blob | undefined>;
 
-  createUrl(url: string, options: { base64: boolean }): Promise<string>;
+  getText(url: string, mimeType?: string): Promise<string | ArrayBuffer | null | undefined>;
+
+  getBase64(url: string, mimeType?: string): Promise<string | ArrayBuffer | null | undefined>;
+
+  createUrl(url: string, options?: StoreUrlOptions): Promise<string>;
 
   revokeUrl(url: string): void;
 
   destroy(): void;
 
-  private checkRequirements(): void;
+  checkRequirements(): void;
 
-  private handleResponse(response: any, type?: string): Blob | string | JSON | Document | XMLDocument;
+  addListeners(): void;
+
+  removeListeners(): void;
+
+  status(event?: Event): void;
 }
