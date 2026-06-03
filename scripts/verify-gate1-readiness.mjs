@@ -100,9 +100,22 @@ assert(
 	sourceRoot.includes("DisplayedLocation") && sourceRoot.includes("RenditionLocationPart") && sourceRoot.includes("RenditionOptions") && sourceRoot.includes("RenditionLayoutProperties"),
 	"source root must export Rendition public types"
 );
-assert(typeTests.includes("RootNavigationInputItem"), "type tests must assert root Navigation type exports");
 assert(
-	sourceRoot.includes("NavigationInputItem") && sourceRoot.includes("NavItem") && sourceRoot.includes("NavigationDocument"),
+	typeTests.includes("RootNavigation") &&
+	typeTests.includes("RootNavItem") &&
+	typeTests.includes("RootLandmarkItem") &&
+	typeTests.includes("RootNavigationDocument") &&
+	typeTests.includes("RootNavigationInput") &&
+	typeTests.includes("RootNavigationInputItem"),
+	"type tests must assert root Navigation type exports"
+);
+assert(
+	sourceRoot.includes("default as Navigation") &&
+	sourceRoot.includes("LandmarkItem") &&
+	sourceRoot.includes("NavigationInput") &&
+	sourceRoot.includes("NavigationInputItem") &&
+	sourceRoot.includes("NavItem") &&
+	sourceRoot.includes("NavigationDocument"),
 	"source root must export Navigation public types"
 );
 assert(typeTests.includes("RootPageListItem"), "type tests must assert root PageList type exports");
