@@ -51,6 +51,17 @@ export type {
 } from "./pagelist";
 
 export type {
+	PackagingJsonManifest,
+	PackagingManifestItem,
+	PackagingManifestObject,
+	PackagingMetadataObject,
+	PackagingObject,
+	PackagingSpineItem,
+	PackagingTocItem,
+	default as Packaging
+} from "./packaging";
+
+export type {
 	ReplacementMode,
 	ResourceArchive,
 	ResourceManifest,

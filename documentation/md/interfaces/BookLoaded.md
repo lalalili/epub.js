@@ -22,13 +22,13 @@
 
 ### manifest
 
-> **manifest**: `Promise`\<`PackagingManifestObject`\>
+> **manifest**: `Promise`\<[`PackagingManifestObject`](PackagingManifestObject.md)\>
 
 ***
 
 ### metadata
 
-> **metadata**: `Promise`\<`PackagingMetadataObject`\>
+> **metadata**: `Promise`\<[`PackagingMetadataObject`](PackagingMetadataObject.md)\>
 
 ***
 

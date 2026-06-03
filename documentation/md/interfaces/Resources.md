@@ -136,7 +136,7 @@
 
 ##### manifest
 
-`PackagingManifestObject` \| [`ResourceManifest`](ResourceManifest.md)
+[`PackagingManifestObject`](PackagingManifestObject.md) \| [`ResourceManifest`](ResourceManifest.md)
 
 #### Returns
 

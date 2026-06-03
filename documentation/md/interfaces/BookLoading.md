@@ -22,13 +22,13 @@
 
 ### manifest
 
-> **manifest**: `Deferred`\<`PackagingManifestObject`\>
+> **manifest**: `Deferred`\<[`PackagingManifestObject`](PackagingManifestObject.md)\>
 
 ***
 
 ### metadata
 
-> **metadata**: `Deferred`\<`PackagingMetadataObject`\>
+> **metadata**: `Deferred`\<[`PackagingMetadataObject`](PackagingMetadataObject.md)\>
 
 ***
 

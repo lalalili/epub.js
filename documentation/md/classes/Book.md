@@ -122,13 +122,13 @@
 
 ### package?
 
-> `optional` **package?**: `Packaging`
+> `optional` **package?**: [`Packaging`](../interfaces/Packaging.md)
 
 ***
 
 ### packaging?
 
-> `optional` **packaging?**: `Packaging`
+> `optional` **packaging?**: [`Packaging`](../interfaces/Packaging.md)
 
 ***
 
@@ -324,7 +324,7 @@
 
 ##### packaging
 
-`Packaging`
+[`Packaging`](../interfaces/Packaging.md)
 
 #### Returns
 
@@ -672,7 +672,7 @@
 
 ##### packaging
 
-`Packaging`
+[`Packaging`](../interfaces/Packaging.md)
 
 #### Returns
 

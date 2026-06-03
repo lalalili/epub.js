@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0298
+- Why:
+  - P-0297 aligned the `Archive` root type exports, leaving `Packaging` manifest/metadata/spine/toc shapes as the next source/declaration parity gap.
+  - The declaration surface already exposes `PackagingJsonManifest`, manifest/metadata/object shapes, spine items, and toc items, but `src/packaging.ts` used different internal names for several shapes and the package root did not expose them consistently.
+  - Aligning these exports lets consumers type-check OPF parse results, JSON manifest loading, package metadata, spine entries, manifest maps, and toc items from the root package API before any release tag or host gate, without changing packaging parser behavior.
+- Diff Scope:
+  - `src/packaging.ts`: export declaration-aligned `Packaging` public shape names, keep existing source aliases for compatibility, and align `load()` with `PackagingJsonManifest`.
+  - `src/index.ts`, `types/index.d.ts`: export root `Packaging`, `PackagingJsonManifest`, `PackagingManifestItem`, `PackagingManifestObject`, `PackagingMetadataObject`, `PackagingObject`, `PackagingSpineItem`, and `PackagingTocItem` types.
+  - `types/epubjs-tests.ts`: extend public root assertions for the `Packaging` public type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `Packaging` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public packaging type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `Packaging` helper shapes to remain module-private or source-only aliases instead of part of the root typed public API contract.
+
 ### P-0297
 - Why:
   - P-0296 aligned the `Store` root type exports, leaving `Archive` input/request/url/zip types as the next source/declaration parity gap.

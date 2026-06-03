@@ -1,7 +1,7 @@
 import { qs, qsa, qsp } from "./platform/dom";
 import { indexOfElementNode } from "./platform/traversal";
 
-export interface PackagingMetadata {
+export interface PackagingMetadataObject {
 	title?: string;
 	creator?: string;
 	description?: string;
@@ -21,6 +21,8 @@ export interface PackagingMetadata {
 	[key: string]: unknown;
 }
 
+export type PackagingMetadata = PackagingMetadataObject;
+
 export interface PackagingManifestItem {
 	href: string;
 	type?: string;
@@ -33,9 +35,11 @@ export interface PackagingManifestItem {
 	[key: string]: unknown;
 }
 
-export interface PackagingManifest {
+export interface PackagingManifestObject {
 	[key: string]: PackagingManifestItem;
 }
+
+export type PackagingManifest = PackagingManifestObject;
 
 export interface PackagingSpineItem {
 	id?: string | null;
@@ -54,8 +58,8 @@ export interface PackagingTocItem {
 	[key: string]: unknown;
 }
 
-interface JsonManifest {
-	metadata: PackagingMetadata;
+export interface PackagingJsonManifest {
+	metadata: PackagingMetadataObject;
 	readingOrder?: PackagingSpineItem[];
 	spine?: PackagingSpineItem[];
 	resources: PackagingManifestItem[];
@@ -63,9 +67,9 @@ interface JsonManifest {
 }
 
 export interface PackagingObject {
-	metadata: PackagingMetadata;
+	metadata: PackagingMetadataObject;
 	spine: PackagingSpineItem[];
-	manifest: PackagingManifest;
+	manifest: PackagingManifestObject;
 	navPath?: string | false;
 	ncxPath?: string | false;
 	coverPath?: string | false;
@@ -425,7 +429,7 @@ class Packaging {
 	 * @param  {document} packageDocument OPF XML
 	 * @return {object} parsed package parts
 	 */
-	load(json: JsonManifest): PackagingObject {
+	load(json: PackagingJsonManifest): PackagingObject {
 		this.metadata = json.metadata;
 
 		let spine = json.readingOrder || json.spine;
