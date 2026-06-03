@@ -204,7 +204,7 @@
 
 ##### range
 
-`any`
+`Range` \| `RangeObject`
 
 ##### ignoreClass?
 
@@ -672,7 +672,7 @@
 
 ### range()
 
-> **range**(`cfi`, `ignoreClass?`): `any`
+> **range**(`cfi`, `ignoreClass?`): `Range` \| `RangeObject`
 
 #### Parameters
 
@@ -686,7 +686,7 @@
 
 #### Returns
 
-`any`
+`Range` \| `RangeObject`
 
 ***
 

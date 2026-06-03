@@ -11,6 +11,15 @@ import Archive, { ArchiveInput, ArchiveRequestType, ArchiveUrlOptions, ArchiveZi
 import type { BookOptions } from './book';
 import Container, { ContainerDocument } from './container';
 import type { ViewportSettings } from './contents';
+import type {
+  EpubCFIBase,
+  EpubCFIComponent,
+  EpubCFIInput,
+  EpubCFIStep,
+  EpubCFITerminal,
+  EpubCFIType,
+  ParsedEpubCFI,
+} from './epubcfi';
 import type EpubRoot from './epub';
 import type { LayoutContent, LayoutCount, LayoutProps, LayoutSettings as EpubLayoutSettings } from './layout';
 import Navigation, { LandmarkItem, NavItem, NavigationInputItem } from './navigation';
@@ -113,6 +122,31 @@ type CoreClassAssertions = [
   }>>,
   Assert<IsExact<ReturnType<Contents["viewport"]>, ViewportSettings>>,
   Assert<IsExact<ReturnType<Contents["writingMode"]>, string>>
+];
+
+type EpubCFIAssertions = [
+  Assert<IsExact<ConstructorParameters<typeof EpubCFI>, [cfiFrom?: EpubCFIInput | undefined, base?: EpubCFIBase | undefined, ignoreClass?: string | undefined]>>,
+  Assert<IsExact<EpubCFI["str"], string>>,
+  Assert<IsExact<EpubCFI["base"], EpubCFIComponent | Record<string, any>>>,
+  Assert<IsExact<EpubCFI["spinePos"], number>>,
+  Assert<IsExact<EpubCFI["range"], boolean>>,
+  Assert<IsExact<EpubCFI["path"], EpubCFIComponent | Record<string, any>>>,
+  Assert<IsExact<EpubCFI["start"], EpubCFIComponent | null>>,
+  Assert<IsExact<EpubCFI["end"], EpubCFIComponent | null>>,
+  Assert<IsExact<ReturnType<EpubCFI["isCfiString"]>, boolean>>,
+  Assert<IsExact<ReturnType<EpubCFI["checkType"]>, EpubCFIType>>,
+  Assert<IsExact<ReturnType<EpubCFI["parse"]>, ParsedEpubCFI | { spinePos: number }>>,
+  Assert<IsExact<ReturnType<EpubCFI["parseComponent"]>, EpubCFIComponent>>,
+  Assert<IsExact<ReturnType<EpubCFI["parseStep"]>, EpubCFIStep | undefined>>,
+  Assert<IsExact<ReturnType<EpubCFI["parseTerminal"]>, EpubCFITerminal>>,
+  Assert<IsExact<ReturnType<EpubCFI["getPathComponent"]>, string | undefined>>,
+  Assert<IsExact<ReturnType<EpubCFI["getRange"]>, [string, string] | false>>,
+  Assert<IsExact<ReturnType<EpubCFI["fromNode"]>, ParsedEpubCFI>>,
+  Assert<IsExact<ReturnType<EpubCFI["fromRange"]>, ParsedEpubCFI>>,
+  Assert<IsExact<ReturnType<EpubCFI["collapse"]>, void>>,
+  Assert<IsExact<ReturnType<EpubCFI["compare"]>, number>>,
+  Assert<IsExact<ReturnType<EpubCFI["toRange"]>, Range | import('./compat/range').RangeObject | null>>,
+  Assert<IsExact<ReturnType<EpubCFI["toString"]>, string>>
 ];
 
 type LayoutAssertions = [
@@ -551,6 +585,14 @@ function testEpub() {
   const StaticContents: typeof Contents = ePub.Contents;
   const StaticCFI: typeof EpubCFI = ePub.CFI;
   const cfi = new ePub.CFI();
+  const parsedCfi: ParsedEpubCFI | { spinePos: number } = cfi.parse("epubcfi(/6/2[cover]!/6)");
+  const cfiComponent: EpubCFIComponent = cfi.parseComponent("/6/2[cover]");
+  const cfiStep: EpubCFIStep | undefined = cfi.parseStep("2[cover]");
+  const cfiTerminal: EpubCFITerminal = cfi.parseTerminal("3");
+  const cfiType: EpubCFIType = cfi.checkType("epubcfi(/6/2[cover]!/6)");
+  const cfiPathComponent: string | undefined = cfi.getPathComponent("/6/2[cover]!/6");
+  const cfiRange: [string, string] | false = cfi.getRange("/6/2[cover]!/6,/2/1:1,/3:4");
+  const cfiBase: EpubCFIBase = cfiComponent;
   const layout = new Layout({
     layout: "reflowable",
     spread: "auto",
@@ -575,6 +617,9 @@ function testEpub() {
   const uuid: string = ePub.utils.uuid();
   const deferred = new ePub.utils.defer<string>();
   const parsedDocument: Document = ePub.utils.parse("<html><body><p>Text</p></body></html>", "text/html");
+  const nodeCfiInput: EpubCFIInput = parsedDocument.documentElement;
+  const nodeCfi: ParsedEpubCFI = cfi.fromNode(nodeCfiInput as Node, cfiBase);
+  const rangeCfi: ParsedEpubCFI = cfi.fromRange(parsedDocument.createRange(), cfiBase);
   const paragraph = ePub.utils.qs(parsedDocument, "p");
   const paragraphText: string | null | undefined = paragraph?.textContent;
   const pathHelper = new Path("/OPS/Text/chapter.xhtml");
@@ -949,6 +994,17 @@ function testEpub() {
   void fallbackRequest;
   void StaticContents;
   void cfi;
+  void parsedCfi;
+  void cfiComponent;
+  void cfiStep;
+  void cfiTerminal;
+  void cfiType;
+  void cfiPathComponent;
+  void cfiRange;
+  void cfiBase;
+  void nodeCfiInput;
+  void nodeCfi;
+  void rangeCfi;
   void layout;
   void defaultLayout;
   void layoutFlow;
@@ -1078,6 +1134,7 @@ function testEpub() {
 
 type _PublicRootAssertions = PublicRootAssertions;
 type _CoreClassAssertions = CoreClassAssertions;
+type _EpubCFIAssertions = EpubCFIAssertions;
 type _LayoutAssertions = LayoutAssertions;
 type _NavigationAssertions = NavigationAssertions;
 type _SectionAssertions = SectionAssertions;

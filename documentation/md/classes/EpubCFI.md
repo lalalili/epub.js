@@ -16,11 +16,11 @@
 
 ##### cfiFrom?
 
-`any`
+`EpubCFIInput`
 
 ##### base?
 
-`string` \| `object`
+`EpubCFIBase`
 
 ##### ignoreClass?
 
@@ -34,7 +34,7 @@
 
 ### base
 
-> **base**: `EpubCFIComponent`
+> **base**: `EpubCFIComponent` \| `Record`\<`string`, `any`\>
 
 ***
 
@@ -46,7 +46,7 @@
 
 ### path
 
-> **path**: `EpubCFIComponent`
+> **path**: `EpubCFIComponent` \| `Record`\<`string`, `any`\>
 
 ***
 
@@ -66,7 +66,29 @@
 
 > **start**: `EpubCFIComponent`
 
+***
+
+### str
+
+> **str**: `string`
+
 ## Methods
+
+### checkType()
+
+> **checkType**(`cfi`): `EpubCFIType`
+
+#### Parameters
+
+##### cfi
+
+`unknown`
+
+#### Returns
+
+`EpubCFIType`
+
+***
 
 ### collapse()
 
@@ -146,7 +168,7 @@
 
 ### fromNode()
 
-> **fromNode**(`anchor`, `base`, `ignoreClass?`): `EpubCFI`
+> **fromNode**(`anchor`, `base`, `ignoreClass?`): `ParsedEpubCFI`
 
 #### Parameters
 
@@ -156,7 +178,7 @@
 
 ##### base
 
-`string` \| `object`
+`EpubCFIBase`
 
 ##### ignoreClass?
 
@@ -164,23 +186,23 @@
 
 #### Returns
 
-`EpubCFI`
+`ParsedEpubCFI`
 
 ***
 
 ### fromRange()
 
-> **fromRange**(`range`, `base`, `ignoreClass?`): `EpubCFI`
+> **fromRange**(`range`, `base`, `ignoreClass?`): `ParsedEpubCFI`
 
 #### Parameters
 
 ##### range
 
-`any`
+`Range` \| `RangeObject`
 
 ##### base
 
-`string` \| `object`
+`EpubCFIBase`
 
 ##### ignoreClass?
 
@@ -188,7 +210,95 @@
 
 #### Returns
 
-`EpubCFI`
+`ParsedEpubCFI`
+
+***
+
+### generateChapterComponent()
+
+> **generateChapterComponent**(`_spineNodeIndex`, `_pos`, `id?`): `string`
+
+#### Parameters
+
+##### \_spineNodeIndex
+
+`number`
+
+##### \_pos
+
+`string` \| `number`
+
+##### id?
+
+`string`
+
+#### Returns
+
+`string`
+
+***
+
+### getChapterComponent()
+
+> **getChapterComponent**(`cfiStr`): `string`
+
+#### Parameters
+
+##### cfiStr
+
+`string`
+
+#### Returns
+
+`string`
+
+***
+
+### getCharecterOffsetComponent()
+
+> **getCharecterOffsetComponent**(`cfiStr`): `string`
+
+#### Parameters
+
+##### cfiStr
+
+`string`
+
+#### Returns
+
+`string`
+
+***
+
+### getPathComponent()
+
+> **getPathComponent**(`cfiStr`): `string`
+
+#### Parameters
+
+##### cfiStr
+
+`string`
+
+#### Returns
+
+`string`
+
+***
+
+### getRange()
+
+> **getRange**(`cfiStr`): `false` \| \[`string`, `string`\]
+
+#### Parameters
+
+##### cfiStr
+
+`string`
+
+#### Returns
+
+`false` \| \[`string`, `string`\]
 
 ***
 
@@ -200,7 +310,7 @@
 
 ##### str
 
-`string`
+`unknown`
 
 #### Returns
 
@@ -208,9 +318,25 @@
 
 ***
 
+### joinSteps()
+
+> **joinSteps**(`steps?`): `string`
+
+#### Parameters
+
+##### steps?
+
+`EpubCFIStep`[]
+
+#### Returns
+
+`string`
+
+***
+
 ### parse()
 
-> **parse**(`cfiStr`): `EpubCFI` \| \{ `spinePos`: `number`; \}
+> **parse**(`cfiStr`): `ParsedEpubCFI` \| \{ `spinePos`: `number`; \}
 
 #### Parameters
 
@@ -220,13 +346,61 @@
 
 #### Returns
 
-`EpubCFI` \| \{ `spinePos`: `number`; \}
+`ParsedEpubCFI` \| \{ `spinePos`: `number`; \}
+
+***
+
+### parseComponent()
+
+> **parseComponent**(`componentStr`): `EpubCFIComponent`
+
+#### Parameters
+
+##### componentStr
+
+`string`
+
+#### Returns
+
+`EpubCFIComponent`
+
+***
+
+### parseStep()
+
+> **parseStep**(`stepStr`): `EpubCFIStep`
+
+#### Parameters
+
+##### stepStr
+
+`string`
+
+#### Returns
+
+`EpubCFIStep`
+
+***
+
+### parseTerminal()
+
+> **parseTerminal**(`termialStr`): `EpubCFITerminal`
+
+#### Parameters
+
+##### termialStr
+
+`string`
+
+#### Returns
+
+`EpubCFITerminal`
 
 ***
 
 ### toRange()
 
-> **toRange**(`_doc?`, `ignoreClass?`): `any`
+> **toRange**(`_doc?`, `ignoreClass?`): `Range` \| `RangeObject`
 
 #### Parameters
 
@@ -240,7 +414,7 @@
 
 #### Returns
 
-`any`
+`Range` \| `RangeObject`
 
 ***
 

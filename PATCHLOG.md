@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0285
+- Why:
+  - P-0284 aligned `Hook` declarations with runtime behavior, leaving `EpubCFI` as the next high-value typed public API gap.
+  - `EpubCFI` is central to pagination, mapping, locations, section search, and rendition targeting; its declaration hid exported CFI structure shapes, omitted `str`, returned `EpubCFI` from `parse()` / `fromNode()` / `fromRange()` even though runtime returns parsed CFI objects, and kept parsing helpers private despite browser coverage exercising them.
+  - Aligning the core parsing/constructor declarations lets consumers type-check CFI strings, parsed components, constructor inputs, range/node conversion objects, and CFI type detection before any release tag or host gate.
+- Diff Scope:
+  - `types/epubcfi.d.ts`: export CFI step/terminal/component/parsed/input/type shapes, add `str`, align constructor/base/path state, parse/fromNode/fromRange returns, checkType, isCfiString, parse helpers, getPath/getRange, and chapter component typing with runtime.
+  - `types/compat/range.d.ts`: add the declaration entry used by existing `Contents` and new `EpubCFI` CFI range typings.
+  - `types/epubjs-tests.ts`: add `EpubCFIAssertions` plus concrete parse, parseComponent, parseStep, parseTerminal, checkType, getPath/getRange, fromNode, and fromRange typing checks.
+  - `scripts/verify-gate1-readiness.mjs`: require EpubCFI typed public API assertions and parse/checkType/fromRange coverage in Gate 1 readiness checks.
+  - `documentation/md/classes/Contents.md`, `documentation/md/classes/EpubCFI.md`: refresh generated TypeDoc markdown for the updated CFI and range declaration surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/epubcfi.test.js test/browser/mapping.test.js test/browser/locations.test.js test/browser/section.test.js test/browser/rendition.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `EpubCFI` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0284
 - Why:
   - P-0283 aligned `Queue` declarations with runtime behavior, leaving `Hook` as the next low-risk utility typed public API gap.

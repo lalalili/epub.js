@@ -1,42 +1,58 @@
 import { RangeObject } from "./compat/range";
 
-interface EpubCFISegment {
-  steps: Array<EpubCFIStep>,
-  terminal: {
-    offset: number | null,
-    assertion: string | null | undefined
-  }
+export interface EpubCFITerminal {
+  offset: number | null,
+  assertion: string | null | undefined
 }
 
-interface EpubCFIStep {
+export interface EpubCFISegment {
+  steps: Array<EpubCFIStep>,
+  terminal: EpubCFITerminal
+}
+
+export interface EpubCFIStep {
 	id?: string | null,
 	tagName?: string,
 	type: "element" | "text",
 	index: number
 }
 
-interface EpubCFIComponent {
+export interface EpubCFIComponent {
   steps: Array<EpubCFIStep>,
-  terminal: EpubCFISegment["terminal"] | null
+  terminal: EpubCFITerminal | null
 }
 
-export default class EpubCFI {
-    constructor(cfiFrom?: string | Range | RangeObject | Node | EpubCFI, base?: string | object, ignoreClass?: string);
+export interface ParsedEpubCFI {
+  spinePos?: number,
+  range: boolean,
+  base: EpubCFIComponent | Record<string, any>,
+  path: EpubCFIComponent | Record<string, any>,
+  start: EpubCFIComponent | null,
+  end: EpubCFIComponent | null
+}
 
-    base: EpubCFIComponent;
+export type EpubCFIBase = string | EpubCFIComponent | Record<string, any>;
+export type EpubCFIInput = string | Range | RangeObject | Node | EpubCFI;
+export type EpubCFIType = "string" | "range" | "node" | "EpubCFI" | false;
+
+export default class EpubCFI {
+    constructor(cfiFrom?: EpubCFIInput, base?: EpubCFIBase, ignoreClass?: string);
+
+    str: string;
+    base: EpubCFIComponent | Record<string, any>;
 		spinePos: number;
 		range: boolean;
-    path: EpubCFIComponent;
+    path: EpubCFIComponent | Record<string, any>;
     start: EpubCFIComponent | null;
     end: EpubCFIComponent | null;
 
-    isCfiString(str: string): boolean;
+    isCfiString(str: unknown): boolean;
 
-    fromNode(anchor: Node, base: string | object, ignoreClass?: string): EpubCFI;
+    fromNode(anchor: Node, base: EpubCFIBase, ignoreClass?: string): ParsedEpubCFI;
 
-    fromRange(range: Range | RangeObject, base: string | object, ignoreClass?: string): EpubCFI;
+    fromRange(range: Range | RangeObject, base: EpubCFIBase, ignoreClass?: string): ParsedEpubCFI;
 
-    parse(cfiStr: string): EpubCFI | { spinePos: number };
+    parse(cfiStr: string): ParsedEpubCFI | { spinePos: number };
 
     collapse(toStart?: boolean): void;
 
@@ -56,27 +72,27 @@ export default class EpubCFI {
 
     private fixMiss(steps: Array<EpubCFIStep>, offset: number, _doc?: Document, ignoreClass?: string): any;
 
-    private checkType(cfi: string | Range | Node): string | false;
+    checkType(cfi: unknown): EpubCFIType;
 
-    private generateChapterComponent(_spineNodeIndex: number, _pos: number, id: string): string;
+    generateChapterComponent(_spineNodeIndex: number, _pos: number | string, id?: string): string;
 
-    private getChapterComponent(cfiStr: string): string;
+    getChapterComponent(cfiStr: string): string;
 
-    private getCharecterOffsetComponent(cfiStr: string): string;
+    getCharecterOffsetComponent(cfiStr: string): string;
 
-    private getPathComponent(cfiStr: string): string;
+    getPathComponent(cfiStr: string): string | undefined;
 
-    private getRange(cfiStr: string): [string, string] | false;
+    getRange(cfiStr: string): [string, string] | false;
 
-    private joinSteps(steps?: Array<EpubCFIStep>): string;
+    joinSteps(steps?: Array<EpubCFIStep>): string;
 
     private normalizedMap(children: Array<Node>, nodeType: number, ignoreClass?: string): object;
 
-    private parseComponent(componentStr: string): EpubCFIComponent;
+    parseComponent(componentStr: string): EpubCFIComponent;
 
-    private parseStep(stepStr: string): EpubCFIStep | undefined;
+    parseStep(stepStr: string): EpubCFIStep | undefined;
 
-    private parseTerminal(termialStr: string): EpubCFISegment["terminal"];
+    parseTerminal(termialStr: string): EpubCFITerminal;
 
     private patchOffset(anchor: Node, offset: number, ignoreClass?: string): number;
 
