@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0267
+- Why:
+  - P-0266 aligned `Section` declarations with runtime behavior, leaving the adjacent `Spine` structure declaration as the next typed public API gap.
+  - `Spine` is already TypeScript source, but its declaration still treated lookups as always returning `Section`, hid runtime state fields, omitted fallback/renderability helpers, and declared `remove()` as private even though the browser regression suite exercises it.
+  - Aligning `Spine` declarations lets downstream consumers type-check null lookups, first/last empty-spine results, lifecycle-cleared state, package unpack inputs, and section removal before broader release or host gates.
+- Diff Scope:
+  - `types/spine.d.ts`: align `Spine` state fields, package types, resolver types, lookup helpers, fallback helpers, append/prepend/remove/each, and nullable/optional return types with the TypeScript source behavior.
+  - `types/epubjs-tests.ts`: add `SpineAssertions` plus concrete unpack, lookup, first/last, and remove typing checks.
+  - `scripts/verify-gate1-readiness.mjs`: require the Spine typed public API assertions and unpack/remove coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/spine.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `Spine` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0266
 - Why:
   - P-0265 extended the typed public API lane from the package root and `Navigation` into EPUB structure declarations.

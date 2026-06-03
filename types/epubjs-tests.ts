@@ -5,6 +5,7 @@ import type EpubRoot from './epub';
 import Navigation, { LandmarkItem, NavItem, NavigationInputItem } from './navigation';
 import type { Location, RenditionOptions } from './rendition';
 import Section, { LayoutSettings, SectionHookSet, SectionSearchResult, SpineItem } from './section';
+import Spine, { SpineLookup, SpineManifestItem, SpinePackage, SpinePackageItem, SpineResolver } from './spine';
 import { JsonValue, RequestHeaders, RequestMethod, RequestResponse } from './utils/request';
 
 type Assert<T extends true> = T;
@@ -96,6 +97,30 @@ type SectionAssertions = [
   Assert<IsExact<ReturnType<Section["destroy"]>, void>>
 ];
 
+type SpineAssertions = [
+  Assert<IsExact<Spine["spineItems"], Section[] | undefined>>,
+  Assert<IsExact<Spine["spineByHref"], SpineLookup | undefined>>,
+  Assert<IsExact<Spine["spineById"], SpineLookup | undefined>>,
+  Assert<IsExact<Spine["hooks"], SectionHookSet | undefined>>,
+  Assert<IsExact<Spine["loaded"], boolean>>,
+  Assert<IsExact<Spine["items"], SpinePackageItem[] | undefined>>,
+  Assert<IsExact<Spine["manifest"], Record<string, SpineManifestItem> | undefined>>,
+  Assert<IsExact<Spine["spineNodeIndex"], number | undefined>>,
+  Assert<IsExact<Spine["baseUrl"], string | undefined>>,
+  Assert<IsExact<Spine["length"], number | undefined>>,
+  Assert<IsExact<Parameters<Spine["unpack"]>, [_package: SpinePackage, resolver: SpineResolver, canonical: SpineResolver]>>,
+  Assert<IsExact<ReturnType<Spine["resolveFallbackItem"]>, SpineManifestItem>>,
+  Assert<IsExact<ReturnType<Spine["isRenderableType"]>, boolean>>,
+  Assert<IsExact<ReturnType<Spine["get"]>, Section | null>>,
+  Assert<IsExact<ReturnType<Spine["append"]>, number>>,
+  Assert<IsExact<ReturnType<Spine["prepend"]>, number>>,
+  Assert<IsExact<ReturnType<Spine["remove"]>, Section[] | undefined>>,
+  Assert<IsExact<ReturnType<Spine["each"]>, void>>,
+  Assert<IsExact<ReturnType<Spine["first"]>, Section | undefined>>,
+  Assert<IsExact<ReturnType<Spine["last"]>, Section | undefined>>,
+  Assert<IsExact<ReturnType<Spine["destroy"]>, void>>
+];
+
 function testEpub() {
   const epub = ePub("https://s3.amazonaws.com/moby-dick/moby-dick.epub");
 
@@ -173,6 +198,32 @@ function testEpub() {
     spread: "auto",
     orientation: "auto",
   });
+  const spinePackage: SpinePackage = {
+    spine: [{
+      id: "chapter-one",
+      idref: "chapter-one",
+      linear: "yes",
+      properties: [],
+      index: 0,
+      cfiBase: "",
+    }],
+    manifest: {
+      "chapter-one": {
+        href: "Text/chapter1.xhtml",
+        type: "application/xhtml+xml",
+        properties: [],
+      },
+    },
+    spineNodeIndex: 0,
+    baseUrl: "https://example.com/",
+  };
+  const spineResolver: SpineResolver = (href: string) => href;
+  const spine = new Spine();
+  spine.unpack(spinePackage, spineResolver, spineResolver);
+  const spineSection: Section | null = spine.get("Text/chapter1.xhtml");
+  const firstSpineSection: Section | undefined = spine.first();
+  const lastSpineSection: Section | undefined = spine.last();
+  const removedSpineSections: Section[] | undefined = spineSection ? spine.remove(spineSection) : undefined;
 
   new StaticBook("https://s3.amazonaws.com/moby-dick/moby-dick.epub", {});
   new StaticRendition(epub, {});
@@ -218,6 +269,10 @@ function testEpub() {
   void sectionFind;
   void sectionSearch;
   void sectionLayout;
+  void spineSection;
+  void firstSpineSection;
+  void lastSpineSection;
+  void removedSpineSections;
   void location;
 }
 
@@ -225,5 +280,6 @@ type _PublicRootAssertions = PublicRootAssertions;
 type _CoreClassAssertions = CoreClassAssertions;
 type _NavigationAssertions = NavigationAssertions;
 type _SectionAssertions = SectionAssertions;
+type _SpineAssertions = SpineAssertions;
 
 testEpub();

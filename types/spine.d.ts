@@ -1,30 +1,84 @@
-import Packaging from "./packaging";
-import Section from "./section";
+import EpubCFI from "./epubcfi";
+import Section, { SectionHookSet } from "./section";
 import Hook from "./utils/hook";
+
+export type SpineLookup = Record<string, number>;
+
+export interface SpineManifestItem {
+  href: string,
+  type?: string,
+  properties: Array<string>,
+  fallback?: string,
+  fallbackChain?: Array<string>
+}
+
+export interface SpinePackageItem {
+  id: string,
+  idref: string,
+  linear: string,
+  properties: Array<string>,
+  index: number,
+  cfiBase: string,
+  href?: string,
+  url?: string,
+  canonical?: string,
+  mediaType?: string,
+  originalHref?: string,
+  originalMediaType?: string,
+  fallback?: string,
+  fallbackChain?: Array<string>,
+  next?: () => Section | undefined,
+  prev?: () => Section | undefined
+}
+
+export interface SpinePackage {
+  spine: Array<SpinePackageItem>,
+  manifest: Record<string, SpineManifestItem>,
+  spineNodeIndex: number,
+  baseUrl?: string,
+  basePath?: string
+}
+
+export type SpineResolver = (href: string, absolute?: boolean) => string;
 
 export default class Spine {
   constructor();
 
-  hooks: {
-    serialize: Hook,
-    content: Hook
-  };
+  spineItems?: Array<Section>;
+  spineByHref?: SpineLookup;
+  spineById?: SpineLookup;
+  hooks?: SectionHookSet;
+  epubcfi?: EpubCFI;
+  loaded: boolean;
+  items?: Array<SpinePackageItem>;
+  manifest?: Record<string, SpineManifestItem>;
+  spineNodeIndex?: number;
+  baseUrl?: string;
+  length?: number;
 
-  unpack(_package: Packaging, resolver: Function, canonical: Function): void;
+  unpack(_package: SpinePackage, resolver: SpineResolver, canonical: SpineResolver): void;
 
-  get(target?: string | number): Section;
+  resolveFallbackItem(manifestItem: SpineManifestItem): SpineManifestItem;
 
-  each(...args: any[]): any;
+  isRenderableType(type?: string): boolean;
 
-  first(): Section;
+  get(target?: string | number): Section | null;
 
-  last(): Section;
+  indexHref(href: string | undefined, index: number): void;
+
+  removeHref(href: string | undefined): void;
+
+  append(section: Section): number;
+
+  prepend(section: Section): number;
+
+  remove(section: Section): Array<Section> | undefined;
+
+  each(callback: (section: Section, index: number, sections: Array<Section>) => void, thisArg?: any): void;
+
+  first(): Section | undefined;
+
+  last(): Section | undefined;
 
   destroy(): void;
-
-  private append(section: Section): number;
-
-  private prepend(section: Section): number;
-
-  private remove(section: Section): number;
 }
