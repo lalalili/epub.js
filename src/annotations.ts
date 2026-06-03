@@ -2,31 +2,31 @@ import EventEmitter from "event-emitter";
 import EpubCFI from "./epubcfi";
 import { EVENTS } from "./utils/constants";
 
-type AnnotationType = "highlight" | "underline" | "mark" | string;
+export type AnnotationType = "highlight" | "underline" | "mark" | string;
 
-type AnnotationCallback = (...args: any[]) => void;
+export type AnnotationCallback = (...args: any[]) => void;
 
-type AnnotationData = Record<string, any>;
+export type AnnotationData = Record<string, any>;
 
-type AnnotationStyles = Record<string, string>;
+export type AnnotationStyles = Record<string, string>;
 
-type AnnotationMap = Record<string, Annotation>;
+export type AnnotationMap = Record<string, Annotation>;
 
-type SectionAnnotationMap = Record<number, string[]>;
+export type SectionAnnotationMap = Record<number, string[]>;
 
-type RenditionLike = {
+export interface AnnotationsRendition {
 	hooks: {
 		render: {
-			register(callback: (view: ViewLike) => void): void;
+			register(callback: (view: AnnotationView) => void): void;
 		};
 		unloaded: {
-			register(callback: (view: ViewLike) => void): void;
+			register(callback: (view: AnnotationView) => void): void;
 		};
 	};
-	views(): ViewLike[];
-};
+	views(): AnnotationView[];
+}
 
-type ViewLike = {
+export interface AnnotationView {
 	index: number;
 	highlight(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): any;
 	mark(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback): any;
@@ -34,9 +34,9 @@ type ViewLike = {
 	unhighlight(cfiRange: string): any;
 	unmark(cfiRange: string): any;
 	ununderline(cfiRange: string): any;
-};
+}
 
-type AnnotationOptions = {
+export interface AnnotationOptions {
 	type: AnnotationType;
 	cfiRange: string;
 	data?: AnnotationData;
@@ -44,7 +44,7 @@ type AnnotationOptions = {
 	cb?: AnnotationCallback;
 	className?: string;
 	styles?: AnnotationStyles;
-};
+}
 
 type EventedAnnotation = Annotation & {
 	emit(type: string, ...args: any[]): void;
@@ -56,14 +56,14 @@ type EventedAnnotation = Annotation & {
 	* @class
 	*/
 class Annotations {
-	rendition: RenditionLike;
+	rendition: AnnotationsRendition;
 	highlights: Annotation[];
 	underlines: Annotation[];
 	marks: Annotation[];
 	_annotations: AnnotationMap;
 	_annotationsBySectionIndex: SectionAnnotationMap;
 
-	constructor (rendition: RenditionLike) {
+	constructor (rendition: AnnotationsRendition) {
 		this.rendition = rendition;
 		this.highlights = [];
 		this.underlines = [];
@@ -208,7 +208,7 @@ class Annotations {
 	 * @param {View} view
 	 * @private
 	 */
-	inject (view: ViewLike): void {
+	inject (view: AnnotationView): void {
 		let sectionIndex = view.index;
 		if (sectionIndex in this._annotationsBySectionIndex) {
 			let annotations = this._annotationsBySectionIndex[sectionIndex];
@@ -224,7 +224,7 @@ class Annotations {
 	 * @param {View} view
 	 * @private
 	 */
-	clear (view: ViewLike): void {
+	clear (view: AnnotationView): void {
 		let sectionIndex = view.index;
 		if (sectionIndex in this._annotationsBySectionIndex) {
 			let annotations = this._annotationsBySectionIndex[sectionIndex];
@@ -266,7 +266,7 @@ class Annotations {
  * @param {object} styles CSS styles to assign to annotation
  * @returns {Annotation} annotation
  */
-class Annotation {
+export class Annotation {
 	type: AnnotationType;
 	cfiRange: string;
 	data: AnnotationData | undefined;
@@ -307,7 +307,7 @@ class Annotation {
 	 * Add to a view
 	 * @param {View} view
 	 */
-	attach (view: ViewLike): any {
+	attach (view: AnnotationView): any {
 		let {cfiRange, data, type, cb, className, styles} = this;
 		let result;
 
@@ -328,7 +328,7 @@ class Annotation {
 	 * Remove from a view
 	 * @param {View} view
 	 */
-	detach (view?: ViewLike): any {
+	detach (view?: AnnotationView): any {
 		let {cfiRange, type} = this;
 		let result;
 

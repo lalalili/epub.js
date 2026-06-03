@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0309
+- Why:
+  - P-0308 aligned `Themes` root type exports, leaving `Annotations` as the next public rendition interaction surface with source/declaration/root parity gaps.
+  - The declaration surface already exposes `Annotations`, `Annotation`, `AnnotationType`, `AnnotationCallback`, `AnnotationData`, `AnnotationStyles`, `AnnotationMap`, `SectionAnnotationMap`, `AnnotationView`, `AnnotationsRendition`, and `AnnotationOptions`, but source kept those helper shapes private and the package root did not expose them consistently.
+  - Aligning these exports lets consumers type-check highlights, underlines, marks, annotation callbacks, annotation views, rendition hooks, and annotation storage maps from the root package API before any release tag or host gate, without changing annotation hook registration, attach/detach behavior, event emission, or CFI-based section indexing.
+- Diff Scope:
+  - `src/annotations.ts`: export existing `Annotations` public helper type shapes and align rendition/view adapter names with declaration-facing types.
+  - `src/index.ts`, `types/index.d.ts`: export root `Annotations` public types.
+  - `types/epubjs-tests.ts`: extend public root assertions for `Annotations` type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `Annotations` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public annotations type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/annotations.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `Annotations` helper aliases to remain module-private instead of part of the root typed public API contract.
+
 ### P-0308
 - Why:
   - P-0307 aligned `Locations` root type exports, leaving `Themes` as the next public rendition styling surface with source/declaration/root parity gaps.

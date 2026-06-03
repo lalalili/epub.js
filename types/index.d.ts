@@ -10,6 +10,7 @@ declare global {
 
 export default Epub;
 
+export type { default as Annotations, Annotation, AnnotationCallback, AnnotationData, AnnotationMap, AnnotationOptions, AnnotationStyles, AnnotationType, AnnotationView, AnnotationsRendition, SectionAnnotationMap } from './annotations';
 export type { default as Archive, ArchiveEntry, ArchiveInput, ArchiveRequestType, ArchiveUrlOptions, ArchiveZip } from './archive';
 export { default as Book } from './book';
 export type { BookInput, BookLoaded, BookLoading, BookOptions } from './book';

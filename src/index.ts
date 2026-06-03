@@ -29,6 +29,20 @@ export {
 };
 
 export type {
+	Annotation,
+	AnnotationCallback,
+	AnnotationData,
+	AnnotationMap,
+	AnnotationOptions,
+	AnnotationStyles,
+	AnnotationType,
+	AnnotationView,
+	AnnotationsRendition,
+	SectionAnnotationMap,
+	default as Annotations
+} from "./annotations";
+
+export type {
 	ArchiveEntry,
 	ArchiveInput,
 	ArchiveRequestType,

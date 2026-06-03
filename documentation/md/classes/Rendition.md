@@ -36,7 +36,7 @@
 
 ### annotations?
 
-> `optional` **annotations?**: `Annotations`
+> `optional` **annotations?**: [`Annotations`](../interfaces/Annotations.md)
 
 ***
 

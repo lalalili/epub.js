@@ -18,6 +18,11 @@
 
 ## Interfaces
 
+- [Annotation](interfaces/Annotation.md)
+- [AnnotationOptions](interfaces/AnnotationOptions.md)
+- [Annotations](interfaces/Annotations.md)
+- [AnnotationsRendition](interfaces/AnnotationsRendition.md)
+- [AnnotationView](interfaces/AnnotationView.md)
 - [Archive](interfaces/Archive.md)
 - [ArchiveEntry](interfaces/ArchiveEntry.md)
 - [ArchiveUrlOptions](interfaces/ArchiveUrlOptions.md)
@@ -87,6 +92,11 @@
 
 ## Type Aliases
 
+- [AnnotationCallback](type-aliases/AnnotationCallback.md)
+- [AnnotationData](type-aliases/AnnotationData.md)
+- [AnnotationMap](type-aliases/AnnotationMap.md)
+- [AnnotationStyles](type-aliases/AnnotationStyles.md)
+- [AnnotationType](type-aliases/AnnotationType.md)
 - [ArchiveInput](type-aliases/ArchiveInput.md)
 - [ArchiveRequestType](type-aliases/ArchiveRequestType.md)
 - [BookInput](type-aliases/BookInput.md)
@@ -107,6 +117,7 @@
 - [ReplacementMode](type-aliases/ReplacementMode.md)
 - [ResourceRequest](type-aliases/ResourceRequest.md)
 - [ResourceResolver](type-aliases/ResourceResolver.md)
+- [SectionAnnotationMap](type-aliases/SectionAnnotationMap.md)
 - [SectionRequest](type-aliases/SectionRequest.md)
 - [SpineLookup](type-aliases/SpineLookup.md)
 - [SpineResolver](type-aliases/SpineResolver.md)
