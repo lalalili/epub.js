@@ -298,19 +298,93 @@
 
 ### load()
 
+#### Call Signature
+
+> **load**(`path`, `type`): `Promise`\<`ArrayBuffer`\>
+
+##### Parameters
+
+###### path
+
+`string`
+
+###### type
+
+`"binary"`
+
+##### Returns
+
+`Promise`\<`ArrayBuffer`\>
+
+#### Call Signature
+
+> **load**(`path`, `type`): `Promise`\<`Blob`\>
+
+##### Parameters
+
+###### path
+
+`string`
+
+###### type
+
+`"blob"`
+
+##### Returns
+
+`Promise`\<`Blob`\>
+
+#### Call Signature
+
+> **load**(`path`, `type`): `Promise`\<[`JsonValue`](../type-aliases/JsonValue.md)\>
+
+##### Parameters
+
+###### path
+
+`string`
+
+###### type
+
+`"json"`
+
+##### Returns
+
+`Promise`\<[`JsonValue`](../type-aliases/JsonValue.md)\>
+
+#### Call Signature
+
+> **load**(`path`, `type`): `Promise`\<`Document` \| `XMLDocument`\>
+
+##### Parameters
+
+###### path
+
+`string`
+
+###### type
+
+`"xml"` \| `"opf"` \| `"ncx"` \| `"xhtml"` \| `"html"` \| `"htm"`
+
+##### Returns
+
+`Promise`\<`Document` \| `XMLDocument`\>
+
+#### Call Signature
+
 > **load**(`path`, `type?`): `Promise`\<[`RequestResponse`](../type-aliases/RequestResponse.md)\>
 
-#### Parameters
+##### Parameters
 
-##### path
-
-`string`
-
-##### type?
+###### path
 
 `string`
 
-#### Returns
+###### type?
+
+`string`
+
+##### Returns
 
 `Promise`\<[`RequestResponse`](../type-aliases/RequestResponse.md)\>
 

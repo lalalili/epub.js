@@ -19910,7 +19910,7 @@
 		* @return {string} packagePath
 		*/
 		openContainer(url) {
-			return this.load(url).then((xml) => {
+			return this.load(url, "xml").then((xml) => {
 				this.container = new Container(xml);
 				return this.resolve(this.container.packagePath);
 			});
@@ -19923,7 +19923,7 @@
 		*/
 		openPackaging(url) {
 			this.path = new Path(url);
-			return this.load(url).then((xml) => {
+			return this.load(url, "xml").then((xml) => {
 				this.packaging = new Packaging(xml);
 				return this.unpack(this.packaging);
 			});
@@ -19936,21 +19936,16 @@
 		*/
 		openManifest(url) {
 			this.path = new Path(url);
-			return this.load(url).then((json) => {
+			return this.load(url, "json").then((json) => {
 				this.packaging = new Packaging();
 				this.packaging.load(json);
 				return this.unpack(this.packaging);
 			});
 		}
-		/**
-		* Load a resource from the Book
-		* @param  {string} path path to the resource to load
-		* @return {Promise}     returns a promise with the requested resource
-		*/
 		load(path, _type) {
 			var resolved = this.resolve(path);
-			if (this.archived) return this.archive.request(resolved);
-			else return this.request(resolved, null, this.settings.requestCredentials, this.settings.requestHeaders);
+			if (this.archived) return this.archive.request(resolved, _type || void 0);
+			else return this.request(resolved, _type || null, this.settings.requestCredentials, this.settings.requestHeaders);
 		}
 		/**
 		* Resolve a path to it's absolute position in the Book
@@ -20006,7 +20001,7 @@
 		*/
 		unpack(packaging) {
 			this.package = packaging;
-			if (this.packaging.metadata.layout === "") this.load(this.url.resolve(IBOOKS_DISPLAY_OPTIONS_PATH)).then((xml) => {
+			if (this.packaging.metadata.layout === "") this.load(this.url.resolve(IBOOKS_DISPLAY_OPTIONS_PATH), "xml").then((xml) => {
 				this.displayOptions = new DisplayOptions(xml);
 				this.loading.displayOptions.resolve(this.displayOptions);
 			}).catch((_err) => {

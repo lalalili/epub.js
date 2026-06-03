@@ -28,4 +28,4 @@
 
 ### type
 
-> **type**: `"element"` \| `"text"`
+> **type**: `"text"` \| `"element"`

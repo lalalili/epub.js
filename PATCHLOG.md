@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0315
+- Why:
+  - P-0314 aligned `utils/core` root type exports, leaving `Book` as a public class surface that still duplicated request helper types in source.
+  - The declaration surface already treats `utils/request` as the single source for `RequestHeaders`, `RequestMethod`, `RequestType`, `RequestResponse`, and JSON/XML response typing, but `src/book.ts` kept a looser local `RequestMethod` alias and `Book.load()` returned `Promise<any>`.
+  - Aligning `Book` with the shared request contract prevents the class surface from drifting away from the root `request()` overloads, while preserving existing parsing semantics for container, packaging, manifest, navigation, and display options loads.
+- Diff Scope:
+  - `src/book.ts`: reuse `utils/request` public request types, add `Book.load()` overloads, thread the requested type through archive/network loads, and annotate manifest JSON loading without changing runtime parsing.
+  - `types/book.d.ts`: mirror the `Book.load()` overloads with shared request helper types.
+  - `types/epubjs-tests.ts`: extend type smoke coverage for `Book.load()` XML, JSON, and fallback response typing.
+  - `scripts/verify-gate1-readiness.mjs`: require `Book` to reuse shared request types and cover `Book.load()` overloads in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the updated Book request/loading type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/book.test.js test/browser/request.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `Book` to keep its own looser request aliases instead of reusing the root `request` typed public API contract.
+
 ### P-0314
 - Why:
   - P-0313 aligned the root `request` helper type exports, leaving the adjacent `utils/core` facade as the next public utility surface with source/declaration/root parity gaps.

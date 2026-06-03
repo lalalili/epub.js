@@ -17,7 +17,7 @@ import Packaging from "./packaging";
 import Store from "./store";
 import DisplayOptions from "./displayoptions";
 import { Deferred } from "./utils/core";
-import { RequestHeaders, RequestMethod, RequestResponse } from "./utils/request";
+import { JsonValue, RequestHeaders, RequestMethod, RequestResponse, RequestType } from "./utils/request";
 
 export type BookInput = string | ArrayBuffer | Blob;
 
@@ -97,7 +97,11 @@ export default class Book {
 
     key(identifier?: string): string;
 
-    load(path: string, type?: string): Promise<RequestResponse>;
+    load(path: string, type: "binary"): Promise<ArrayBuffer>;
+    load(path: string, type: "blob"): Promise<Blob>;
+    load(path: string, type: "json"): Promise<JsonValue>;
+    load(path: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm"): Promise<Document | XMLDocument>;
+    load(path: string, type?: RequestType | null): Promise<RequestResponse>;
 
     loadNavigation(packaging: Packaging): Promise<Navigation>;
 

@@ -1383,7 +1383,9 @@ function testEpub() {
 
   book.open(new Blob(), "binary");
   book.openEpub(new ArrayBuffer(0));
-  book.load("OPS/package.opf");
+  const bookXmlLoad: Promise<Document | XMLDocument> = book.load("OPS/package.opf", "opf");
+  const bookJsonLoad: Promise<JsonValue> = book.load("manifest.json", "json");
+  const bookFallbackLoad: Promise<RequestResponse> = book.load("OPS/package.opf");
   rendition.attachTo("area");
   rendition.resize("100%", "100%", "epubcfi(/6/2)");
   const location = rendition.currentLocation();
@@ -1418,6 +1420,9 @@ function testEpub() {
   void resolvedBookPath;
   void bookSection;
   void bookArchiveZip;
+  void bookXmlLoad;
+  void bookJsonLoad;
+  void bookFallbackLoad;
   void requestMethod;
   void binaryRequest;
   void blobRequest;

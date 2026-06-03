@@ -7,6 +7,7 @@ const packageJson = JSON.parse(readFileSync(path.join(root, "package.json"), "ut
 const tsconfig = JSON.parse(readFileSync(path.join(root, "tsconfig.json"), "utf8"));
 const typeTests = readFileSync(path.join(root, "types/epubjs-tests.ts"), "utf8");
 const sourceRoot = readFileSync(path.join(root, "src/index.ts"), "utf8");
+const bookSource = readFileSync(path.join(root, "src/book.ts"), "utf8");
 const globalTypeTests = readFileSync(path.join(root, "types/global-namespace-tests.ts"), "utf8");
 const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.test.js"), "utf8");
 const umdGlobalTests = readFileSync(path.join(root, "test/browser/umd-global.test.js"), "utf8");
@@ -258,11 +259,21 @@ assert(
 	sourceRoot.includes("RequestMethod") && sourceRoot.includes("RequestResponse") && sourceRoot.includes("RequestType"),
 	"source root must export request public types"
 );
+assert(
+	bookSource.includes("type RequestMethod") &&
+		bookSource.includes("type RequestHeaders") &&
+		bookSource.includes("type RequestResponse") &&
+		!bookSource.includes("export type RequestMethod ="),
+	"Book source must reuse utils/request public request types"
+);
 assert(typeTests.includes("InstanceType<typeof ePub.utils.defer"), "type tests must assert generic defer typing");
 assert(typeTests.includes("Book[\"loading\"]"), "type tests must assert Book runtime loading state typing");
 assert(typeTests.includes("book.loaded?.spine"), "type tests must cover Book loaded spine typing");
 assert(typeTests.includes("book.resolve()"), "type tests must cover Book optional resolve path typing");
 assert(typeTests.includes("book.unarchive(bookInput)"), "type tests must cover Book unarchive zip typing");
+assert(typeTests.includes("ReturnType<Book[\"load\"]>, Promise<RequestResponse>"), "type tests must cover Book load request response typing");
+assert(typeTests.includes("book.load(\"OPS/package.opf\", \"opf\")"), "type tests must cover Book load XML overload typing");
+assert(typeTests.includes("book.load(\"manifest.json\", \"json\")"), "type tests must cover Book load JSON overload typing");
 assert(typeTests.includes("rendition.determineLayoutProperties"), "type tests must cover Rendition layout property typing");
 assert(typeTests.includes("rendition.located([managerLocationItem])"), "type tests must cover Rendition manager location typing");
 assert(typeTests.includes("rendition.resolveLinkHref(\"#note\""), "type tests must cover Rendition link resolution typing");

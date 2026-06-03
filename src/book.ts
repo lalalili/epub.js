@@ -6,21 +6,25 @@ import Path from "./utils/path";
 import Spine from "./spine";
 import Locations from "./locations";
 import Container from "./container";
-import Packaging, { type PackagingManifest, type PackagingMetadata } from "./packaging";
+import Packaging, { type PackagingJsonManifest, type PackagingManifest, type PackagingMetadata } from "./packaging";
 import Navigation from "./navigation";
 import Resources from "./resources";
 import PageList from "./pagelist";
 import Rendition from "./rendition";
 import Archive from "./archive";
-import request from "./utils/request";
+import request, {
+	type JsonValue,
+	type RequestHeaders,
+	type RequestMethod,
+	type RequestResponse,
+	type RequestType
+} from "./utils/request";
 import EpubCFI from "./epubcfi";
 import Store from "./store";
 import DisplayOptions from "./displayoptions";
 import { EPUBJS_VERSION, EVENTS } from "./utils/constants";
 
 export type BookInput = string | ArrayBuffer | Blob;
-export type RequestHeaders = Record<string, string>;
-export type RequestMethod = (url: string, type?: string | null, withCredentials?: boolean, headers?: RequestHeaders) => Promise<any>;
 export type BookOptions = {
 	requestMethod?: RequestMethod;
 	requestCredentials?: boolean;
@@ -378,7 +382,7 @@ class Book {
 	 * @return {string} packagePath
 	 */
 	openContainer(url: string): Promise<any> {
-		return this.load(url)
+		return this.load(url, "xml")
 			.then((xml) => {
 				this.container = new Container(xml);
 				return this.resolve(this.container.packagePath as string);
@@ -393,7 +397,7 @@ class Book {
 	 */
 	openPackaging(url: string): Promise<any> {
 		this.path = new Path(url);
-		return this.load(url)
+		return this.load(url, "xml")
 			.then((xml) => {
 				this.packaging = new Packaging(xml);
 				return this.unpack(this.packaging);
@@ -408,10 +412,10 @@ class Book {
 	 */
 	openManifest(url: string): Promise<any> {
 		this.path = new Path(url);
-		return this.load(url)
+		return this.load(url, "json")
 			.then((json) => {
 				this.packaging = new Packaging();
-				this.packaging.load(json);
+				this.packaging.load(json as unknown as PackagingJsonManifest);
 				return this.unpack(this.packaging);
 			});
 	}
@@ -421,12 +425,17 @@ class Book {
 	 * @param  {string} path path to the resource to load
 	 * @return {Promise}     returns a promise with the requested resource
 	 */
-	load(path: string, _type?: string): Promise<any> {
+	load(path: string, type: "binary"): Promise<ArrayBuffer>;
+	load(path: string, type: "blob"): Promise<Blob>;
+	load(path: string, type: "json"): Promise<JsonValue>;
+	load(path: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm"): Promise<Document | XMLDocument>;
+	load(path: string, _type?: RequestType | null): Promise<RequestResponse>;
+	load(path: string, _type?: RequestType | null): Promise<RequestResponse> {
 		var resolved = this.resolve(path);
 		if(this.archived) {
-			return this.archive!.request(resolved as string);
+			return this.archive!.request(resolved as string, _type || undefined);
 		} else {
-			return this.request(resolved as string, null, this.settings.requestCredentials, this.settings.requestHeaders);
+			return this.request(resolved as string, _type || null, this.settings.requestCredentials, this.settings.requestHeaders);
 		}
 	}
 
@@ -535,7 +544,7 @@ class Book {
 
 		if (this.packaging!.metadata!.layout === "") {
 			// rendition:layout not set - check display options if book is pre-paginated
-			this.load(this.url!.resolve(IBOOKS_DISPLAY_OPTIONS_PATH)).then((xml) => {
+			this.load(this.url!.resolve(IBOOKS_DISPLAY_OPTIONS_PATH), "xml").then((xml) => {
 				this.displayOptions = new DisplayOptions(xml);
 				this.loading!.displayOptions.resolve!(this.displayOptions);
 			}).catch((_err: unknown) => {

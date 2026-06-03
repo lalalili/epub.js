@@ -14654,17 +14654,17 @@ var ni = class {
 		return this.unarchive(e, t || this.settings.encoding).then(() => this.openContainer(ii)).then((e) => this.openPackaging(e));
 	}
 	openContainer(e) {
-		return this.load(e).then((e) => (this.container = new Xe(e), this.resolve(this.container.packagePath)));
+		return this.load(e, "xml").then((e) => (this.container = new Xe(e), this.resolve(this.container.packagePath)));
 	}
 	openPackaging(e) {
-		return this.path = new re(e), this.load(e).then((e) => (this.packaging = new Ze(e), this.unpack(this.packaging)));
+		return this.path = new re(e), this.load(e, "xml").then((e) => (this.packaging = new Ze(e), this.unpack(this.packaging)));
 	}
 	openManifest(e) {
-		return this.path = new re(e), this.load(e).then((e) => (this.packaging = new Ze(), this.packaging.load(e), this.unpack(this.packaging)));
+		return this.path = new re(e), this.load(e, "json").then((e) => (this.packaging = new Ze(), this.packaging.load(e), this.unpack(this.packaging)));
 	}
 	load(e, t) {
 		var n = this.resolve(e);
-		return this.archived ? this.archive.request(n) : this.request(n, null, this.settings.requestCredentials, this.settings.requestHeaders);
+		return this.archived ? this.archive.request(n, t || void 0) : this.request(n, t || null, this.settings.requestCredentials, this.settings.requestHeaders);
 	}
 	resolve(e, t) {
 		if (e) {
@@ -14686,7 +14686,7 @@ var ni = class {
 		if (r === "json") return oi.MANIFEST;
 	}
 	unpack(e) {
-		this.package = e, this.packaging.metadata.layout === "" ? this.load(this.url.resolve(ai)).then((e) => {
+		this.package = e, this.packaging.metadata.layout === "" ? this.load(this.url.resolve(ai), "xml").then((e) => {
 			this.displayOptions = new ni(e), this.loading.displayOptions.resolve(this.displayOptions);
 		}).catch((e) => {
 			this.displayOptions = new ni(), this.loading.displayOptions.resolve(this.displayOptions);
