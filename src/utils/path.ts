@@ -1,6 +1,6 @@
 import path from "path-webpack";
 
-type ParsedPath = {
+export type ParsedPath = {
 	base: string;
 	dir: string;
 	ext: string;

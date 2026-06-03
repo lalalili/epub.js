@@ -35,6 +35,8 @@ import type {
   PackagingObject as RootPackagingObject,
   PackagingSpineItem as RootPackagingSpineItem,
   PackagingTocItem as RootPackagingTocItem,
+  ParsedPath as RootParsedPath,
+  Path as RootPath,
   ReplacementMode as RootReplacementMode,
   ResourceArchive as RootResourceArchive,
   ResourceManifest as RootResourceManifest,
@@ -199,6 +201,8 @@ type PublicRootAssertions = [
   Assert<IsExact<RootPackagingObject, PackagingObject>>,
   Assert<IsExact<RootPackagingSpineItem, PackagingSpineItem>>,
   Assert<IsExact<RootPackagingTocItem, PackagingTocItem>>,
+  Assert<IsExact<RootPath, Path>>,
+  Assert<IsExact<RootParsedPath, ParsedPath>>,
   Assert<IsExact<typeof request, RequestMethod>>,
   Assert<IsExact<ReturnType<typeof ePub.utils.uuid>, string>>,
   Assert<IsExact<InstanceType<typeof ePub.utils.defer<string>>["promise"], Promise<string>>>

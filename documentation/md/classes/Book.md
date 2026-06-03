@@ -140,7 +140,7 @@
 
 ### path?
 
-> `optional` **path?**: `Path`
+> `optional` **path?**: [`Path`](../interfaces/Path.md)
 
 ***
 

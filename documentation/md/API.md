@@ -43,6 +43,8 @@
 - [PackagingTocItem](interfaces/PackagingTocItem.md)
 - [PageList](interfaces/PageList.md)
 - [PageListItem](interfaces/PageListItem.md)
+- [ParsedPath](interfaces/ParsedPath.md)
+- [Path](interfaces/Path.md)
 - [RenditionLayoutProperties](interfaces/RenditionLayoutProperties.md)
 - [RenditionOptions](interfaces/RenditionOptions.md)
 - [ResourceArchive](interfaces/ResourceArchive.md)

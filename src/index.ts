@@ -60,6 +60,11 @@ export type {
 } from "./pagelist";
 
 export type {
+	ParsedPath,
+	default as Path
+} from "./utils/path";
+
+export type {
 	PackagingJsonManifest,
 	PackagingManifestItem,
 	PackagingManifestObject,

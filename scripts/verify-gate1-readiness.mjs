@@ -98,6 +98,11 @@ assert(
 	sourceRoot.includes("PageListItem") && sourceRoot.includes("PageValue") && sourceRoot.includes("PageListDocument"),
 	"source root must export PageList public types"
 );
+assert(typeTests.includes("RootParsedPath"), "type tests must assert root Path type exports");
+assert(
+	sourceRoot.includes("ParsedPath") && sourceRoot.includes("default as Path"),
+	"source root must export Path public types"
+);
 assert(typeTests.includes("RootResourceOptions"), "type tests must assert root Resources type exports");
 assert(
 	sourceRoot.includes("ResourceOptions") && sourceRoot.includes("ResourceManifestItem") && sourceRoot.includes("ResourceSettings"),
@@ -151,6 +156,7 @@ assert(typeTests.includes("RootContainer"), "type tests must assert root Contain
 assert(typeTests.includes("new Container()"), "type tests must cover Container construction without a document");
 assert(typeTests.includes("container.parse(containerDocument)"), "type tests must cover Container parse argument typing");
 assert(typeTests.includes("type PathAssertions"), "type tests must assert the Path public surface");
+assert(typeTests.includes("RootPath"), "type tests must assert root Path class typing");
 assert(typeTests.includes("new Path(\"/OPS/Text/chapter.xhtml\")"), "type tests must cover Path construction typing");
 assert(typeTests.includes("pathHelper.isAbsolute()"), "type tests must cover Path optional isAbsolute typing");
 assert(typeTests.includes("pathHelper.splitPath(\"OPS/Text/chapter.xhtml\")"), "type tests must cover Path splitPath array typing");
