@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0310
+- Why:
+  - P-0309 aligned `Annotations` root type exports, leaving `EpubCFI` as the next public parser/constructor surface with source/declaration/root parity gaps.
+  - The declaration surface already exposes `EpubCFITerminal`, `EpubCFISegment`, `EpubCFIStep`, `EpubCFIComponent`, `ParsedEpubCFI`, `EpubCFIBase`, `EpubCFIInput`, and `EpubCFIType`, but source used private `Cfi*` aliases and the package root did not expose those helper shapes consistently.
+  - Aligning these exports lets consumers type-check CFI parsing, component construction, step/terminal inspection, range/node input, base inputs, and type discrimination from the root package API before any release tag or host gate, without changing CFI parsing, stringification, range conversion, comparison, or fallback boundary handling.
+- Diff Scope:
+  - `src/epubcfi.ts`: export existing `EpubCFI` public helper type shapes and align internal CFI helper names with declaration-facing types.
+  - `src/index.ts`, `types/index.d.ts`: export root `EpubCFI` public helper types.
+  - `types/epubjs-tests.ts`: extend public root assertions for `EpubCFI` helper type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `EpubCFI` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public CFI type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/epubcfi.test.js test/browser/compat-range.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `EpubCFI` helper aliases to remain module-private instead of part of the root typed public API contract.
+
 ### P-0309
 - Why:
   - P-0308 aligned `Themes` root type exports, leaving `Annotations` as the next public rendition interaction surface with source/declaration/root parity gaps.

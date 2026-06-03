@@ -16,11 +16,11 @@
 
 ##### cfiFrom?
 
-`EpubCFIInput`
+[`EpubCFIInput`](../type-aliases/EpubCFIInput.md)
 
 ##### base?
 
-`EpubCFIBase`
+[`EpubCFIBase`](../type-aliases/EpubCFIBase.md)
 
 ##### ignoreClass?
 
@@ -34,19 +34,19 @@
 
 ### base
 
-> **base**: `EpubCFIComponent` \| `Record`\<`string`, `any`\>
+> **base**: [`EpubCFIComponent`](../interfaces/EpubCFIComponent.md) \| `Record`\<`string`, `any`\>
 
 ***
 
 ### end
 
-> **end**: `EpubCFIComponent`
+> **end**: [`EpubCFIComponent`](../interfaces/EpubCFIComponent.md)
 
 ***
 
 ### path
 
-> **path**: `EpubCFIComponent` \| `Record`\<`string`, `any`\>
+> **path**: [`EpubCFIComponent`](../interfaces/EpubCFIComponent.md) \| `Record`\<`string`, `any`\>
 
 ***
 
@@ -64,7 +64,7 @@
 
 ### start
 
-> **start**: `EpubCFIComponent`
+> **start**: [`EpubCFIComponent`](../interfaces/EpubCFIComponent.md)
 
 ***
 
@@ -76,7 +76,7 @@
 
 ### checkType()
 
-> **checkType**(`cfi`): `EpubCFIType`
+> **checkType**(`cfi`): [`EpubCFIType`](../type-aliases/EpubCFIType.md)
 
 #### Parameters
 
@@ -86,7 +86,7 @@
 
 #### Returns
 
-`EpubCFIType`
+[`EpubCFIType`](../type-aliases/EpubCFIType.md)
 
 ***
 
@@ -168,7 +168,7 @@
 
 ### fromNode()
 
-> **fromNode**(`anchor`, `base`, `ignoreClass?`): `ParsedEpubCFI`
+> **fromNode**(`anchor`, `base`, `ignoreClass?`): [`ParsedEpubCFI`](../interfaces/ParsedEpubCFI.md)
 
 #### Parameters
 
@@ -178,7 +178,7 @@
 
 ##### base
 
-`EpubCFIBase`
+[`EpubCFIBase`](../type-aliases/EpubCFIBase.md)
 
 ##### ignoreClass?
 
@@ -186,13 +186,13 @@
 
 #### Returns
 
-`ParsedEpubCFI`
+[`ParsedEpubCFI`](../interfaces/ParsedEpubCFI.md)
 
 ***
 
 ### fromRange()
 
-> **fromRange**(`range`, `base`, `ignoreClass?`): `ParsedEpubCFI`
+> **fromRange**(`range`, `base`, `ignoreClass?`): [`ParsedEpubCFI`](../interfaces/ParsedEpubCFI.md)
 
 #### Parameters
 
@@ -202,7 +202,7 @@
 
 ##### base
 
-`EpubCFIBase`
+[`EpubCFIBase`](../type-aliases/EpubCFIBase.md)
 
 ##### ignoreClass?
 
@@ -210,7 +210,7 @@
 
 #### Returns
 
-`ParsedEpubCFI`
+[`ParsedEpubCFI`](../interfaces/ParsedEpubCFI.md)
 
 ***
 
@@ -326,7 +326,7 @@
 
 ##### steps?
 
-`EpubCFIStep`[]
+[`EpubCFIStep`](../interfaces/EpubCFIStep.md)[]
 
 #### Returns
 
@@ -336,7 +336,7 @@
 
 ### parse()
 
-> **parse**(`cfiStr`): `ParsedEpubCFI` \| \{ `spinePos`: `number`; \}
+> **parse**(`cfiStr`): [`ParsedEpubCFI`](../interfaces/ParsedEpubCFI.md) \| \{ `spinePos`: `number`; \}
 
 #### Parameters
 
@@ -346,13 +346,13 @@
 
 #### Returns
 
-`ParsedEpubCFI` \| \{ `spinePos`: `number`; \}
+[`ParsedEpubCFI`](../interfaces/ParsedEpubCFI.md) \| \{ `spinePos`: `number`; \}
 
 ***
 
 ### parseComponent()
 
-> **parseComponent**(`componentStr`): `EpubCFIComponent`
+> **parseComponent**(`componentStr`): [`EpubCFIComponent`](../interfaces/EpubCFIComponent.md)
 
 #### Parameters
 
@@ -362,13 +362,13 @@
 
 #### Returns
 
-`EpubCFIComponent`
+[`EpubCFIComponent`](../interfaces/EpubCFIComponent.md)
 
 ***
 
 ### parseStep()
 
-> **parseStep**(`stepStr`): `EpubCFIStep`
+> **parseStep**(`stepStr`): [`EpubCFIStep`](../interfaces/EpubCFIStep.md)
 
 #### Parameters
 
@@ -378,13 +378,13 @@
 
 #### Returns
 
-`EpubCFIStep`
+[`EpubCFIStep`](../interfaces/EpubCFIStep.md)
 
 ***
 
 ### parseTerminal()
 
-> **parseTerminal**(`termialStr`): `EpubCFITerminal`
+> **parseTerminal**(`termialStr`): [`EpubCFITerminal`](../interfaces/EpubCFITerminal.md)
 
 #### Parameters
 
@@ -394,7 +394,7 @@
 
 #### Returns
 
-`EpubCFITerminal`
+[`EpubCFITerminal`](../interfaces/EpubCFITerminal.md)
 
 ***
 

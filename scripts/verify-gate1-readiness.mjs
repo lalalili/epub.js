@@ -263,9 +263,14 @@ assert(typeTests.includes("ePub.utils.requestAnimationFrame"), "type tests must 
 assert(typeTests.includes("ePub.utils.createBlob(coreBlobContent, \"text/plain\")"), "type tests must cover utils/core blob content typing");
 assert(typeTests.includes("new ePub.utils.RangeObject()"), "type tests must cover utils/core RangeObject typing");
 assert(typeTests.includes("type EpubCFIAssertions"), "type tests must assert the EpubCFI public surface");
+assert(typeTests.includes("RootParsedEpubCFI"), "type tests must assert root EpubCFI type exports");
 assert(typeTests.includes("cfi.parse(\"epubcfi(/6/2[cover]!/6)\")"), "type tests must cover EpubCFI parse typing");
 assert(typeTests.includes("cfi.checkType(\"epubcfi(/6/2[cover]!/6)\")"), "type tests must cover EpubCFI checkType typing");
 assert(typeTests.includes("cfi.fromRange(parsedDocument.createRange(), cfiBase)"), "type tests must cover EpubCFI range construction typing");
+assert(
+	sourceRoot.includes("ParsedEpubCFI") && sourceRoot.includes("EpubCFISegment") && sourceRoot.includes("EpubCFIInput"),
+	"source root must export EpubCFI public types"
+);
 
 assert(globalTypeTests.includes("const book = ePub("), "global namespace tests must cover callable ePub");
 assert(globalTypeTests.includes("ePub.VERSION"), "global namespace tests must cover ePub.VERSION");

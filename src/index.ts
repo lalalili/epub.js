@@ -59,6 +59,17 @@ export type {
 } from "./book";
 
 export type {
+	EpubCFIBase,
+	EpubCFIComponent,
+	EpubCFIInput,
+	EpubCFISegment,
+	EpubCFIStep,
+	EpubCFITerminal,
+	EpubCFIType,
+	ParsedEpubCFI
+} from "./epubcfi";
+
+export type {
 	ContainerDocument,
 	default as Container
 } from "./container";
