@@ -111,6 +111,10 @@ assert(typeTests.includes("type ThemesAssertions"), "type tests must assert the 
 assert(typeTests.includes("new Themes(themesRendition)"), "type tests must cover Themes construction typing");
 assert(typeTests.includes("themes.register(\"night\", themeRules)"), "type tests must cover Themes rule registration typing");
 assert(typeTests.includes("themes.removeOverride(\"font-size\")"), "type tests must cover Themes override removal typing");
+assert(typeTests.includes("type AnnotationsAssertions"), "type tests must assert the Annotations public surface");
+assert(typeTests.includes("new Annotations(annotationsRendition)"), "type tests must cover Annotations construction typing");
+assert(typeTests.includes("annotations.highlight(\"epubcfi"), "type tests must cover Annotations highlight typing");
+assert(typeTests.includes("annotations.remove(\"epubcfi"), "type tests must cover Annotations removal typing");
 assert(typeTests.includes("type ResourcesAssertions"), "type tests must assert the Resources public surface");
 assert(typeTests.includes("new Resources(resourceManifest, resourceOptions)"), "type tests must cover Resources options typing");
 assert(typeTests.includes("resources.get(\"Images/cover.jpg\")"), "type tests must cover Resources get replacement typing");

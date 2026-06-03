@@ -1,4 +1,12 @@
 import ePub, { Book, Contents, EpubCFI, Layout, Rendition, request } from '../';
+import Annotations, {
+  Annotation,
+  AnnotationData,
+  AnnotationsRendition,
+  AnnotationStyles,
+  AnnotationView,
+  SectionAnnotationMap,
+} from './annotations';
 import Archive, { ArchiveInput, ArchiveRequestType, ArchiveUrlOptions, ArchiveZip } from './archive';
 import type { BookOptions } from './book';
 import type { ViewportSettings } from './contents';
@@ -323,6 +331,34 @@ type ThemesAssertions = [
   Assert<IsExact<ReturnType<Themes["destroy"]>, void>>
 ];
 
+type AnnotationsAssertions = [
+  Assert<IsExact<ConstructorParameters<typeof Annotations>, [rendition: AnnotationsRendition]>>,
+  Assert<IsExact<Annotations["rendition"], AnnotationsRendition>>,
+  Assert<IsExact<Annotations["highlights"], Annotation[]>>,
+  Assert<IsExact<Annotations["underlines"], Annotation[]>>,
+  Assert<IsExact<Annotations["marks"], Annotation[]>>,
+  Assert<IsExact<Annotations["_annotations"], Record<string, Annotation>>>,
+  Assert<IsExact<Annotations["_annotationsBySectionIndex"], SectionAnnotationMap>>,
+  Assert<IsExact<ReturnType<Annotations["add"]>, Annotation>>,
+  Assert<IsExact<ReturnType<Annotations["remove"]>, void>>,
+  Assert<IsExact<ReturnType<Annotations["_removeFromAnnotationBySectionIndex"]>, void>>,
+  Assert<IsExact<ReturnType<Annotations["_annotationsAt"]>, string[]>>,
+  Assert<IsExact<ReturnType<Annotations["highlight"]>, Annotation>>,
+  Assert<IsExact<ReturnType<Annotations["underline"]>, Annotation>>,
+  Assert<IsExact<ReturnType<Annotations["mark"]>, Annotation>>,
+  Assert<IsExact<ReturnType<Annotations["each"]>, any>>,
+  Assert<IsExact<ReturnType<Annotations["inject"]>, void>>,
+  Assert<IsExact<ReturnType<Annotations["clear"]>, void>>,
+  Assert<IsExact<ReturnType<Annotations["show"]>, void>>,
+  Assert<IsExact<ReturnType<Annotations["hide"]>, void>>,
+  Assert<IsExact<Annotation["type"], string>>,
+  Assert<IsExact<Annotation["data"], AnnotationData | undefined>>,
+  Assert<IsExact<ReturnType<Annotation["update"]>, void>>,
+  Assert<IsExact<ReturnType<Annotation["attach"]>, any>>,
+  Assert<IsExact<ReturnType<Annotation["detach"]>, any>>,
+  Assert<IsExact<ReturnType<Annotation["text"]>, void>>
+];
+
 type ResourcesAssertions = [
   Assert<IsExact<ConstructorParameters<typeof Resources>, [manifest: ResourceManifest | PackagingManifestObject, options?: ResourceOptions | undefined]>>,
   Assert<IsExact<Resources["settings"], ResourceSettings | undefined>>,
@@ -616,6 +652,40 @@ function testEpub() {
   themes.overrides(themesContent);
   themes.fontSize("120%");
   themes.font("serif");
+  const annotationView: AnnotationView = {
+    index: 1,
+    highlight: () => ({ type: "highlight" }),
+    mark: () => ({ type: "mark" }),
+    underline: () => ({ type: "underline" }),
+    unhighlight: () => undefined,
+    unmark: () => undefined,
+    ununderline: () => undefined,
+  };
+  const annotationsRendition: AnnotationsRendition = {
+    hooks: {
+      render: {
+        register: () => undefined,
+      },
+      unloaded: {
+        register: () => undefined,
+      },
+    },
+    views: () => [annotationView],
+  };
+  const annotations = new Annotations(annotationsRendition);
+  const annotationData: AnnotationData = { note: "important" };
+  const annotationStyles: AnnotationStyles = { fill: "yellow" };
+  const highlightAnnotation: Annotation = annotations.highlight("epubcfi(/6/4[chapter-1]!/4/2,/1:0,/1:10)", annotationData, () => undefined, "epubjs-hl", annotationStyles);
+  const underlineAnnotation: Annotation = annotations.underline("epubcfi(/6/4[chapter-1]!/4/2,/1:0,/1:10)");
+  const markAnnotation: Annotation = annotations.mark("epubcfi(/6/4[chapter-1]!/4/2,/1:0,/1:10)", annotationData);
+  const annotationHashes: string[] = annotations._annotationsAt(1);
+  annotations.inject(annotationView);
+  annotations.clear(annotationView);
+  annotations.remove("epubcfi(/6/4[chapter-1]!/4/2,/1:0,/1:10)", "mark");
+  markAnnotation.update({ newer: true });
+  markAnnotation.on("attach", () => undefined);
+  const attachedMark: any = highlightAnnotation.attach(annotationView);
+  const detachedMark: any = underlineAnnotation.detach(annotationView);
   const resourceManifest: ResourceManifest = {
     chapter: {
       href: "Text/chapter.xhtml",
@@ -779,6 +849,10 @@ function testEpub() {
   void mappingSection;
   void mappingAxis;
   void themes;
+  void annotations;
+  void annotationHashes;
+  void attachedMark;
+  void detachedMark;
   void resourceUrl;
   void resourceReplacements;
   void resourceCssReplacements;
@@ -813,6 +887,7 @@ type _PageListAssertions = PageListAssertions;
 type _LocationsAssertions = LocationsAssertions;
 type _MappingAssertions = MappingAssertions;
 type _ThemesAssertions = ThemesAssertions;
+type _AnnotationsAssertions = AnnotationsAssertions;
 type _ResourcesAssertions = ResourcesAssertions;
 type _StoreAssertions = StoreAssertions;
 

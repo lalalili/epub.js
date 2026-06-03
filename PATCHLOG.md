@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0277
+- Why:
+  - P-0276 aligned `Themes` declarations with runtime behavior, leaving `Annotations` as the next Rendition-owned typed public API gap.
+  - `Annotations` is already TypeScript source, but its declaration still required a full `Rendition`, hid runtime annotation/view/rendition shapes, returned `void` from `highlight()` / `underline()` / `mark()`, omitted exported `Annotation`, and kept hook helpers private despite browser coverage exercising them.
+  - Aligning `Annotations` declarations lets consumers type-check annotation storage, section-index lookup, visible-view attach/detach, render/unloaded hook injection, evented annotation objects, data updates, and removal behavior before any release tag or host gate.
+- Diff Scope:
+  - `types/annotations.d.ts`: align annotation/rendition/view/data/style shapes, public state fields, helper methods, annotation return values, exported `Annotation`, event methods, attach/detach, and hook helpers with the TypeScript source behavior.
+  - `types/epubjs-tests.ts`: add `AnnotationsAssertions` plus concrete hook-compatible rendition, highlight/underline/mark, section lookup, inject/clear, remove, update, and event/attach/detach typing checks.
+  - `scripts/verify-gate1-readiness.mjs`: require the Annotations typed public API assertions and construction/highlight/removal coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/annotations.test.js test/browser/rendition.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `Annotations` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0276
 - Why:
   - P-0275 aligned `Layout` declarations with runtime behavior, leaving `Themes` as the next low-risk Rendition-owned typed public API gap.

@@ -1,53 +1,107 @@
-import Rendition from "./rendition";
-import View from "./managers/view";
+export type AnnotationType = "highlight" | "underline" | "mark" | string;
 
-export default class Annotations {
-  constructor(rendition: Rendition);
+export type AnnotationCallback = (...args: any[]) => void;
 
-  add(type: string, cfiRange: string, data?: object, cb?: Function, className?: string, styles?: object): Annotation;
+export type AnnotationData = Record<string, any>;
 
-  remove(cfiRange: string, type: string): void;
+export type AnnotationStyles = Record<string, string>;
 
-  highlight(cfiRange: string, data?: object, cb?: Function, className?: string, styles?: object): void;
+export type AnnotationMap = Record<string, Annotation>;
 
-	underline(cfiRange: string, data?: object, cb?: Function, className?: string, styles?: object): void;
+export type SectionAnnotationMap = Record<number, string[]>;
 
-	mark(cfiRange: string, data?: object, cb?: Function): void;
-
-  each(): Array<Annotation>
-
-  private _removeFromAnnotationBySectionIndex(sectionIndex: number, hash: string): void;
-
-  private _annotationsAt(index: number): void;
-
-  private inject(view: View): void;
-
-  private clear(view: View): void;
+export interface AnnotationView {
+  index: number;
+  highlight(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): any;
+  mark(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback): any;
+  underline(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): any;
+  unhighlight(cfiRange: string): any;
+  unmark(cfiRange: string): any;
+  ununderline(cfiRange: string): any;
 }
 
-declare class Annotation {
-  constructor(options: {
-		type: string,
-		cfiRange: string,
-		data?: object,
-		sectionIndex?: number,
-		cb?: Function,
-		className?: string,
-		styles?: object
-	});
+export interface AnnotationsRendition {
+  hooks: {
+    render: {
+      register(callback: (view: AnnotationView) => void): void;
+    };
+    unloaded: {
+      register(callback: (view: AnnotationView) => void): void;
+    };
+  };
+  views(): AnnotationView[];
+}
 
-  update(data: object): void;
+export interface AnnotationOptions {
+  type: AnnotationType;
+  cfiRange: string;
+  data?: AnnotationData;
+  sectionIndex: number;
+  cb?: AnnotationCallback;
+  className?: string;
+  styles?: AnnotationStyles;
+}
 
-  attach(view: View): any;
+export default class Annotations {
+  constructor(rendition: AnnotationsRendition);
 
-  detach(view: View): any;
+  rendition: AnnotationsRendition;
+  highlights: Annotation[];
+  underlines: Annotation[];
+  marks: Annotation[];
+  _annotations: AnnotationMap;
+  _annotationsBySectionIndex: SectionAnnotationMap;
 
-  // Event emitters
-  emit(type: any, ...args: any[]): void;
+  add(type: AnnotationType, cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): Annotation;
 
-  off(type: any, listener: any): any;
+  remove(cfiRange: string, type: AnnotationType): void;
 
-  on(type: any, listener: any): any;
+  _removeFromAnnotationBySectionIndex(sectionIndex: number, hash: string): void;
 
-  once(type: any, listener: any, ...args: any[]): any;
+  _annotationsAt(index: number): string[];
+
+  highlight(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): Annotation;
+
+  underline(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): Annotation;
+
+  mark(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback): Annotation;
+
+  each(...args: any[]): any;
+
+  inject(view: AnnotationView): void;
+
+  clear(view: AnnotationView): void;
+
+  show(): void;
+
+  hide(): void;
+}
+
+export class Annotation {
+  constructor(options: AnnotationOptions);
+
+  type: AnnotationType;
+  cfiRange: string;
+  data: AnnotationData | undefined;
+  sectionIndex: number;
+  mark: any;
+  cb: AnnotationCallback | undefined;
+  className: string | undefined;
+  styles: AnnotationStyles | undefined;
+
+  update(data: AnnotationData): void;
+
+  attach(view: AnnotationView): any;
+
+  detach(view?: AnnotationView): any;
+
+  text(): void;
+
+  emit(type: string, ...args: any[]): void;
+
+  off(type: string, listener: (...args: any[]) => void): unknown;
+
+  on(type: string, listener: (...args: any[]) => void): unknown;
+
+  once(type: string, listener: (...args: any[]) => void): unknown;
 }
