@@ -148,6 +148,10 @@ assert(typeTests.includes("new Store(\"epubjs-type-store\", storeRequest, storeR
 assert(typeTests.includes("store.createUrl(\"/OPS/images/cover.jpg\", storeUrlOptions)"), "type tests must cover Store createUrl optional options typing");
 assert(typeTests.includes("RequestMethod"), "type tests must assert request method typing");
 assert(typeTests.includes("InstanceType<typeof ePub.utils.defer"), "type tests must assert generic defer typing");
+assert(typeTests.includes("type CoreUtilsAssertions"), "type tests must assert the utils/core public surface");
+assert(typeTests.includes("ePub.utils.requestAnimationFrame"), "type tests must cover utils/core requestAnimationFrame typing");
+assert(typeTests.includes("ePub.utils.createBlob(coreBlobContent, \"text/plain\")"), "type tests must cover utils/core blob content typing");
+assert(typeTests.includes("new ePub.utils.RangeObject()"), "type tests must cover utils/core RangeObject typing");
 assert(typeTests.includes("type EpubCFIAssertions"), "type tests must assert the EpubCFI public surface");
 assert(typeTests.includes("cfi.parse(\"epubcfi(/6/2[cover]!/6)\")"), "type tests must cover EpubCFI parse typing");
 assert(typeTests.includes("cfi.checkType(\"epubcfi(/6/2[cover]!/6)\")"), "type tests must cover EpubCFI checkType typing");

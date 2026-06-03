@@ -1,4 +1,24 @@
+import { RangeObject as CompatRangeObject } from "../compat/range";
+
+export type AnimationFrameRequest = (callback: FrameRequestCallback) => number;
+
+export type BlobContent = BlobPart[] | BlobPart | string | ArrayBuffer | ArrayBufferView;
+
+export interface SizeBounds {
+  width: number,
+  height: number
+}
+
+export interface RectBounds extends SizeBounds {
+  top: number,
+  left: number,
+  right: number,
+  bottom: number
+}
+
 export function uuid(): string;
+
+export const requestAnimationFrame: AnimationFrameRequest | false;
 
 export function documentHeight(): number;
 
@@ -16,9 +36,9 @@ export const defer: {
 
 export function isElement(obj: unknown): obj is Element;
 
-export function isNumber(n: any): boolean;
+export function isNumber(n: unknown): boolean;
 
-export function isFloat(n: any): boolean;
+export function isFloat(n: unknown): boolean;
 
 export function prefixed(unprefixed: string): string;
 
@@ -32,13 +52,13 @@ export function locationOf<T>(item: T, array: Array<T>, compareFunction?: (a: T,
 
 export function indexOfSorted<T>(item: T, array: Array<T>, compareFunction?: (a: T, b: T) => number | undefined, _start?: number, _end?: number): number;
 
-export function bounds(el: Element): { width: Number, height: Number};
+export function bounds(el: Element): SizeBounds;
 
-export function borders(el: Element): { width: Number, height: Number};
+export function borders(el: Element): SizeBounds;
 
 export function nodeBounds(node: Node): DOMRect;
 
-export function windowBounds(): { width: Number, height: Number, top: Number, left: Number, right: Number, bottom: Number };
+export function windowBounds(): RectBounds;
 
 export function indexOfNode(node: Node, typeId: number): number;
 
@@ -48,13 +68,13 @@ export function indexOfElementNode(elementNode: Element): number;
 
 export function isXml(ext: string): boolean;
 
-export function createBlob(content: any, mime: string): Blob;
+export function createBlob(content: BlobContent, mime: string): Blob;
 
-export function createBlobUrl(content: any, mime: string): string;
+export function createBlobUrl(content: BlobContent, mime: string): string;
 
 export function revokeBlobUrl(url: string): void;
 
-export function createBase64Url(content: any, mime: string): string
+export function createBase64Url(content: string, mime: string): string;
 
 export function type(obj: unknown): string;
 
@@ -62,7 +82,7 @@ export function parse(markup: string, mime: string, forceXMLDom?: boolean): Docu
 
 export function qs(el: Element | Document | null | undefined, sel: string): Element | null | undefined;
 
-export function qsa(el: Element | Document, sel: string): ArrayLike<Element>;
+export function qsa(el: Element | Document, sel: string): NodeListOf<Element> | HTMLCollectionOf<Element>;
 
 export function qsp(el: Element | Document, sel: string, props: Record<string, string>): Element | null | undefined;
 
@@ -85,6 +105,6 @@ export function filterChildren(el: Element, nodeName: string, single?: false): A
 
 export function getParentByTagName(node: Element | null, tagname: string): Element | undefined;
 
-export class RangeObject extends Range {
+export class RangeObject extends CompatRangeObject {
 
 }

@@ -64,6 +64,7 @@ import Section, { LayoutSettings, SectionHookSet, SectionSearchResult, SpineItem
 import Spine, { SpineLookup, SpineManifestItem, SpinePackage, SpinePackageItem, SpineResolver } from './spine';
 import Store, { StoreData, StoreHeaders, StoreRequest, StoreRequestType, StoreResources, StoreResolver, StoreStorage, StoreUrlOptions } from './store';
 import Themes, { ThemeInput, ThemeOverride, ThemeRules, ThemesContent, ThemesRendition } from './themes';
+import { AnimationFrameRequest, BlobContent, RangeObject as CoreRangeObject, RectBounds, SizeBounds } from './utils/core';
 import { JsonValue, RequestHeaders, RequestMethod, RequestResponse } from './utils/request';
 
 type Assert<T extends true> = T;
@@ -82,6 +83,18 @@ type PublicRootAssertions = [
   Assert<IsExact<typeof request, RequestMethod>>,
   Assert<IsExact<ReturnType<typeof ePub.utils.uuid>, string>>,
   Assert<IsExact<InstanceType<typeof ePub.utils.defer<string>>["promise"], Promise<string>>>
+];
+
+type CoreUtilsAssertions = [
+  Assert<IsExact<typeof ePub.utils.requestAnimationFrame, AnimationFrameRequest | false>>,
+  Assert<IsExact<ReturnType<typeof ePub.utils.bounds>, SizeBounds>>,
+  Assert<IsExact<ReturnType<typeof ePub.utils.borders>, SizeBounds>>,
+  Assert<IsExact<ReturnType<typeof ePub.utils.windowBounds>, RectBounds>>,
+  Assert<IsExact<Parameters<typeof ePub.utils.createBlob>[0], BlobContent>>,
+  Assert<IsExact<Parameters<typeof ePub.utils.createBlobUrl>[0], BlobContent>>,
+  Assert<IsExact<Parameters<typeof ePub.utils.createBase64Url>, [content: string, mime: string]>>,
+  Assert<IsExact<InstanceType<typeof ePub.utils.RangeObject>, CoreRangeObject>>,
+  Assert<IsExact<ReturnType<typeof ePub.utils.qsa>, NodeListOf<Element> | HTMLCollectionOf<Element>>>
 ];
 
 type CoreClassAssertions = [
@@ -617,6 +630,16 @@ function testEpub() {
   const uuid: string = ePub.utils.uuid();
   const deferred = new ePub.utils.defer<string>();
   const parsedDocument: Document = ePub.utils.parse("<html><body><p>Text</p></body></html>", "text/html");
+  const animationFrame: AnimationFrameRequest | false = ePub.utils.requestAnimationFrame;
+  const coreBounds: SizeBounds = ePub.utils.bounds(parsedDocument.documentElement);
+  const coreBorders: SizeBounds = ePub.utils.borders(parsedDocument.documentElement);
+  const coreWindowBounds: RectBounds = ePub.utils.windowBounds();
+  const coreBlobContent: BlobContent = "Text";
+  const coreBlob: Blob = ePub.utils.createBlob(coreBlobContent, "text/plain");
+  const coreBlobUrl: string = ePub.utils.createBlobUrl(coreBlobContent, "text/plain");
+  const coreBase64Url: string = ePub.utils.createBase64Url("Text", "text/plain");
+  const coreRangeObject: CoreRangeObject = new ePub.utils.RangeObject();
+  const coreQueryAll: NodeListOf<Element> | HTMLCollectionOf<Element> = ePub.utils.qsa(parsedDocument, "p");
   const nodeCfiInput: EpubCFIInput = parsedDocument.documentElement;
   const nodeCfi: ParsedEpubCFI = cfi.fromNode(nodeCfiInput as Node, cfiBase);
   const rangeCfi: ParsedEpubCFI = cfi.fromRange(parsedDocument.createRange(), cfiBase);
@@ -1005,6 +1028,15 @@ function testEpub() {
   void nodeCfiInput;
   void nodeCfi;
   void rangeCfi;
+  void animationFrame;
+  void coreBounds;
+  void coreBorders;
+  void coreWindowBounds;
+  void coreBlob;
+  void coreBlobUrl;
+  void coreBase64Url;
+  void coreRangeObject;
+  void coreQueryAll;
   void layout;
   void defaultLayout;
   void layoutFlow;
@@ -1133,6 +1165,7 @@ function testEpub() {
 }
 
 type _PublicRootAssertions = PublicRootAssertions;
+type _CoreUtilsAssertions = CoreUtilsAssertions;
 type _CoreClassAssertions = CoreClassAssertions;
 type _EpubCFIAssertions = EpubCFIAssertions;
 type _LayoutAssertions = LayoutAssertions;

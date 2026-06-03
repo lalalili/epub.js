@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0286
+- Why:
+  - P-0285 aligned the high-value `EpubCFI` declarations, leaving the root `ePub.utils` / `utils/core` facade as a small but visible typed public API gap.
+  - `utils/core` is already TypeScript source and Browser Mode-covered, but its declarations omitted `requestAnimationFrame`, kept blob helper content as `any`, used boxed `Number` bounds, exposed `qsa()` as a generic `ArrayLike`, and declared the lightweight `RangeObject` as a DOM `Range` subclass instead of the compat range object.
+  - Aligning these helper declarations lets consumers type-check the legacy utils facade, browser animation-frame availability, blob URL helpers, layout bounds, query helpers, and compat range construction before any release tag or host gate.
+- Diff Scope:
+  - `types/utils/core.d.ts`, `types/core.d.ts`: add core helper types, expose `requestAnimationFrame`, tighten blob and bounds helpers, align `qsa()`, and declare `RangeObject` against `types/compat/range.d.ts`.
+  - `types/epubjs-tests.ts`: add `CoreUtilsAssertions` plus concrete root `ePub.utils` checks for animation frame, bounds, blob helpers, `RangeObject`, and `qsa()`.
+  - `scripts/verify-gate1-readiness.mjs`: require the utils/core typed public API assertions and helper coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/core.test.js test/browser/core-facade.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older looser `utils/core` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0285
 - Why:
   - P-0284 aligned `Hook` declarations with runtime behavior, leaving `EpubCFI` as the next high-value typed public API gap.
