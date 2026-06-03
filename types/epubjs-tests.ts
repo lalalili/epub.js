@@ -829,6 +829,7 @@ type MappingAssertions = [
   Assert<IsExact<Mapping["_dev"], boolean>>,
   Assert<IsExact<ReturnType<Mapping["section"]>, EpubCFIPair[]>>,
   Assert<IsExact<ReturnType<Mapping["page"]>, EpubCFIPair | undefined>>,
+  Assert<IsExact<ReturnType<Mapping["walk"]>, ReturnType<MappingTextNodeWalker>>>,
   Assert<IsExact<ReturnType<Mapping["findRanges"]>, RangePair[]>>,
   Assert<IsExact<ReturnType<Mapping["findStart"]>, Range>>,
   Assert<IsExact<ReturnType<Mapping["findEnd"]>, Range>>,

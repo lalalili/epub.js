@@ -262,6 +262,7 @@ assert(typeTests.includes("locations.parseWords"), "type tests must cover Locati
 assert(typeTests.includes("type MappingAssertions"), "type tests must assert the Mapping public surface");
 assert(typeTests.includes("new Mapping(mappingLayout"), "type tests must cover Mapping construction typing");
 assert(typeTests.includes("mapping.page(mappingContents"), "type tests must cover Mapping page typing");
+assert(typeTests.includes("ReturnType<Mapping[\"walk\"]>"), "type tests must cover Mapping walk callback return typing");
 assert(typeTests.includes("mapping.rangePairToCfiPair"), "type tests must cover Mapping range-to-CFI typing");
 assert(typeTests.includes("type ThemesAssertions"), "type tests must assert the Themes public surface");
 assert(typeTests.includes("new Themes(themesRendition)"), "type tests must cover Themes construction typing");

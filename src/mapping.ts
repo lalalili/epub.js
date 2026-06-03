@@ -63,7 +63,7 @@ class Mapping {
 	/**
 	 * Find CFI pairs for entire section at once
 	 */
-	section(view: MappingView) {
+	section(view: MappingView): EpubCFIPair[] {
 		var ranges = this.findRanges(view);
 		var map = this.rangeListToCfiList(view.section.cfiBase, ranges);
 
@@ -113,7 +113,7 @@ class Mapping {
 	 * @param {function} func walk function
 	 * @return {*} returns the result of the walk function
 	 */
-	walk(root: Node, func: MappingTextNodeWalker) {
+	walk(root: Node, func: MappingTextNodeWalker): ReturnType<MappingTextNodeWalker> {
 		// IE11 has strange issue, if root is text node IE throws exception on
 		// calling treeWalker.nextNode(), saying
 		// Unexpected call to method or property access instead of returning null value

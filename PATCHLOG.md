@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0326
+- Why:
+  - P-0325 aligned the `LayoutContent` bridge returns, leaving `Mapping` with a smaller source/declaration parity gap on public method return annotations.
+  - Declarations already expose `Mapping.section()` as returning CFI pairs and `Mapping.walk()` as returning the walker callback result shape, but source still relied on inference for both public methods.
+  - Adding source annotations keeps Mapping source, declarations, and Gate 1 readiness pointed at the same public mapping contract before any release tag or host gate, without changing page mapping, text walking, range splitting, or CFI pair generation behavior.
+- Diff Scope:
+  - `src/mapping.ts`: add declaration-facing return annotations for `section()` and `walk()`.
+  - `types/epubjs-tests.ts`: extend Mapping assertions for walker callback return typing.
+  - `scripts/verify-gate1-readiness.mjs`: require Mapping walk return type smoke coverage.
+  - `documentation/md/*`: rerun TypeDoc to confirm the source annotation update does not change the rendered public markdown surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/mapping.test.js test/browser/epubcfi.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require Mapping public method return contracts to remain inference-only instead of matching the declaration contract.
+
 ### P-0325
 - Why:
   - P-0324 aligned the `ThemesContent` bridge returns, leaving `LayoutContent` with the same class of public bridge methods still typed as `unknown`.
