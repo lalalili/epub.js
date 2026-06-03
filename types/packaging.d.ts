@@ -46,6 +46,8 @@ export interface PackagingManifestObject {
   [key: string]: PackagingManifestItem
 }
 
+export type PackagingManifest = PackagingManifestObject;
+
 export interface PackagingTocItem {
   href?: string,
   title?: string,

@@ -1,4 +1,4 @@
-import { PackagingManifestObject } from "./packaging";
+import { PackagingManifest } from "./packaging";
 import Archive from "./archive";
 
 export interface ResourceManifestItem {
@@ -37,7 +37,7 @@ export interface ResourceSettings {
 }
 
 export default class Resources {
-  constructor(manifest: ResourceManifest | PackagingManifestObject, options?: ResourceOptions);
+  constructor(manifest: ResourceManifest | PackagingManifest, options?: ResourceOptions);
 
   settings?: ResourceSettings;
   manifest?: ResourceManifest;
@@ -49,7 +49,7 @@ export default class Resources {
   urls?: Array<string>;
   cssUrls?: Array<string>;
 
-  process(manifest: ResourceManifest | PackagingManifestObject): void;
+  process(manifest: ResourceManifest | PackagingManifest): void;
 
   split(): void;
 

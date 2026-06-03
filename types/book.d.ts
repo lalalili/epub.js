@@ -1,5 +1,5 @@
 import {
-  PackagingManifestObject,
+  PackagingManifest,
   PackagingMetadata
 } from "./packaging";
 import Rendition, { RenditionOptions } from "./rendition";
@@ -35,7 +35,7 @@ export interface BookOptions {
 export interface BookLoading {
   metadata: Deferred<PackagingMetadata>;
   spine: Deferred<Spine>;
-  manifest: Deferred<PackagingManifestObject>;
+  manifest: Deferred<PackagingManifest>;
   cover: Deferred<string | undefined>;
   navigation: Deferred<Navigation>;
   pageList: Deferred<PageList | undefined>;
@@ -46,7 +46,7 @@ export interface BookLoading {
 export interface BookLoaded {
   metadata: Promise<PackagingMetadata>;
   spine: Promise<Spine>;
-  manifest: Promise<PackagingManifestObject>;
+  manifest: Promise<PackagingManifest>;
   cover: Promise<string | undefined>;
   navigation: Promise<Navigation>;
   pageList: Promise<PageList | undefined>;

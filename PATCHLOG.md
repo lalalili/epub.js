@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0321
+- Why:
+  - P-0320 aligned `PackagingMetadata`, leaving `PackagingManifest` as the matching source alias still missing from declarations and package-root exports.
+  - Source already exposes `PackagingManifest` as the alias used by `Packaging`, `Book`, and `Resources` runtime type state, but declarations and root exports only exposed `PackagingManifestObject`.
+  - Aligning the alias lets consumers type-check manifest maps, `Book.loading` / `Book.loaded` manifest state, and `Resources` package-manifest inputs from the same root public API contract before any release tag or host gate, without changing OPF manifest parsing, resource splitting, book loading, or package processing behavior.
+- Diff Scope:
+  - `types/packaging.d.ts`, `types/book.d.ts`, `types/resources.d.ts`: expose `PackagingManifest` and use it for Book manifest state and Resources package-manifest inputs.
+  - `src/index.ts`, `types/index.d.ts`: export root `PackagingManifest`.
+  - `types/epubjs-tests.ts`: extend public root, Book, Packaging, and Resources manifest assertions.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `PackagingManifest` and Book manifest type smoke coverage.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public manifest alias surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/packaging.test.js test/browser/resources.test.js test/browser/book.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require manifest typing to remain available only through `PackagingManifestObject` instead of the source alias.
+
 ### P-0320
 - Why:
   - P-0319 aligned `Archive` source overloads, leaving `PackagingMetadata` as a small source/declaration/root parity gap on the package metadata surface.

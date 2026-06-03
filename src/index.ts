@@ -206,6 +206,7 @@ export type {
 
 export type {
 	PackagingJsonManifest,
+	PackagingManifest,
 	PackagingManifestItem,
 	PackagingManifestObject,
 	PackagingMetadata,

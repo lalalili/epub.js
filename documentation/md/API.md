@@ -139,6 +139,7 @@
 - [MappingTextNodeWalker](type-aliases/MappingTextNodeWalker.md)
 - [NavigationDocument](type-aliases/NavigationDocument.md)
 - [NavigationInput](type-aliases/NavigationInput.md)
+- [PackagingManifest](type-aliases/PackagingManifest.md)
 - [PackagingMetadata](type-aliases/PackagingMetadata.md)
 - [PageListDocument](type-aliases/PageListDocument.md)
 - [PageLookup](type-aliases/PageLookup.md)

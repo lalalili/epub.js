@@ -84,6 +84,8 @@ assert(typeTests.includes("ePub(rootOptions)"), "type tests must cover root opti
 assert(sourceRoot.includes("BookLoaded") && sourceRoot.includes("BookLoading"), "source root must export Book loaded/loading types");
 assert(typeTests.includes("BookLoading[\"metadata\"]"), "type tests must assert Book loading metadata typing");
 assert(typeTests.includes("BookLoaded[\"metadata\"]"), "type tests must assert Book loaded metadata typing");
+assert(typeTests.includes("BookLoading[\"manifest\"]"), "type tests must assert Book loading manifest typing");
+assert(typeTests.includes("BookLoaded[\"manifest\"]"), "type tests must assert Book loaded manifest typing");
 assert(typeTests.includes("RootContainerDocument"), "type tests must assert root Container type exports");
 assert(
 	sourceRoot.includes("ContainerDocument") && sourceRoot.includes("default as Container"),
@@ -159,9 +161,10 @@ assert(
 	"source root must export Archive public types"
 );
 assert(typeTests.includes("RootPackagingJsonManifest"), "type tests must assert root Packaging type exports");
+assert(typeTests.includes("RootPackagingManifest"), "type tests must assert root Packaging manifest alias export");
 assert(typeTests.includes("RootPackagingMetadata"), "type tests must assert root Packaging metadata alias export");
 assert(
-	sourceRoot.includes("PackagingJsonManifest") && sourceRoot.includes("PackagingManifestObject") && sourceRoot.includes("PackagingMetadata") && sourceRoot.includes("PackagingMetadataObject"),
+	sourceRoot.includes("PackagingJsonManifest") && sourceRoot.includes("PackagingManifest") && sourceRoot.includes("PackagingManifestObject") && sourceRoot.includes("PackagingMetadata") && sourceRoot.includes("PackagingMetadataObject"),
 	"source root must export Packaging public types"
 );
 assert(typeTests.includes("type CoreClassAssertions"), "type tests must assert the core class surface");

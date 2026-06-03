@@ -96,6 +96,7 @@ import type {
   PageValue as RootPageValue,
   Packaging as RootPackaging,
   PackagingJsonManifest as RootPackagingJsonManifest,
+  PackagingManifest as RootPackagingManifest,
   PackagingManifestItem as RootPackagingManifestItem,
   PackagingManifestObject as RootPackagingManifestObject,
   PackagingMetadata as RootPackagingMetadata,
@@ -194,6 +195,7 @@ import Path, { ParsedPath } from './utils/path';
 import Url, { UrlBase } from './utils/url';
 import Packaging, {
   PackagingJsonManifest,
+  PackagingManifest,
   PackagingManifestItem,
   PackagingManifestObject,
   PackagingMetadata,
@@ -317,6 +319,7 @@ type PublicRootAssertions = [
   Assert<IsExact<RootArchiveZip, ArchiveZip>>,
   Assert<IsExact<RootPackaging, Packaging>>,
   Assert<IsExact<RootPackagingJsonManifest, PackagingJsonManifest>>,
+  Assert<IsExact<RootPackagingManifest, PackagingManifest>>,
   Assert<IsExact<RootPackagingManifestItem, PackagingManifestItem>>,
   Assert<IsExact<RootPackagingManifestObject, PackagingManifestObject>>,
   Assert<IsExact<RootPackagingMetadata, PackagingMetadata>>,
@@ -419,6 +422,8 @@ type CoreClassAssertions = [
   Assert<IsExact<Book["loaded"], BookLoaded | undefined>>,
   Assert<IsExact<BookLoading["metadata"], Deferred<PackagingMetadata>>>,
   Assert<IsExact<BookLoaded["metadata"], Promise<PackagingMetadata>>>,
+  Assert<IsExact<BookLoading["manifest"], Deferred<PackagingManifest>>>,
+  Assert<IsExact<BookLoaded["manifest"], Promise<PackagingManifest>>>,
   Assert<IsExact<Book["ready"], Promise<any[]> | undefined>>,
   Assert<IsExact<Book["isRendered"], boolean>>,
   Assert<IsExact<Book["request"], RequestMethod>>,
@@ -614,7 +619,7 @@ type ArchiveAssertions = [
 
 type PackagingAssertions = [
   Assert<IsExact<ConstructorParameters<typeof Packaging>, [packageDocument?: Document | XMLDocument | undefined]>>,
-  Assert<IsExact<Packaging["manifest"], PackagingManifestObject | undefined>>,
+  Assert<IsExact<Packaging["manifest"], PackagingManifest | undefined>>,
   Assert<IsExact<Packaging["navPath"], string | false | undefined>>,
   Assert<IsExact<Packaging["ncxPath"], string | false | undefined>>,
   Assert<IsExact<Packaging["coverPath"], string | false | undefined>>,
@@ -627,7 +632,7 @@ type PackagingAssertions = [
   Assert<IsExact<Parameters<Packaging["load"]>[0], PackagingJsonManifest>>,
   Assert<IsExact<ReturnType<Packaging["load"]>, PackagingObject>>,
   Assert<IsExact<ReturnType<Packaging["parseMetadata"]>, PackagingMetadata>>,
-  Assert<IsExact<ReturnType<Packaging["parseManifest"]>, PackagingManifestObject>>,
+  Assert<IsExact<ReturnType<Packaging["parseManifest"]>, PackagingManifest>>,
   Assert<IsExact<ReturnType<Packaging["parseSpine"]>, PackagingSpineItem[]>>,
   Assert<IsExact<ReturnType<Packaging["findUniqueIdentifier"]>, string>>,
   Assert<IsExact<ReturnType<Packaging["findNavPath"]>, string | false>>,
@@ -875,7 +880,7 @@ type AnnotationsAssertions = [
 ];
 
 type ResourcesAssertions = [
-  Assert<IsExact<ConstructorParameters<typeof Resources>, [manifest: ResourceManifest | PackagingManifestObject, options?: ResourceOptions | undefined]>>,
+  Assert<IsExact<ConstructorParameters<typeof Resources>, [manifest: ResourceManifest | PackagingManifest, options?: ResourceOptions | undefined]>>,
   Assert<IsExact<Resources["settings"], ResourceSettings | undefined>>,
   Assert<IsExact<Resources["manifest"], ResourceManifest | undefined>>,
   Assert<IsExact<Resources["resources"], ResourceManifestItem[] | undefined>>,
