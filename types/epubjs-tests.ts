@@ -4,6 +4,10 @@ import type {
   BookLoaded as RootBookLoaded,
   BookLoading as RootBookLoading,
   BookOptions as RootBookOptions,
+  Location as RootLocation,
+  ManagerLocationItem as RootManagerLocationItem,
+  RenditionLayoutProperties as RootRenditionLayoutProperties,
+  RenditionOptions as RootRenditionOptions,
 } from '../';
 import Annotations, {
   Annotation,
@@ -95,6 +99,10 @@ type PublicRootAssertions = [
   Assert<IsExact<RootBookOptions, BookOptions>>,
   Assert<IsExact<RootBookLoading, BookLoading>>,
   Assert<IsExact<RootBookLoaded, BookLoaded>>,
+  Assert<IsExact<RootRenditionOptions, RenditionOptions>>,
+  Assert<IsExact<RootRenditionLayoutProperties, RenditionLayoutProperties>>,
+  Assert<IsExact<RootLocation, Location>>,
+  Assert<IsExact<RootManagerLocationItem, ManagerLocationItem>>,
   Assert<IsExact<typeof request, RequestMethod>>,
   Assert<IsExact<ReturnType<typeof ePub.utils.uuid>, string>>,
   Assert<IsExact<InstanceType<typeof ePub.utils.defer<string>>["promise"], Promise<string>>>

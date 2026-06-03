@@ -22,3 +22,10 @@ export type {
 	BookLoading,
 	BookOptions
 } from "./book";
+
+export type {
+	LayoutProperties as RenditionLayoutProperties,
+	Location,
+	ManagerLocationItem,
+	RenditionOptions
+} from "./rendition";

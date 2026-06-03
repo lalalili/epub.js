@@ -22,7 +22,10 @@
 - [BookLoading](interfaces/BookLoading.md)
 - [BookOptions](interfaces/BookOptions.md)
 - [Location](interfaces/Location.md)
+- [ManagerLocationItem](interfaces/ManagerLocationItem.md)
 - [NavItem](interfaces/NavItem.md)
+- [RenditionLayoutProperties](interfaces/RenditionLayoutProperties.md)
+- [RenditionOptions](interfaces/RenditionOptions.md)
 
 ## Type Aliases
 

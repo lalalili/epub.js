@@ -18,7 +18,7 @@ import IframeView from "./managers/views/iframe";
 import DefaultViewManager from "./managers/default/index";
 import ContinuousViewManager from "./managers/continuous/index";
 
-type RenditionOptions = {
+export interface RenditionOptions {
 	width?: number | string | null;
 	height?: number | string | null;
 	ignoreClass?: string;
@@ -38,8 +38,9 @@ type RenditionOptions = {
 	orientation?: string | null;
 	direction?: string;
 	globalLayoutProperties?: LayoutProperties;
-};
-type LayoutProperties = {
+}
+
+export interface LayoutProperties {
 	layout: string;
 	spread: string | boolean;
 	orientation: string;
@@ -47,8 +48,9 @@ type LayoutProperties = {
 	viewport: string;
 	minSpreadWidth: number;
 	direction: string;
-};
-type RenditionLocationPart = {
+}
+
+export interface RenditionLocationPart {
 	index: number;
 	href: string;
 	cfi: string;
@@ -59,14 +61,16 @@ type RenditionLocationPart = {
 	location?: number;
 	percentage?: number;
 	page?: number;
-};
-type RenditionLocation = {
+}
+
+export interface Location {
 	start?: RenditionLocationPart;
 	end?: RenditionLocationPart;
 	atStart?: boolean;
 	atEnd?: boolean;
-};
-type ManagerLocationItem = {
+}
+
+export interface ManagerLocationItem {
 	index: number;
 	href: string;
 	mapping: {
@@ -75,7 +79,7 @@ type ManagerLocationItem = {
 	};
 	pages: number[];
 	totalPages: number;
-};
+}
 type DeferConstructor = new <T = unknown>() => CoreDeferred<T>;
 
 const Defer = defer as unknown as DeferConstructor;
@@ -116,7 +120,7 @@ class Rendition {
 	themes?: Themes;
 	annotations?: Annotations;
 	epubcfi?: EpubCFI;
-	location?: RenditionLocation;
+	location?: Location;
 	starting?: CoreDeferred<void>;
 	started?: Promise<void>;
 	displaying?: CoreDeferred<any>;
@@ -932,7 +936,7 @@ class Rendition {
 	 * Get the Current Location object
 	 * @return {displayedLocation | promise} location (may be a promise)
 	 */
-	currentLocation(): RenditionLocation | Promise<RenditionLocation> | undefined {
+	currentLocation(): Location | Promise<Location> | undefined {
 		var location = this.manager.currentLocation();
 		if (location && location.then && typeof location.then === "function") {
 			return location.then(function(result: any) {
@@ -951,7 +955,7 @@ class Rendition {
 	 * @returns {displayedLocation}
 	 * @private
 	 */
-	located(location: ManagerLocationItem[] | any[]): RenditionLocation {
+	located(location: ManagerLocationItem[] | any[]): Location {
 		if (!location || !location.length) {
 			return {};
 		}
@@ -970,7 +974,7 @@ class Rendition {
 		let start = validLocations[0];
 		let end = validLocations[validLocations.length-1];
 
-		let located: RenditionLocation = {
+		let located: Location = {
 			start: {
 				index: start.index,
 				href: start.href,

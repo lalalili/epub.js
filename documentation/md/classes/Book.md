@@ -518,7 +518,7 @@
 
 ###### options?
 
-`RenditionOptions`
+[`RenditionOptions`](../interfaces/RenditionOptions.md)
 
 ##### Returns
 
@@ -536,7 +536,7 @@
 
 ###### options?
 
-`RenditionOptions`
+[`RenditionOptions`](../interfaces/RenditionOptions.md)
 
 ##### Returns
 

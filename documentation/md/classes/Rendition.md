@@ -20,7 +20,7 @@
 
 ##### options?
 
-`RenditionOptions`
+[`RenditionOptions`](../interfaces/RenditionOptions.md)
 
 #### Returns
 
@@ -112,7 +112,7 @@
 
 ### settings
 
-> **settings**: `RenditionOptions`
+> **settings**: [`RenditionOptions`](../interfaces/RenditionOptions.md)
 
 ***
 
@@ -220,7 +220,7 @@
 
 ### determineLayoutProperties()
 
-> **determineLayoutProperties**(`metadata`): `LayoutProperties`
+> **determineLayoutProperties**(`metadata`): [`RenditionLayoutProperties`](../interfaces/RenditionLayoutProperties.md)
 
 #### Parameters
 
@@ -230,7 +230,7 @@
 
 #### Returns
 
-`LayoutProperties`
+[`RenditionLayoutProperties`](../interfaces/RenditionLayoutProperties.md)
 
 ***
 
@@ -448,7 +448,7 @@
 
 ##### location
 
-`any`[] \| `ManagerLocationItem`[]
+`any`[] \| [`ManagerLocationItem`](../interfaces/ManagerLocationItem.md)[]
 
 #### Returns
 

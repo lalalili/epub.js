@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0292
+- Why:
+  - P-0291 aligned the source root for `Book` loading type exports, leaving the adjacent `Rendition` public type shapes as the next source/declaration parity gap.
+  - The declaration surface already exposes `RenditionOptions`, `Location`, `LayoutProperties`, and `ManagerLocationItem`, but `src/rendition.ts` kept those shapes internal and the source/package root did not expose them consistently.
+  - Aligning the source-side and root exports lets consumers type-check rendition options, layout properties, current location, and manager location items from the root package API before any release tag or host gate, without changing rendering or navigation behavior.
+- Diff Scope:
+  - `src/rendition.ts`: export the existing `Rendition` public type shapes and align the internal current-location type name with the declaration surface.
+  - `src/index.ts`, `types/index.d.ts`: export root `RenditionOptions`, `RenditionLayoutProperties`, `Location`, and `ManagerLocationItem` types.
+  - `types/epubjs-tests.ts`: extend public root assertions for the `Rendition` public type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require the root/source `Rendition` type exports in Gate 1 readiness.
+  - `documentation/md/*`, `dist/*.map`: refresh generated TypeDoc markdown and tracked source maps for the type-only source update.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/rendition.test.js test/browser/public-api.test.js test/browser/umd-global.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require the older internal-only `Rendition` public type shapes instead of the current root typed public API contract.
+
 ### P-0291
 - Why:
   - P-0290 aligned the root factory and root declaration exports, leaving a small source/declaration parity gap for the newly public `BookLoaded` and `BookLoading` types.

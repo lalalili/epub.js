@@ -79,6 +79,8 @@ assert(typeTests.includes("RootBookInput"), "type tests must assert root BookInp
 assert(typeTests.includes("ePub(rootBlobInput"), "type tests must cover root Blob input overload");
 assert(typeTests.includes("ePub(rootOptions)"), "type tests must cover root options-only overload");
 assert(sourceRoot.includes("BookLoaded") && sourceRoot.includes("BookLoading"), "source root must export Book loaded/loading types");
+assert(typeTests.includes("RootRenditionOptions"), "type tests must assert root Rendition type exports");
+assert(sourceRoot.includes("RenditionOptions") && sourceRoot.includes("RenditionLayoutProperties"), "source root must export Rendition public types");
 assert(typeTests.includes("type CoreClassAssertions"), "type tests must assert the core class surface");
 assert(typeTests.includes("type LayoutAssertions"), "type tests must assert the Layout public surface");
 assert(typeTests.includes("new Layout()"), "type tests must cover Layout construction without settings");
