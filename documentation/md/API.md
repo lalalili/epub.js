@@ -152,6 +152,7 @@
 - [RequestHeaders](type-aliases/RequestHeaders.md)
 - [RequestResponse](type-aliases/RequestResponse.md)
 - [RequestType](type-aliases/RequestType.md)
+- [ResourceArchiveInput](type-aliases/ResourceArchiveInput.md)
 - [ResourceRequest](type-aliases/ResourceRequest.md)
 - [ResourceResolver](type-aliases/ResourceResolver.md)
 - [SectionAnnotationMap](type-aliases/SectionAnnotationMap.md)

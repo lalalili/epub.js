@@ -74,7 +74,7 @@
 
 ##### archive?
 
-[`Archive`](Archive.md) \| [`ResourceArchive`](ResourceArchive.md)
+[`ResourceArchiveInput`](../type-aliases/ResourceArchiveInput.md)
 
 ##### resolver?
 
@@ -172,7 +172,7 @@
 
 ##### archive?
 
-[`Archive`](Archive.md) \| [`ResourceArchive`](ResourceArchive.md)
+[`ResourceArchiveInput`](../type-aliases/ResourceArchiveInput.md)
 
 ##### resolver?
 

@@ -4,6 +4,7 @@ import Url from "./utils/url";
 import mime from "./utils/mime";
 import Path from "./utils/path";
 import path from "path-webpack";
+import type Archive from "./archive";
 import type { PackagingManifest } from "./packaging";
 
 export interface ResourceManifestItem {
@@ -21,20 +22,21 @@ export interface ResourceArchive {
 	getText(url: string): Promise<string> | undefined;
 }
 
+export type ResourceArchiveInput = ResourceArchive | Archive;
 export type ResourceResolver = (href: string) => string;
 export type ResourceRequest = (url: string, type: "blob" | "text") => Promise<Blob | string>;
 export type ReplacementMode = "base64" | "blob" | "none" | string;
 
 export interface ResourceOptions {
 	replacements?: ReplacementMode;
-	archive?: ResourceArchive;
+	archive?: ResourceArchiveInput;
 	resolver?: ResourceResolver;
 	request?: ResourceRequest;
 }
 
 export interface ResourceSettings {
 	replacements: ReplacementMode;
-	archive?: ResourceArchive;
+	archive?: ResourceArchiveInput;
 	resolver?: ResourceResolver;
 	request?: ResourceRequest;
 }
@@ -209,7 +211,7 @@ class Resources {
 	 * @param  {method} [resolver]
 	 * @return {Promise}
 	 */
-	replaceCss(archive?: ResourceArchive, resolver?: ResourceResolver): Promise<void[]> {
+	replaceCss(archive?: ResourceArchiveInput, resolver?: ResourceResolver): Promise<void[]> {
 		var replaced: Promise<void>[] = [];
 		archive = archive || this.settings!.archive;
 		resolver = resolver || this.settings!.resolver;
@@ -235,7 +237,7 @@ class Resources {
 	 * @param  {string} href the original css file
 	 * @return {Promise}  returns a BlobUrl to the new CSS file or a data url
 	 */
-	createCssFile(href: string, archive?: ResourceArchive, resolver?: ResourceResolver): Promise<string | undefined> {
+	createCssFile(href: string, archive?: ResourceArchiveInput, resolver?: ResourceResolver): Promise<string | undefined> {
 		var newUrl;
 
 		if (path.isAbsolute(href)) {

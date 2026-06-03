@@ -16,6 +16,8 @@ export interface ResourceArchive {
   getText(url: string): Promise<string> | undefined;
 }
 
+export type ResourceArchiveInput = ResourceArchive | Archive;
+
 export type ResourceResolver = (href: string) => string;
 
 export type ResourceRequest = (url: string, type: "blob" | "text") => Promise<Blob | string>;
@@ -24,14 +26,14 @@ export type ReplacementMode = "base64" | "blob" | "none" | string;
 
 export interface ResourceOptions {
   replacements?: ReplacementMode,
-  archive?: ResourceArchive,
+  archive?: ResourceArchiveInput,
   resolver?: ResourceResolver,
   request?: ResourceRequest
 }
 
 export interface ResourceSettings {
   replacements: ReplacementMode,
-  archive?: ResourceArchive,
+  archive?: ResourceArchiveInput,
   resolver?: ResourceResolver,
   request?: ResourceRequest
 }
@@ -59,9 +61,9 @@ export default class Resources {
 
   replacements(): Promise<Array<string | null>>;
 
-  replaceCss(archive?: ResourceArchive | Archive, resolver?: ResourceResolver): Promise<Array<void>>;
+  replaceCss(archive?: ResourceArchiveInput, resolver?: ResourceResolver): Promise<Array<void>>;
 
-  createCssFile(href: string, archive?: ResourceArchive | Archive, resolver?: ResourceResolver): Promise<string | undefined>;
+  createCssFile(href: string, archive?: ResourceArchiveInput, resolver?: ResourceResolver): Promise<string | undefined>;
 
   relativeTo(absolute: string, resolver?: ResourceResolver): Array<string>;
 

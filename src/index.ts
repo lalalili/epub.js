@@ -220,6 +220,7 @@ export type {
 export type {
 	ReplacementMode,
 	ResourceArchive,
+	ResourceArchiveInput,
 	ResourceManifest,
 	ResourceManifestItem,
 	ResourceOptions,

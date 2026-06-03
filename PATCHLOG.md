@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0323
+- Why:
+  - P-0322 aligned Rendition location-part aliases, leaving `Resources` with a smaller archive input parity gap.
+  - Declarations already allowed `replaceCss()` and `createCssFile()` to receive either the structural `ResourceArchive` helper or the concrete `Archive` class, while source exposed only `ResourceArchive` in those public helper signatures.
+  - Aligning the shared `ResourceArchiveInput` alias keeps Resources options, settings, CSS replacement helpers, root exports, TypeDoc, and Gate 1 readiness on the same public archive contract before any release tag or host gate, without changing URL creation, CSS substitution, archive lookup, or replacement behavior.
+- Diff Scope:
+  - `src/resources.ts`, `types/resources.d.ts`: expose `ResourceArchiveInput` and reuse it for Resources archive options/settings plus CSS helper parameters.
+  - `src/index.ts`, `types/index.d.ts`: export root `ResourceArchiveInput`.
+  - `types/epubjs-tests.ts`: extend public root and Resources assertions for archive input typing.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source Resources archive input export and type smoke coverage.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public Resources archive input surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/resources.test.js test/browser/book.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require the Resources source surface to keep archive helper inputs narrower than the declaration contract.
+
 ### P-0322
 - Why:
   - P-0321 aligned package manifest aliases, leaving `Rendition` location parts with a source/declaration naming gap.

@@ -10,7 +10,7 @@
 
 ### archive?
 
-> `optional` **archive?**: [`ResourceArchive`](ResourceArchive.md)
+> `optional` **archive?**: [`ResourceArchiveInput`](../type-aliases/ResourceArchiveInput.md)
 
 ***
 

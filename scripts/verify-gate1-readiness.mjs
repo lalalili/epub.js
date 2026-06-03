@@ -151,8 +151,9 @@ assert(
 	"source root must export Themes public types"
 );
 assert(typeTests.includes("RootResourceOptions"), "type tests must assert root Resources type exports");
+assert(typeTests.includes("RootResourceArchiveInput"), "type tests must assert root Resources archive input typing");
 assert(
-	sourceRoot.includes("ResourceOptions") && sourceRoot.includes("ResourceManifestItem") && sourceRoot.includes("ResourceSettings"),
+	sourceRoot.includes("ResourceArchiveInput") && sourceRoot.includes("ResourceOptions") && sourceRoot.includes("ResourceManifestItem") && sourceRoot.includes("ResourceSettings"),
 	"source root must export Resources public types"
 );
 assert(typeTests.includes("RootStoreRequest"), "type tests must assert root Store type exports");
@@ -277,6 +278,7 @@ assert(
 assert(typeTests.includes("type ResourcesAssertions"), "type tests must assert the Resources public surface");
 assert(typeTests.includes("RootResourceManifest"), "type tests must assert root Resources manifest typing");
 assert(typeTests.includes("new Resources(resourceManifest, resourceOptions)"), "type tests must cover Resources options typing");
+assert(typeTests.includes("resources.createCssFile(\"Styles/main.css\", resourceArchiveInput)"), "type tests must cover Resources archive input typing");
 assert(typeTests.includes("resources.get(\"Images/cover.jpg\")"), "type tests must cover Resources get replacement typing");
 assert(typeTests.includes("type StoreAssertions"), "type tests must assert the Store public surface");
 assert(typeTests.includes("RootStoreUrlOptions"), "type tests must assert root Store URL option typing");

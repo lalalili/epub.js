@@ -112,6 +112,7 @@ import type {
   QueueTask as RootQueueTask,
   ReplacementMode as RootReplacementMode,
   ResourceArchive as RootResourceArchive,
+  ResourceArchiveInput as RootResourceArchiveInput,
   ResourceManifest as RootResourceManifest,
   ResourceManifestItem as RootResourceManifestItem,
   ResourceOptions as RootResourceOptions,
@@ -213,6 +214,7 @@ import type { DisplayedLocation, LayoutProperties as RenditionLayoutProperties, 
 import Resources, {
   ReplacementMode,
   ResourceArchive,
+  ResourceArchiveInput,
   ResourceManifest,
   ResourceManifestItem,
   ResourceOptions,
@@ -299,6 +301,7 @@ type PublicRootAssertions = [
   Assert<IsExact<RootResources, Resources>>,
   Assert<IsExact<RootReplacementMode, ReplacementMode>>,
   Assert<IsExact<RootResourceArchive, ResourceArchive>>,
+  Assert<IsExact<RootResourceArchiveInput, ResourceArchiveInput>>,
   Assert<IsExact<RootResourceManifest, ResourceManifest>>,
   Assert<IsExact<RootResourceManifestItem, ResourceManifestItem>>,
   Assert<IsExact<RootResourceOptions, ResourceOptions>>,
@@ -902,7 +905,9 @@ type ResourcesAssertions = [
   Assert<IsExact<ReturnType<Resources["splitUrls"]>, void>>,
   Assert<IsExact<ReturnType<Resources["createUrl"]>, Promise<string>>>,
   Assert<IsExact<ReturnType<Resources["replacements"]>, Promise<Array<string | null>>>>,
+  Assert<IsExact<Parameters<Resources["replaceCss"]>, [archive?: ResourceArchiveInput | undefined, resolver?: ResourceResolver | undefined]>>,
   Assert<IsExact<ReturnType<Resources["replaceCss"]>, Promise<void[]>>>,
+  Assert<IsExact<Parameters<Resources["createCssFile"]>, [href: string, archive?: ResourceArchiveInput | undefined, resolver?: ResourceResolver | undefined]>>,
   Assert<IsExact<ReturnType<Resources["createCssFile"]>, Promise<string | undefined>>>,
   Assert<IsExact<ReturnType<Resources["relativeTo"]>, string[]>>,
   Assert<IsExact<ReturnType<Resources["get"]>, Promise<string> | undefined>>,
@@ -1380,10 +1385,11 @@ function testEpub() {
     createUrl: (url: string) => Promise.resolve(url),
     getText: () => Promise.resolve("body {}"),
   };
+  const resourceArchiveInput: ResourceArchiveInput = resourceArchive;
   const replacementMode: ReplacementMode = "base64";
   const resourceOptions: ResourceOptions = {
     replacements: replacementMode,
-    archive: resourceArchive,
+    archive: resourceArchiveInput,
     resolver: resourceResolver,
     request: resourceRequest,
   };
@@ -1391,7 +1397,7 @@ function testEpub() {
   const resourceUrl: Promise<string> = resources.createUrl("/OPS/Images/cover.jpg");
   const resourceReplacements: Promise<Array<string | null>> = resources.replacements();
   const resourceCssReplacements: Promise<void[]> = resources.replaceCss();
-  const resourceCssFile: Promise<string | undefined> = resources.createCssFile("Styles/main.css");
+  const resourceCssFile: Promise<string | undefined> = resources.createCssFile("Styles/main.css", resourceArchiveInput);
   const relativeResourceUrls: string[] = resources.relativeTo("/OPS/Text/chapter.xhtml");
   const resourceReplacement: Promise<string> | undefined = resources.get("Images/cover.jpg");
   const substitutedResourceContent: string = resources.substitute("url(../Images/cover.jpg)", "/OPS/Text/chapter.xhtml");
