@@ -42,6 +42,18 @@ export type {
 } from "./pagelist";
 
 export type {
+	ReplacementMode,
+	ResourceArchive,
+	ResourceManifest,
+	ResourceManifestItem,
+	ResourceOptions,
+	ResourceRequest,
+	ResourceResolver,
+	ResourceSettings,
+	default as Resources
+} from "./resources";
+
+export type {
 	LayoutProperties as RenditionLayoutProperties,
 	Location,
 	ManagerLocationItem,

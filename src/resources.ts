@@ -4,6 +4,7 @@ import Url from "./utils/url";
 import mime from "./utils/mime";
 import Path from "./utils/path";
 import path from "path-webpack";
+import type { PackagingManifest } from "./packaging";
 
 export interface ResourceManifestItem {
 	href: string;
@@ -15,23 +16,23 @@ export interface ResourceManifest {
 	[key: string]: ResourceManifestItem;
 }
 
-interface ResourceArchive {
+export interface ResourceArchive {
 	createUrl(url: string, options?: { base64?: boolean }): Promise<string>;
 	getText(url: string): Promise<string> | undefined;
 }
 
-type ResourceResolver = (href: string) => string;
-type ResourceRequest = (url: string, type: "blob" | "text") => Promise<Blob | string>;
-type ReplacementMode = "base64" | "blob" | "none" | string;
+export type ResourceResolver = (href: string) => string;
+export type ResourceRequest = (url: string, type: "blob" | "text") => Promise<Blob | string>;
+export type ReplacementMode = "base64" | "blob" | "none" | string;
 
-interface ResourceOptions {
+export interface ResourceOptions {
 	replacements?: ReplacementMode;
 	archive?: ResourceArchive;
 	resolver?: ResourceResolver;
 	request?: ResourceRequest;
 }
 
-interface ResourceSettings {
+export interface ResourceSettings {
 	replacements: ReplacementMode;
 	archive?: ResourceArchive;
 	resolver?: ResourceResolver;
@@ -58,7 +59,7 @@ class Resources {
 	urls?: string[];
 	cssUrls?: string[];
 
-	constructor(manifest: ResourceManifest, options?: ResourceOptions) {
+	constructor(manifest: ResourceManifest | PackagingManifest, options?: ResourceOptions) {
 		this.settings = {
 			replacements: (options && options.replacements) || "base64",
 			archive: (options && options.archive),
@@ -73,7 +74,7 @@ class Resources {
 	 * Process resources
 	 * @param {Manifest} manifest
 	 */
-	process(manifest: ResourceManifest): void {
+	process(manifest: ResourceManifest | PackagingManifest): void {
 		this.manifest = manifest;
 		this.resources = Object.keys(manifest).
 			map(function (key){

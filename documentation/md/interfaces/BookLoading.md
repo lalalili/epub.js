@@ -46,7 +46,7 @@
 
 ### resources
 
-> **resources**: `Deferred`\<`Resources`\>
+> **resources**: `Deferred`\<[`Resources`](Resources.md)\>
 
 ***
 

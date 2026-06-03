@@ -91,6 +91,11 @@ assert(
 	sourceRoot.includes("PageListItem") && sourceRoot.includes("PageValue") && sourceRoot.includes("PageListDocument"),
 	"source root must export PageList public types"
 );
+assert(typeTests.includes("RootResourceOptions"), "type tests must assert root Resources type exports");
+assert(
+	sourceRoot.includes("ResourceOptions") && sourceRoot.includes("ResourceManifestItem") && sourceRoot.includes("ResourceSettings"),
+	"source root must export Resources public types"
+);
 assert(typeTests.includes("type CoreClassAssertions"), "type tests must assert the core class surface");
 assert(typeTests.includes("type LayoutAssertions"), "type tests must assert the Layout public surface");
 assert(typeTests.includes("new Layout()"), "type tests must cover Layout construction without settings");
@@ -160,6 +165,7 @@ assert(typeTests.includes("new Annotations(annotationsRendition)"), "type tests 
 assert(typeTests.includes("annotations.highlight(\"epubcfi"), "type tests must cover Annotations highlight typing");
 assert(typeTests.includes("annotations.remove(\"epubcfi"), "type tests must cover Annotations removal typing");
 assert(typeTests.includes("type ResourcesAssertions"), "type tests must assert the Resources public surface");
+assert(typeTests.includes("RootResourceManifest"), "type tests must assert root Resources manifest typing");
 assert(typeTests.includes("new Resources(resourceManifest, resourceOptions)"), "type tests must cover Resources options typing");
 assert(typeTests.includes("resources.get(\"Images/cover.jpg\")"), "type tests must cover Resources get replacement typing");
 assert(typeTests.includes("type StoreAssertions"), "type tests must assert the Store public surface");

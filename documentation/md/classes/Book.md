@@ -164,7 +164,7 @@
 
 ### resources?
 
-> `optional` **resources?**: `Resources`
+> `optional` **resources?**: [`Resources`](../interfaces/Resources.md)
 
 ***
 

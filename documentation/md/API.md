@@ -31,6 +31,12 @@
 - [PageListItem](interfaces/PageListItem.md)
 - [RenditionLayoutProperties](interfaces/RenditionLayoutProperties.md)
 - [RenditionOptions](interfaces/RenditionOptions.md)
+- [ResourceArchive](interfaces/ResourceArchive.md)
+- [ResourceManifest](interfaces/ResourceManifest.md)
+- [ResourceManifestItem](interfaces/ResourceManifestItem.md)
+- [ResourceOptions](interfaces/ResourceOptions.md)
+- [Resources](interfaces/Resources.md)
+- [ResourceSettings](interfaces/ResourceSettings.md)
 
 ## Type Aliases
 
@@ -41,6 +47,9 @@
 - [PageLookup](type-aliases/PageLookup.md)
 - [PageReverseLookup](type-aliases/PageReverseLookup.md)
 - [PageValue](type-aliases/PageValue.md)
+- [ReplacementMode](type-aliases/ReplacementMode.md)
+- [ResourceRequest](type-aliases/ResourceRequest.md)
+- [ResourceResolver](type-aliases/ResourceResolver.md)
 
 ## Variables
 

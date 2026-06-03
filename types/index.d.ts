@@ -19,4 +19,5 @@ export { default as Contents } from './contents';
 export { default as Layout } from './layout';
 export type { default as Navigation, LandmarkItem, NavItem, NavigationDocument, NavigationInput, NavigationInputItem } from './navigation';
 export type { default as PageList, PageListDocument, PageListItem, PageLookup, PageReverseLookup, PageValue } from './pagelist';
+export type { default as Resources, ReplacementMode, ResourceArchive, ResourceManifest, ResourceManifestItem, ResourceOptions, ResourceRequest, ResourceResolver, ResourceSettings } from './resources';
 export { default as request } from './utils/request';

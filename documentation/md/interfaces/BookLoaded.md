@@ -46,7 +46,7 @@
 
 ### resources
 
-> **resources**: `Promise`\<`Resources`\>
+> **resources**: `Promise`\<[`Resources`](Resources.md)\>
 
 ***
 

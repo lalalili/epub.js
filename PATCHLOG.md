@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0295
+- Why:
+  - P-0294 aligned the `PageList` root type exports, leaving `Resources` public options/settings/resource manifest types as the next source/declaration parity gap.
+  - The declaration surface already exposes `ResourceArchive`, resolver/request aliases, replacement mode, options, and settings shapes, but `src/resources.ts` kept most of those shapes private and the package root did not expose them consistently.
+  - Aligning these exports lets consumers type-check resource manifests, replacement modes, archive/request/resolver integrations, and `Resources` options from the root package API before any release tag or host gate, without changing resource replacement or reader behavior.
+- Diff Scope:
+  - `src/resources.ts`: export existing `Resources` public option, settings, archive, request, resolver, and replacement mode type shapes, and align constructor/process input with package manifest objects.
+  - `src/index.ts`, `types/index.d.ts`: export root `Resources`, `ResourceManifest`, `ResourceManifestItem`, `ResourceArchive`, `ResourceOptions`, `ResourceSettings`, `ResourceRequest`, `ResourceResolver`, and `ReplacementMode` types.
+  - `types/epubjs-tests.ts`: extend public root assertions for the `Resources` public type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `Resources` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public resources type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `Resources` helper aliases to remain module-private instead of part of the root typed public API contract.
+
 ### P-0294
 - Why:
   - P-0293 aligned the `Navigation` root type exports, leaving the adjacent `PageList` value/item type shapes as the next source/declaration parity gap.
