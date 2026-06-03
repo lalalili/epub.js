@@ -1,14 +1,12 @@
 import {
   PackagingManifestObject,
-  PackagingMetadataObject,
-  PackagingSpineItem,
-  PackagingObject
+  PackagingMetadataObject
 } from "./packaging";
 import Rendition, { RenditionOptions } from "./rendition";
-import Section, { SpineItem } from "./section";
-import Archive from "./archive";
+import Section from "./section";
+import Archive, { ArchiveZip } from "./archive";
 import Navigation from "./navigation";
-import PageList, {PageListItem} from "./pagelist";
+import PageList from "./pagelist";
 import Spine from "./spine";
 import Locations from "./locations";
 import Url from "./utils/url";
@@ -18,7 +16,10 @@ import Container from "./container";
 import Packaging from "./packaging";
 import Store from "./store";
 import DisplayOptions from "./displayoptions";
+import { Deferred } from "./utils/core";
 import { RequestHeaders, RequestMethod, RequestResponse } from "./utils/request";
+
+export type BookInput = string | ArrayBuffer | Blob;
 
 export interface BookOptions {
   requestMethod?: RequestMethod;
@@ -31,28 +32,43 @@ export interface BookOptions {
   store?: string;
 }
 
+export interface BookLoading {
+  metadata: Deferred<PackagingMetadataObject>;
+  spine: Deferred<Spine>;
+  manifest: Deferred<PackagingManifestObject>;
+  cover: Deferred<string | undefined>;
+  navigation: Deferred<Navigation>;
+  pageList: Deferred<PageList | undefined>;
+  resources: Deferred<Resources>;
+  displayOptions: Deferred<DisplayOptions>;
+}
+
+export interface BookLoaded {
+  metadata: Promise<PackagingMetadataObject>;
+  spine: Promise<Spine>;
+  manifest: Promise<PackagingManifestObject>;
+  cover: Promise<string | undefined>;
+  navigation: Promise<Navigation>;
+  pageList: Promise<PageList | undefined>;
+  resources: Promise<Resources>;
+  displayOptions: Promise<DisplayOptions>;
+}
+
 export default class Book {
-    constructor(url?: string | ArrayBuffer | Blob, options?: BookOptions);
+    constructor(url?: BookInput, options?: BookOptions);
     constructor(options?: BookOptions);
 
     settings: BookOptions;
-    opening: any; // should be core.defer
-    opened: Promise<Book>;
+    opening?: Deferred<Book>;
+    opened?: Promise<Book>;
     isOpen: boolean;
-    loaded: {
-      metadata: Promise<PackagingMetadataObject>,
-      spine: Promise<SpineItem[]>,
-      manifest: Promise<PackagingManifestObject>,
-      cover: Promise<string>,
-      navigation: Promise<Navigation>,
-      pageList: Promise<PageListItem[]>,
-      resources: Promise<string[]>,
-      displayOptions: Promise<DisplayOptions>,
-    }
-    ready: Promise<void>;
+    loading?: BookLoading;
+    loaded?: BookLoaded;
+    ready?: Promise<any[]>;
+    isRendered: boolean;
     request: RequestMethod;
-    spine: Spine;
-    locations: Locations;
+    spine?: Spine;
+    locations?: Locations;
     navigation?: Navigation;
     pageList?: PageList;
     url?: Url;
@@ -63,7 +79,10 @@ export default class Book {
     rendition?: Rendition
     container?: Container;
     packaging?: Packaging;
+    package?: Packaging;
     storage?: Store;
+    displayOptions?: DisplayOptions;
+    cover?: string;
 
 
     canonical(path: string): string;
@@ -72,7 +91,7 @@ export default class Book {
 
     destroy(): void;
 
-    determineType(input: string | ArrayBuffer | Blob): string | undefined;
+    determineType(input: BookInput): string | undefined;
 
     getRange(cfiRange: string): Promise<Range>;
 
@@ -87,7 +106,7 @@ export default class Book {
 
     openContainer(url: string): Promise<string>;
 
-    openEpub(data: ArrayBuffer | Blob | string, encoding?: string): Promise<Book>;
+    openEpub(data: BookInput, encoding?: string): Promise<Book>;
 
     openManifest(url: string): Promise<Book>;
 
@@ -98,16 +117,16 @@ export default class Book {
 
     private replacements(): Promise<void>;
 
-    resolve(path: string, absolute?: boolean): string;
+    resolve(path?: string | false, absolute?: boolean): string | undefined;
 
-    section(target: string): Section;
-    section(target: number): Section;
+    section(target: string): Section | undefined;
+    section(target: number): Section | undefined;
 
     setRequestCredentials(credentials: boolean): void;
 
     setRequestHeaders(headers: RequestHeaders): void;
 
-    unarchive(input: BinaryType, encoding?: string): Promise<Archive>;
+    unarchive(input: BookInput, encoding?: string): Promise<ArchiveZip>;
 
     store(name: string): Store;
 

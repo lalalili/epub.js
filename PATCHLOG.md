@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0289
+- Why:
+  - P-0288 aligned `Rendition` runtime state declarations, leaving adjacent package-root `Book` runtime state as the next high-value typed public API gap.
+  - `Book` is already TypeScript source and Browser Mode-covered, but its declaration still hid `loading`, `isRendered`, deprecated `package`, `displayOptions`, and `cover` state, treated destroy-cleared fields as always present, declared loaded spine/resources/page-list promises against older shapes, and used an invalid `BinaryType` input for `unarchive()`.
+  - Aligning this surface lets consumers type-check book loading/opened state, loaded resource promises, optional path resolution, section lookup, and archive opening before any release tag or host gate, without changing loading, rendering, storage, or archive behavior.
+- Diff Scope:
+  - `types/book.d.ts`: add `BookInput`, `BookLoading`, and `BookLoaded`, align destroy-cleared runtime state optionality, expose `isRendered`, `package`, `displayOptions`, and `cover`, align loaded promise shapes, optional `resolve()` return, optional `section()` return, and `unarchive()` zip return typing.
+  - `types/epubjs-tests.ts`: extend `Book` assertions plus concrete type smoke coverage for runtime state, loaded spine/resources/cover promises, optional resolve, section lookup, and archive zip opening.
+  - `scripts/verify-gate1-readiness.mjs`: require the `Book` runtime state typed public API checks in Gate 1 readiness.
+  - `documentation/md/classes/Book.md`: refresh generated TypeDoc markdown for the updated `Book` declaration surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/book.test.js test/browser/epub.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `Book` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0288
 - Why:
   - P-0287 aligned `Contents` runtime state declarations, leaving adjacent `Rendition` runtime state and helper methods as the next high-value typed public API gap.

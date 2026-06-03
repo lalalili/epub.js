@@ -8,7 +8,7 @@ import Annotations, {
   SectionAnnotationMap,
 } from './annotations';
 import Archive, { ArchiveInput, ArchiveRequestType, ArchiveUrlOptions, ArchiveZip } from './archive';
-import type { BookOptions } from './book';
+import type { BookInput, BookLoaded, BookLoading, BookOptions } from './book';
 import Container, { ContainerDocument } from './container';
 import type {
   ContentsSize,
@@ -104,14 +104,27 @@ type CoreUtilsAssertions = [
 
 type CoreClassAssertions = [
   Assert<IsExact<Book["settings"], BookOptions>>,
+  Assert<IsExact<Book["opening"], Deferred<Book> | undefined>>,
+  Assert<IsExact<Book["opened"], Promise<Book> | undefined>>,
+  Assert<IsExact<Book["loading"], BookLoading | undefined>>,
+  Assert<IsExact<Book["loaded"], BookLoaded | undefined>>,
+  Assert<IsExact<Book["ready"], Promise<any[]> | undefined>>,
+  Assert<IsExact<Book["isRendered"], boolean>>,
   Assert<IsExact<Book["request"], RequestMethod>>,
+  Assert<IsExact<Book["spine"], Spine | undefined>>,
+  Assert<IsExact<Book["locations"], Locations | undefined>>,
+  Assert<IsExact<Book["package"], Packaging | undefined>>,
+  Assert<IsExact<Book["displayOptions"], DisplayOptions | undefined>>,
+  Assert<IsExact<Book["cover"], string | undefined>>,
   Assert<IsExact<ReturnType<Book["coverUrl"]>, Promise<string | null>>>,
   Assert<IsExact<ReturnType<Book["determineType"]>, string | undefined>>,
   Assert<IsExact<ReturnType<Book["load"]>, Promise<RequestResponse>>>,
   Assert<IsExact<ReturnType<Book["open"]>, Promise<Book>>>,
   Assert<IsExact<ReturnType<Book["openEpub"]>, Promise<Book>>>,
   Assert<IsExact<ReturnType<Book["renderTo"]>, Rendition>>,
-  Assert<IsExact<ReturnType<Book["resolve"]>, string>>,
+  Assert<IsExact<ReturnType<Book["resolve"]>, string | undefined>>,
+  Assert<IsExact<ReturnType<Book["section"]>, Section | undefined>>,
+  Assert<IsExact<ReturnType<Book["unarchive"]>, Promise<ArchiveZip>>>,
   Assert<IsExact<ReturnType<Book["setRequestHeaders"]>, void>>,
   Assert<IsExact<Rendition["settings"], RenditionOptions>>,
   Assert<IsExact<Rendition["book"], Book>>,
@@ -608,6 +621,23 @@ function testEpub() {
     requestMethod: request,
   });
   const blobBook = new Book(new Blob(), {});
+  const bookInput: BookInput = new Blob();
+  const bookOpening: Deferred<Book> | undefined = book.opening;
+  const bookLoaded: BookLoaded | undefined = book.loaded;
+  const bookLoading: BookLoading | undefined = book.loading;
+  const bookReady: Promise<any[]> | undefined = book.ready;
+  const bookIsRendered: boolean = book.isRendered;
+  const bookSpine: Spine | undefined = book.spine;
+  const bookLocations: Locations | undefined = book.locations;
+  const bookPackage: Packaging | undefined = book.package;
+  const bookDisplayOptions: DisplayOptions | undefined = book.displayOptions;
+  const bookCover: string | undefined = book.cover;
+  const loadedBookSpine: Promise<Spine> | undefined = book.loaded?.spine;
+  const loadedBookResources: Promise<Resources> | undefined = book.loaded?.resources;
+  const loadedBookCover: Promise<string | undefined> | undefined = book.loaded?.cover;
+  const resolvedBookPath: string | undefined = book.resolve();
+  const bookSection: Section | undefined = book.section(0);
+  const bookArchiveZip: Promise<ArchiveZip> = book.unarchive(bookInput);
 
   const rendition = new Rendition(book, {});
   const renditionLayoutProperties: RenditionLayoutProperties = rendition.determineLayoutProperties({
@@ -1070,6 +1100,23 @@ function testEpub() {
   void epubAsBook;
   void rootBookAsBook;
   void blobBook;
+  void bookInput;
+  void bookOpening;
+  void bookLoaded;
+  void bookLoading;
+  void bookReady;
+  void bookIsRendered;
+  void bookSpine;
+  void bookLocations;
+  void bookPackage;
+  void bookDisplayOptions;
+  void bookCover;
+  void loadedBookSpine;
+  void loadedBookResources;
+  void loadedBookCover;
+  void resolvedBookPath;
+  void bookSection;
+  void bookArchiveZip;
   void requestMethod;
   void binaryRequest;
   void blobRequest;

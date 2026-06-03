@@ -148,6 +148,10 @@ assert(typeTests.includes("new Store(\"epubjs-type-store\", storeRequest, storeR
 assert(typeTests.includes("store.createUrl(\"/OPS/images/cover.jpg\", storeUrlOptions)"), "type tests must cover Store createUrl optional options typing");
 assert(typeTests.includes("RequestMethod"), "type tests must assert request method typing");
 assert(typeTests.includes("InstanceType<typeof ePub.utils.defer"), "type tests must assert generic defer typing");
+assert(typeTests.includes("Book[\"loading\"]"), "type tests must assert Book runtime loading state typing");
+assert(typeTests.includes("book.loaded?.spine"), "type tests must cover Book loaded spine typing");
+assert(typeTests.includes("book.resolve()"), "type tests must cover Book optional resolve path typing");
+assert(typeTests.includes("book.unarchive(bookInput)"), "type tests must cover Book unarchive zip typing");
 assert(typeTests.includes("rendition.determineLayoutProperties"), "type tests must cover Rendition layout property typing");
 assert(typeTests.includes("rendition.located([managerLocationItem])"), "type tests must cover Rendition manager location typing");
 assert(typeTests.includes("rendition.resolveLinkHref(\"#note\""), "type tests must cover Rendition link resolution typing");

@@ -16,7 +16,7 @@
 
 ##### url?
 
-`string` \| `ArrayBuffer` \| `Blob`
+`BookInput`
 
 ##### options?
 
@@ -60,53 +60,45 @@
 
 ***
 
+### cover?
+
+> `optional` **cover?**: `string`
+
+***
+
+### displayOptions?
+
+> `optional` **displayOptions?**: `DisplayOptions`
+
+***
+
 ### isOpen
 
 > **isOpen**: `boolean`
 
 ***
 
-### loaded
+### isRendered
 
-> **loaded**: `object`
-
-#### cover
-
-> **cover**: `Promise`\<`string`\>
-
-#### displayOptions
-
-> **displayOptions**: `Promise`\<`DisplayOptions`\>
-
-#### manifest
-
-> **manifest**: `Promise`\<`PackagingManifestObject`\>
-
-#### metadata
-
-> **metadata**: `Promise`\<`PackagingMetadataObject`\>
-
-#### navigation
-
-> **navigation**: `Promise`\<`Navigation`\>
-
-#### pageList
-
-> **pageList**: `Promise`\<`PageListItem`[]\>
-
-#### resources
-
-> **resources**: `Promise`\<`string`[]\>
-
-#### spine
-
-> **spine**: `Promise`\<`SpineItem`[]\>
+> **isRendered**: `boolean`
 
 ***
 
-### locations
+### loaded?
 
-> **locations**: `Locations`
+> `optional` **loaded?**: `BookLoaded`
+
+***
+
+### loading?
+
+> `optional` **loading?**: `BookLoading`
+
+***
+
+### locations?
+
+> `optional` **locations?**: `Locations`
 
 ***
 
@@ -116,15 +108,21 @@
 
 ***
 
-### opened
+### opened?
 
-> **opened**: `Promise`\<`Book`\>
+> `optional` **opened?**: `Promise`\<`Book`\>
 
 ***
 
-### opening
+### opening?
 
-> **opening**: `any`
+> `optional` **opening?**: `Deferred`\<`Book`\>
+
+***
+
+### package?
+
+> `optional` **package?**: `Packaging`
 
 ***
 
@@ -146,9 +144,9 @@
 
 ***
 
-### ready
+### ready?
 
-> **ready**: `Promise`\<`void`\>
+> `optional` **ready?**: `Promise`\<`any`[]\>
 
 ***
 
@@ -176,9 +174,9 @@
 
 ***
 
-### spine
+### spine?
 
-> **spine**: `Spine`
+> `optional` **spine?**: `Spine`
 
 ***
 
@@ -238,7 +236,7 @@
 
 ##### input
 
-`string` \| `ArrayBuffer` \| `Blob`
+`BookInput`
 
 #### Returns
 
@@ -462,7 +460,7 @@
 
 ##### data
 
-`string` \| `ArrayBuffer` \| `Blob`
+`BookInput`
 
 ##### encoding?
 
@@ -548,13 +546,13 @@
 
 ### resolve()
 
-> **resolve**(`path`, `absolute?`): `string`
+> **resolve**(`path?`, `absolute?`): `string`
 
 #### Parameters
 
-##### path
+##### path?
 
-`string`
+`string` \| `false`
 
 ##### absolute?
 
@@ -648,13 +646,13 @@
 
 ### unarchive()
 
-> **unarchive**(`input`, `encoding?`): `Promise`\<`Archive`\>
+> **unarchive**(`input`, `encoding?`): `Promise`\<`ArchiveZip`\>
 
 #### Parameters
 
 ##### input
 
-`BinaryType`
+`BookInput`
 
 ##### encoding?
 
@@ -662,7 +660,7 @@
 
 #### Returns
 
-`Promise`\<`Archive`\>
+`Promise`\<`ArchiveZip`\>
 
 ***
 
