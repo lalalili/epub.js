@@ -5,9 +5,9 @@ const Defer = defer as unknown as {
 	new<T = any>(): CoreDeferred<T>;
 };
 
-type QueueTask = (...args: any[]) => any;
+export type QueueTask = (...args: any[]) => any;
 
-type QueuedItem = {
+export type QueuedItem = {
 	args?: any[];
 	deferred?: CoreDeferred<any>;
 	promise: Promise<any>;

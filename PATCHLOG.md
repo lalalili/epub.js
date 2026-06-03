@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0317
+- Why:
+  - P-0316 aligned `Hook` root type exports, leaving `Queue` as the adjacent public utility surface with source/declaration/root parity gaps.
+  - The declaration surface already exposes `QueueTask`, `QueuedItem`, `Task`, and the `Queue` class shape, but source kept the helper shapes private and the package root did not expose them consistently.
+  - Aligning these exports lets consumers type-check queued tasks, queued items, and `Queue` instances from the package root before any release tag or host gate, without changing enqueue, dequeue, run, flush, pause, stop, or Task wrapper behavior.
+- Diff Scope:
+  - `src/utils/queue.ts`: export declaration-facing Queue helper type shapes.
+  - `src/index.ts`, `types/index.d.ts`: export root `Queue` public helper types.
+  - `types/epubjs-tests.ts`: extend public root assertions for `Queue` type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `Queue` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public Queue type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/queue.test.js test/browser/core-facade.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `Queue` helper aliases to remain module-private instead of part of the root typed public API contract.
+
 ### P-0316
 - Why:
   - P-0315 aligned `Book` with the shared request type contract, leaving `Hook` as a public utility surface with source/declaration/root parity gaps.

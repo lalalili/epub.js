@@ -29,6 +29,7 @@ export type { default as Navigation, LandmarkItem, NavItem, NavigationDocument, 
 export type { default as Packaging, PackagingJsonManifest, PackagingManifestItem, PackagingManifestObject, PackagingMetadataObject, PackagingObject, PackagingSpineItem, PackagingTocItem } from './packaging';
 export type { default as PageList, PageListDocument, PageListItem, PageLookup, PageReverseLookup, PageValue } from './pagelist';
 export type { default as Path, ParsedPath } from './utils/path';
+export type { default as Queue, QueuedItem, QueueTask } from './utils/queue';
 export type { default as Hook, HookRegistration, HooksObject, HookTask } from './utils/hook';
 export type { default as Url, UrlBase } from './utils/url';
 export { replaceBase, replaceCanonical, replaceLinks, replaceMeta, substitute } from './utils/replacements';

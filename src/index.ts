@@ -132,6 +132,12 @@ export type {
 } from "./utils/path";
 
 export type {
+	QueuedItem,
+	QueueTask,
+	default as Queue
+} from "./utils/queue";
+
+export type {
 	HookRegistration,
 	HookTask,
 	HooksObject,

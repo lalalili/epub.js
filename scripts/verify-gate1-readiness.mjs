@@ -211,9 +211,14 @@ assert(typeTests.includes("rootReplaceLinks"), "type tests must assert root repl
 assert(typeTests.includes("replaceLinks(parsedDocument.documentElement, linkCallback"), "type tests must cover replaceLinks element/callback typing");
 assert(typeTests.includes("substitute(\"url(cover.jpg)\", [\"cover.jpg\"], [\"blob:cover\"])"), "type tests must cover substitute string return typing");
 assert(typeTests.includes("type QueueAssertions"), "type tests must assert the Queue public surface");
+assert(typeTests.includes("RootQueuedItem"), "type tests must assert root Queue type exports");
 assert(typeTests.includes("new Queue({ prefix: \"ctx\" })"), "type tests must cover Queue optional context construction");
 assert(typeTests.includes("queue.enqueue(queueTask, \"ready\")"), "type tests must cover Queue enqueue variadic typing");
 assert(typeTests.includes("new Task((): void => undefined)"), "type tests must cover exported Task construction typing");
+assert(
+	sourceRoot.includes("QueuedItem") && sourceRoot.includes("QueueTask") && sourceRoot.includes("default as Queue"),
+	"source root must export Queue public types"
+);
 assert(typeTests.includes("type HookAssertions"), "type tests must assert the Hook public surface");
 assert(typeTests.includes("RootHookRegistration"), "type tests must assert root Hook type exports");
 assert(typeTests.includes("new Hook({ prefix: \"ctx\" })"), "type tests must cover Hook optional context construction");

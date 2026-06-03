@@ -106,7 +106,7 @@
 
 ### q
 
-> **q**: `Queue`
+> **q**: [`Queue`](../interfaces/Queue.md)
 
 ***
 

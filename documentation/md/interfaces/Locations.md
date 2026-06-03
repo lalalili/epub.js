@@ -64,7 +64,7 @@
 
 ### q?
 
-> `optional` **q?**: `Queue`
+> `optional` **q?**: [`Queue`](Queue.md)
 
 ***
 
