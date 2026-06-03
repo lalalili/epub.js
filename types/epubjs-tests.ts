@@ -1,4 +1,16 @@
-import ePub, { Book, Contents, EpubCFI, Layout, Rendition, request } from '../';
+import ePub, {
+  Book,
+  Contents,
+  EpubCFI,
+  Layout,
+  Rendition,
+  replaceBase as rootReplaceBase,
+  replaceCanonical as rootReplaceCanonical,
+  replaceLinks as rootReplaceLinks,
+  replaceMeta as rootReplaceMeta,
+  request,
+  substitute as rootSubstitute,
+} from '../';
 import type {
   Archive as RootArchive,
   ArchiveEntry as RootArchiveEntry,
@@ -14,6 +26,7 @@ import type {
   ContainerDocument as RootContainerDocument,
   DisplayOptions as RootDisplayOptions,
   Location as RootLocation,
+  LinkCallback as RootLinkCallback,
   ManagerLocationItem as RootManagerLocationItem,
   LandmarkItem as RootLandmarkItem,
   NavItem as RootNavItem,
@@ -46,6 +59,7 @@ import type {
   ResourceResolver as RootResourceResolver,
   Resources as RootResources,
   ResourceSettings as RootResourceSettings,
+  SectionLike as RootSectionLike,
   Store as RootStore,
   StoreData as RootStoreData,
   StoreHeaders as RootStoreHeaders,
@@ -207,6 +221,13 @@ type PublicRootAssertions = [
   Assert<IsExact<RootParsedPath, ParsedPath>>,
   Assert<IsExact<RootUrl, Url>>,
   Assert<IsExact<RootUrlBase, UrlBase>>,
+  Assert<IsExact<RootLinkCallback, LinkCallback>>,
+  Assert<IsExact<RootSectionLike, SectionLike>>,
+  Assert<IsExact<typeof rootReplaceBase, typeof replaceBase>>,
+  Assert<IsExact<typeof rootReplaceCanonical, typeof replaceCanonical>>,
+  Assert<IsExact<typeof rootReplaceMeta, typeof replaceMeta>>,
+  Assert<IsExact<typeof rootReplaceLinks, typeof replaceLinks>>,
+  Assert<IsExact<typeof rootSubstitute, typeof substitute>>,
   Assert<IsExact<typeof request, RequestMethod>>,
   Assert<IsExact<ReturnType<typeof ePub.utils.uuid>, string>>,
   Assert<IsExact<InstanceType<typeof ePub.utils.defer<string>>["promise"], Promise<string>>>

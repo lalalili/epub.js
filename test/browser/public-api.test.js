@@ -11,7 +11,12 @@ import ePub, {
 	EpubCFI,
 	Layout,
 	Rendition,
-	request
+	replaceBase,
+	replaceCanonical,
+	replaceLinks,
+	replaceMeta,
+	request,
+	substitute
 } from "../../src/index";
 
 describe("browser public api", () => {
@@ -29,6 +34,11 @@ describe("browser public api", () => {
 		expect(typeof EpubCFI).toBe("function");
 		expect(typeof Layout).toBe("function");
 		expect(typeof request).toBe("function");
+		expect(typeof replaceBase).toBe("function");
+		expect(typeof replaceCanonical).toBe("function");
+		expect(typeof replaceLinks).toBe("function");
+		expect(typeof replaceMeta).toBe("function");
+		expect(typeof substitute).toBe("function");
 	});
 
 	it("keeps the legacy ePub.utils facade attached to the package root", () => {

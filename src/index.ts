@@ -5,6 +5,13 @@ import Contents from "./contents";
 import Layout from "./layout";
 import ePub from "./epub";
 import request from "./utils/request";
+import {
+	replaceBase,
+	replaceCanonical,
+	replaceLinks,
+	replaceMeta,
+	substitute
+} from "./utils/replacements";
 
 export default ePub;
 export {
@@ -13,7 +20,12 @@ export {
 	Rendition,
 	Contents,
 	Layout,
-	request
+	request,
+	replaceBase,
+	replaceCanonical,
+	replaceLinks,
+	replaceMeta,
+	substitute
 };
 
 export type {
@@ -68,6 +80,11 @@ export type {
 	UrlBase,
 	default as Url
 } from "./utils/url";
+
+export type {
+	LinkCallback,
+	SectionLike
+} from "./utils/replacements";
 
 export type {
 	PackagingJsonManifest,

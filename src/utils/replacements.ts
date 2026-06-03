@@ -1,9 +1,9 @@
 import { qs } from "../platform/dom";
 import Url from "./url";
 
-type LinkCallback = (href: string) => void;
+export type LinkCallback = (href: string) => void;
 
-type SectionLike = {
+export type SectionLike = {
 	canonical?: string;
 	idref?: string;
 	url?: string;

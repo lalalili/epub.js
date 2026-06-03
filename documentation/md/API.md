@@ -53,6 +53,7 @@
 - [ResourceOptions](interfaces/ResourceOptions.md)
 - [Resources](interfaces/Resources.md)
 - [ResourceSettings](interfaces/ResourceSettings.md)
+- [SectionLike](interfaces/SectionLike.md)
 - [Store](interfaces/Store.md)
 - [StoreResource](interfaces/StoreResource.md)
 - [StoreResources](interfaces/StoreResources.md)
@@ -66,6 +67,7 @@
 - [ArchiveRequestType](type-aliases/ArchiveRequestType.md)
 - [BookInput](type-aliases/BookInput.md)
 - [ContainerDocument](type-aliases/ContainerDocument.md)
+- [LinkCallback](type-aliases/LinkCallback.md)
 - [NavigationDocument](type-aliases/NavigationDocument.md)
 - [NavigationInput](type-aliases/NavigationInput.md)
 - [PageListDocument](type-aliases/PageListDocument.md)
@@ -89,3 +91,8 @@
 ## Functions
 
 - [default](functions/default.md)
+- [replaceBase](functions/replaceBase.md)
+- [replaceCanonical](functions/replaceCanonical.md)
+- [replaceLinks](functions/replaceLinks.md)
+- [replaceMeta](functions/replaceMeta.md)
+- [substitute](functions/substitute.md)

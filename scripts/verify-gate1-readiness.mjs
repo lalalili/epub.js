@@ -108,6 +108,11 @@ assert(
 	sourceRoot.includes("UrlBase") && sourceRoot.includes("default as Url"),
 	"source root must export Url public types"
 );
+assert(typeTests.includes("RootLinkCallback"), "type tests must assert root replacements type exports");
+assert(
+	sourceRoot.includes("LinkCallback") && sourceRoot.includes("replaceLinks") && sourceRoot.includes("substitute"),
+	"source root must export replacements public helpers"
+);
 assert(typeTests.includes("RootResourceOptions"), "type tests must assert root Resources type exports");
 assert(
 	sourceRoot.includes("ResourceOptions") && sourceRoot.includes("ResourceManifestItem") && sourceRoot.includes("ResourceSettings"),
@@ -171,6 +176,7 @@ assert(typeTests.includes("new Url(\"https://example.com/OPS/Text/chapter.xhtml?
 assert(typeTests.includes("new Url(\"OPS/Text/chapter.xhtml\", urlBase)"), "type tests must cover Url false base typing");
 assert(typeTests.includes("urlHelper.path()"), "type tests must cover Url path return typing");
 assert(typeTests.includes("type ReplacementsAssertions"), "type tests must assert the replacements helper public surface");
+assert(typeTests.includes("rootReplaceLinks"), "type tests must assert root replacement helper typing");
 assert(typeTests.includes("replaceLinks(parsedDocument.documentElement, linkCallback"), "type tests must cover replaceLinks element/callback typing");
 assert(typeTests.includes("substitute(\"url(cover.jpg)\", [\"cover.jpg\"], [\"blob:cover\"])"), "type tests must cover substitute string return typing");
 assert(typeTests.includes("type QueueAssertions"), "type tests must assert the Queue public surface");
@@ -237,6 +243,7 @@ assert(globalTypeTests.includes("new ePub.CFI()"), "global namespace tests must 
 
 assert(publicApiTests.includes("ePub.Book"), "browser public API tests must cover root static Book");
 assert(publicApiTests.includes("ePub.utils"), "browser public API tests must cover legacy utils facade");
+assert(publicApiTests.includes("replaceBase"), "browser public API tests must cover root replacement helpers");
 assert(umdGlobalTests.includes("window.ePub"), "UMD browser tests must cover window.ePub");
 
 console.log("Gate 1 package entry and typed public API readiness verified.");

@@ -25,6 +25,8 @@ export type { default as Packaging, PackagingJsonManifest, PackagingManifestItem
 export type { default as PageList, PageListDocument, PageListItem, PageLookup, PageReverseLookup, PageValue } from './pagelist';
 export type { default as Path, ParsedPath } from './utils/path';
 export type { default as Url, UrlBase } from './utils/url';
+export { replaceBase, replaceCanonical, replaceLinks, replaceMeta, substitute } from './utils/replacements';
+export type { LinkCallback, SectionLike } from './utils/replacements';
 export type { default as Resources, ReplacementMode, ResourceArchive, ResourceManifest, ResourceManifestItem, ResourceOptions, ResourceRequest, ResourceResolver, ResourceSettings } from './resources';
 export type { default as Store, StoreData, StoreHeaders, StoreRequest, StoreRequestType, StoreResolver, StoreResource, StoreResources, StoreStorage, StoreUrlOptions } from './store';
 export { default as request } from './utils/request';

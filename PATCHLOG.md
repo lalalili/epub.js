@@ -12,6 +12,28 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0303
+- Why:
+  - P-0302 aligned the `Url` root type exports, leaving replacement helper functions and their callback/section shapes as the next source/declaration/root parity gap.
+  - The declaration surface already exposes `LinkCallback`, `SectionLike`, and the replacement helper functions, but `src/utils/replacements.ts` kept the helper types private and the package root did not expose the helper runtime surface consistently.
+  - Aligning these exports lets consumers type-check and call replacement helpers from the root package API before any release tag or host gate, without changing link, base, canonical, meta, or URL substitution behavior.
+- Diff Scope:
+  - `src/utils/replacements.ts`: export the existing `LinkCallback` and `SectionLike` helper types.
+  - `src/index.ts`, `types/index.d.ts`: export root replacement helper functions plus `LinkCallback` and `SectionLike` types.
+  - `types/epubjs-tests.ts`: extend public root assertions for the replacement helper function and type exports.
+  - `test/browser/public-api.test.js`: assert replacement helper functions are real browser package-root exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source replacements coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public replacement helper surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/replacements.test.js test/browser/public-api.test.js test/browser/umd-global.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require replacement helpers to remain module-only instead of part of the root public API contract.
+
 ### P-0302
 - Why:
   - P-0301 aligned the `Path` root type exports, leaving the adjacent `Url` utility parser helper as the next source/declaration/root parity gap.

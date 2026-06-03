@@ -14934,6 +14934,6 @@ Yi.VERSION = "0.3", globalThis.EPUBJS_VERSION = "0.3", Yi.Book = si, Yi.Renditio
 //#region src/index.ts
 var Xi = Yi;
 //#endregion
-export { si as Book, Ft as Contents, X as EpubCFI, ot as Layout, Zr as Rendition, Xi as default, Ue as request };
+export { si as Book, Ft as Contents, X as EpubCFI, ot as Layout, Zr as Rendition, Xi as default, ye as replaceBase, be as replaceCanonical, Se as replaceLinks, xe as replaceMeta, Ue as request, Ce as substitute };
 
 //# sourceMappingURL=epub.mjs.map
