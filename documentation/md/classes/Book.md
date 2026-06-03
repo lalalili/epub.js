@@ -98,7 +98,7 @@
 
 ### locations?
 
-> `optional` **locations?**: `Locations`
+> `optional` **locations?**: [`Locations`](../interfaces/Locations.md)
 
 ***
 

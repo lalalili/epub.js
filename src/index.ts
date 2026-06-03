@@ -118,6 +118,14 @@ export type {
 } from "./mapping";
 
 export type {
+	LocationInput,
+	LocationRange,
+	LocationsRequest,
+	WordLocation,
+	default as Locations
+} from "./locations";
+
+export type {
 	PackagingJsonManifest,
 	PackagingManifestItem,
 	PackagingManifestObject,

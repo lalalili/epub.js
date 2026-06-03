@@ -6,29 +6,19 @@ import Queue from "./utils/queue";
 import EpubCFI from "./epubcfi";
 import { EVENTS } from "./utils/constants";
 import EventEmitter from "event-emitter";
+import type Section from "./section";
+import type Spine from "./spine";
 
-interface LocationRange {
+export interface LocationRange {
 	startContainer?: Node;
 	startOffset?: number;
 	endContainer?: Node;
 	endOffset?: number;
 }
 
-interface SectionLike {
-	cfiBase: string;
-	index: number;
-	linear: boolean;
-	load(request?: RequestLike): Promise<Element>;
-	unload(): void;
-}
+export type LocationsRequest = (...args: any[]) => Promise<any>;
 
-interface SpineLike {
-	each(callback: (section: SectionLike) => void): void;
-}
-
-type RequestLike = (...args: any[]) => Promise<any>;
-
-interface WordLocation {
+export interface WordLocation {
 	cfi: string;
 	wordCount: number;
 }
@@ -45,7 +35,7 @@ type EpubCFIStart = EpubCFI & {
 	};
 };
 
-type LocationInput = string | EpubCFI;
+export type LocationInput = string | EpubCFI;
 type LocationIndex = number;
 
 /**
@@ -55,8 +45,8 @@ type LocationIndex = number;
  * @param {number} [pause=100]
  */
 class Locations {
-	spine?: SpineLike;
-	request?: RequestLike;
+	spine?: Spine;
+	request?: LocationsRequest;
 	pause?: number;
 	q?: Queue;
 	epubcfi?: EpubCFI;
@@ -69,7 +59,7 @@ class Locations {
 	_currentCfi?: string;
 	processingTimeout?: ReturnType<typeof setTimeout>;
 
-	constructor(spine?: SpineLike, request?: RequestLike, pause?: number) {
+	constructor(spine?: Spine, request?: LocationsRequest, pause?: number) {
 		this.spine = spine;
 		this.request = request;
 		this.pause = pause || 100;
@@ -105,7 +95,7 @@ class Locations {
 
 		this.q!.pause();
 
-		this.spine!.each(function(section: SectionLike) {
+		this.spine!.each(function(section: Section) {
 			if (section.linear) {
 				this.q!.enqueue(this.process.bind(this), section);
 			}
@@ -133,12 +123,12 @@ class Locations {
 		};
 	}
 
-	process(section: SectionLike): Promise<string[]> {
+	process(section: Section): Promise<string[]> {
 
 		return section.load(this.request)
 			.then(function(contents: Element) {
 				var completed = new (defer as any)();
-				var locations = this.parse(contents, section.cfiBase);
+				var locations = this.parse(contents, section.cfiBase!);
 				this._locations = this._locations!.concat(locations);
 
 				section.unload();
@@ -269,7 +259,7 @@ class Locations {
 	 * @param  {int}     [chars]  chars per location break (defaults to this.break)
 	 * @return {Promise<Array<string>>} full updated locations array
 	 */
-	generateForSection(section?: SectionLike, chars?: number): Promise<string[]> {
+	generateForSection(section?: Section, chars?: number): Promise<string[]> {
 		if (!section || !section.linear || !section.cfiBase) {
 			return Promise.resolve(this._locations!);
 		}
@@ -329,10 +319,10 @@ class Locations {
 		this._locationsWords = [];
 		this._wordCounter = 0;
 
-		this.spine!.each(function(section: SectionLike) {
+		this.spine!.each(function(section: Section) {
 			if (section.linear) {
 				if (start) {
-					if (section.index >= start.spinePos) {
+					if (section.index! >= start.spinePos) {
 						this.q!.enqueue(this.processWords.bind(this), section, wordCount, start, count);
 					}
 				} else {
@@ -351,7 +341,7 @@ class Locations {
 
 	}
 
-	processWords(section: SectionLike, wordCount: number, startCfi?: EpubCFIStart, count?: number): Promise<WordLocation[] | void> {
+	processWords(section: Section, wordCount: number, startCfi?: EpubCFIStart, count?: number): Promise<WordLocation[] | void> {
 		if (count && this._locationsWords!.length >= count) {
 			return Promise.resolve();
 		}
@@ -378,8 +368,8 @@ class Locations {
 		return s.split(" ").length;
 	}
 
-	parseWords(contents: Element, section: SectionLike, wordCount: number, startCfi?: EpubCFIStart): WordLocation[] {
-		var cfiBase = section.cfiBase;
+	parseWords(contents: Element, section: Section, wordCount: number, startCfi?: EpubCFIStart): WordLocation[] {
+		var cfiBase = section.cfiBase!;
 		var locations: WordLocation[] = [];
 		var doc = contents.ownerDocument;
 		var body = qs(doc, "body");

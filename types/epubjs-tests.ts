@@ -26,6 +26,10 @@ import type {
   ContainerDocument as RootContainerDocument,
   DisplayOptions as RootDisplayOptions,
   Location as RootLocation,
+  LocationInput as RootLocationInput,
+  LocationRange as RootLocationRange,
+  Locations as RootLocations,
+  LocationsRequest as RootLocationsRequest,
   LinkCallback as RootLinkCallback,
   ManagerLocationItem as RootManagerLocationItem,
   Mapping as RootMapping,
@@ -37,6 +41,7 @@ import type {
   MappingTextNodeWalker as RootMappingTextNodeWalker,
   MappingView as RootMappingView,
   RangePair as RootRangePair,
+  WordLocation as RootWordLocation,
   LandmarkItem as RootLandmarkItem,
   NavItem as RootNavItem,
   Navigation as RootNavigation,
@@ -139,7 +144,7 @@ import Packaging, {
   PackagingTocItem,
 } from './packaging';
 import PageList, { PageListDocument, PageListItem, PageLookup, PageReverseLookup, PageValue } from './pagelist';
-import Locations, { LocationRange, WordLocation } from './locations';
+import Locations, { LocationInput, LocationRange, LocationsRequest, WordLocation } from './locations';
 import Mapping, { EpubCFIPair, MappingContents, MappingLayout, MappingTextNodeWalker, MappingView, RangePair } from './mapping';
 import type { LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionOptions } from './rendition';
 import Resources, {
@@ -267,6 +272,11 @@ type PublicRootAssertions = [
   Assert<IsExact<RootMappingTextNodeWalker, MappingTextNodeWalker>>,
   Assert<IsExact<RootMappingView, MappingView>>,
   Assert<IsExact<RootRangePair, RangePair>>,
+  Assert<IsExact<RootLocations, Locations>>,
+  Assert<IsExact<RootLocationInput, LocationInput>>,
+  Assert<IsExact<RootLocationRange, LocationRange>>,
+  Assert<IsExact<RootLocationsRequest, LocationsRequest>>,
+  Assert<IsExact<RootWordLocation, WordLocation>>,
   Assert<IsExact<typeof rootReplaceBase, typeof replaceBase>>,
   Assert<IsExact<typeof rootReplaceCanonical, typeof replaceCanonical>>,
   Assert<IsExact<typeof rootReplaceMeta, typeof replaceMeta>>,

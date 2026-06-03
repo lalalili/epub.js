@@ -31,6 +31,8 @@
 - [GlobalLayout](interfaces/GlobalLayout.md)
 - [LandmarkItem](interfaces/LandmarkItem.md)
 - [Location](interfaces/Location.md)
+- [LocationRange](interfaces/LocationRange.md)
+- [Locations](interfaces/Locations.md)
 - [ManagerLocationItem](interfaces/ManagerLocationItem.md)
 - [Mapping](interfaces/Mapping.md)
 - [MappingContents](interfaces/MappingContents.md)
@@ -76,6 +78,7 @@
 - [StoreStorage](interfaces/StoreStorage.md)
 - [StoreUrlOptions](interfaces/StoreUrlOptions.md)
 - [Url](interfaces/Url.md)
+- [WordLocation](interfaces/WordLocation.md)
 
 ## Type Aliases
 
@@ -84,6 +87,8 @@
 - [BookInput](type-aliases/BookInput.md)
 - [ContainerDocument](type-aliases/ContainerDocument.md)
 - [LinkCallback](type-aliases/LinkCallback.md)
+- [LocationInput](type-aliases/LocationInput.md)
+- [LocationsRequest](type-aliases/LocationsRequest.md)
 - [MappingAxis](type-aliases/MappingAxis.md)
 - [MappingDirection](type-aliases/MappingDirection.md)
 - [MappingTextNodeWalker](type-aliases/MappingTextNodeWalker.md)

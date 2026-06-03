@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0307
+- Why:
+  - P-0306 aligned `Mapping` root type exports, leaving `Locations` as the next public CFI/location surface with source/declaration/root parity gaps.
+  - The declaration surface already exposes `Locations`, `LocationRange`, `WordLocation`, `LocationsRequest`, and `LocationInput`, but source kept several helper shapes private and the package root did not expose them consistently.
+  - Aligning these exports lets consumers type-check location generation, word-location parsing, CFI/location conversion, range creation, and request callbacks from the root package API before any release tag or host gate, without changing location generation, CFI comparison, word counting, or current-location behavior.
+- Diff Scope:
+  - `src/locations.ts`: export existing `Locations` public helper type shapes and align public constructor/method signatures with `Spine` and `Section` source types.
+  - `src/index.ts`, `types/index.d.ts`: export root `Locations` public types.
+  - `types/epubjs-tests.ts`: extend public root assertions for `Locations` type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `Locations` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public locations type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/locations.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `Locations` helper aliases to remain module-private instead of part of the root typed public API contract.
+
 ### P-0306
 - Why:
   - P-0305 aligned `Spine` root type exports, leaving the adjacent `Mapping` CFI range mapper surface as the next source/declaration/root parity gap.

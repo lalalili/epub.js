@@ -30,6 +30,7 @@ export type { LinkCallback, SectionLike } from './utils/replacements';
 export type { default as Section, GlobalLayout, LayoutSettings as SectionLayoutSettings, SectionHookSet, SectionRequest, SectionSearchResult, SpineItem } from './section';
 export type { default as Spine, SpineLookup, SpineManifestItem, SpinePackage, SpinePackageItem, SpineResolver } from './spine';
 export type { default as Mapping, EpubCFIPair, MappingAxis, MappingContents, MappingDirection, MappingLayout, MappingTextNodeWalker, MappingView, RangePair } from './mapping';
+export type { default as Locations, LocationInput, LocationRange, LocationsRequest, WordLocation } from './locations';
 export type { default as Resources, ReplacementMode, ResourceArchive, ResourceManifest, ResourceManifestItem, ResourceOptions, ResourceRequest, ResourceResolver, ResourceSettings } from './resources';
 export type { default as Store, StoreData, StoreHeaders, StoreRequest, StoreRequestType, StoreResolver, StoreResource, StoreResources, StoreStorage, StoreUrlOptions } from './store';
 export { default as request } from './utils/request';

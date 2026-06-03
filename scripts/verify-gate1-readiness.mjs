@@ -128,6 +128,11 @@ assert(
 	sourceRoot.includes("MappingLayout") && sourceRoot.includes("MappingTextNodeWalker") && sourceRoot.includes("default as Mapping"),
 	"source root must export Mapping public types"
 );
+assert(typeTests.includes("RootLocationsRequest"), "type tests must assert root Locations type exports");
+assert(
+	sourceRoot.includes("LocationRange") && sourceRoot.includes("LocationsRequest") && sourceRoot.includes("default as Locations"),
+	"source root must export Locations public types"
+);
 assert(typeTests.includes("RootResourceOptions"), "type tests must assert root Resources type exports");
 assert(
 	sourceRoot.includes("ResourceOptions") && sourceRoot.includes("ResourceManifestItem") && sourceRoot.includes("ResourceSettings"),
