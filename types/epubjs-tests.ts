@@ -59,7 +59,14 @@ import type {
   ResourceResolver as RootResourceResolver,
   Resources as RootResources,
   ResourceSettings as RootResourceSettings,
+  GlobalLayout as RootGlobalLayout,
+  Section as RootSection,
+  SectionHookSet as RootSectionHookSet,
   SectionLike as RootSectionLike,
+  SectionLayoutSettings as RootSectionLayoutSettings,
+  SectionRequest as RootSectionRequest,
+  SectionSearchResult as RootSectionSearchResult,
+  SpineItem as RootSpineItem,
   Store as RootStore,
   StoreData as RootStoreData,
   StoreHeaders as RootStoreHeaders,
@@ -141,7 +148,7 @@ import {
 } from './utils/replacements';
 import Queue, { QueuedItem, QueueTask, Task } from './utils/queue';
 import Hook, { HookRegistration, HooksObject, HookTask } from './utils/hook';
-import Section, { LayoutSettings, SectionHookSet, SectionSearchResult, SpineItem } from './section';
+import Section, { GlobalLayout, LayoutSettings, SectionHookSet, SectionRequest, SectionSearchResult, SpineItem } from './section';
 import Spine, { SpineLookup, SpineManifestItem, SpinePackage, SpinePackageItem, SpineResolver } from './spine';
 import Store, { StoreData, StoreHeaders, StoreRequest, StoreRequestType, StoreResource, StoreResources, StoreResolver, StoreStorage, StoreUrlOptions } from './store';
 import Themes, { ThemeInput, ThemeOverride, ThemeRules, ThemesContent, ThemesRendition } from './themes';
@@ -223,6 +230,13 @@ type PublicRootAssertions = [
   Assert<IsExact<RootUrlBase, UrlBase>>,
   Assert<IsExact<RootLinkCallback, LinkCallback>>,
   Assert<IsExact<RootSectionLike, SectionLike>>,
+  Assert<IsExact<RootSection, Section>>,
+  Assert<IsExact<RootGlobalLayout, GlobalLayout>>,
+  Assert<IsExact<RootSectionLayoutSettings, LayoutSettings>>,
+  Assert<IsExact<RootSectionHookSet, SectionHookSet>>,
+  Assert<IsExact<RootSectionRequest, SectionRequest>>,
+  Assert<IsExact<RootSectionSearchResult, SectionSearchResult>>,
+  Assert<IsExact<RootSpineItem, SpineItem>>,
   Assert<IsExact<typeof rootReplaceBase, typeof replaceBase>>,
   Assert<IsExact<typeof rootReplaceCanonical, typeof replaceCanonical>>,
   Assert<IsExact<typeof rootReplaceMeta, typeof replaceMeta>>,

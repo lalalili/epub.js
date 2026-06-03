@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0304
+- Why:
+  - P-0303 aligned replacement helper root exports, leaving `Section` as the next public class surface with source/declaration/root parity gaps.
+  - The declaration surface already exposes `Section`, `GlobalLayout`, `LayoutSettings`, `SectionHookSet`, `SectionRequest`, `SectionSearchResult`, and `SpineItem`, but source kept several helper shapes private and the package root did not expose them consistently.
+  - Aligning these exports lets consumers type-check section construction, hooks, request callbacks, layout reconciliation, search results, and spine item linkage from the root package API before any release tag or host gate, without changing section loading, rendering, searching, CFI, or layout behavior.
+- Diff Scope:
+  - `src/section.ts`: export existing `Section` helper type shapes and align `reconcileLayoutSettings()` with declaration-facing layout names.
+  - `src/index.ts`, `types/index.d.ts`: export root `Section` public types, using `SectionLayoutSettings` at the package root to avoid colliding with the existing `Layout` class surface.
+  - `types/epubjs-tests.ts`: extend public root assertions for `Section` type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `Section` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public section type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/section.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `Section` helper aliases to remain module-private instead of part of the root typed public API contract.
+
 ### P-0303
 - Why:
   - P-0302 aligned the `Url` root type exports, leaving replacement helper functions and their callback/section shapes as the next source/declaration/root parity gap.

@@ -87,6 +87,16 @@ export type {
 } from "./utils/replacements";
 
 export type {
+	GlobalLayout,
+	LayoutSettings as SectionLayoutSettings,
+	SectionHookSet,
+	SectionRequest,
+	SectionSearchResult,
+	SpineItem,
+	default as Section
+} from "./section";
+
+export type {
 	PackagingJsonManifest,
 	PackagingManifestItem,
 	PackagingManifestObject,

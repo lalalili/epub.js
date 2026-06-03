@@ -568,7 +568,7 @@
 
 #### Call Signature
 
-> **section**(`target`): `Section`
+> **section**(`target`): [`Section`](../interfaces/Section.md)
 
 ##### Parameters
 
@@ -578,11 +578,11 @@
 
 ##### Returns
 
-`Section`
+[`Section`](../interfaces/Section.md)
 
 #### Call Signature
 
-> **section**(`target`): `Section`
+> **section**(`target`): [`Section`](../interfaces/Section.md)
 
 ##### Parameters
 
@@ -592,7 +592,7 @@
 
 ##### Returns
 
-`Section`
+[`Section`](../interfaces/Section.md)
 
 ***
 

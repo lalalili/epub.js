@@ -113,6 +113,11 @@ assert(
 	sourceRoot.includes("LinkCallback") && sourceRoot.includes("replaceLinks") && sourceRoot.includes("substitute"),
 	"source root must export replacements public helpers"
 );
+assert(typeTests.includes("RootSectionHookSet"), "type tests must assert root Section type exports");
+assert(
+	sourceRoot.includes("SectionHookSet") && sourceRoot.includes("SectionSearchResult") && sourceRoot.includes("default as Section"),
+	"source root must export Section public types"
+);
 assert(typeTests.includes("RootResourceOptions"), "type tests must assert root Resources type exports");
 assert(
 	sourceRoot.includes("ResourceOptions") && sourceRoot.includes("ResourceManifestItem") && sourceRoot.includes("ResourceSettings"),

@@ -6,7 +6,7 @@ import { replaceBase } from "./utils/replacements";
 import Request from "./utils/request";
 import { DOMParser as XMLDOMSerializer } from "@xmldom/xmldom";
 
-type SectionHookSet = {
+export type SectionHookSet = {
 	serialize: Hook;
 	content: Hook;
 };
@@ -29,18 +29,20 @@ export interface SpineItem {
 	cfiBase: string;
 }
 
-interface GlobalLayoutSettings {
+export interface GlobalLayout {
 	layout: string;
 	spread: string;
 	orientation: string;
 }
 
-interface SectionSearchResult {
+export type LayoutSettings = GlobalLayout;
+
+export interface SectionSearchResult {
 	cfi: string;
 	excerpt: string;
 }
 
-type SectionRequest = (url: string) => Promise<Document>;
+export type SectionRequest = (url: string) => Promise<Document>;
 type SerializerConstructor = new () => {
 	serializeToString(input: Node): string;
 };
@@ -333,9 +335,9 @@ class Section {
 	* @param {object} globalLayout  The global layout settings object, chapter properties string
 	* @return {object} layoutProperties Object with layout properties
 	*/
-	reconcileLayoutSettings(globalLayout: GlobalLayoutSettings): GlobalLayoutSettings {
+	reconcileLayoutSettings(globalLayout: GlobalLayout): LayoutSettings {
 		//-- Get the global defaults
-		var settings: GlobalLayoutSettings = {
+		var settings: LayoutSettings = {
 			layout : globalLayout.layout,
 			spread : globalLayout.spread,
 			orientation : globalLayout.orientation
@@ -345,10 +347,10 @@ class Section {
 		this.properties.forEach(function(prop){
 			var rendition = prop.replace("rendition:", "");
 			var split = rendition.indexOf("-");
-			var property: keyof GlobalLayoutSettings, value;
+			var property: keyof LayoutSettings, value;
 
 			if(split != -1){
-				property = rendition.slice(0, split) as keyof GlobalLayoutSettings;
+				property = rendition.slice(0, split) as keyof LayoutSettings;
 				value = rendition.slice(split+1);
 
 				settings[property] = value;

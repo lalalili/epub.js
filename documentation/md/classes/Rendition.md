@@ -376,7 +376,7 @@
 
 ##### section
 
-`Section`
+[`Section`](../interfaces/Section.md)
 
 #### Returns
 
@@ -396,7 +396,7 @@
 
 ##### section
 
-`Section`
+[`Section`](../interfaces/Section.md)
 
 #### Returns
 
@@ -416,7 +416,7 @@
 
 ##### section
 
-`Section`
+[`Section`](../interfaces/Section.md)
 
 #### Returns
 
