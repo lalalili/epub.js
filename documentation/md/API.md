@@ -58,6 +58,7 @@
 - [StoreResources](interfaces/StoreResources.md)
 - [StoreStorage](interfaces/StoreStorage.md)
 - [StoreUrlOptions](interfaces/StoreUrlOptions.md)
+- [Url](interfaces/Url.md)
 
 ## Type Aliases
 
@@ -79,6 +80,7 @@
 - [StoreRequest](type-aliases/StoreRequest.md)
 - [StoreRequestType](type-aliases/StoreRequestType.md)
 - [StoreResolver](type-aliases/StoreResolver.md)
+- [UrlBase](type-aliases/UrlBase.md)
 
 ## Variables
 

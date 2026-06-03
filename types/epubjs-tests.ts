@@ -56,6 +56,8 @@ import type {
   StoreResources as RootStoreResources,
   StoreStorage as RootStoreStorage,
   StoreUrlOptions as RootStoreUrlOptions,
+  Url as RootUrl,
+  UrlBase as RootUrlBase,
   RenditionLayoutProperties as RootRenditionLayoutProperties,
   RenditionOptions as RootRenditionOptions,
 } from '../';
@@ -203,6 +205,8 @@ type PublicRootAssertions = [
   Assert<IsExact<RootPackagingTocItem, PackagingTocItem>>,
   Assert<IsExact<RootPath, Path>>,
   Assert<IsExact<RootParsedPath, ParsedPath>>,
+  Assert<IsExact<RootUrl, Url>>,
+  Assert<IsExact<RootUrlBase, UrlBase>>,
   Assert<IsExact<typeof request, RequestMethod>>,
   Assert<IsExact<ReturnType<typeof ePub.utils.uuid>, string>>,
   Assert<IsExact<InstanceType<typeof ePub.utils.defer<string>>["promise"], Promise<string>>>

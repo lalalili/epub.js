@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0302
+- Why:
+  - P-0301 aligned the `Path` root type exports, leaving the adjacent `Url` utility parser helper as the next source/declaration/root parity gap.
+  - The declaration surface already exposes `UrlBase` and the `Url` class contract, but `src/utils/url.ts` kept `UrlBase` private and the package root did not expose either type consistently.
+  - Aligning these exports lets consumers type-check URL parser instances and base inputs from the root package API before any release tag or host gate, without changing URL parsing behavior.
+- Diff Scope:
+  - `src/utils/url.ts`: export the existing `UrlBase` input type.
+  - `src/index.ts`, `types/index.d.ts`: export root `Url` and `UrlBase` types.
+  - `types/epubjs-tests.ts`: extend public root assertions for the `Url` public type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `Url` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public URL type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `Url` helper types to remain module-only instead of part of the root typed public API contract.
+
 ### P-0301
 - Why:
   - P-0300 aligned the `DisplayOptions` root type export, leaving utility parser helpers such as `Path` as the next source/declaration/root parity gap.

@@ -103,6 +103,11 @@ assert(
 	sourceRoot.includes("ParsedPath") && sourceRoot.includes("default as Path"),
 	"source root must export Path public types"
 );
+assert(typeTests.includes("RootUrlBase"), "type tests must assert root Url type exports");
+assert(
+	sourceRoot.includes("UrlBase") && sourceRoot.includes("default as Url"),
+	"source root must export Url public types"
+);
 assert(typeTests.includes("RootResourceOptions"), "type tests must assert root Resources type exports");
 assert(
 	sourceRoot.includes("ResourceOptions") && sourceRoot.includes("ResourceManifestItem") && sourceRoot.includes("ResourceSettings"),
@@ -161,6 +166,7 @@ assert(typeTests.includes("new Path(\"/OPS/Text/chapter.xhtml\")"), "type tests 
 assert(typeTests.includes("pathHelper.isAbsolute()"), "type tests must cover Path optional isAbsolute typing");
 assert(typeTests.includes("pathHelper.splitPath(\"OPS/Text/chapter.xhtml\")"), "type tests must cover Path splitPath array typing");
 assert(typeTests.includes("type UrlAssertions"), "type tests must assert the Url public surface");
+assert(typeTests.includes("RootUrl"), "type tests must assert root Url class typing");
 assert(typeTests.includes("new Url(\"https://example.com/OPS/Text/chapter.xhtml?debug=true\")"), "type tests must cover Url construction without a base");
 assert(typeTests.includes("new Url(\"OPS/Text/chapter.xhtml\", urlBase)"), "type tests must cover Url false base typing");
 assert(typeTests.includes("urlHelper.path()"), "type tests must cover Url path return typing");

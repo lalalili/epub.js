@@ -1,7 +1,7 @@
 import Path from "./path";
 import path from "path-webpack";
 
-type UrlBase = string | false | undefined;
+export type UrlBase = string | false | undefined;
 
 /**
  * creates a Url object for parsing and manipulation of a url string

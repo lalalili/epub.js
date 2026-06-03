@@ -188,7 +188,7 @@
 
 ### url?
 
-> `optional` **url?**: `Url`
+> `optional` **url?**: [`Url`](../interfaces/Url.md)
 
 ## Methods
 

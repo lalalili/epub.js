@@ -65,6 +65,11 @@ export type {
 } from "./utils/path";
 
 export type {
+	UrlBase,
+	default as Url
+} from "./utils/url";
+
+export type {
 	PackagingJsonManifest,
 	PackagingManifestItem,
 	PackagingManifestObject,
