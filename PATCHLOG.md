@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0273
+- Why:
+  - P-0272 aligned `PageList` declarations with runtime behavior, leaving `Locations` as the next CFI/page-map typed public API gap.
+  - `Locations` is already TypeScript source, but its declaration still hid public generation state, queue/CFI fields, progressive section refinement, word-location helpers, fallback CFI generation, current-location setter behavior, event-emitter methods, and destroy-cleared state.
+  - Aligning `Locations` declarations lets consumers type-check generated CFI arrays, location/percentage lookups, section-level refinement, word-based locations, current-location change events, and cleanup behavior before any release tag or host gate.
+- Diff Scope:
+  - `types/locations.d.ts`: align locations range/request/word-location types, public state fields, event methods, generation/refinement helpers, parse/fallback helpers, lookup helpers, current-location accessor, and destroy behavior with the TypeScript source behavior.
+  - `types/epubjs-tests.ts`: add `LocationsAssertions` plus concrete construction, load/save, CFI/location/percentage lookup, section refinement, word-location, current-location, and event listener typing checks.
+  - `scripts/verify-gate1-readiness.mjs`: require the Locations typed public API assertions and construction/refinement/word-location coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/locations.test.js test/browser/pagelist.test.js test/browser/epubcfi.test.js test/browser/mapping.test.js test/browser/rendition.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `Locations` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0272
 - Why:
   - P-0271 aligned `Store` declarations with runtime behavior, leaving `PageList` as the next public typed surface before moving into higher-risk `Locations` / CFI-heavy declaration work.

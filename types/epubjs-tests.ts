@@ -14,6 +14,7 @@ import Packaging, {
   PackagingTocItem,
 } from './packaging';
 import PageList, { PageListItem, PageValue } from './pagelist';
+import Locations, { LocationRange, WordLocation } from './locations';
 import type { Location, RenditionOptions } from './rendition';
 import Resources, {
   ReplacementMode,
@@ -208,6 +209,43 @@ type PageListAssertions = [
   Assert<IsExact<ReturnType<PageList["percentageFromPage"]>, number>>,
   Assert<IsExact<ReturnType<PageList["percentageFromCfi"]>, number>>,
   Assert<IsExact<ReturnType<PageList["destroy"]>, void>>
+];
+
+type LocationsAssertions = [
+  Assert<IsExact<ConstructorParameters<typeof Locations>, [spine?: Spine | undefined, request?: ((...args: any[]) => Promise<any>) | undefined, pause?: number | undefined]>>,
+  Assert<IsExact<Locations["spine"], Spine | undefined>>,
+  Assert<IsExact<Locations["request"], ((...args: any[]) => Promise<any>) | undefined>>,
+  Assert<IsExact<Locations["pause"], number | undefined>>,
+  Assert<IsExact<Locations["_locations"], string[] | undefined>>,
+  Assert<IsExact<Locations["_locationsWords"], WordLocation[] | undefined>>,
+  Assert<IsExact<Locations["total"], number | undefined>>,
+  Assert<IsExact<Locations["break"], number | undefined>>,
+  Assert<IsExact<Locations["_current"], number | undefined>>,
+  Assert<IsExact<Locations["_wordCounter"], number | undefined>>,
+  Assert<IsExact<Locations["_currentCfi"], string | undefined>>,
+  Assert<IsExact<Locations["processingTimeout"], ReturnType<typeof setTimeout> | undefined>>,
+  Assert<IsExact<ReturnType<Locations["generate"]>, Promise<string[]>>>,
+  Assert<IsExact<ReturnType<Locations["createRange"]>, LocationRange>>,
+  Assert<IsExact<ReturnType<Locations["process"]>, Promise<string[]>>>,
+  Assert<IsExact<ReturnType<Locations["generateForSection"]>, Promise<string[]>>>,
+  Assert<IsExact<ReturnType<Locations["generateFromWords"]>, Promise<WordLocation[]>>>,
+  Assert<IsExact<ReturnType<Locations["processWords"]>, Promise<WordLocation[] | void>>>,
+  Assert<IsExact<ReturnType<Locations["countWords"]>, number>>,
+  Assert<IsExact<ReturnType<Locations["parse"]>, string[]>>,
+  Assert<IsExact<ReturnType<Locations["fallbackCfi"]>, string>>,
+  Assert<IsExact<ReturnType<Locations["parseWords"]>, WordLocation[]>>,
+  Assert<IsExact<ReturnType<Locations["locationFromCfi"]>, number>>,
+  Assert<IsExact<ReturnType<Locations["percentageFromCfi"]>, number | null>>,
+  Assert<IsExact<ReturnType<Locations["percentageFromLocation"]>, number>>,
+  Assert<IsExact<ReturnType<Locations["cfiFromLocation"]>, string | number>>,
+  Assert<IsExact<ReturnType<Locations["cfiFromPercentage"]>, string | number>>,
+  Assert<IsExact<ReturnType<Locations["load"]>, string[]>>,
+  Assert<IsExact<ReturnType<Locations["save"]>, string>>,
+  Assert<IsExact<ReturnType<Locations["getCurrent"]>, number | undefined>>,
+  Assert<IsExact<Locations["currentLocation"], number | undefined>>,
+  Assert<IsExact<ReturnType<Locations["setCurrent"]>, void>>,
+  Assert<IsExact<ReturnType<Locations["length"]>, number>>,
+  Assert<IsExact<ReturnType<Locations["destroy"]>, void>>
 ];
 
 type ResourcesAssertions = [
@@ -406,6 +444,25 @@ function testEpub() {
   const pageFromPercentage: number = pageList.pageFromPercentage(0.5);
   const percentageFromPage: number = pageList.percentageFromPage(1);
   const percentageFromCfi: number = pageList.percentageFromCfi("epubcfi(/6/2[chap]!/4/2/2)");
+  const locations = new Locations(spine, () => Promise.resolve(parsedDocument), 10);
+  const locationRange: LocationRange = locations.createRange();
+  const loadedLocations: string[] = locations.load([
+    "epubcfi(/6/2[chap]!/4/2/2)",
+    "epubcfi(/6/2[chap]!/4/4/2)",
+  ]);
+  const savedLocations: string = locations.save();
+  const locationIndex: number = locations.locationFromCfi(loadedLocations[0]);
+  const locationPercentage: number | null = locations.percentageFromCfi(loadedLocations[0]);
+  const locationFromPercentage: string | number = locations.cfiFromPercentage(0.5);
+  const locationFromIndex: string | number = locations.cfiFromLocation("0");
+  const currentLocation: number | undefined = locations.currentLocation;
+  const locationLength: number = locations.length();
+  const generatedSectionLocations: Promise<string[]> = spineSection ? locations.generateForSection(spineSection, 400) : Promise.resolve([]);
+  const wordLocations: WordLocation[] = spineSection ? locations.parseWords(parsedDocument.documentElement, spineSection, 10, new EpubCFI(loadedLocations[0])) : [];
+  const generatedWordLocations: Promise<WordLocation[]> = locations.generateFromWords(loadedLocations[0], 10, 3);
+  locations.currentLocation = loadedLocations[0];
+  locations.setCurrent(0);
+  locations.on("changed", () => undefined);
   const resourceManifest: ResourceManifest = {
     chapter: {
       href: "Text/chapter.xhtml",
@@ -545,6 +602,17 @@ function testEpub() {
   void pageFromPercentage;
   void percentageFromPage;
   void percentageFromCfi;
+  void locationRange;
+  void savedLocations;
+  void locationIndex;
+  void locationPercentage;
+  void locationFromPercentage;
+  void locationFromIndex;
+  void currentLocation;
+  void locationLength;
+  void generatedSectionLocations;
+  void wordLocations;
+  void generatedWordLocations;
   void resourceUrl;
   void resourceReplacements;
   void resourceCssReplacements;
@@ -575,6 +643,7 @@ type _SpineAssertions = SpineAssertions;
 type _ArchiveAssertions = ArchiveAssertions;
 type _PackagingAssertions = PackagingAssertions;
 type _PageListAssertions = PageListAssertions;
+type _LocationsAssertions = LocationsAssertions;
 type _ResourcesAssertions = ResourcesAssertions;
 type _StoreAssertions = StoreAssertions;
 
