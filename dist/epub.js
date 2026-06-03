@@ -11781,8 +11781,8 @@
 		*/
 		fit(width, height, section) {
 			var viewport = this.viewport();
-			var viewportWidth = parseInt(viewport.width);
-			var viewportHeight = parseInt(viewport.height);
+			var viewportWidth = parseInt(String(viewport.width));
+			var viewportHeight = parseInt(String(viewport.height));
 			var widthScale = width / viewportWidth;
 			var heightScale = height / viewportHeight;
 			var scale = widthScale < heightScale ? widthScale : heightScale;

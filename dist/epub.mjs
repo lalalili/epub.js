@@ -6740,7 +6740,7 @@ var _t = class {
 		this.css("transform-origin", "top left"), (t >= 0 || n >= 0) && (i = " translate(" + (t || 0) + "px, " + (n || 0) + "px )"), this.css("transform", r + i);
 	}
 	fit(e, t, n) {
-		var r = this.viewport(), i = parseInt(r.width), a = parseInt(r.height), o = e / i, s = t / a, c = o < s ? o : s;
+		var r = this.viewport(), i = parseInt(String(r.width)), a = parseInt(String(r.height)), o = e / i, s = t / a, c = o < s ? o : s;
 		if (this.layoutStyle("paginated"), this.width(i), this.height(a), this.overflow("hidden"), this.scaler(c, 0, 0), this.css("background-size", i * c + "px " + a * c + "px"), this.css("background-color", "transparent"), n && n.properties.includes("page-spread-left")) {
 			var l = e - i * c;
 			this.css("margin-left", l + "px");

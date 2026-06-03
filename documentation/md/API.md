@@ -31,6 +31,7 @@
 - [BookLoading](interfaces/BookLoading.md)
 - [BookOptions](interfaces/BookOptions.md)
 - [Container](interfaces/Container.md)
+- [ContentsSize](interfaces/ContentsSize.md)
 - [DisplayOptions](interfaces/DisplayOptions.md)
 - [EpubCFIComponent](interfaces/EpubCFIComponent.md)
 - [EpubCFIPair](interfaces/EpubCFIPair.md)
@@ -97,6 +98,9 @@
 - [ThemesContent](interfaces/ThemesContent.md)
 - [ThemesRendition](interfaces/ThemesRendition.md)
 - [Url](interfaces/Url.md)
+- [VerticalRlMetricsCache](interfaces/VerticalRlMetricsCache.md)
+- [VerticalRlPageMetricsCache](interfaces/VerticalRlPageMetricsCache.md)
+- [ViewportSettings](interfaces/ViewportSettings.md)
 - [WordLocation](interfaces/WordLocation.md)
 
 ## Type Aliases

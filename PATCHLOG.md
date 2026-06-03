@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0312
+- Why:
+  - P-0311 aligned `Layout` root type exports, leaving `Contents` as the next public view-content surface with source/declaration/root parity gaps.
+  - The declaration surface already exposes `ViewportSettings`, `ContentsSize`, `VerticalRlMetricsCache`, and `VerticalRlPageMetricsCache`, but source kept those helper shapes private or inline and the package root did not expose them consistently.
+  - Aligning these exports lets consumers type-check viewport options, runtime content size state, and vertical-rl metrics caches from the root package API before any release tag or host gate, without changing content measurement, viewport mutation, CFI mapping, vertical-rl page metrics, or event behavior.
+- Diff Scope:
+  - `src/contents.ts`: export existing `Contents` public helper type shapes, align runtime state declarations with declaration-facing types, and preserve existing `parseInt()` coercion in `fit()` with explicit string conversion.
+  - `src/index.ts`, `types/index.d.ts`: export root `Contents` public helper types.
+  - `types/epubjs-tests.ts`: extend public root assertions for `Contents` helper type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `Contents` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public contents type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/contents-text-width.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `Contents` helper aliases to remain module-private instead of part of the root typed public API contract.
+
 ### P-0311
 - Why:
   - P-0310 aligned `EpubCFI` root type exports, leaving `Layout` as the next public pagination/layout surface with source/declaration/root parity gaps.

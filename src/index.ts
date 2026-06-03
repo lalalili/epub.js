@@ -75,6 +75,13 @@ export type {
 } from "./container";
 
 export type {
+	ContentsSize,
+	VerticalRlMetricsCache,
+	VerticalRlPageMetricsCache,
+	ViewportSettings
+} from "./contents";
+
+export type {
 	LayoutContent,
 	LayoutCount,
 	LayoutProps,

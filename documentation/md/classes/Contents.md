@@ -54,19 +54,19 @@
 
 ### \_size
 
-> **\_size**: `ContentsSize`
+> **\_size**: [`ContentsSize`](../interfaces/ContentsSize.md)
 
 ***
 
 ### \_verticalRlMetricsCache
 
-> **\_verticalRlMetricsCache**: `VerticalRlMetricsCache`
+> **\_verticalRlMetricsCache**: [`VerticalRlMetricsCache`](../interfaces/VerticalRlMetricsCache.md)
 
 ***
 
 ### \_verticalRlPageMetricsCache
 
-> **\_verticalRlPageMetricsCache**: `VerticalRlPageMetricsCache`
+> **\_verticalRlPageMetricsCache**: [`VerticalRlPageMetricsCache`](../interfaces/VerticalRlPageMetricsCache.md)
 
 ***
 
@@ -888,17 +888,17 @@
 
 ### viewport()
 
-> **viewport**(`options?`): `ViewportSettings`
+> **viewport**(`options?`): [`ViewportSettings`](../interfaces/ViewportSettings.md)
 
 #### Parameters
 
 ##### options?
 
-`ViewportSettings`
+[`ViewportSettings`](../interfaces/ViewportSettings.md)
 
 #### Returns
 
-`ViewportSettings`
+[`ViewportSettings`](../interfaces/ViewportSettings.md)
 
 ***
 

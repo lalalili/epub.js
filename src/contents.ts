@@ -36,7 +36,30 @@ type VerticalRlLineMetrics = {
 	gapMad: number | null;
 	stable: boolean;
 };
-type ViewportSettings = Record<string, any>;
+export interface ViewportSettings {
+	width?: string | number;
+	height?: string | number;
+	scale?: string | number;
+	scalable?: string;
+	minimum?: string | number;
+	maximum?: string | number;
+}
+
+export interface ContentsSize {
+	width: number;
+	height: number;
+}
+
+export interface VerticalRlMetricsCache {
+	key: string;
+	width: number;
+}
+
+export interface VerticalRlPageMetricsCache {
+	key: string;
+	metrics: Record<string, any>;
+}
+
 type StylesheetRules = any;
 type EpubNavigator = Navigator & { epubReadingSystem?: any };
 type CssRuleWithSelector = CSSRule & {
@@ -360,12 +383,12 @@ class Contents {
 	declare documentElement: HTMLElement;
 	declare content: HTMLElement;
 	declare window: Window & typeof globalThis;
-	declare _size: { width: number; height: number };
+	declare _size: ContentsSize;
 	declare sectionIndex: number;
 	declare cfiBase: string;
 	declare sectionHref: string;
-	declare _verticalRlMetricsCache: { key: string; width: number } | null;
-	declare _verticalRlPageMetricsCache: { key: string; metrics: VerticalRlPageMetrics } | null;
+	declare _verticalRlMetricsCache: VerticalRlMetricsCache | null;
+	declare _verticalRlPageMetricsCache: VerticalRlPageMetricsCache | null;
 	declare _verticalRlStableSnappedContentWidth?: { pageLength: number; totalPages: number; width: number } | null;
 	declare _forcedWritingMode: string;
 	declare _layoutStyle?: string;
@@ -2100,8 +2123,8 @@ class Contents {
 	 */
 	fit(width: number, height: number, section?: any): void {
 		var viewport = this.viewport();
-		var viewportWidth = parseInt(viewport.width);
-		var viewportHeight = parseInt(viewport.height);
+		var viewportWidth = parseInt(String(viewport.width));
+		var viewportHeight = parseInt(String(viewport.height));
 		var widthScale = width / viewportWidth;
 		var heightScale = height / viewportHeight;
 		var scale = widthScale < heightScale ? widthScale : heightScale;
