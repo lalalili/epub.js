@@ -1,18 +1,23 @@
-interface HooksObject {
-  [key: string]: Hook
+export type HookTask = (...args: any[]) => any;
+export type HookRegistration = HookTask | HookTask[];
+
+export interface HooksObject {
+  [key: string]: Hook;
 }
 
 export default class Hook {
-  constructor(context: any);
+  constructor(context?: any);
 
-  register(func: Function): void;
-  register(arr: Array<Function>): void;
+  context: any;
+  hooks: HookTask[];
 
-  deregister(func: Function): void;
+  register(...items: HookRegistration[]): void;
 
-  trigger(...args: any[]): Promise<any>;
+  deregister(func: HookTask): void;
 
-  list(): Array<any>;
+  trigger(...args: any[]): Promise<any[]>;
 
-  clear(): void;
+  list(): HookTask[];
+
+  clear(): HookTask[];
 }

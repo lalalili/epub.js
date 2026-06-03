@@ -50,6 +50,7 @@ import {
   substitute,
 } from './utils/replacements';
 import Queue, { QueuedItem, QueueTask, Task } from './utils/queue';
+import Hook, { HookRegistration, HooksObject, HookTask } from './utils/hook';
 import Section, { LayoutSettings, SectionHookSet, SectionSearchResult, SpineItem } from './section';
 import Spine, { SpineLookup, SpineManifestItem, SpinePackage, SpinePackageItem, SpineResolver } from './spine';
 import Store, { StoreData, StoreHeaders, StoreRequest, StoreRequestType, StoreResources, StoreResolver, StoreStorage, StoreUrlOptions } from './store';
@@ -324,6 +325,19 @@ type QueueAssertions = [
   Assert<IsExact<ReturnType<Queue["stop"]>, void>>,
   Assert<IsExact<QueueTask, (...args: any[]) => any>>,
   Assert<IsExact<ConstructorParameters<typeof Task>, [task: Function, args?: any[] | undefined, context?: any]>>
+];
+
+type HookAssertions = [
+  Assert<IsExact<ConstructorParameters<typeof Hook>, [context?: any]>>,
+  Assert<IsExact<Hook["context"], any>>,
+  Assert<IsExact<Hook["hooks"], HookTask[]>>,
+  Assert<IsExact<Parameters<Hook["register"]>, HookRegistration[]>>,
+  Assert<IsExact<ReturnType<Hook["register"]>, void>>,
+  Assert<IsExact<Parameters<Hook["deregister"]>, [func: HookTask]>>,
+  Assert<IsExact<ReturnType<Hook["trigger"]>, Promise<any[]>>>,
+  Assert<IsExact<ReturnType<Hook["list"]>, HookTask[]>>,
+  Assert<IsExact<ReturnType<Hook["clear"]>, HookTask[]>>,
+  Assert<IsExact<HooksObject, Record<string, Hook>>>
 ];
 
 type PageListAssertions = [
@@ -602,6 +616,14 @@ function testEpub() {
   const queueFlush: Promise<any> | boolean | undefined = queue.flush();
   const queueLength: number = queue.length();
   const taskWrapper: (...args: any[]) => Promise<any> = new Task((): void => undefined);
+  const hookTask: HookTask = (value: string) => Promise.resolve(value);
+  const hookRegistration: HookRegistration = [hookTask];
+  const hook = new Hook({ prefix: "ctx" });
+  const hooksObject: HooksObject = { content: hook };
+  const hookRegister: void = hook.register(hookTask, hookRegistration);
+  const hookTrigger: Promise<any[]> = hook.trigger("ready");
+  const hookList: HookTask[] = hook.list();
+  const hookClear: HookTask[] = hook.clear();
   const legacyNavItems: NavigationInputItem[] = [{
     id: "chapter-one",
     href: "Text/chapter1.xhtml",
@@ -960,6 +982,11 @@ function testEpub() {
   void queueFlush;
   void queueLength;
   void taskWrapper;
+  void hooksObject;
+  void hookRegister;
+  void hookTrigger;
+  void hookList;
+  void hookClear;
   void emptyNavigation;
   void documentNavigation;
   void navigationToc;
@@ -1063,6 +1090,7 @@ type _PathAssertions = PathAssertions;
 type _UrlAssertions = UrlAssertions;
 type _ReplacementsAssertions = ReplacementsAssertions;
 type _QueueAssertions = QueueAssertions;
+type _HookAssertions = HookAssertions;
 type _PageListAssertions = PageListAssertions;
 type _LocationsAssertions = LocationsAssertions;
 type _MappingAssertions = MappingAssertions;

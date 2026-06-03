@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0284
+- Why:
+  - P-0283 aligned `Queue` declarations with runtime behavior, leaving `Hook` as the next low-risk utility typed public API gap.
+  - `Hook` is already TypeScript source and browser-covered, but its declaration still required a context, did not model variadic mixed function/array registration, returned a broad trigger promise, and declared `clear()` as `void` even though runtime returns the cleared hook list.
+  - Aligning `Hook` declarations lets consumers type-check content/render/layout hook registries, optional construction, mixed registration, deregistration, async trigger result aggregation, list access, and clearing behavior before any release tag or host gate.
+- Diff Scope:
+  - `types/utils/hook.d.ts`: add `HookTask`, `HookRegistration`, exported `HooksObject`, optional construction, public state fields, variadic register, trigger/list/clear return types aligned with runtime.
+  - `types/epubjs-tests.ts`: add `HookAssertions` plus concrete Hook construction, hook registry object, mixed registration, trigger, list, and clear typing checks.
+  - `scripts/verify-gate1-readiness.mjs`: require the Hook typed public API assertions and construction/register/trigger coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/hook.test.js test/browser/section.test.js test/browser/rendition.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `Hook` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0283
 - Why:
   - P-0282 aligned `utils/replacements` declarations with runtime behavior, leaving `Queue` as the next utility typed public API gap.

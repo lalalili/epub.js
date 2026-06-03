@@ -116,6 +116,10 @@ assert(typeTests.includes("type QueueAssertions"), "type tests must assert the Q
 assert(typeTests.includes("new Queue({ prefix: \"ctx\" })"), "type tests must cover Queue optional context construction");
 assert(typeTests.includes("queue.enqueue(queueTask, \"ready\")"), "type tests must cover Queue enqueue variadic typing");
 assert(typeTests.includes("new Task((): void => undefined)"), "type tests must cover exported Task construction typing");
+assert(typeTests.includes("type HookAssertions"), "type tests must assert the Hook public surface");
+assert(typeTests.includes("new Hook({ prefix: \"ctx\" })"), "type tests must cover Hook optional context construction");
+assert(typeTests.includes("hook.register(hookTask, hookRegistration)"), "type tests must cover Hook variadic registration typing");
+assert(typeTests.includes("hook.trigger(\"ready\")"), "type tests must cover Hook trigger result typing");
 assert(typeTests.includes("type PageListAssertions"), "type tests must assert the PageList public surface");
 assert(typeTests.includes("new PageList()"), "type tests must cover PageList construction without a document");
 assert(typeTests.includes("pageList.process(pageListItems)"), "type tests must cover PageList item processing");
