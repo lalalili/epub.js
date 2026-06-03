@@ -130,7 +130,7 @@
 
 ### themes?
 
-> `optional` **themes?**: `Themes`
+> `optional` **themes?**: [`Themes`](../interfaces/Themes.md)
 
 ***
 

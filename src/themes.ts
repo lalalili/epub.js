@@ -1,40 +1,41 @@
+import type Contents from "./contents";
 import Url from "./utils/url";
 
-type ThemeRules = Record<string, Record<string, string> | string>;
+export type ThemeRules = Record<string, Record<string, string> | string>;
 
-type Theme = {
+export interface Theme {
 	rules?: ThemeRules;
 	url?: string;
 	serialized?: string;
 	injected?: boolean;
-};
+}
 
-type Override = {
+export interface ThemeOverride {
 	value: string;
 	priority: boolean;
-};
+}
 
-type InjectedThemes = string[] & Record<string, boolean | string | undefined>;
+export type InjectedThemes = string[] & Record<string, boolean | string | undefined>;
 
-type ThemeInput = ThemeRules | string;
+export type ThemeInput = ThemeRules | string;
 
-type ContentsLike = {
+export interface ThemesContent {
 	addClass(name: string): void;
-	addStylesheet(url: string): void;
-	addStylesheetCss(css: string, name: string): void;
-	addStylesheetRules(rules: ThemeRules, name: string): void;
-	css(name: string, value?: string, priority?: boolean): void;
+	addStylesheet(url: string): unknown;
+	addStylesheetCss(css: string, name: string): unknown;
+	addStylesheetRules(rules: ThemeRules, name: string): unknown;
+	css(name: string, value?: string, priority?: boolean): unknown;
 	removeClass(name: string): void;
-};
+}
 
-type RenditionLike = {
-	getContents(): ContentsLike[];
+export interface ThemesRendition {
+	getContents(): ThemesContent[];
 	hooks: {
 		content: {
-			register(callback: (contents: ContentsLike) => void): void;
+			register(callback: (contents: ThemesContent) => void): void;
 		};
 	};
-};
+}
 
 /**
  * Themes to apply to displayed content
@@ -42,13 +43,13 @@ type RenditionLike = {
  * @param {Rendition} rendition
  */
 class Themes {
-	rendition: RenditionLike | undefined;
+	rendition: ThemesRendition | undefined;
 	_themes: Record<string, Theme> | undefined;
-	_overrides: Record<string, Override> | undefined;
+	_overrides: Record<string, ThemeOverride> | undefined;
 	_current: string | undefined;
 	_injected: InjectedThemes | undefined;
 
-	constructor(rendition: RenditionLike) {
+	constructor(rendition: ThemesRendition) {
 		this.rendition = rendition;
 		this._themes = {
 			"default" : {
@@ -195,7 +196,7 @@ class Themes {
 	 * Inject all themes into contents
 	 * @param {Contents} contents
 	 */
-	inject (contents: ContentsLike): void {
+	inject (contents: Contents | ThemesContent): void {
 		var links: string[] = [];
 		var themes = this._themes;
 		var theme;
@@ -220,7 +221,7 @@ class Themes {
 	 * @param {string} name
 	 * @param {Contents} contents
 	 */
-	add (name: string, contents: ContentsLike): void {
+	add (name: string, contents: Contents | ThemesContent): void {
 		var theme = this._themes[name];
 
 		if (!theme || !contents) {
@@ -271,7 +272,7 @@ class Themes {
 	 * Add all overrides
 	 * @param {Content} content
 	 */
-	overrides (contents: ContentsLike): void {
+	overrides (contents: Contents | ThemesContent): void {
 		var overrides = this._overrides;
 
 		for (var rule in overrides) {

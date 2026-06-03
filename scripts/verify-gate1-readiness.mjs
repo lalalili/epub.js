@@ -133,6 +133,11 @@ assert(
 	sourceRoot.includes("LocationRange") && sourceRoot.includes("LocationsRequest") && sourceRoot.includes("default as Locations"),
 	"source root must export Locations public types"
 );
+assert(typeTests.includes("RootThemesRendition"), "type tests must assert root Themes type exports");
+assert(
+	sourceRoot.includes("ThemeRules") && sourceRoot.includes("ThemesRendition") && sourceRoot.includes("default as Themes"),
+	"source root must export Themes public types"
+);
 assert(typeTests.includes("RootResourceOptions"), "type tests must assert root Resources type exports");
 assert(
 	sourceRoot.includes("ResourceOptions") && sourceRoot.includes("ResourceManifestItem") && sourceRoot.includes("ResourceSettings"),

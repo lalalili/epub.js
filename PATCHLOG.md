@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0308
+- Why:
+  - P-0307 aligned `Locations` root type exports, leaving `Themes` as the next public rendition styling surface with source/declaration/root parity gaps.
+  - The declaration surface already exposes `Themes`, `ThemeRules`, `Theme`, `ThemeOverride`, `InjectedThemes`, `ThemeInput`, `ThemesContent`, and `ThemesRendition`, but source kept those helper shapes private and the package root did not expose them consistently.
+  - Aligning these exports lets consumers type-check theme registration, stylesheet injection, overrides, content adapters, and rendition hooks from the root package API before any release tag or host gate, without changing theme selection, CSS injection, override application, or font helpers.
+- Diff Scope:
+  - `src/themes.ts`: export existing `Themes` public helper type shapes and align content/rendition adapter names with declaration-facing types.
+  - `src/index.ts`, `types/index.d.ts`: export root `Themes` public types.
+  - `types/epubjs-tests.ts`: extend public root assertions for `Themes` type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `Themes` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public themes type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/themes.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `Themes` helper aliases to remain module-private instead of part of the root typed public API contract.
+
 ### P-0307
 - Why:
   - P-0306 aligned `Mapping` root type exports, leaving `Locations` as the next public CFI/location surface with source/declaration/root parity gaps.

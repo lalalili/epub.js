@@ -126,6 +126,17 @@ export type {
 } from "./locations";
 
 export type {
+	InjectedThemes,
+	Theme,
+	ThemeInput,
+	ThemeOverride,
+	ThemeRules,
+	ThemesContent,
+	ThemesRendition,
+	default as Themes
+} from "./themes";
+
+export type {
 	PackagingJsonManifest,
 	PackagingManifestItem,
 	PackagingManifestObject,

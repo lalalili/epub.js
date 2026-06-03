@@ -97,6 +97,14 @@ import type {
   StoreResources as RootStoreResources,
   StoreStorage as RootStoreStorage,
   StoreUrlOptions as RootStoreUrlOptions,
+  InjectedThemes as RootInjectedThemes,
+  Theme as RootTheme,
+  ThemeInput as RootThemeInput,
+  ThemeOverride as RootThemeOverride,
+  ThemeRules as RootThemeRules,
+  Themes as RootThemes,
+  ThemesContent as RootThemesContent,
+  ThemesRendition as RootThemesRendition,
   Url as RootUrl,
   UrlBase as RootUrlBase,
   RenditionLayoutProperties as RootRenditionLayoutProperties,
@@ -171,7 +179,7 @@ import Hook, { HookRegistration, HooksObject, HookTask } from './utils/hook';
 import Section, { GlobalLayout, LayoutSettings, SectionHookSet, SectionRequest, SectionSearchResult, SpineItem } from './section';
 import Spine, { SpineLookup, SpineManifestItem, SpinePackage, SpinePackageItem, SpineResolver } from './spine';
 import Store, { StoreData, StoreHeaders, StoreRequest, StoreRequestType, StoreResource, StoreResources, StoreResolver, StoreStorage, StoreUrlOptions } from './store';
-import Themes, { ThemeInput, ThemeOverride, ThemeRules, ThemesContent, ThemesRendition } from './themes';
+import Themes, { InjectedThemes, Theme, ThemeInput, ThemeOverride, ThemeRules, ThemesContent, ThemesRendition } from './themes';
 import { AnimationFrameRequest, BlobContent, Deferred, RangeObject as CoreRangeObject, RectBounds, SizeBounds } from './utils/core';
 import { JsonValue, RequestHeaders, RequestMethod, RequestResponse } from './utils/request';
 
@@ -277,6 +285,14 @@ type PublicRootAssertions = [
   Assert<IsExact<RootLocationRange, LocationRange>>,
   Assert<IsExact<RootLocationsRequest, LocationsRequest>>,
   Assert<IsExact<RootWordLocation, WordLocation>>,
+  Assert<IsExact<RootThemes, Themes>>,
+  Assert<IsExact<RootInjectedThemes, InjectedThemes>>,
+  Assert<IsExact<RootTheme, Theme>>,
+  Assert<IsExact<RootThemeInput, ThemeInput>>,
+  Assert<IsExact<RootThemeOverride, ThemeOverride>>,
+  Assert<IsExact<RootThemeRules, ThemeRules>>,
+  Assert<IsExact<RootThemesContent, ThemesContent>>,
+  Assert<IsExact<RootThemesRendition, ThemesRendition>>,
   Assert<IsExact<typeof rootReplaceBase, typeof replaceBase>>,
   Assert<IsExact<typeof rootReplaceCanonical, typeof replaceCanonical>>,
   Assert<IsExact<typeof rootReplaceMeta, typeof replaceMeta>>,

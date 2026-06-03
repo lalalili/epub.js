@@ -77,6 +77,11 @@
 - [StoreResources](interfaces/StoreResources.md)
 - [StoreStorage](interfaces/StoreStorage.md)
 - [StoreUrlOptions](interfaces/StoreUrlOptions.md)
+- [Theme](interfaces/Theme.md)
+- [ThemeOverride](interfaces/ThemeOverride.md)
+- [Themes](interfaces/Themes.md)
+- [ThemesContent](interfaces/ThemesContent.md)
+- [ThemesRendition](interfaces/ThemesRendition.md)
 - [Url](interfaces/Url.md)
 - [WordLocation](interfaces/WordLocation.md)
 
@@ -86,6 +91,7 @@
 - [ArchiveRequestType](type-aliases/ArchiveRequestType.md)
 - [BookInput](type-aliases/BookInput.md)
 - [ContainerDocument](type-aliases/ContainerDocument.md)
+- [InjectedThemes](type-aliases/InjectedThemes.md)
 - [LinkCallback](type-aliases/LinkCallback.md)
 - [LocationInput](type-aliases/LocationInput.md)
 - [LocationsRequest](type-aliases/LocationsRequest.md)
@@ -109,6 +115,8 @@
 - [StoreRequest](type-aliases/StoreRequest.md)
 - [StoreRequestType](type-aliases/StoreRequestType.md)
 - [StoreResolver](type-aliases/StoreResolver.md)
+- [ThemeInput](type-aliases/ThemeInput.md)
+- [ThemeRules](type-aliases/ThemeRules.md)
 - [UrlBase](type-aliases/UrlBase.md)
 
 ## Variables
