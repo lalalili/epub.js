@@ -255,6 +255,7 @@ assert(typeTests.includes("RootPageValue"), "type tests must assert root PageLis
 assert(typeTests.includes("new PageList()"), "type tests must cover PageList construction without a document");
 assert(typeTests.includes("pageList.process(pageListItems)"), "type tests must cover PageList item processing");
 assert(typeTests.includes("pageList.pageFromCfi"), "type tests must cover PageList CFI lookup typing");
+assert(typeTests.includes("ReturnType<PageList[\"destroy\"]>"), "type tests must cover PageList destroy return typing");
 assert(typeTests.includes("type LocationsAssertions"), "type tests must assert the Locations public surface");
 assert(typeTests.includes("new Locations(spine"), "type tests must cover Locations construction with spine/request typing");
 assert(typeTests.includes("locations.generateForSection"), "type tests must cover Locations section refinement typing");

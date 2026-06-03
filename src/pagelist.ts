@@ -308,7 +308,7 @@ class PageList {
 	/**
 	 * Destroy
 	 */
-	destroy() {
+	destroy(): void {
 		this.pages = undefined;
 		this.locations = undefined;
 		this.hrefs = undefined;
