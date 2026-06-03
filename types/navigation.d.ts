@@ -2,31 +2,49 @@ export interface NavItem {
   id: string,
   href: string,
   label: string,
-  subitems?: Array<NavItem>,
-  parent?: string
+  subitems: Array<NavItem>,
+  parent?: string,
+  title?: string,
+  children?: Array<NavigationInputItem>
 }
 
 export interface LandmarkItem {
-  href?: string,
-  label?: string,
+  href: string,
+  label: string,
   type?: string
 }
 
+export interface NavigationInputItem {
+  id: string,
+  href: string,
+  label?: string,
+  title?: string,
+  subitems?: Array<NavigationInputItem>,
+  children?: Array<NavigationInputItem>,
+  parent?: string
+}
+
 export default class Navigation {
-  constructor(xml: XMLDocument);
+  constructor(xml?: Document | XMLDocument | Array<NavigationInputItem>);
 
   toc: Array<NavItem>;
+  tocByHref: Record<string, number>;
+  tocById: Record<string, number>;
   landmarks: Array<LandmarkItem>;
+  landmarksByType: Record<string, number>;
+  length: number;
 
-  parse(xml: XMLDocument): void;
+  parse(xml: Document | XMLDocument | Array<NavigationInputItem>): void;
 
-  get(target: string) : NavItem;
+  get(): Array<NavItem>;
+  get(target: string) : NavItem | undefined;
 
-  landmark(type: string) : LandmarkItem;
+  landmark(): Array<LandmarkItem>;
+  landmark(type: string) : LandmarkItem | undefined;
 
-  load(json: string): Array<NavItem>;
+  load(json: Array<NavigationInputItem>): Array<NavItem>;
 
-  forEach(fn: (item: NavItem) => {}): any;
+  forEach(fn: (item: NavItem, index: number, array: Array<NavItem>) => void): void;
 
   private unpack(toc: Array<NavItem>): void;
 

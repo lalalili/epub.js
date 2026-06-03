@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0265
+- Why:
+  - P-0264 made Gate 1 readiness executable, and P-0262/P-0263 locked the root, request, utils, `Book`, `Rendition`, and `Contents` typed public surfaces.
+  - `Navigation` is already TypeScript source, but its public declaration still described only XML construction and single-item lookup, while runtime also supports empty construction, `Document` input, legacy JSON navigation trees, TOC list lookup, landmark list lookup, and missing-item `undefined` results.
+  - Tightening the declaration and adding type-level assertions keeps the Browser Mode and typed public API lane moving without changing runtime behavior or requiring a host gate.
+- Diff Scope:
+  - `types/navigation.d.ts`: align the `Navigation` constructor, `parse()`, `get()`, `landmark()`, `load()`, indexed lookup maps, `length`, `NavItem`, and `LandmarkItem` declarations with the TypeScript source behavior.
+  - `types/epubjs-tests.ts`: add `NavigationAssertions` plus concrete construction and overload usage checks for `Document`, empty, and legacy JSON navigation inputs.
+  - `scripts/verify-gate1-readiness.mjs`: require the Navigation typed public API assertions and overload coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/navigation.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older, narrower `Navigation` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0264
 - Why:
   - P-0262 and P-0263 strengthened the typed public API surface, but Gate 1 readiness still depended on remembering which scripts and tests prove package entry plus public type stability.

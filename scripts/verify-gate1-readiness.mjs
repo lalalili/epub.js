@@ -75,6 +75,10 @@ assert(tsconfig.include.includes("types/**/*-tests.ts"), "tsconfig must include 
 
 assert(typeTests.includes("type PublicRootAssertions"), "type tests must assert the public root surface");
 assert(typeTests.includes("type CoreClassAssertions"), "type tests must assert the core class surface");
+assert(typeTests.includes("type NavigationAssertions"), "type tests must assert the Navigation public surface");
+assert(typeTests.includes("new Navigation(legacyNavItems)"), "type tests must cover legacy JSON Navigation construction");
+assert(typeTests.includes("legacyNavigation.get()"), "type tests must cover Navigation get() toc overload");
+assert(typeTests.includes("legacyNavigation.landmark()"), "type tests must cover Navigation landmark() list overload");
 assert(typeTests.includes("RequestMethod"), "type tests must assert request method typing");
 assert(typeTests.includes("InstanceType<typeof ePub.utils.defer"), "type tests must assert generic defer typing");
 

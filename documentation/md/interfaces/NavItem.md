@@ -8,6 +8,12 @@
 
 ## Properties
 
+### children?
+
+> `optional` **children?**: `NavigationInputItem`[]
+
+***
+
 ### href
 
 > **href**: `string`
@@ -32,6 +38,12 @@
 
 ***
 
-### subitems?
+### subitems
 
-> `optional` **subitems?**: `NavItem`[]
+> **subitems**: `NavItem`[]
+
+***
+
+### title?
+
+> `optional` **title?**: `string`

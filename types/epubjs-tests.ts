@@ -2,6 +2,7 @@ import ePub, { Book, Contents, EpubCFI, Layout, Rendition, request } from '../';
 import type { BookOptions } from './book';
 import type { ViewportSettings } from './contents';
 import type EpubRoot from './epub';
+import Navigation, { LandmarkItem, NavItem, NavigationInputItem } from './navigation';
 import type { Location, RenditionOptions } from './rendition';
 import { JsonValue, RequestHeaders, RequestMethod, RequestResponse } from './utils/request';
 
@@ -63,6 +64,19 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Contents["writingMode"]>, string>>
 ];
 
+type NavigationAssertions = [
+  Assert<IsExact<Navigation["toc"], NavItem[]>>,
+  Assert<IsExact<Navigation["tocByHref"], Record<string, number>>>,
+  Assert<IsExact<Navigation["tocById"], Record<string, number>>>,
+  Assert<IsExact<Navigation["landmarks"], LandmarkItem[]>>,
+  Assert<IsExact<Navigation["landmarksByType"], Record<string, number>>>,
+  Assert<IsExact<Navigation["length"], number>>,
+  Assert<IsExact<Parameters<Navigation["parse"]>[0], Document | XMLDocument | NavigationInputItem[]>>,
+  Assert<IsExact<Parameters<Navigation["load"]>[0], NavigationInputItem[]>>,
+  Assert<IsExact<ReturnType<Navigation["load"]>, NavItem[]>>,
+  Assert<IsExact<ReturnType<Navigation["forEach"]>, void>>
+];
+
 function testEpub() {
   const epub = ePub("https://s3.amazonaws.com/moby-dick/moby-dick.epub");
 
@@ -102,6 +116,24 @@ function testEpub() {
   const parsedDocument: Document = ePub.utils.parse("<html><body><p>Text</p></body></html>", "text/html");
   const paragraph = ePub.utils.qs(parsedDocument, "p");
   const paragraphText: string | null | undefined = paragraph?.textContent;
+  const legacyNavItems: NavigationInputItem[] = [{
+    id: "chapter-one",
+    href: "Text/chapter1.xhtml",
+    title: "Chapter 1",
+    children: [{
+      id: "chapter-one-part-one",
+      href: "Text/chapter1.xhtml#part-1",
+      title: "Part 1",
+    }],
+  }];
+  const emptyNavigation = new Navigation();
+  const documentNavigation = new Navigation(parsedDocument);
+  const legacyNavigation = new Navigation(legacyNavItems);
+  const navigationToc: NavItem[] = legacyNavigation.get();
+  const navigationItem: NavItem | undefined = legacyNavigation.get("chapter-one");
+  const navigationLandmarks: LandmarkItem[] = legacyNavigation.landmark();
+  const navigationLandmark: LandmarkItem | undefined = legacyNavigation.landmark("cover");
+  const loadedNavigationItems: NavItem[] = legacyNavigation.load(legacyNavItems);
 
   new StaticBook("https://s3.amazonaws.com/moby-dick/moby-dick.epub", {});
   new StaticRendition(epub, {});
@@ -135,10 +167,18 @@ function testEpub() {
   void uuid;
   void deferred;
   void paragraphText;
+  void emptyNavigation;
+  void documentNavigation;
+  void navigationToc;
+  void navigationItem;
+  void navigationLandmarks;
+  void navigationLandmark;
+  void loadedNavigationItems;
   void location;
 }
 
 type _PublicRootAssertions = PublicRootAssertions;
 type _CoreClassAssertions = CoreClassAssertions;
+type _NavigationAssertions = NavigationAssertions;
 
 testEpub();
