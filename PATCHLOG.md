@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0268
+- Why:
+  - P-0267 aligned the `Spine` typed public API surface, leaving archive/request declarations as the next core type gap.
+  - `Archive` is already TypeScript source, but its declaration still treated missing archive entries as always returning promises, required `createUrl()` options even though runtime allows them to be omitted, hid public `zip` / `urlCache` state, and kept `handleResponse()` private despite browser tests exercising it.
+  - Aligning `Archive` declarations lets consumers type-check missing-entry handling, optional base64 URL creation, archive cache state, and response parsing before any release tag or host gate.
+- Diff Scope:
+  - `types/archive.d.ts`: align archive input, request type, URL options, entry/zip shape, public state, missing-entry returns, `createUrl()` options, `checkRequirements()`, and `handleResponse()` overloads with the TypeScript source behavior.
+  - `types/epubjs-tests.ts`: add `ArchiveAssertions` plus concrete open/openUrl/request/getBlob/getText/getBase64/createUrl/handleResponse typing checks.
+  - `scripts/verify-gate1-readiness.mjs`: require the Archive typed public API assertions and createUrl/handleResponse coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/archive.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `Archive` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0267
 - Why:
   - P-0266 aligned `Section` declarations with runtime behavior, leaving the adjacent `Spine` structure declaration as the next typed public API gap.

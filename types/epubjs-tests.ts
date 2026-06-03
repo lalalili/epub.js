@@ -1,4 +1,5 @@
 import ePub, { Book, Contents, EpubCFI, Layout, Rendition, request } from '../';
+import Archive, { ArchiveInput, ArchiveRequestType, ArchiveUrlOptions, ArchiveZip } from './archive';
 import type { BookOptions } from './book';
 import type { ViewportSettings } from './contents';
 import type EpubRoot from './epub';
@@ -121,6 +122,20 @@ type SpineAssertions = [
   Assert<IsExact<ReturnType<Spine["destroy"]>, void>>
 ];
 
+type ArchiveAssertions = [
+  Assert<IsExact<Archive["zip"], ArchiveZip | undefined>>,
+  Assert<IsExact<Archive["urlCache"], Record<string, string>>>,
+  Assert<IsExact<Parameters<Archive["open"]>, [input: ArchiveInput, isBase64?: boolean | undefined]>>,
+  Assert<IsExact<ReturnType<Archive["open"]>, Promise<ArchiveZip>>>,
+  Assert<IsExact<Parameters<Archive["openUrl"]>, [zipUrl: string, isBase64?: boolean | undefined]>>,
+  Assert<IsExact<ReturnType<Archive["getBlob"]>, Promise<Blob> | undefined>>,
+  Assert<IsExact<ReturnType<Archive["getText"]>, Promise<string> | undefined>>,
+  Assert<IsExact<ReturnType<Archive["getBase64"]>, Promise<string> | undefined>>,
+  Assert<IsExact<ReturnType<Archive["createUrl"]>, Promise<string>>>,
+  Assert<IsExact<ReturnType<Archive["revokeUrl"]>, void>>,
+  Assert<IsExact<ReturnType<Archive["destroy"]>, void>>
+];
+
 function testEpub() {
   const epub = ePub("https://s3.amazonaws.com/moby-dick/moby-dick.epub");
 
@@ -224,6 +239,23 @@ function testEpub() {
   const firstSpineSection: Section | undefined = spine.first();
   const lastSpineSection: Section | undefined = spine.last();
   const removedSpineSections: Section[] | undefined = spineSection ? spine.remove(spineSection) : undefined;
+  const archive = new Archive();
+  const archiveInput: ArchiveInput = new ArrayBuffer(0);
+  const archiveRequestType: ArchiveRequestType = "xhtml";
+  const archiveUrlOptions: ArchiveUrlOptions = { base64: true };
+  const openedArchive: Promise<ArchiveZip> = archive.open(archiveInput);
+  const openedArchiveUrl: Promise<ArchiveZip> = archive.openUrl("https://example.com/book.epub");
+  const archiveBlob: Promise<Blob> = archive.request("/OPS/images/cover.jpg", "blob");
+  const archiveJson: Promise<JsonValue> = archive.request("/OPS/package.json", "json");
+  const archiveDocument: Promise<Document | XMLDocument> = archive.request("/OPS/package.opf", "opf");
+  const archiveFallback: Promise<RequestResponse> = archive.request("/OPS/chapter.xhtml", archiveRequestType);
+  const archiveBlobEntry: Promise<Blob> | undefined = archive.getBlob("/OPS/images/cover.jpg");
+  const archiveTextEntry: Promise<string> | undefined = archive.getText("/OPS/chapter.xhtml");
+  const archiveBase64Entry: Promise<string> | undefined = archive.getBase64("/OPS/images/cover.jpg");
+  const archiveObjectUrl: Promise<string> = archive.createUrl("/OPS/images/cover.jpg");
+  const archiveBase64Url: Promise<string> = archive.createUrl("/OPS/images/cover.jpg", archiveUrlOptions);
+  const archiveParsedJson: JsonValue = archive.handleResponse("{\"ok\":true}", "json");
+  const archiveParsedDocument: Document | XMLDocument = archive.handleResponse("<html></html>", "xhtml");
 
   new StaticBook("https://s3.amazonaws.com/moby-dick/moby-dick.epub", {});
   new StaticRendition(epub, {});
@@ -273,6 +305,19 @@ function testEpub() {
   void firstSpineSection;
   void lastSpineSection;
   void removedSpineSections;
+  void openedArchive;
+  void openedArchiveUrl;
+  void archiveBlob;
+  void archiveJson;
+  void archiveDocument;
+  void archiveFallback;
+  void archiveBlobEntry;
+  void archiveTextEntry;
+  void archiveBase64Entry;
+  void archiveObjectUrl;
+  void archiveBase64Url;
+  void archiveParsedJson;
+  void archiveParsedDocument;
   void location;
 }
 
@@ -281,5 +326,6 @@ type _CoreClassAssertions = CoreClassAssertions;
 type _NavigationAssertions = NavigationAssertions;
 type _SectionAssertions = SectionAssertions;
 type _SpineAssertions = SpineAssertions;
+type _ArchiveAssertions = ArchiveAssertions;
 
 testEpub();

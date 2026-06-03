@@ -1,27 +1,55 @@
-import JSZip = require('jszip');
+import { JsonValue, RequestResponse } from "./utils/request";
+
+export type ArchiveInput = ArrayBuffer | Uint8Array | string;
+
+export type ArchiveRequestType = string | undefined;
+
+export interface ArchiveUrlOptions {
+  base64?: boolean
+}
+
+export interface ArchiveEntry {
+  name: string;
+  async(type: "uint8array"): Promise<Uint8Array>;
+  async(type: "string"): Promise<string>;
+  async(type: "base64"): Promise<string>;
+}
+
+export interface ArchiveZip {
+  loadAsync(input: ArchiveInput, options?: { base64?: boolean }): Promise<ArchiveZip>;
+  file(path: string): ArchiveEntry | null;
+}
 
 export default class Archive {
   constructor();
 
-  open(input: BinaryType, isBase64?: boolean): Promise<JSZip>;
+  zip?: ArchiveZip;
+  urlCache: Record<string, string>;
 
-  openUrl(zipUrl: string, isBase64?: boolean): Promise<JSZip>;
+  open(input: ArchiveInput, isBase64?: boolean): Promise<ArchiveZip>;
 
-	request(url: string, type?: string): Promise<Blob | string | JSON | Document | XMLDocument>;
+  openUrl(zipUrl: string, isBase64?: boolean): Promise<ArchiveZip>;
 
-  getBlob(url: string, mimeType?: string): Promise<Blob>;
+  request(url: string, type: "blob"): Promise<Blob>;
+  request(url: string, type: "json"): Promise<JsonValue>;
+  request(url: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm"): Promise<Document | XMLDocument>;
+  request(url: string, type?: ArchiveRequestType): Promise<RequestResponse>;
 
-  getText(url: string): Promise<string>;
+  getBlob(url: string, mimeType?: string): Promise<Blob> | undefined;
 
-  getBase64(url: string, mimeType?: string): Promise<string>;
+  getText(url: string, encoding?: string): Promise<string> | undefined;
 
-  createUrl(url: string, options: { base64: boolean }): Promise<string>;
+  getBase64(url: string, mimeType?: string): Promise<string> | undefined;
+
+  createUrl(url: string, options?: ArchiveUrlOptions): Promise<string>;
 
   revokeUrl(url: string): void;
 
   destroy(): void;
 
-  private checkRequirements(): void;
+  checkRequirements(): void;
 
-  private handleResponse(response: any, type?: string): Blob | string | JSON | Document | XMLDocument;
+  handleResponse(response: string, type: "json"): JsonValue;
+  handleResponse(response: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm"): Document | XMLDocument;
+  handleResponse(response: RequestResponse, type?: ArchiveRequestType): RequestResponse;
 }
