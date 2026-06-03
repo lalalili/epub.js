@@ -13,6 +13,7 @@ import type { ViewportSettings } from './contents';
 import type EpubRoot from './epub';
 import type { LayoutContent, LayoutCount, LayoutProps, LayoutSettings as EpubLayoutSettings } from './layout';
 import Navigation, { LandmarkItem, NavItem, NavigationInputItem } from './navigation';
+import DisplayOptions from './displayoptions';
 import Packaging, {
   PackagingJsonManifest,
   PackagingManifestItem,
@@ -222,6 +223,16 @@ type PackagingAssertions = [
   Assert<IsExact<ReturnType<Packaging["getElementText"]>, string>>,
   Assert<IsExact<ReturnType<Packaging["getPropertyText"]>, string>>,
   Assert<IsExact<ReturnType<Packaging["destroy"]>, void>>
+];
+
+type DisplayOptionsAssertions = [
+  Assert<IsExact<ConstructorParameters<typeof DisplayOptions>, [displayOptionsDocument?: Document | undefined]>>,
+  Assert<IsExact<DisplayOptions["interactive"], string | undefined>>,
+  Assert<IsExact<DisplayOptions["fixedLayout"], string | undefined>>,
+  Assert<IsExact<DisplayOptions["openToSpread"], string | undefined>>,
+  Assert<IsExact<DisplayOptions["orientationLock"], string | undefined>>,
+  Assert<IsExact<ReturnType<DisplayOptions["parse"]>, DisplayOptions>>,
+  Assert<IsExact<ReturnType<DisplayOptions["destroy"]>, void>>
 ];
 
 type PageListAssertions = [
@@ -554,6 +565,9 @@ function testEpub() {
   const packagingManifestItem: PackagingManifestItem | undefined = loadedPackaging.manifest[0];
   const packagingMetadataTitle: string | undefined = loadedPackaging.metadata.title;
   const packagingTocItem: PackagingTocItem | undefined = loadedPackaging.toc?.[0];
+  const displayOptions = new DisplayOptions();
+  const parsedDisplayOptions: DisplayOptions = displayOptions.parse(parsedDocument);
+  const displayOptionsInteractive: string | undefined = displayOptions.interactive;
   const pageListItems: PageListItem[] = [{
     page: "1",
     href: "Text/chapter.xhtml#page-1",
@@ -823,6 +837,8 @@ function testEpub() {
   void packagingManifestItem;
   void packagingMetadataTitle;
   void packagingTocItem;
+  void parsedDisplayOptions;
+  void displayOptionsInteractive;
   void parsedPageList;
   void loadedPageList;
   void pageFromCfi;
@@ -883,6 +899,7 @@ type _SectionAssertions = SectionAssertions;
 type _SpineAssertions = SpineAssertions;
 type _ArchiveAssertions = ArchiveAssertions;
 type _PackagingAssertions = PackagingAssertions;
+type _DisplayOptionsAssertions = DisplayOptionsAssertions;
 type _PageListAssertions = PageListAssertions;
 type _LocationsAssertions = LocationsAssertions;
 type _MappingAssertions = MappingAssertions;
