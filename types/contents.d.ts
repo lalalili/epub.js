@@ -1,16 +1,17 @@
 import EpubCFI from "./epubcfi";
+import { RangeObject } from "./compat/range";
 
 export interface ViewportSettings {
-  width: string,
-  height: string,
-  scale: string,
-  scalable: string,
-  minimum: string,
-  maximum: string
+  width?: string | number,
+  height?: string | number,
+  scale?: string | number,
+  scalable?: string,
+  minimum?: string | number,
+  maximum?: string | number
 }
 
 export default class Contents {
-    constructor(doc: Document, content: Element, cfiBase: string, sectionIndex: number);
+    constructor(doc: Document, content?: Element, cfiBase?: string, sectionIndex?: number, sectionHref?: string);
 
     epubcfi: EpubCFI;
     document: Document;
@@ -28,65 +29,84 @@ export default class Contents {
 
     addStylesheet(src: string): Promise<boolean>;
 
-    addStylesheetRules(rules: Array<object> | object, key: string): Promise<boolean>;
+    addStylesheetRules(rules: Array<object> | object, key?: string): void;
 
-    addStylesheetCss(serializedCss: string, key: string): Promise<boolean>;
+    addStylesheetCss(serializedCss: string, key?: string): boolean;
 
     cfiFromNode(node: Node, ignoreClass?: string): string;
 
-    cfiFromRange(range: Range, ignoreClass?: string): string;
+    cfiFromRange(range: Range | RangeObject, ignoreClass?: string): string;
 
-    columns(width: number, height: number, columnWidth: number, gap: number, dir: string): void;
+    columns(width: number, height: number, columnWidth: number, gap: number, dir?: string): void;
 
-    contentHeight(h: number): number;
+    contentHeight(h?: number | string): number;
 
-    contentWidth(w: number): number;
+    contentWidth(w?: number | string): number;
 
-    css(property: string, value: string, priority?: boolean): string;
+    css(property: string, value?: string, priority?: boolean): string;
 
     destroy(): void;
 
-    direction(dir: string): void;
+    direction(dir?: string): void;
 
-    fit(width: number, height: number): void;
+    fit(width: number, height: number, section?: any): void;
 
-    height(h: number): number;
+    forceWritingMode(mode?: string): string;
 
-    locationOf(target: string | EpubCFI, ignoreClass?: string): Promise<{ top: number, left: number }>;
+    height(h?: number | string): number;
+
+    invalidateVerticalRlMetricsCache(): void;
+
+    isViewportFillingSingleMediaPage(viewportWidth: number): boolean;
+
+    locationOf(target: string | number | EpubCFI, ignoreClass?: string): { top: number, left: number };
 
     map(layout: any): any;
 
-    mapPage(cfiBase: string, layout: object, start: number, end: number, dev: boolean): any;
+    mapPage(cfiBase: string, layout: object, start: number, end: number, dev?: boolean): any;
 
-    overflow(overflow: string): string;
+    measureVerticalRlRect(): {
+      left: number,
+      right: number,
+      top: number,
+      bottom: number,
+      rawWidth: number,
+      rawHeight: number
+    };
 
-    overflowX(overflow: string): string;
+    overflow(overflow?: string): string;
 
-    overflowY(overflow: string): string;
+    overflowX(overflow?: string): string;
 
-    range(cfi: string, ignoreClass?: string): Range;
+    overflowY(overflow?: string): string;
+
+    range(cfi: string | EpubCFI, ignoreClass?: string): Range | RangeObject | null;
 
     removeClass(className: any): void;
 
-    root(): Element;
+    root(): Element | null;
 
-    scaler(scale: number, offsetX: number, offsetY: number): void;
+    scaler(scale: number, offsetX?: number, offsetY?: number): void;
 
     scrollHeight(): number;
 
     scrollWidth(): number;
 
-    size(width: number, height: number): void;
+    size(width?: number | null, height?: number | null): void;
 
     textHeight(): number;
 
     textWidth(): number;
 
-    viewport(options: ViewportSettings): ViewportSettings;
+    verticalRlPageMetrics(pageWidth?: number, pageHeight?: number): Record<string, any>;
 
-    width(w: number): number;
+    debugVerticalRlMetrics(pageWidth?: number): Record<string, any>;
 
-    writingMode(mode: string): string;
+    viewport(options?: ViewportSettings): ViewportSettings;
+
+    width(w?: number | string): number;
+
+    writingMode(mode?: string): string;
 
     // Event emitters
     emit(type: any, ...args: any[]): void;
@@ -109,7 +129,7 @@ export default class Contents {
 
     private imageLoadListeners(): void;
 
-    private layoutStyle(style: string): string;
+    private layoutStyle(style?: string): string;
 
     private linksHandler(): void;
 
@@ -117,7 +137,7 @@ export default class Contents {
 
     private mediaQueryListeners(): void;
 
-    private onSelectionChange(e: Event): void;
+    private onSelectionChange(e?: Event): void;
 
     private removeEventListeners(): void;
 
@@ -135,5 +155,5 @@ export default class Contents {
 
     private triggerEvent(e: Event): void;
 
-    private triggerSelectedEvent(selection: Selection): void;
+    private triggerSelectedEvent(selection: Selection | null): void;
 }

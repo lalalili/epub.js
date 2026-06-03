@@ -6,6 +6,9 @@
 			"useBuiltIns": "usage",
 			"bugfixes": true,
 			"modules": "auto"
+		}],
+		["@babel/preset-typescript", {
+			"allowDeclareFields": true
 		}]
 	],
 }

@@ -10,7 +10,7 @@
 
 ### Constructor
 
-> **new Contents**(`doc`, `content`, `cfiBase`, `sectionIndex`): `Contents`
+> **new Contents**(`doc`, `content?`, `cfiBase?`, `sectionIndex?`, `sectionHref?`): `Contents`
 
 #### Parameters
 
@@ -18,17 +18,21 @@
 
 `Document`
 
-##### content
+##### content?
 
 `Element`
 
-##### cfiBase
+##### cfiBase?
 
 `string`
 
-##### sectionIndex
+##### sectionIndex?
 
 `number`
+
+##### sectionHref?
+
+`string`
 
 #### Returns
 
@@ -134,7 +138,7 @@
 
 ### addStylesheetCss()
 
-> **addStylesheetCss**(`serializedCss`, `key`): `Promise`\<`boolean`\>
+> **addStylesheetCss**(`serializedCss`, `key?`): `boolean`
 
 #### Parameters
 
@@ -142,19 +146,19 @@
 
 `string`
 
-##### key
+##### key?
 
 `string`
 
 #### Returns
 
-`Promise`\<`boolean`\>
+`boolean`
 
 ***
 
 ### addStylesheetRules()
 
-> **addStylesheetRules**(`rules`, `key`): `Promise`\<`boolean`\>
+> **addStylesheetRules**(`rules`, `key?`): `void`
 
 #### Parameters
 
@@ -162,13 +166,13 @@
 
 `object` \| `object`[]
 
-##### key
+##### key?
 
 `string`
 
 #### Returns
 
-`Promise`\<`boolean`\>
+`void`
 
 ***
 
@@ -200,7 +204,7 @@
 
 ##### range
 
-`Range`
+`any`
 
 ##### ignoreClass?
 
@@ -214,7 +218,7 @@
 
 ### columns()
 
-> **columns**(`width`, `height`, `columnWidth`, `gap`, `dir`): `void`
+> **columns**(`width`, `height`, `columnWidth`, `gap`, `dir?`): `void`
 
 #### Parameters
 
@@ -234,7 +238,7 @@
 
 `number`
 
-##### dir
+##### dir?
 
 `string`
 
@@ -246,13 +250,13 @@
 
 ### contentHeight()
 
-> **contentHeight**(`h`): `number`
+> **contentHeight**(`h?`): `number`
 
 #### Parameters
 
-##### h
+##### h?
 
-`number`
+`string` \| `number`
 
 #### Returns
 
@@ -262,13 +266,13 @@
 
 ### contentWidth()
 
-> **contentWidth**(`w`): `number`
+> **contentWidth**(`w?`): `number`
 
 #### Parameters
 
-##### w
+##### w?
 
-`number`
+`string` \| `number`
 
 #### Returns
 
@@ -278,7 +282,7 @@
 
 ### css()
 
-> **css**(`property`, `value`, `priority?`): `string`
+> **css**(`property`, `value?`, `priority?`): `string`
 
 #### Parameters
 
@@ -286,7 +290,7 @@
 
 `string`
 
-##### value
+##### value?
 
 `string`
 
@@ -297,6 +301,22 @@
 #### Returns
 
 `string`
+
+***
+
+### debugVerticalRlMetrics()
+
+> **debugVerticalRlMetrics**(`pageWidth?`): `Record`\<`string`, `any`\>
+
+#### Parameters
+
+##### pageWidth?
+
+`number`
+
+#### Returns
+
+`Record`\<`string`, `any`\>
 
 ***
 
@@ -312,11 +332,11 @@
 
 ### direction()
 
-> **direction**(`dir`): `void`
+> **direction**(`dir?`): `void`
 
 #### Parameters
 
-##### dir
+##### dir?
 
 `string`
 
@@ -348,7 +368,7 @@
 
 ### fit()
 
-> **fit**(`width`, `height`): `void`
+> **fit**(`width`, `height`, `section?`): `void`
 
 #### Parameters
 
@@ -360,21 +380,41 @@
 
 `number`
 
+##### section?
+
+`any`
+
 #### Returns
 
 `void`
 
 ***
 
-### height()
+### forceWritingMode()
 
-> **height**(`h`): `number`
+> **forceWritingMode**(`mode?`): `string`
 
 #### Parameters
 
-##### h
+##### mode?
 
-`number`
+`string`
+
+#### Returns
+
+`string`
+
+***
+
+### height()
+
+> **height**(`h?`): `number`
+
+#### Parameters
+
+##### h?
+
+`string` \| `number`
 
 #### Returns
 
@@ -382,15 +422,41 @@
 
 ***
 
+### invalidateVerticalRlMetricsCache()
+
+> **invalidateVerticalRlMetricsCache**(): `void`
+
+#### Returns
+
+`void`
+
+***
+
+### isViewportFillingSingleMediaPage()
+
+> **isViewportFillingSingleMediaPage**(`viewportWidth`): `boolean`
+
+#### Parameters
+
+##### viewportWidth
+
+`number`
+
+#### Returns
+
+`boolean`
+
+***
+
 ### locationOf()
 
-> **locationOf**(`target`, `ignoreClass?`): `Promise`\<\{ `left`: `number`; `top`: `number`; \}\>
+> **locationOf**(`target`, `ignoreClass?`): `object`
 
 #### Parameters
 
 ##### target
 
-`string` \| [`EpubCFI`](EpubCFI.md)
+`string` \| `number` \| [`EpubCFI`](EpubCFI.md)
 
 ##### ignoreClass?
 
@@ -398,7 +464,15 @@
 
 #### Returns
 
-`Promise`\<\{ `left`: `number`; `top`: `number`; \}\>
+`object`
+
+##### left
+
+> **left**: `number`
+
+##### top
+
+> **top**: `number`
 
 ***
 
@@ -420,7 +494,7 @@
 
 ### mapPage()
 
-> **mapPage**(`cfiBase`, `layout`, `start`, `end`, `dev`): `any`
+> **mapPage**(`cfiBase`, `layout`, `start`, `end`, `dev?`): `any`
 
 #### Parameters
 
@@ -440,13 +514,47 @@
 
 `number`
 
-##### dev
+##### dev?
 
 `boolean`
 
 #### Returns
 
 `any`
+
+***
+
+### measureVerticalRlRect()
+
+> **measureVerticalRlRect**(): `object`
+
+#### Returns
+
+`object`
+
+##### bottom
+
+> **bottom**: `number`
+
+##### left
+
+> **left**: `number`
+
+##### rawHeight
+
+> **rawHeight**: `number`
+
+##### rawWidth
+
+> **rawWidth**: `number`
+
+##### right
+
+> **right**: `number`
+
+##### top
+
+> **top**: `number`
 
 ***
 
@@ -516,11 +624,11 @@
 
 ### overflow()
 
-> **overflow**(`overflow`): `string`
+> **overflow**(`overflow?`): `string`
 
 #### Parameters
 
-##### overflow
+##### overflow?
 
 `string`
 
@@ -532,11 +640,11 @@
 
 ### overflowX()
 
-> **overflowX**(`overflow`): `string`
+> **overflowX**(`overflow?`): `string`
 
 #### Parameters
 
-##### overflow
+##### overflow?
 
 `string`
 
@@ -548,11 +656,11 @@
 
 ### overflowY()
 
-> **overflowY**(`overflow`): `string`
+> **overflowY**(`overflow?`): `string`
 
 #### Parameters
 
-##### overflow
+##### overflow?
 
 `string`
 
@@ -564,13 +672,13 @@
 
 ### range()
 
-> **range**(`cfi`, `ignoreClass?`): `Range`
+> **range**(`cfi`, `ignoreClass?`): `any`
 
 #### Parameters
 
 ##### cfi
 
-`string`
+`string` \| [`EpubCFI`](EpubCFI.md)
 
 ##### ignoreClass?
 
@@ -578,7 +686,7 @@
 
 #### Returns
 
-`Range`
+`any`
 
 ***
 
@@ -610,7 +718,7 @@
 
 ### scaler()
 
-> **scaler**(`scale`, `offsetX`, `offsetY`): `void`
+> **scaler**(`scale`, `offsetX?`, `offsetY?`): `void`
 
 #### Parameters
 
@@ -618,11 +726,11 @@
 
 `number`
 
-##### offsetX
+##### offsetX?
 
 `number`
 
-##### offsetY
+##### offsetY?
 
 `number`
 
@@ -654,15 +762,15 @@
 
 ### size()
 
-> **size**(`width`, `height`): `void`
+> **size**(`width?`, `height?`): `void`
 
 #### Parameters
 
-##### width
+##### width?
 
 `number`
 
-##### height
+##### height?
 
 `number`
 
@@ -692,13 +800,33 @@
 
 ***
 
-### viewport()
+### verticalRlPageMetrics()
 
-> **viewport**(`options`): `ViewportSettings`
+> **verticalRlPageMetrics**(`pageWidth?`, `pageHeight?`): `Record`\<`string`, `any`\>
 
 #### Parameters
 
-##### options
+##### pageWidth?
+
+`number`
+
+##### pageHeight?
+
+`number`
+
+#### Returns
+
+`Record`\<`string`, `any`\>
+
+***
+
+### viewport()
+
+> **viewport**(`options?`): `ViewportSettings`
+
+#### Parameters
+
+##### options?
 
 `ViewportSettings`
 
@@ -710,13 +838,13 @@
 
 ### width()
 
-> **width**(`w`): `number`
+> **width**(`w?`): `number`
 
 #### Parameters
 
-##### w
+##### w?
 
-`number`
+`string` \| `number`
 
 #### Returns
 
@@ -726,11 +854,11 @@
 
 ### writingMode()
 
-> **writingMode**(`mode`): `string`
+> **writingMode**(`mode?`): `string`
 
 #### Parameters
 
-##### mode
+##### mode?
 
 `string`
 

@@ -25,20 +25,5 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Compile
-        run: npm run compile
-
-      - name: Build
-        run: npm run build
-
-      - name: Docs
-        run: npm run docs:md
-
-      - name: Test
-        run: npm test
+      - name: Verify release
+        run: npm run verify:release

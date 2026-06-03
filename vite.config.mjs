@@ -6,7 +6,7 @@ export default defineConfig({
 		emptyOutDir: true,
 		sourcemap: true,
 		lib: {
-			entry: "src/index.js",
+			entry: "src/index.ts",
 			formats: ["es", "cjs"],
 			fileName(format) {
 				return format === "es" ? "epub.mjs" : "epub.cjs";

@@ -4,7 +4,9 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 import Epub from "./epub";
 
-export as namespace ePub;
+declare global {
+  const ePub: typeof Epub;
+}
 
 export default Epub;
 
@@ -15,5 +17,3 @@ export { default as Contents } from './contents';
 export { default as Layout } from './layout';
 export { NavItem } from './navigation';
 export { default as request } from './utils/request';
-
-declare namespace ePub {}

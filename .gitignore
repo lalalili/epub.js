@@ -16,4 +16,6 @@ dist/*
 !dist/epub.mjs
 !dist/epub.mjs.map
 documentation/html
+.vitest-attachments
+test/browser/__screenshots__
 types/*.js

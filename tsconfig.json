@@ -18,8 +18,9 @@
   },
   "include": [
     "src/**/*.js",
+    "src/**/*.ts",
     "types/**/*.d.ts",
-    "types/epubjs-tests.ts",
+    "types/**/*-tests.ts",
     "vite.config.mjs",
     "vite.umd.config.mjs"
   ],

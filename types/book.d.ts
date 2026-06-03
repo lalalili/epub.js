@@ -17,21 +17,22 @@ import Resources from "./resources";
 import Container from "./container";
 import Packaging from "./packaging";
 import Store from "./store";
+import DisplayOptions from "./displayoptions";
 import { RequestHeaders, RequestMethod, RequestResponse } from "./utils/request";
 
 export interface BookOptions {
   requestMethod?: RequestMethod;
-  requestCredentials?: boolean,
-  requestHeaders?: RequestHeaders,
-  encoding?: string,
-  replacements?: string,
-  canonical?: (path: string) => string,
-  openAs?: string,
-  store?: string
+  requestCredentials?: boolean;
+  requestHeaders?: RequestHeaders;
+  encoding?: string;
+  replacements?: string;
+  canonical?: (path: string) => string;
+  openAs?: string;
+  store?: string;
 }
 
 export default class Book {
-    constructor(url: string | ArrayBuffer | Blob, options?: BookOptions);
+    constructor(url?: string | ArrayBuffer | Blob, options?: BookOptions);
     constructor(options?: BookOptions);
 
     settings: BookOptions;
@@ -46,22 +47,23 @@ export default class Book {
       navigation: Promise<Navigation>,
       pageList: Promise<PageListItem[]>,
       resources: Promise<string[]>,
+      displayOptions: Promise<DisplayOptions>,
     }
     ready: Promise<void>;
     request: RequestMethod;
     spine: Spine;
     locations: Locations;
-    navigation: Navigation;
-    pageList: PageList;
-    url: Url;
-    path: Path;
+    navigation?: Navigation;
+    pageList?: PageList;
+    url?: Url;
+    path?: Path;
     archived: boolean;
-    archive: Archive;
-    resources: Resources;
-    rendition: Rendition
-    container: Container;
-    packaging: Packaging;
-    storage: Store;
+    archive?: Archive;
+    resources?: Resources;
+    rendition?: Rendition
+    container?: Container;
+    packaging?: Packaging;
+    storage?: Store;
 
 
     canonical(path: string): string;
@@ -70,15 +72,15 @@ export default class Book {
 
     destroy(): void;
 
-    determineType(input: string): string;
+    determineType(input: string | ArrayBuffer | Blob): string | undefined;
 
     getRange(cfiRange: string): Promise<Range>;
 
     key(identifier?: string): string;
 
-    load(path: string): Promise<RequestResponse>;
+    load(path: string, type?: string): Promise<RequestResponse>;
 
-    loadNavigation(opf: XMLDocument): Promise<Navigation>;
+    loadNavigation(packaging: Packaging): Promise<Navigation>;
 
     open(input: string, what?: string): Promise<Book>;
     open(input: ArrayBuffer | Blob, what?: string): Promise<Book>;
@@ -101,15 +103,15 @@ export default class Book {
     section(target: string): Section;
     section(target: number): Section;
 
-    setRequestCredentials(credentials: object): void;
+    setRequestCredentials(credentials: boolean): void;
 
-    setRequestHeaders(headers: object): void;
+    setRequestHeaders(headers: RequestHeaders): void;
 
     unarchive(input: BinaryType, encoding?: string): Promise<Archive>;
 
     store(name: string): Store;
 
-    unpack(opf: XMLDocument): Promise<Book>;
+    unpack(packaging: Packaging): void;
 
     // Event emitters
     emit(type: any, ...args: any[]): void;

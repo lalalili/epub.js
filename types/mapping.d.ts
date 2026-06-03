@@ -1,4 +1,3 @@
-import Layout from "./layout";
 import Contents from "./contents";
 
 export interface EpubCFIPair {
@@ -11,12 +10,19 @@ export interface RangePair {
   end: Range
 }
 
+export interface MappingLayout {
+  spreadWidth: number,
+  columnWidth: number,
+  gap: number,
+  divisor: number
+}
+
 export default class Mapping {
-  constructor(layout: Layout, direction?: string, axis?: string, dev?: boolean);
+  constructor(layout: MappingLayout, direction?: string, axis?: string, dev?: boolean);
 
-  page(contents: Contents, cfiBase: string, start: number, end: number): EpubCFIPair;
+  page(contents: Contents | null | undefined, cfiBase: string, start: number, end: number): EpubCFIPair | undefined;
 
-  axis(axis: string): boolean;
+  axis(axis?: string): boolean;
 
   private walk(root: Node, func: Function);
 

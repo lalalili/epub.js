@@ -9,7 +9,7 @@ export default defineConfig({
 		minify,
 		sourcemap: !minify,
 		lib: {
-			entry: "src/epub.js",
+			entry: "src/epub.ts",
 			name: "ePub",
 			formats: ["umd"],
 			fileName() {

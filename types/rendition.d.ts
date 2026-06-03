@@ -9,24 +9,27 @@ import Annotations from "./annotations";
 import Queue from "./utils/queue";
 
 export interface RenditionOptions {
-  width?: number | string,
-  height?: number | string,
+  width?: number | string | null,
+  height?: number | string | null,
   ignoreClass?: string,
   manager?: string | Function | object,
   view?: string | Function | object,
-  flow?: string,
-  layout?: string,
-  spread?: string,
+  flow?: string | null,
+  layout?: string | null,
+  spread?: string | boolean | null,
   minSpreadWidth?: number,
-  stylesheet?: string,
+  stylesheet?: string | null,
   resizeOnOrientationChange?: boolean,
-  script?: string,
+  script?: string | null,
   infinite?: boolean,
   overflow?: string,
   snap?: boolean | object,
   defaultDirection?: string,
   allowScriptedContent?: boolean,
-  allowPopups?: boolean
+  allowPopups?: boolean,
+  orientation?: string | null,
+  direction?: string,
+  globalLayoutProperties?: object
 }
 
 export interface DisplayedLocation {
@@ -49,7 +52,7 @@ export interface Location {
 }
 
 export default class Rendition {
-    constructor(book: Book, options: RenditionOptions);
+    constructor(book: Book, options?: RenditionOptions);
 
     settings: RenditionOptions;
     book: Book;
@@ -66,7 +69,7 @@ export default class Rendition {
     annotations: Annotations;
     epubcfi: EpubCFI;
     q: Queue;
-    location: Location;
+    location?: Location;
     started: Promise<void>;
 
     adjustImages(contents: Contents): Promise<void>;
@@ -75,7 +78,7 @@ export default class Rendition {
 
     clear(): void;
 
-    currentLocation(): Location | Promise<Location>;
+    currentLocation(): Location | Promise<Location> | undefined;
 
     destroy(): void;
 
@@ -86,11 +89,11 @@ export default class Rendition {
     display(target?: string): Promise<void>;
     display(target?: number): Promise<void>;
 
-    flow(flow: string): void;
+    flow(flow?: string | null): void;
 
-    getContents(): Contents;
+    getContents(): Contents[];
 
-    getRange(cfi: string, ignoreClass?: string): Range;
+    getRange(cfi: string, ignoreClass?: string): Range | undefined;
 
     handleLinks(contents: Contents): void;
 
@@ -102,9 +105,9 @@ export default class Rendition {
 
     layout(settings: any): any;
 
-    located(location: Location): DisplayedLocation;
+    located(location: any[]): Location | {};
 
-    moveTo(offset: number): void;
+    moveTo(offset: object): void;
 
     next(): Promise<void>;
 
@@ -124,7 +127,7 @@ export default class Rendition {
 
     setManager(manager: Function): void;
 
-    spread(spread: string, min?: number): void;
+    spread(spread: string | boolean, min?: number): void;
 
     start(): void;
 

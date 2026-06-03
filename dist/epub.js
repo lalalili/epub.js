@@ -291,8 +291,8 @@
 		};
 	}));
 	//#endregion
-	//#region node_modules/event-emitter/index.js
-	var require_event_emitter = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	//#region src/core/async.ts
+	var import_event_emitter = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var d = require_d(), callable = require_valid_callable(), apply = Function.prototype.apply, call = Function.prototype.call, create = Object.create, defineProperty = Object.defineProperty, defineProperties = Object.defineProperties, hasOwnProperty = Object.prototype.hasOwnProperty, descriptor = {
 			configurable: true,
 			enumerable: false,
@@ -373,7 +373,1726 @@
 			return o == null ? create(base) : defineProperties(Object(o), descriptors);
 		};
 		exports.methods = methods;
-	}));
+	})))());
+	/**
+	* Generates a UUID.
+	* Based on: http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
+	* @returns {string} UUID string.
+	*/
+	function uuid$1() {
+		var d = (/* @__PURE__ */ new Date()).getTime();
+		return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+			var r = (d + Math.random() * 16) % 16 | 0;
+			d = Math.floor(d / 16);
+			return (c == "x" ? r : r & 7 | 8).toString(16);
+		});
+	}
+	/**
+	* Creates a new pending promise and provides methods to resolve or reject it.
+	* @constructor
+	*/
+	function defer$1() {
+		this.resolve = null;
+		this.reject = null;
+		this.id = uuid$1();
+		this.promise = new Promise((resolve, reject) => {
+			this.resolve = resolve;
+			this.reject = reject;
+		});
+		Object.freeze(this);
+	}
+	//#endregion
+	//#region src/core/collections.ts
+	function defaultCompare(a, b) {
+		if (a > b) return 1;
+		if (a < b) return -1;
+		if (a == b) return 0;
+	}
+	/**
+	* Apply defaults to an object.
+	* @param {object} obj Target object.
+	* @returns {object} Target object with defaults applied.
+	*/
+	function defaults$1(obj) {
+		var target = obj;
+		for (var i = 1, length = arguments.length; i < length; i++) {
+			var source = arguments[i];
+			for (var prop in source) if (target[prop] === void 0) target[prop] = source[prop];
+		}
+		return obj;
+	}
+	/**
+	* Extend properties of an object.
+	* @param {object} target Target object.
+	* @returns {object} Target object with copied descriptors.
+	*/
+	function extend$1(target, ..._sources) {
+		Array.prototype.slice.call(arguments, 1).forEach(function(source) {
+			if (!source) return;
+			Object.getOwnPropertyNames(source).forEach(function(propName) {
+				Object.defineProperty(target, propName, Object.getOwnPropertyDescriptor(source, propName));
+			});
+		});
+		return target;
+	}
+	/**
+	* Fast quicksort insert for sorted array.
+	* @param {any} item Item to insert.
+	* @param {array} array Sorted array.
+	* @param {function} [compareFunction] Optional compare function.
+	* @returns {number} Inserted index.
+	*/
+	function insert$1(item, array, compareFunction) {
+		var location = locationOf$1(item, array, compareFunction);
+		array.splice(location, 0, item);
+		return location;
+	}
+	/**
+	* Finds where something would fit into a sorted array.
+	* @param {any} item Item to locate.
+	* @param {array} array Sorted array.
+	* @param {function} [compareFunction] Optional compare function.
+	* @param {function} [_start] Start index.
+	* @param {function} [_end] End index.
+	* @returns {number} Location in array.
+	*/
+	function locationOf$1(item, array, compareFunction, _start, _end) {
+		var start = _start || 0;
+		var end = _end || array.length;
+		var pivot = parseInt(String(start + (end - start) / 2));
+		var compared;
+		if (!compareFunction) compareFunction = defaultCompare;
+		if (end - start <= 0) return pivot;
+		compared = compareFunction(array[pivot], item);
+		if (end - start === 1) return compared >= 0 ? pivot : pivot + 1;
+		if (compared === 0) return pivot;
+		if (compared === -1) return locationOf$1(item, array, compareFunction, pivot, end);
+		else return locationOf$1(item, array, compareFunction, start, pivot);
+	}
+	/**
+	* Finds index of something in a sorted array.
+	* @param {any} item Item to locate.
+	* @param {array} array Sorted array.
+	* @param {function} [compareFunction] Optional compare function.
+	* @param {function} [_start] Start index.
+	* @param {function} [_end] End index.
+	* @returns {number} Index in array or -1.
+	*/
+	function indexOfSorted$1(item, array, compareFunction, _start, _end) {
+		var start = _start || 0;
+		var end = _end || array.length;
+		var pivot = parseInt(String(start + (end - start) / 2));
+		var compared;
+		if (!compareFunction) compareFunction = defaultCompare;
+		if (end - start <= 0) return -1;
+		compared = compareFunction(array[pivot], item);
+		if (end - start === 1) return compared === 0 ? pivot : -1;
+		if (compared === 0) return pivot;
+		if (compared === -1) return indexOfSorted$1(item, array, compareFunction, pivot, end);
+		else return indexOfSorted$1(item, array, compareFunction, start, pivot);
+	}
+	//#endregion
+	//#region src/utils/path.ts
+	var import_path = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
+		if (!process) var process = { "cwd": function() {
+			return "/";
+		} };
+		function assertPath(path) {
+			if (typeof path !== "string") throw new TypeError("Path must be a string. Received " + path);
+		}
+		function normalizeStringPosix(path, allowAboveRoot) {
+			var res = "";
+			var lastSlash = -1;
+			var dots = 0;
+			var code;
+			for (var i = 0; i <= path.length; ++i) {
+				if (i < path.length) code = path.charCodeAt(i);
+				else if (code === 47) break;
+				else code = 47;
+				if (code === 47) {
+					if (lastSlash === i - 1 || dots === 1) {} else if (lastSlash !== i - 1 && dots === 2) {
+						if (res.length < 2 || res.charCodeAt(res.length - 1) !== 46 || res.charCodeAt(res.length - 2) !== 46) {
+							if (res.length > 2) {
+								var start = res.length - 1;
+								var j = start;
+								for (; j >= 0; --j) if (res.charCodeAt(j) === 47) break;
+								if (j !== start) {
+									if (j === -1) res = "";
+									else res = res.slice(0, j);
+									lastSlash = i;
+									dots = 0;
+									continue;
+								}
+							} else if (res.length === 2 || res.length === 1) {
+								res = "";
+								lastSlash = i;
+								dots = 0;
+								continue;
+							}
+						}
+						if (allowAboveRoot) if (res.length > 0) res += "/..";
+						else res = "..";
+					} else if (res.length > 0) res += "/" + path.slice(lastSlash + 1, i);
+					else res = path.slice(lastSlash + 1, i);
+					lastSlash = i;
+					dots = 0;
+				} else if (code === 46 && dots !== -1) ++dots;
+				else dots = -1;
+			}
+			return res;
+		}
+		function _format(sep, pathObject) {
+			var dir = pathObject.dir || pathObject.root;
+			var base = pathObject.base || (pathObject.name || "") + (pathObject.ext || "");
+			if (!dir) return base;
+			if (dir === pathObject.root) return dir + base;
+			return dir + sep + base;
+		}
+		var posix = {
+			resolve: function resolve() {
+				var resolvedPath = "";
+				var resolvedAbsolute = false;
+				var cwd;
+				for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
+					var path;
+					if (i >= 0) path = arguments[i];
+					else {
+						if (cwd === void 0) cwd = process.cwd();
+						path = cwd;
+					}
+					assertPath(path);
+					if (path.length === 0) continue;
+					resolvedPath = path + "/" + resolvedPath;
+					resolvedAbsolute = path.charCodeAt(0) === 47;
+				}
+				resolvedPath = normalizeStringPosix(resolvedPath, !resolvedAbsolute);
+				if (resolvedAbsolute) if (resolvedPath.length > 0) return "/" + resolvedPath;
+				else return "/";
+				else if (resolvedPath.length > 0) return resolvedPath;
+				else return ".";
+			},
+			normalize: function normalize(path) {
+				assertPath(path);
+				if (path.length === 0) return ".";
+				var isAbsolute = path.charCodeAt(0) === 47;
+				var trailingSeparator = path.charCodeAt(path.length - 1) === 47;
+				path = normalizeStringPosix(path, !isAbsolute);
+				if (path.length === 0 && !isAbsolute) path = ".";
+				if (path.length > 0 && trailingSeparator) path += "/";
+				if (isAbsolute) return "/" + path;
+				return path;
+			},
+			isAbsolute: function isAbsolute(path) {
+				assertPath(path);
+				return path.length > 0 && path.charCodeAt(0) === 47;
+			},
+			join: function join() {
+				if (arguments.length === 0) return ".";
+				var joined;
+				for (var i = 0; i < arguments.length; ++i) {
+					var arg = arguments[i];
+					assertPath(arg);
+					if (arg.length > 0) if (joined === void 0) joined = arg;
+					else joined += "/" + arg;
+				}
+				if (joined === void 0) return ".";
+				return posix.normalize(joined);
+			},
+			relative: function relative(from, to) {
+				assertPath(from);
+				assertPath(to);
+				if (from === to) return "";
+				from = posix.resolve(from);
+				to = posix.resolve(to);
+				if (from === to) return "";
+				var fromStart = 1;
+				for (; fromStart < from.length; ++fromStart) if (from.charCodeAt(fromStart) !== 47) break;
+				var fromEnd = from.length;
+				var fromLen = fromEnd - fromStart;
+				var toStart = 1;
+				for (; toStart < to.length; ++toStart) if (to.charCodeAt(toStart) !== 47) break;
+				var toLen = to.length - toStart;
+				var length = fromLen < toLen ? fromLen : toLen;
+				var lastCommonSep = -1;
+				var i = 0;
+				for (; i <= length; ++i) {
+					if (i === length) {
+						if (toLen > length) {
+							if (to.charCodeAt(toStart + i) === 47) return to.slice(toStart + i + 1);
+							else if (i === 0) return to.slice(toStart + i);
+						} else if (fromLen > length) {
+							if (from.charCodeAt(fromStart + i) === 47) lastCommonSep = i;
+							else if (i === 0) lastCommonSep = 0;
+						}
+						break;
+					}
+					var fromCode = from.charCodeAt(fromStart + i);
+					if (fromCode !== to.charCodeAt(toStart + i)) break;
+					else if (fromCode === 47) lastCommonSep = i;
+				}
+				var out = "";
+				for (i = fromStart + lastCommonSep + 1; i <= fromEnd; ++i) if (i === fromEnd || from.charCodeAt(i) === 47) if (out.length === 0) out += "..";
+				else out += "/..";
+				if (out.length > 0) return out + to.slice(toStart + lastCommonSep);
+				else {
+					toStart += lastCommonSep;
+					if (to.charCodeAt(toStart) === 47) ++toStart;
+					return to.slice(toStart);
+				}
+			},
+			_makeLong: function _makeLong(path) {
+				return path;
+			},
+			dirname: function dirname(path) {
+				assertPath(path);
+				if (path.length === 0) return ".";
+				var code = path.charCodeAt(0);
+				var hasRoot = code === 47;
+				var end = -1;
+				var matchedSlash = true;
+				for (var i = path.length - 1; i >= 1; --i) {
+					code = path.charCodeAt(i);
+					if (code === 47) {
+						if (!matchedSlash) {
+							end = i;
+							break;
+						}
+					} else matchedSlash = false;
+				}
+				if (end === -1) return hasRoot ? "/" : ".";
+				if (hasRoot && end === 1) return "//";
+				return path.slice(0, end);
+			},
+			basename: function basename(path, ext) {
+				if (ext !== void 0 && typeof ext !== "string") throw new TypeError("\"ext\" argument must be a string");
+				assertPath(path);
+				var start = 0;
+				var end = -1;
+				var matchedSlash = true;
+				var i;
+				if (ext !== void 0 && ext.length > 0 && ext.length <= path.length) {
+					if (ext.length === path.length && ext === path) return "";
+					var extIdx = ext.length - 1;
+					var firstNonSlashEnd = -1;
+					for (i = path.length - 1; i >= 0; --i) {
+						var code = path.charCodeAt(i);
+						if (code === 47) {
+							if (!matchedSlash) {
+								start = i + 1;
+								break;
+							}
+						} else {
+							if (firstNonSlashEnd === -1) {
+								matchedSlash = false;
+								firstNonSlashEnd = i + 1;
+							}
+							if (extIdx >= 0) if (code === ext.charCodeAt(extIdx)) {
+								if (--extIdx === -1) end = i;
+							} else {
+								extIdx = -1;
+								end = firstNonSlashEnd;
+							}
+						}
+					}
+					if (start === end) end = firstNonSlashEnd;
+					else if (end === -1) end = path.length;
+					return path.slice(start, end);
+				} else {
+					for (i = path.length - 1; i >= 0; --i) if (path.charCodeAt(i) === 47) {
+						if (!matchedSlash) {
+							start = i + 1;
+							break;
+						}
+					} else if (end === -1) {
+						matchedSlash = false;
+						end = i + 1;
+					}
+					if (end === -1) return "";
+					return path.slice(start, end);
+				}
+			},
+			extname: function extname(path) {
+				assertPath(path);
+				var startDot = -1;
+				var startPart = 0;
+				var end = -1;
+				var matchedSlash = true;
+				var preDotState = 0;
+				for (var i = path.length - 1; i >= 0; --i) {
+					var code = path.charCodeAt(i);
+					if (code === 47) {
+						if (!matchedSlash) {
+							startPart = i + 1;
+							break;
+						}
+						continue;
+					}
+					if (end === -1) {
+						matchedSlash = false;
+						end = i + 1;
+					}
+					if (code === 46) {
+						if (startDot === -1) startDot = i;
+						else if (preDotState !== 1) preDotState = 1;
+					} else if (startDot !== -1) preDotState = -1;
+				}
+				if (startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) return "";
+				return path.slice(startDot, end);
+			},
+			format: function format(pathObject) {
+				if (pathObject === null || typeof pathObject !== "object") throw new TypeError("Parameter \"pathObject\" must be an object, not " + typeof pathObject);
+				return _format("/", pathObject);
+			},
+			parse: function parse(path) {
+				assertPath(path);
+				var ret = {
+					root: "",
+					dir: "",
+					base: "",
+					ext: "",
+					name: ""
+				};
+				if (path.length === 0) return ret;
+				var code = path.charCodeAt(0);
+				var isAbsolute = code === 47;
+				var start;
+				if (isAbsolute) {
+					ret.root = "/";
+					start = 1;
+				} else start = 0;
+				var startDot = -1;
+				var startPart = 0;
+				var end = -1;
+				var matchedSlash = true;
+				var i = path.length - 1;
+				var preDotState = 0;
+				for (; i >= start; --i) {
+					code = path.charCodeAt(i);
+					if (code === 47) {
+						if (!matchedSlash) {
+							startPart = i + 1;
+							break;
+						}
+						continue;
+					}
+					if (end === -1) {
+						matchedSlash = false;
+						end = i + 1;
+					}
+					if (code === 46) {
+						if (startDot === -1) startDot = i;
+						else if (preDotState !== 1) preDotState = 1;
+					} else if (startDot !== -1) preDotState = -1;
+				}
+				if (startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
+					if (end !== -1) if (startPart === 0 && isAbsolute) ret.base = ret.name = path.slice(1, end);
+					else ret.base = ret.name = path.slice(startPart, end);
+				} else {
+					if (startPart === 0 && isAbsolute) {
+						ret.name = path.slice(1, startDot);
+						ret.base = path.slice(1, end);
+					} else {
+						ret.name = path.slice(startPart, startDot);
+						ret.base = path.slice(startPart, end);
+					}
+					ret.ext = path.slice(startDot, end);
+				}
+				if (startPart > 0) ret.dir = path.slice(0, startPart - 1);
+				else if (isAbsolute) ret.dir = "/";
+				return ret;
+			},
+			sep: "/",
+			delimiter: ":",
+			posix: null
+		};
+		module.exports = posix;
+	})))());
+	/**
+	* Creates a Path object for parsing and manipulation of a path strings
+	*
+	* Uses a polyfill for Nodejs path: https://nodejs.org/api/path.html
+	* @param	{string} pathString	a url string (relative or absolute)
+	* @class
+	*/
+	var Path = class {
+		path;
+		directory;
+		filename;
+		extension;
+		splitPathRe;
+		constructor(pathString) {
+			var protocol;
+			var parsed;
+			protocol = pathString.indexOf("://");
+			if (protocol > -1) pathString = new URL(pathString).pathname;
+			parsed = this.parse(pathString);
+			this.path = pathString;
+			if (this.isDirectory(pathString)) this.directory = pathString;
+			else this.directory = parsed.dir + "/";
+			this.filename = parsed.base;
+			this.extension = parsed.ext.slice(1);
+		}
+		/**
+		* Parse the path: https://nodejs.org/api/path.html#path_path_parse_path
+		* @param	{string} what
+		* @returns {object}
+		*/
+		parse(what) {
+			return import_path.default.parse(what);
+		}
+		/**
+		* @param	{string} what
+		* @returns {boolean}
+		*/
+		isAbsolute(what) {
+			return import_path.default.isAbsolute(what || this.path);
+		}
+		/**
+		* Check if path ends with a directory
+		* @param	{string} what
+		* @returns {boolean}
+		*/
+		isDirectory(what) {
+			return what.charAt(what.length - 1) === "/";
+		}
+		/**
+		* Resolve a path against the directory of the Path
+		*
+		* https://nodejs.org/api/path.html#path_path_resolve_paths
+		* @param	{string} what
+		* @returns {string} resolved
+		*/
+		resolve(what) {
+			return import_path.default.resolve(this.directory, what);
+		}
+		/**
+		* Resolve a path relative to the directory of the Path
+		*
+		* https://nodejs.org/api/path.html#path_path_relative_from_to
+		* @param	{string} what
+		* @returns {string} relative
+		*/
+		relative(what) {
+			if (what && what.indexOf("://") > -1) return what;
+			return import_path.default.relative(this.directory, what);
+		}
+		splitPath(filename) {
+			return this.splitPathRe.exec(filename).slice(1);
+		}
+		/**
+		* Return the path string
+		* @returns {string} path
+		*/
+		toString() {
+			return this.path;
+		}
+	};
+	//#endregion
+	//#region src/utils/url.ts
+	/**
+	* creates a Url object for parsing and manipulation of a url string
+	* @param	{string} urlString	a url string (relative or absolute)
+	* @param	{string} [baseString] optional base for the url,
+	* default to window.location.href
+	*/
+	var Url = class {
+		Path;
+		Url;
+		base;
+		directory;
+		extension;
+		filename;
+		hash;
+		href;
+		origin;
+		protocol;
+		search;
+		constructor(urlString, baseString) {
+			var absolute = urlString.indexOf("://") > -1;
+			var pathname = urlString;
+			var basePath;
+			this.Url = void 0;
+			this.href = urlString;
+			this.protocol = "";
+			this.origin = "";
+			this.hash = "";
+			this.hash = "";
+			this.search = "";
+			this.base = baseString;
+			if (!absolute && baseString !== false && typeof baseString !== "string" && window && window.location) this.base = window.location.href;
+			if (absolute || this.base) try {
+				if (this.base) this.Url = new URL(urlString, this.base);
+				else this.Url = new URL(urlString);
+				this.href = this.Url.href;
+				this.protocol = this.Url.protocol;
+				this.origin = this.Url.origin;
+				this.hash = this.Url.hash;
+				this.search = this.Url.search;
+				pathname = this.Url.pathname + (this.Url.search ? this.Url.search : "");
+			} catch (e) {
+				this.Url = void 0;
+				if (this.base) {
+					basePath = new Path(this.base);
+					pathname = basePath.resolve(pathname);
+				}
+			}
+			this.Path = new Path(pathname);
+			this.directory = this.Path.directory;
+			this.filename = this.Path.filename;
+			this.extension = this.Path.extension;
+		}
+		/**
+		* @returns {Path}
+		*/
+		path() {
+			return this.Path;
+		}
+		/**
+		* Resolves a relative path to a absolute url
+		* @param {string} what
+		* @returns {string} url
+		*/
+		resolve(what) {
+			var isAbsolute = what.indexOf("://") > -1;
+			var fullpath;
+			if (isAbsolute) return what;
+			fullpath = import_path.default.resolve(this.directory, what);
+			return this.origin + fullpath;
+		}
+		/**
+		* Resolve a path relative to the url
+		* @param {string} what
+		* @returns {string} path
+		*/
+		relative(what) {
+			return import_path.default.relative(what, this.directory);
+		}
+		/**
+		* @returns {string}
+		*/
+		toString() {
+			return this.href;
+		}
+	};
+	//#endregion
+	//#region src/platform/traversal.ts
+	var ELEMENT_NODE$2 = 1;
+	var TEXT_NODE$2 = 3;
+	/**
+	* Sprint through all text nodes in a document.
+	* @param {Element | Document} root Root element or document.
+	* @param {Function} func Function to run on each text node.
+	* @returns {void}
+	*/
+	function sprint$1(root, func) {
+		if (typeof (root.ownerDocument || root).createTreeWalker !== "undefined") treeWalker$1(root, func, NodeFilter.SHOW_TEXT);
+		else walk$1(root, function(node) {
+			if (node && node.nodeType === 3) func(node);
+		}, true);
+	}
+	/**
+	* Walk a DOM tree with the browser TreeWalker API.
+	* @param {Element | Document} root Root element or document.
+	* @param {Function} func Function to run on each matching node.
+	* @param {Function | object} filter TreeWalker filter.
+	* @returns {void}
+	*/
+	function treeWalker$1(root, func, filter) {
+		var walker = document.createTreeWalker(root, filter, null);
+		var node;
+		while (node = walker.nextNode()) func(node);
+	}
+	function createVisibleTextWalker(doc, win, root) {
+		if (!doc || !win || !root || typeof doc.createTreeWalker !== "function") return null;
+		return doc.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode(node) {
+			if (String(node.nodeValue || "").replace(/\s+/g, "").length < 2) return NodeFilter.FILTER_REJECT;
+			let parent = node.parentElement;
+			if (!parent) return NodeFilter.FILTER_REJECT;
+			let style = win.getComputedStyle(parent);
+			if (style.display === "none" || style.visibility === "hidden") return NodeFilter.FILTER_REJECT;
+			return NodeFilter.FILTER_ACCEPT;
+		} });
+	}
+	function collectVisibleTextClientRects(doc, win, root, options = {}) {
+		const walker = createVisibleTextWalker(doc, win, root);
+		if (!walker) return null;
+		const limit = Math.max(0, Number(options.limit) || 1e3);
+		const countInvalidRects = Boolean(options.countInvalidRects);
+		const rects = [];
+		let inspected = 0;
+		let node;
+		while ((node = walker.nextNode()) && inspected < limit) {
+			let range = doc.createRange();
+			range.selectNodeContents(node);
+			for (const rect of Array.from(range.getClientRects())) {
+				const isValidRect = rect.width > 0 && rect.height > 0;
+				if (countInvalidRects || isValidRect) inspected += 1;
+				if (isValidRect) rects.push({
+					left: rect.left,
+					right: rect.right,
+					top: rect.top,
+					bottom: rect.bottom,
+					width: rect.width,
+					height: rect.height
+				});
+				if (inspected >= limit) break;
+			}
+			if (range.detach) range.detach();
+		}
+		return rects;
+	}
+	/**
+	* Recursively walk a DOM node tree.
+	* @param {Node} node Root node.
+	* @param {Function} callback Return true to stop walking.
+	* @returns {boolean | undefined} True when walking was stopped.
+	*/
+	function walk$1(node, callback, _ignore) {
+		var walked;
+		if (callback(node)) return true;
+		node = node.firstChild;
+		if (node) do {
+			walked = walk$1(node, callback);
+			if (walked) return true;
+			node = node.nextSibling;
+		} while (node);
+	}
+	/**
+	* Find direct descendants of an element.
+	* @param {Element} el Parent element.
+	* @returns {Element[]} Element children.
+	*/
+	function findChildren$1(el) {
+		var result = [];
+		var childNodes = el.childNodes;
+		for (var i = 0; i < childNodes.length; i++) {
+			let node = childNodes[i];
+			if (node.nodeType === 1) result.push(node);
+		}
+		return result;
+	}
+	/**
+	* Find all parents and ancestors of an element.
+	* @param {Element} node Node to inspect.
+	* @returns {Element[]} Parent chain.
+	*/
+	function parents$1(node) {
+		var nodes = [node];
+		for (; node; node = node.parentNode) nodes.unshift(node);
+		return nodes;
+	}
+	/**
+	* Find all direct descendants of a specific type.
+	* @param {Element} el Parent element.
+	* @param {string} nodeName Element name.
+	* @param {boolean} [single] Return first match only.
+	* @returns {Element | Element[] | undefined} Matching child or children.
+	*/
+	function filterChildren$1(el, nodeName, single) {
+		var result = [];
+		var childNodes = el.childNodes;
+		for (var i = 0; i < childNodes.length; i++) {
+			let node = childNodes[i];
+			if (node.nodeType === 1 && node.nodeName.toLowerCase() === nodeName) if (single) return node;
+			else result.push(node);
+		}
+		if (!single) return result;
+	}
+	/**
+	* Find the first parent with a matching tag name.
+	* @param {Element} node Node to inspect.
+	* @param {string} tagname Tag name.
+	* @returns {Element | undefined} Matching parent.
+	*/
+	function getParentByTagName$1(node, tagname) {
+		var parent;
+		if (node === null || tagname === "") return;
+		parent = node.parentNode;
+		while (parent.nodeType === 1) {
+			if (parent.tagName.toLowerCase() === tagname) return parent;
+			parent = parent.parentNode;
+		}
+	}
+	/**
+	* Gets the index of a node in its parent among matching node types.
+	* @param {Node} node Node to inspect.
+	* @param {number} typeId Node type to count.
+	* @returns {number} Index in parent or -1.
+	*/
+	function indexOfNode$1(node, typeId) {
+		var children = node.parentNode.childNodes;
+		var sib;
+		var index = -1;
+		for (var i = 0; i < children.length; i++) {
+			sib = children[i];
+			if (sib.nodeType === typeId) index++;
+			if (sib == node) break;
+		}
+		return index;
+	}
+	/**
+	* Gets the index of a text node in its parent.
+	* @param {Node} textNode Text node to inspect.
+	* @returns {number} Index in parent.
+	*/
+	function indexOfTextNode$1(textNode) {
+		return indexOfNode$1(textNode, TEXT_NODE$2);
+	}
+	/**
+	* Gets the index of an element node in its parent.
+	* @param {Element} elementNode Element node to inspect.
+	* @returns {number} Index in parent.
+	*/
+	function indexOfElementNode$1(elementNode) {
+		return indexOfNode$1(elementNode, ELEMENT_NODE$2);
+	}
+	//#endregion
+	//#region src/compat/range.ts
+	/**
+	* Lightweight Polyfill for DOM Range.
+	*/
+	var RangeObject$1 = class {
+		collapsed;
+		commonAncestorContainer;
+		endContainer;
+		endOffset;
+		startContainer;
+		startOffset;
+		constructor() {
+			this.collapsed = false;
+			this.commonAncestorContainer = void 0;
+			this.endContainer = void 0;
+			this.endOffset = void 0;
+			this.startContainer = void 0;
+			this.startOffset = void 0;
+		}
+		setStart(startNode, startOffset) {
+			this.startContainer = startNode;
+			this.startOffset = startOffset;
+			if (!this.endContainer) this.collapse(true);
+			else this.commonAncestorContainer = this._commonAncestorContainer();
+			this._checkCollapsed();
+		}
+		setEnd(endNode, endOffset) {
+			this.endContainer = endNode;
+			this.endOffset = endOffset;
+			if (!this.startContainer) this.collapse(false);
+			else {
+				this.collapsed = false;
+				this.commonAncestorContainer = this._commonAncestorContainer();
+			}
+			this._checkCollapsed();
+		}
+		collapse(toStart) {
+			this.collapsed = true;
+			if (toStart) {
+				this.endContainer = this.startContainer;
+				this.endOffset = this.startOffset;
+				this.commonAncestorContainer = this.startContainer.parentNode;
+			} else {
+				this.startContainer = this.endContainer;
+				this.startOffset = this.endOffset;
+				this.commonAncestorContainer = this.endOffset.parentNode;
+			}
+		}
+		selectNode(referenceNode) {
+			let parent = referenceNode.parentNode;
+			let index = Array.prototype.indexOf.call(parent.childNodes, referenceNode);
+			this.setStart(parent, index);
+			this.setEnd(parent, index + 1);
+		}
+		selectNodeContents(referenceNode) {
+			let endIndex = referenceNode.nodeType === 3 ? referenceNode.textContent.length : referenceNode.childNodes.length;
+			this.setStart(referenceNode, 0);
+			this.setEnd(referenceNode, endIndex);
+		}
+		_commonAncestorContainer(startContainer, endContainer) {
+			var startParents = parents$1(startContainer || this.startContainer);
+			var endParents = parents$1(endContainer || this.endContainer);
+			if (startParents[0] != endParents[0]) return void 0;
+			for (var i = 0; i < startParents.length; i++) if (startParents[i] != endParents[i]) return startParents[i - 1];
+		}
+		_checkCollapsed() {
+			if (this.startContainer === this.endContainer && this.startOffset === this.endOffset) this.collapsed = true;
+			else this.collapsed = false;
+		}
+		toString() {}
+	};
+	//#endregion
+	//#region src/core/types.ts
+	/**
+	* Checks if a node is an element
+	* @param {unknown} obj Candidate object.
+	* @returns {boolean} True when the object is an element node.
+	*/
+	function isElement$1(obj) {
+		return !!(obj && typeof obj === "object" && "nodeType" in obj && obj.nodeType === 1);
+	}
+	/**
+	* Checks if a value can be parsed as a finite number.
+	* @param {unknown} n Candidate value.
+	* @returns {boolean} True when the value is numeric.
+	*/
+	function isNumber$1(n) {
+		return !isNaN(parseFloat(String(n))) && isFinite(Number(n));
+	}
+	/**
+	* Checks if a value is a float.
+	* @param {unknown} n Candidate value.
+	* @returns {boolean} True when the value is numeric and has a decimal value.
+	*/
+	function isFloat$1(n) {
+		var f = parseFloat(String(n));
+		if (isNumber$1(n) === false) return false;
+		if (typeof n === "string" && n.indexOf(".") > -1) return true;
+		return Math.floor(f) !== f;
+	}
+	/**
+	* Returns the JavaScript object type
+	* @param {unknown} obj Candidate object.
+	* @returns {string} Object type name.
+	*/
+	function type$1(obj) {
+		return Object.prototype.toString.call(obj).slice(8, -1);
+	}
+	//#endregion
+	//#region src/epubcfi.ts
+	var ELEMENT_NODE$1 = 1;
+	var TEXT_NODE$1 = 3;
+	var COMMENT_NODE = 8;
+	var DOCUMENT_NODE = 9;
+	/**
+	* Parsing and creation of EpubCFIs: http://www.idpf.org/epub/linking/cfi/epub-cfi.html
+
+	* Implements:
+	* - Character Offset: epubcfi(/6/4[chap01ref]!/4[body01]/10[para05]/2/1:3)
+	* - Simple Ranges : epubcfi(/6/4[chap01ref]!/4[body01]/10[para05],/2/1:1,/3:4)
+
+	* Does Not Implement:
+	* - Temporal Offset (~)
+	* - Spatial Offset (@)
+	* - Temporal-Spatial Offset (~ + @)
+	* - Text Location Assertion ([)
+	* @class
+	@param {string | Range | Node } [cfiFrom]
+	@param {string | object} [base]
+	@param {string} [ignoreClass] class to ignore when parsing DOM
+	*/
+	var EpubCFI = class EpubCFI {
+		str;
+		base;
+		spinePos;
+		range;
+		path;
+		start;
+		end;
+		constructor(cfiFrom, base, ignoreClass) {
+			var type;
+			this.str = "";
+			this.base = {};
+			this.spinePos = 0;
+			this.range = false;
+			this.path = {};
+			this.start = null;
+			this.end = null;
+			if (!(this instanceof EpubCFI)) return new EpubCFI(cfiFrom, base, ignoreClass);
+			if (typeof base === "string") this.base = this.parseComponent(base);
+			else if (typeof base === "object" && base.steps) this.base = base;
+			type = this.checkType(cfiFrom);
+			if (type === "string") {
+				this.str = cfiFrom;
+				return extend$1(this, this.parse(cfiFrom));
+			} else if (type === "range") return extend$1(this, this.fromRange(cfiFrom, this.base, ignoreClass));
+			else if (type === "node") return extend$1(this, this.fromNode(cfiFrom, this.base, ignoreClass));
+			else if (type === "EpubCFI" && cfiFrom.path) return cfiFrom;
+			else if (!cfiFrom) return this;
+			else throw new TypeError("not a valid argument for EpubCFI");
+		}
+		/**
+		* Check the type of constructor input
+		* @private
+		*/
+		checkType(cfi) {
+			if (this.isCfiString(cfi)) return "string";
+			else if (cfi && typeof cfi === "object" && (type$1(cfi) === "Range" || typeof cfi.startContainer != "undefined")) return "range";
+			else if (cfi && typeof cfi === "object" && typeof cfi.nodeType != "undefined") return "node";
+			else if (cfi && typeof cfi === "object" && cfi instanceof EpubCFI) return "EpubCFI";
+			else return false;
+		}
+		/**
+		* Parse a cfi string to a CFI object representation
+		* @param {string} cfiStr
+		* @returns {object} cfi
+		*/
+		parse(cfiStr) {
+			var cfi = {
+				spinePos: -1,
+				range: false,
+				base: {},
+				path: {},
+				start: null,
+				end: null
+			};
+			var baseComponent, pathComponent, range;
+			if (typeof cfiStr !== "string") return { spinePos: -1 };
+			if (cfiStr.indexOf("epubcfi(") === 0 && cfiStr[cfiStr.length - 1] === ")") cfiStr = cfiStr.slice(8, cfiStr.length - 1);
+			baseComponent = this.getChapterComponent(cfiStr);
+			if (!baseComponent) return { spinePos: -1 };
+			cfi.base = this.parseComponent(baseComponent);
+			pathComponent = this.getPathComponent(cfiStr);
+			cfi.path = this.parseComponent(pathComponent);
+			range = this.getRange(cfiStr);
+			if (range) {
+				cfi.range = true;
+				cfi.start = this.parseComponent(range[0]);
+				cfi.end = this.parseComponent(range[1]);
+			}
+			cfi.spinePos = cfi.base.steps[1].index;
+			return cfi;
+		}
+		parseComponent(componentStr) {
+			var component = {
+				steps: [],
+				terminal: {
+					offset: null,
+					assertion: null
+				}
+			};
+			var parts = componentStr.split(":");
+			var steps = parts[0].split("/");
+			var terminal;
+			if (parts.length > 1) {
+				terminal = parts[1];
+				component.terminal = this.parseTerminal(terminal);
+			}
+			if (steps[0] === "") steps.shift();
+			component.steps = steps.map(function(step) {
+				return this.parseStep(step);
+			}.bind(this)).filter(Boolean);
+			return component;
+		}
+		parseStep(stepStr) {
+			var stepType, num, index, has_brackets = stepStr.match(/\[(.*)\]/), id;
+			if (has_brackets && has_brackets[1]) id = has_brackets[1];
+			num = parseInt(stepStr);
+			if (isNaN(num)) return;
+			if (num % 2 === 0) {
+				stepType = "element";
+				index = num / 2 - 1;
+			} else {
+				stepType = "text";
+				index = (num - 1) / 2;
+			}
+			return {
+				"type": stepType,
+				"index": index,
+				"id": id || null
+			};
+		}
+		parseTerminal(termialStr) {
+			var characterOffset, textLocationAssertion;
+			var assertion = termialStr.match(/\[(.*)\]/);
+			if (assertion && assertion[1]) {
+				characterOffset = parseInt(termialStr.split("[")[0]);
+				textLocationAssertion = assertion[1];
+			} else characterOffset = parseInt(termialStr);
+			if (!isNumber$1(characterOffset)) characterOffset = null;
+			return {
+				"offset": characterOffset,
+				"assertion": textLocationAssertion
+			};
+		}
+		getChapterComponent(cfiStr) {
+			return cfiStr.split("!")[0];
+		}
+		getPathComponent(cfiStr) {
+			var indirection = cfiStr.split("!");
+			if (indirection[1]) return indirection[1].split(",")[0];
+		}
+		getRange(cfiStr) {
+			var ranges = cfiStr.split(",");
+			if (ranges.length === 3) return [ranges[1], ranges[2]];
+			return false;
+		}
+		getCharecterOffsetComponent(cfiStr) {
+			return cfiStr.split(":")[1] || "";
+		}
+		joinSteps(steps) {
+			if (!steps) return "";
+			return steps.map(function(part) {
+				var segment = "";
+				if (part.type === "element") segment += (part.index + 1) * 2;
+				if (part.type === "text") segment += 1 + 2 * part.index;
+				if (part.id) segment += "[" + part.id + "]";
+				return segment;
+			}).join("/");
+		}
+		segmentString(segment) {
+			var segmentString = "/";
+			segmentString += this.joinSteps(segment.steps);
+			if (segment.terminal && segment.terminal.offset != null) segmentString += ":" + segment.terminal.offset;
+			if (segment.terminal && segment.terminal.assertion != null) segmentString += "[" + segment.terminal.assertion + "]";
+			return segmentString;
+		}
+		/**
+		* Convert CFI to a epubcfi(...) string
+		* @returns {string} epubcfi
+		*/
+		toString() {
+			var cfiString = "epubcfi(";
+			cfiString += this.segmentString(this.base);
+			cfiString += "!";
+			cfiString += this.segmentString(this.path);
+			if (this.range && this.start) {
+				cfiString += ",";
+				cfiString += this.segmentString(this.start);
+			}
+			if (this.range && this.end) {
+				cfiString += ",";
+				cfiString += this.segmentString(this.end);
+			}
+			cfiString += ")";
+			return cfiString;
+		}
+		/**
+		* Compare which of two CFIs is earlier in the text
+		* @returns {number} First is earlier = -1, Second is earlier = 1, They are equal = 0
+		*/
+		compare(cfiOne, cfiTwo) {
+			var stepsA, stepsB;
+			var terminalA, terminalB;
+			if (typeof cfiOne === "string") cfiOne = new EpubCFI(cfiOne);
+			if (typeof cfiTwo === "string") cfiTwo = new EpubCFI(cfiTwo);
+			if (cfiOne.spinePos > cfiTwo.spinePos) return 1;
+			if (cfiOne.spinePos < cfiTwo.spinePos) return -1;
+			if (cfiOne.range) {
+				stepsA = cfiOne.path.steps.concat(cfiOne.start.steps);
+				terminalA = cfiOne.start.terminal;
+			} else {
+				stepsA = cfiOne.path.steps;
+				terminalA = cfiOne.path.terminal;
+			}
+			if (cfiTwo.range) {
+				stepsB = cfiTwo.path.steps.concat(cfiTwo.start.steps);
+				terminalB = cfiTwo.start.terminal;
+			} else {
+				stepsB = cfiTwo.path.steps;
+				terminalB = cfiTwo.path.terminal;
+			}
+			for (var i = 0; i < stepsA.length; i++) {
+				if (!stepsA[i]) return -1;
+				if (!stepsB[i]) return 1;
+				if (stepsA[i].index > stepsB[i].index) return 1;
+				if (stepsA[i].index < stepsB[i].index) return -1;
+			}
+			if (stepsA.length < stepsB.length) return -1;
+			if (terminalA.offset > terminalB.offset) return 1;
+			if (terminalA.offset < terminalB.offset) return -1;
+			return 0;
+		}
+		step(node) {
+			var nodeType = node.nodeType === TEXT_NODE$1 ? "text" : "element";
+			var element = node;
+			return {
+				"id": element.id,
+				"tagName": element.tagName,
+				"type": nodeType,
+				"index": this.position(node)
+			};
+		}
+		filteredStep(node, ignoreClass) {
+			var filteredNode = this.filter(node, ignoreClass);
+			var nodeType;
+			if (!filteredNode) return;
+			nodeType = filteredNode.nodeType === TEXT_NODE$1 ? "text" : "element";
+			return {
+				"id": filteredNode.id,
+				"tagName": filteredNode.tagName,
+				"type": nodeType,
+				"index": this.filteredPosition(filteredNode, ignoreClass)
+			};
+		}
+		pathTo(node, offset, ignoreClass) {
+			var segment = {
+				steps: [],
+				terminal: {
+					offset: null,
+					assertion: null
+				}
+			};
+			var currentNode = node;
+			var step;
+			while (currentNode && currentNode.parentNode && currentNode.parentNode.nodeType != DOCUMENT_NODE) {
+				if (ignoreClass) step = this.filteredStep(currentNode, ignoreClass);
+				else step = this.step(currentNode);
+				if (step) segment.steps.unshift(step);
+				currentNode = currentNode.parentNode;
+			}
+			if (offset != null && offset >= 0) {
+				segment.terminal.offset = offset;
+				if (segment.steps[segment.steps.length - 1].type != "text") segment.steps.push({
+					"type": "text",
+					"index": 0
+				});
+			}
+			return segment;
+		}
+		equalStep(stepA, stepB) {
+			if (!stepA || !stepB) return false;
+			if (stepA.index === stepB.index && stepA.id === stepB.id && stepA.type === stepB.type) return true;
+			return false;
+		}
+		/**
+		* Create a CFI object from a Range
+		* @param {Range} range
+		* @param {string | object} base
+		* @param {string} [ignoreClass]
+		* @returns {object} cfi
+		*/
+		fromRange(range, base, ignoreClass) {
+			var cfi = {
+				range: false,
+				base: {},
+				path: {},
+				start: null,
+				end: null
+			};
+			var start = range.startContainer;
+			var end = range.endContainer;
+			var startOffset = range.startOffset;
+			var endOffset = range.endOffset;
+			var needsIgnoring = false;
+			if (ignoreClass) needsIgnoring = start.ownerDocument.querySelector("." + ignoreClass) != null;
+			if (typeof base === "string") {
+				cfi.base = this.parseComponent(base);
+				cfi.spinePos = cfi.base.steps[1].index;
+			} else if (typeof base === "object") cfi.base = base;
+			if (range.collapsed) {
+				if (needsIgnoring) startOffset = this.patchOffset(start, startOffset, ignoreClass);
+				cfi.path = this.pathTo(start, startOffset, ignoreClass);
+			} else {
+				cfi.range = true;
+				if (needsIgnoring) startOffset = this.patchOffset(start, startOffset, ignoreClass);
+				cfi.start = this.pathTo(start, startOffset, ignoreClass);
+				if (needsIgnoring) endOffset = this.patchOffset(end, endOffset, ignoreClass);
+				cfi.end = this.pathTo(end, endOffset, ignoreClass);
+				cfi.path = {
+					steps: [],
+					terminal: null
+				};
+				var len = cfi.start.steps.length;
+				var i;
+				for (i = 0; i < len; i++) if (this.equalStep(cfi.start.steps[i], cfi.end.steps[i])) if (i === len - 1) {
+					if (cfi.start.terminal === cfi.end.terminal) {
+						cfi.path.steps.push(cfi.start.steps[i]);
+						cfi.range = false;
+					}
+				} else cfi.path.steps.push(cfi.start.steps[i]);
+				else break;
+				cfi.start.steps = cfi.start.steps.slice(cfi.path.steps.length);
+				cfi.end.steps = cfi.end.steps.slice(cfi.path.steps.length);
+			}
+			return cfi;
+		}
+		/**
+		* Create a CFI object from a Node
+		* @param {Node} anchor
+		* @param {string | object} base
+		* @param {string} [ignoreClass]
+		* @returns {object} cfi
+		*/
+		fromNode(anchor, base, ignoreClass) {
+			var cfi = {
+				range: false,
+				base: {},
+				path: {},
+				start: null,
+				end: null
+			};
+			if (typeof base === "string") {
+				cfi.base = this.parseComponent(base);
+				cfi.spinePos = cfi.base.steps[1].index;
+			} else if (typeof base === "object") cfi.base = base;
+			cfi.path = this.pathTo(anchor, null, ignoreClass);
+			return cfi;
+		}
+		filter(anchor, ignoreClass) {
+			var needsIgnoring;
+			var sibling;
+			var parent, previousSibling, nextSibling;
+			var isText = false;
+			if (anchor.nodeType === TEXT_NODE$1) {
+				isText = true;
+				parent = anchor.parentNode;
+				needsIgnoring = anchor.parentNode.classList.contains(ignoreClass || "");
+			} else {
+				isText = false;
+				needsIgnoring = anchor.classList.contains(ignoreClass || "");
+			}
+			if (needsIgnoring && isText) {
+				previousSibling = parent.previousSibling;
+				nextSibling = parent.nextSibling;
+				if (previousSibling && previousSibling.nodeType === TEXT_NODE$1) sibling = previousSibling;
+				else if (nextSibling && nextSibling.nodeType === TEXT_NODE$1) sibling = nextSibling;
+				if (sibling) return sibling;
+				else return anchor;
+			} else if (needsIgnoring && !isText) return false;
+			else return anchor;
+		}
+		patchOffset(anchor, offset, ignoreClass) {
+			if (anchor.nodeType != TEXT_NODE$1) throw new Error("Anchor must be a text node");
+			var curr = anchor;
+			var totalOffset = offset;
+			if (anchor.parentNode.classList.contains(ignoreClass || "")) curr = anchor.parentNode;
+			while (curr.previousSibling) {
+				if (curr.previousSibling.nodeType === ELEMENT_NODE$1) if (curr.previousSibling.classList.contains(ignoreClass || "")) totalOffset += curr.previousSibling.textContent.length;
+				else break;
+				else totalOffset += curr.previousSibling.textContent.length;
+				curr = curr.previousSibling;
+			}
+			return totalOffset;
+		}
+		normalizedMap(children, nodeType, ignoreClass) {
+			var output = {};
+			var prevIndex = -1;
+			var i, len = children.length;
+			var currNodeType;
+			var prevNodeType;
+			for (i = 0; i < len; i++) {
+				currNodeType = children[i].nodeType;
+				if (currNodeType === ELEMENT_NODE$1 && children[i].classList.contains(ignoreClass || "")) currNodeType = TEXT_NODE$1;
+				if (i > 0 && currNodeType === TEXT_NODE$1 && prevNodeType === TEXT_NODE$1) output[i] = prevIndex;
+				else if (nodeType === currNodeType) {
+					prevIndex = prevIndex + 1;
+					output[i] = prevIndex;
+				}
+				prevNodeType = currNodeType;
+			}
+			return output;
+		}
+		position(anchor) {
+			var children, index;
+			if (anchor.nodeType === ELEMENT_NODE$1) {
+				children = anchor.parentNode.children;
+				if (!children) children = findChildren$1(anchor.parentNode);
+				index = Array.prototype.indexOf.call(children, anchor);
+			} else {
+				children = this.textNodes(anchor.parentNode);
+				index = children.indexOf(anchor);
+			}
+			return index;
+		}
+		filteredPosition(anchor, ignoreClass) {
+			var children, index, map;
+			if (anchor.nodeType === ELEMENT_NODE$1) {
+				children = anchor.parentNode.children;
+				map = this.normalizedMap(children, ELEMENT_NODE$1, ignoreClass);
+			} else {
+				children = anchor.parentNode.childNodes;
+				if (anchor.parentNode.classList.contains(ignoreClass || "")) {
+					anchor = anchor.parentNode;
+					children = anchor.parentNode.childNodes;
+				}
+				map = this.normalizedMap(children, TEXT_NODE$1, ignoreClass);
+			}
+			index = Array.prototype.indexOf.call(children, anchor);
+			return map[index];
+		}
+		stepsToXpath(steps) {
+			var xpath = [".", "*"];
+			steps.forEach(function(step) {
+				var position = step.index + 1;
+				if (step.id) xpath.push("*[position()=" + position + " and @id='" + step.id + "']");
+				else if (step.type === "text") xpath.push("text()[" + position + "]");
+				else xpath.push("*[" + position + "]");
+			});
+			return xpath.join("/");
+		}
+		stepsToQuerySelector(steps) {
+			var query = ["html"];
+			steps.forEach(function(step) {
+				var position = step.index + 1;
+				if (step.id) query.push("#" + step.id);
+				else if (step.type === "text") {} else query.push("*:nth-child(" + position + ")");
+			});
+			return query.join(">");
+		}
+		textNodes(container, ignoreClass) {
+			return Array.prototype.slice.call(container.childNodes).filter(function(node) {
+				if (node.nodeType === TEXT_NODE$1) return true;
+				else if (ignoreClass && node.classList.contains(ignoreClass)) return true;
+				return false;
+			});
+		}
+		walkToNode(steps, _doc, ignoreClass) {
+			var doc = _doc || document;
+			var container = doc.documentElement;
+			var children;
+			var step;
+			var len = steps.length;
+			var i;
+			for (i = 0; i < len; i++) {
+				step = steps[i];
+				if (step.type === "element") if (step.id) container = doc.getElementById(step.id);
+				else {
+					children = container.children || findChildren$1(container);
+					container = children[step.index];
+				}
+				else if (step.type === "text") container = this.textNodes(container, ignoreClass)[step.index];
+				if (!container) break;
+			}
+			return container;
+		}
+		findNode(steps, _doc, ignoreClass) {
+			var doc = _doc || document;
+			var container;
+			var xpath;
+			if (!ignoreClass && typeof doc.evaluate != "undefined") {
+				xpath = this.stepsToXpath(steps);
+				container = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+			} else if (ignoreClass) container = this.walkToNode(steps, doc, ignoreClass);
+			else container = this.walkToNode(steps, doc);
+			return container;
+		}
+		normalizeOffset(container, offset) {
+			var normalized = isNumber$1(offset) ? offset : 0;
+			if (!container) return 0;
+			if (normalized < 0) normalized = 0;
+			if (container.nodeType === TEXT_NODE$1 || container.nodeType === COMMENT_NODE) return Math.min(normalized, container.textContent.length);
+			if (container.childNodes) return Math.min(normalized, container.childNodes.length);
+			return normalized;
+		}
+		fixMiss(steps, offset, _doc, ignoreClass) {
+			var container = this.findNode(steps.slice(0, -1), _doc, ignoreClass);
+			if (!container || !container.childNodes) return {
+				container: container || null,
+				offset: this.normalizeOffset(container, offset)
+			};
+			var children = container.childNodes;
+			var map = this.normalizedMap(children, TEXT_NODE$1, ignoreClass || void 0);
+			var child;
+			var len;
+			var lastStepIndex = steps[steps.length - 1].index;
+			for (let childIndex in map) {
+				if (!Object.prototype.hasOwnProperty.call(map, childIndex)) continue;
+				if (map[childIndex] === lastStepIndex) {
+					child = children[Number(childIndex)];
+					len = child.textContent.length;
+					if ((offset || 0) > len) offset = (offset || 0) - len;
+					else {
+						if (child.nodeType === ELEMENT_NODE$1) container = child.childNodes[0];
+						else container = child;
+						break;
+					}
+				}
+			}
+			return {
+				container,
+				offset: this.normalizeOffset(container, offset)
+			};
+		}
+		setRangeBoundary(range, method, container, offset, steps, doc, ignoreClass) {
+			var safeContainer = container;
+			var safeOffset = isNumber$1(offset) ? offset : 0;
+			var missed;
+			if (!safeContainer) return false;
+			try {
+				range[method](safeContainer, safeOffset);
+				return true;
+			} catch (e) {
+				missed = this.fixMiss(steps, offset, doc, ignoreClass);
+				if (missed && missed.container) {
+					safeContainer = missed.container;
+					safeOffset = missed.offset;
+				}
+				if (!safeContainer) return false;
+				safeOffset = this.normalizeOffset(safeContainer, safeOffset);
+				try {
+					range[method](safeContainer, safeOffset);
+					return true;
+				} catch (_e) {
+					return false;
+				}
+			}
+		}
+		/**
+		* Creates a DOM range representing a CFI
+		* @param {document} _doc document referenced in the base
+		* @param {string} [ignoreClass]
+		* @return {Range}
+		*/
+		toRange(_doc, ignoreClass) {
+			var doc = _doc || document;
+			var range;
+			var start, end, startContainer, endContainer;
+			var cfi = this;
+			var startSteps, endSteps;
+			var needsIgnoring = ignoreClass ? doc.querySelector("." + ignoreClass) != null : false;
+			if (typeof doc.createRange !== "undefined") range = doc.createRange();
+			else range = new RangeObject$1();
+			if (cfi.range) {
+				start = cfi.start;
+				startSteps = cfi.path.steps.concat(start.steps);
+				startContainer = this.findNode(startSteps, doc, needsIgnoring ? ignoreClass : null);
+				end = cfi.end;
+				endSteps = cfi.path.steps.concat(end.steps);
+				endContainer = this.findNode(endSteps, doc, needsIgnoring ? ignoreClass : null);
+			} else {
+				start = cfi.path;
+				startSteps = cfi.path.steps;
+				startContainer = this.findNode(cfi.path.steps, doc, needsIgnoring ? ignoreClass : null);
+			}
+			if (startContainer) {
+				if (!this.setRangeBoundary(range, "setStart", startContainer, start.terminal.offset != null ? start.terminal.offset : 0, startSteps, doc, needsIgnoring ? ignoreClass : null)) {
+					console.log("No valid range start found for", this.toString());
+					return null;
+				}
+			} else {
+				console.log("No startContainer found for", this.toString());
+				return null;
+			}
+			if (endContainer) this.setRangeBoundary(range, "setEnd", endContainer, end.terminal.offset != null ? end.terminal.offset : 0, endSteps, doc, needsIgnoring ? ignoreClass : null);
+			return range;
+		}
+		/**
+		* Check if a string is wrapped with "epubcfi()"
+		* @param {string} str
+		* @returns {boolean}
+		*/
+		isCfiString(str) {
+			if (typeof str === "string" && str.indexOf("epubcfi(") === 0 && str[str.length - 1] === ")") return true;
+			return false;
+		}
+		generateChapterComponent(_spineNodeIndex, _pos, id) {
+			var pos = parseInt(String(_pos)), cfi = "/" + (_spineNodeIndex + 1) * 2 + "/";
+			cfi += (pos + 1) * 2;
+			if (id) cfi += "[" + id + "]";
+			return cfi;
+		}
+		/**
+		* Collapse a CFI Range to a single CFI Position
+		* @param {boolean} [toStart=false]
+		*/
+		collapse(toStart) {
+			if (!this.range) return;
+			this.range = false;
+			if (toStart) {
+				this.path.steps = this.path.steps.concat(this.start.steps);
+				this.path.terminal = this.start.terminal;
+			} else {
+				this.path.steps = this.path.steps.concat(this.end.steps);
+				this.path.terminal = this.end.terminal;
+			}
+		}
+	};
+	//#endregion
+	//#region src/utils/hook.ts
+	/**
+	* Hooks allow for injecting functions that must all complete in order before finishing
+	* They will execute in parallel but all must finish before continuing
+	* Functions may return a promise if they are async.
+	* @param {any} context scope of this
+	* @example this.content = new EPUBJS.Hook(this);
+	*/
+	var Hook = class {
+		context;
+		hooks;
+		constructor(context) {
+			this.context = context || this;
+			this.hooks = [];
+		}
+		/**
+		* Adds a function to be run before a hook completes
+		* @example this.content.register(function(){...});
+		*/
+		register(...items) {
+			for (var i = 0; i < arguments.length; ++i) if (typeof arguments[i] === "function") this.hooks.push(arguments[i]);
+			else for (var j = 0; j < arguments[i].length; ++j) this.hooks.push(arguments[i][j]);
+		}
+		/**
+		* Removes a function
+		* @example this.content.deregister(function(){...});
+		*/
+		deregister(func) {
+			let hook;
+			for (let i = 0; i < this.hooks.length; i++) {
+				hook = this.hooks[i];
+				if (hook === func) {
+					this.hooks.splice(i, 1);
+					break;
+				}
+			}
+		}
+		/**
+		* Triggers a hook to run all functions
+		* @example this.content.trigger(args).then(function(){...});
+		*/
+		trigger(...items) {
+			var args = arguments;
+			var context = this.context;
+			var promises = [];
+			this.hooks.forEach(function(task) {
+				var executing;
+				try {
+					executing = task.apply(context, args);
+				} catch (err) {
+					console.log(err);
+				}
+				if (executing && typeof executing["then"] === "function") promises.push(executing);
+			});
+			return Promise.all(promises);
+		}
+		list() {
+			return this.hooks;
+		}
+		clear() {
+			return this.hooks = [];
+		}
+	};
+	//#endregion
+	//#region src/platform/dom.ts
+	/**
+	* Select the first matching element with legacy fallback behavior.
+	* @param {Element | Document} el Root element or document.
+	* @param {string} sel Selector string.
+	* @returns {Element | undefined} First matching element.
+	*/
+	function qs$1(el, sel) {
+		var elements;
+		if (!el) throw new Error("No Element Provided");
+		if (typeof el.querySelector !== "undefined") return el.querySelector(sel);
+		elements = el.getElementsByTagName(sel);
+		if (elements.length) return elements[0];
+	}
+	/**
+	* Select all matching elements with legacy fallback behavior.
+	* @param {Element | Document} el Root element or document.
+	* @param {string} sel Selector string.
+	* @returns {NodeList | HTMLCollection} Matching elements.
+	*/
+	function qsa$1(el, sel) {
+		if (typeof el.querySelector !== "undefined") return el.querySelectorAll(sel);
+		return el.getElementsByTagName(sel);
+	}
+	/**
+	* Select the first element matching a tag and property map.
+	* @param {Element | Document} el Root element or document.
+	* @param {string} sel Element name.
+	* @param {object} props Attribute/value map.
+	* @returns {Element | undefined} First matching element.
+	*/
+	function qsp$1(el, sel, props) {
+		var q;
+		var filtered;
+		if (typeof el.querySelector !== "undefined") {
+			sel += "[";
+			for (var prop in props) sel += prop + "~='" + props[prop] + "'";
+			sel += "]";
+			return el.querySelector(sel);
+		}
+		q = el.getElementsByTagName(sel);
+		filtered = Array.prototype.slice.call(q, 0).filter(function(el) {
+			for (var prop in props) if (el.getAttribute(prop) === props[prop]) return true;
+			return false;
+		});
+		if (filtered) return filtered[0];
+	}
+	/**
+	* Select by EPUB type with namespace fallback behavior.
+	* @param {Element | Document} html Root element or document.
+	* @param {string} element Element name.
+	* @param {string} type EPUB type.
+	* @returns {Element | undefined} First matching element.
+	*/
+	function querySelectorByType$1(html, element, type) {
+		var query;
+		if (typeof html.querySelector !== "undefined") query = html.querySelector(`${element}[*|type="${type}"]`);
+		if (!query || query.length === 0) {
+			query = qsa$1(html, element);
+			for (var i = 0; i < query.length; i++) if (query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type || query[i].getAttribute("epub:type") === type) return query[i];
+		} else return query;
+	}
+	//#endregion
+	//#region src/utils/replacements.ts
+	function replaceBase(doc, section) {
+		var base;
+		var head;
+		var url = section.url;
+		var absolute = url.indexOf("://") > -1;
+		if (!doc) return;
+		head = qs$1(doc, "head");
+		base = qs$1(head, "base");
+		if (!base) {
+			base = doc.createElement("base");
+			head.insertBefore(base, head.firstChild);
+		}
+		if (!absolute && window && window.location) url = window.location.origin + url;
+		base.setAttribute("href", url);
+	}
+	function replaceCanonical(doc, section) {
+		var head;
+		var link;
+		var url = section.canonical;
+		if (!doc) return;
+		head = qs$1(doc, "head");
+		link = qs$1(head, "link[rel='canonical']");
+		if (link) link.setAttribute("href", url);
+		else {
+			link = doc.createElement("link");
+			link.setAttribute("rel", "canonical");
+			link.setAttribute("href", url);
+			head.appendChild(link);
+		}
+	}
+	function replaceMeta(doc, section) {
+		var head;
+		var meta;
+		var id = section.idref;
+		if (!doc) return;
+		head = qs$1(doc, "head");
+		meta = qs$1(head, "meta[name='dc.identifier']");
+		if (meta) meta.setAttribute("content", id);
+		else {
+			meta = doc.createElement("meta");
+			meta.setAttribute("name", "dc.identifier");
+			meta.setAttribute("content", id);
+			head.appendChild(meta);
+		}
+	}
+	function replaceLinks(contents, fn, sectionHref) {
+		var links = contents.querySelectorAll("a[href]");
+		if (!links.length) return;
+		var base = qs$1(contents.ownerDocument, "base");
+		var location = base ? base.getAttribute("href") : void 0;
+		var replaceLink = function(link) {
+			var href = link.getAttribute("href");
+			if (href.indexOf("mailto:") === 0) return;
+			if (href.indexOf("://") > -1) link.setAttribute("target", "_blank");
+			else {
+				var linkUrl;
+				try {
+					linkUrl = new Url(href, location);
+				} catch (error) {}
+				link.onclick = function() {
+					if (sectionHref && href && href.indexOf("#") === 0) fn(sectionHref + href);
+					else if (linkUrl && linkUrl.hash) fn(linkUrl.Path.path + linkUrl.hash);
+					else if (linkUrl) fn(linkUrl.Path.path);
+					else fn(href);
+					return false;
+				};
+			}
+		}.bind(this);
+		for (var i = 0; i < links.length; i++) replaceLink(links[i]);
+	}
+	function substitute(content, urls, replacements) {
+		urls.forEach(function(url, i) {
+			if (url && replacements[i]) {
+				url = url.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+				content = content.replace(new RegExp(url, "g"), replacements[i]);
+			}
+		});
+		return content;
+	}
 	//#endregion
 	//#region node_modules/@xmldom/xmldom/lib/conventions.js
 	var require_conventions = /* @__PURE__ */ __commonJSMin(((exports) => {
@@ -5105,23 +6824,13 @@
 		exports.DOMParser = DOMParser;
 	}));
 	//#endregion
-	//#region node_modules/@xmldom/xmldom/lib/index.js
-	var require_lib = /* @__PURE__ */ __commonJSMin(((exports) => {
+	//#region src/platform/browser.ts
+	var import_lib = (/* @__PURE__ */ __commonJSMin(((exports) => {
 		var dom = require_dom();
 		exports.DOMImplementation = dom.DOMImplementation;
 		exports.XMLSerializer = dom.XMLSerializer;
 		exports.DOMParser = require_dom_parser().DOMParser;
-	}));
-	//#endregion
-	//#region src/platform/browser.js
-	var import_event_emitter = /* @__PURE__ */ __toESM(require_event_emitter());
-	var import_lib = require_lib();
-	/**
-	* Browser platform boundary.
-	*
-	* Keep global object lookups here so core/rendering modules can migrate away
-	* from direct window/document feature detection incrementally.
-	*/
+	})))();
 	function getWindow() {
 		return typeof window !== "undefined" ? window : void 0;
 	}
@@ -5138,3680 +6847,40 @@
 		return win ? win.requestAnimationFrame || win.mozRequestAnimationFrame || win.webkitRequestAnimationFrame || win.msRequestAnimationFrame : false;
 	})();
 	//#endregion
-	//#region src/compat/css.js
+	//#region src/platform/parser.ts
 	/**
-	* Resolve the CSS property spelling supported by the current browser.
-	*
-	* This keeps legacy prefixed CSS lookup separate from generic core helpers
-	* while `utils/core.prefixed()` remains the compatibility export.
-	* @param {string} unprefixed CSS property name without a vendor prefix
-	* @returns {string} supported CSS property name
+	* Resolve the parser constructor for browser/native or XMLDOM parsing.
+	* @param {boolean} forceXMLDom Force XMLDOMParser even when native parser exists.
+	* @returns {Function} Parser constructor.
 	*/
-	function prefixed$1(unprefixed) {
-		var doc = getDocument();
-		var vendors = [
-			"Webkit",
-			"webkit",
-			"Moz",
-			"O",
-			"ms"
-		];
-		var prefixes = [
-			"-webkit-",
-			"-webkit-",
-			"-moz-",
-			"-o-",
-			"-ms-"
-		];
-		var lower = unprefixed.toLowerCase();
-		var length = vendors.length;
-		if (!doc || !doc.body || typeof doc.body.style[lower] != "undefined") return unprefixed;
-		for (var i = 0; i < length; i++) if (typeof doc.body.style[prefixes[i] + lower] != "undefined") return prefixes[i] + lower;
-		return unprefixed;
+	function getParserConstructor(forceXMLDom) {
+		var win;
+		if (forceXMLDom) return import_lib.DOMParser;
+		if (typeof DOMParser !== "undefined") return DOMParser;
+		win = getWindow();
+		return win && win.DOMParser ? win.DOMParser : import_lib.DOMParser;
+	}
+	/**
+	* Remove a leading byte order mark before parser handoff.
+	* @param {string} markup Source markup.
+	* @returns {string} Markup without a leading BOM.
+	*/
+	function stripByteOrderMark(markup) {
+		if (markup && markup.charCodeAt(0) === 65279) return markup.slice(1);
+		return markup;
+	}
+	/**
+	* Parse XML or HTML markup through the platform parser boundary.
+	* @param {string} markup Source markup.
+	* @param {string} mime Markup MIME type.
+	* @param {boolean} forceXMLDom Force XMLDOMParser instead of native DOMParser.
+	* @returns {Document} Parsed document.
+	*/
+	function parseMarkup(markup, mime, forceXMLDom) {
+		return new (getParserConstructor(forceXMLDom))().parseFromString(stripByteOrderMark(markup), mime);
 	}
 	//#endregion
-	//#region src/utils/core.js
-	/**
-	* Core Utilities and Helpers
-	* @module Core
-	*/
-	var core_exports = /* @__PURE__ */ __exportAll({
-		RangeObject: () => RangeObject,
-		blob2base64: () => blob2base64,
-		borders: () => borders,
-		bounds: () => bounds,
-		createBase64Url: () => createBase64Url,
-		createBlob: () => createBlob,
-		createBlobUrl: () => createBlobUrl,
-		defaults: () => defaults,
-		defer: () => defer,
-		documentHeight: () => documentHeight,
-		extend: () => extend,
-		filterChildren: () => filterChildren,
-		findChildren: () => findChildren,
-		getParentByTagName: () => getParentByTagName,
-		indexOfElementNode: () => indexOfElementNode,
-		indexOfNode: () => indexOfNode,
-		indexOfSorted: () => indexOfSorted,
-		indexOfTextNode: () => indexOfTextNode,
-		insert: () => insert,
-		isElement: () => isElement,
-		isFloat: () => isFloat,
-		isNumber: () => isNumber,
-		isXml: () => isXml,
-		locationOf: () => locationOf,
-		nodeBounds: () => nodeBounds,
-		parents: () => parents,
-		parse: () => parse,
-		prefixed: () => prefixed,
-		qs: () => qs,
-		qsa: () => qsa,
-		qsp: () => qsp,
-		querySelectorByType: () => querySelectorByType,
-		requestAnimationFrame: () => requestAnimationFrame$1,
-		revokeBlobUrl: () => revokeBlobUrl,
-		sprint: () => sprint,
-		treeWalker: () => treeWalker,
-		type: () => type,
-		uuid: () => uuid,
-		walk: () => walk,
-		windowBounds: () => windowBounds
-	});
-	/**
-	* Vendor prefixed requestAnimationFrame
-	* @returns {function} requestAnimationFrame
-	* @memberof Core
-	*/
-	var requestAnimationFrame$1 = requestAnimationFrame$2;
-	var ELEMENT_NODE$2 = 1;
-	var TEXT_NODE$2 = 3;
-	var _URL = getURLConstructor();
-	/**
-	* Generates a UUID
-	* based on: http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
-	* @returns {string} uuid
-	* @memberof Core
-	*/
-	function uuid() {
-		var d = (/* @__PURE__ */ new Date()).getTime();
-		return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
-			var r = (d + Math.random() * 16) % 16 | 0;
-			d = Math.floor(d / 16);
-			return (c == "x" ? r : r & 7 | 8).toString(16);
-		});
-	}
-	/**
-	* Gets the height of a document
-	* @returns {number} height
-	* @memberof Core
-	*/
-	function documentHeight() {
-		return Math.max(document.documentElement.clientHeight, document.body.scrollHeight, document.documentElement.scrollHeight, document.body.offsetHeight, document.documentElement.offsetHeight);
-	}
-	/**
-	* Checks if a node is an element
-	* @param {object} obj
-	* @returns {boolean}
-	* @memberof Core
-	*/
-	function isElement(obj) {
-		return !!(obj && obj.nodeType == 1);
-	}
-	/**
-	* @param {any} n
-	* @returns {boolean}
-	* @memberof Core
-	*/
-	function isNumber(n) {
-		return !isNaN(parseFloat(n)) && isFinite(n);
-	}
-	/**
-	* @param {any} n
-	* @returns {boolean}
-	* @memberof Core
-	*/
-	function isFloat(n) {
-		let f = parseFloat(n);
-		if (isNumber(n) === false) return false;
-		if (typeof n === "string" && n.indexOf(".") > -1) return true;
-		return Math.floor(f) !== f;
-	}
-	/**
-	* Get a prefixed css property
-	* @param {string} unprefixed
-	* @returns {string}
-	* @memberof Core
-	*/
-	function prefixed(unprefixed) {
-		return prefixed$1(unprefixed);
-	}
-	/**
-	* Apply defaults to an object
-	* @param {object} obj
-	* @returns {object}
-	* @memberof Core
-	*/
-	function defaults(obj) {
-		for (var i = 1, length = arguments.length; i < length; i++) {
-			var source = arguments[i];
-			for (var prop in source) if (obj[prop] === void 0) obj[prop] = source[prop];
-		}
-		return obj;
-	}
-	/**
-	* Extend properties of an object
-	* @param {object} target
-	* @returns {object}
-	* @memberof Core
-	*/
-	function extend(target) {
-		[].slice.call(arguments, 1).forEach(function(source) {
-			if (!source) return;
-			Object.getOwnPropertyNames(source).forEach(function(propName) {
-				Object.defineProperty(target, propName, Object.getOwnPropertyDescriptor(source, propName));
-			});
-		});
-		return target;
-	}
-	/**
-	* Fast quicksort insert for sorted array -- based on:
-	*  http://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers
-	* @param {any} item
-	* @param {array} array
-	* @param {function} [compareFunction]
-	* @returns {number} location (in array)
-	* @memberof Core
-	*/
-	function insert(item, array, compareFunction) {
-		var location = locationOf(item, array, compareFunction);
-		array.splice(location, 0, item);
-		return location;
-	}
-	/**
-	* Finds where something would fit into a sorted array
-	* @param {any} item
-	* @param {array} array
-	* @param {function} [compareFunction]
-	* @param {function} [_start]
-	* @param {function} [_end]
-	* @returns {number} location (in array)
-	* @memberof Core
-	*/
-	function locationOf(item, array, compareFunction, _start, _end) {
-		var start = _start || 0;
-		var end = _end || array.length;
-		var pivot = parseInt(start + (end - start) / 2);
-		var compared;
-		if (!compareFunction) compareFunction = function(a, b) {
-			if (a > b) return 1;
-			if (a < b) return -1;
-			if (a == b) return 0;
-		};
-		if (end - start <= 0) return pivot;
-		compared = compareFunction(array[pivot], item);
-		if (end - start === 1) return compared >= 0 ? pivot : pivot + 1;
-		if (compared === 0) return pivot;
-		if (compared === -1) return locationOf(item, array, compareFunction, pivot, end);
-		else return locationOf(item, array, compareFunction, start, pivot);
-	}
-	/**
-	* Finds index of something in a sorted array
-	* Returns -1 if not found
-	* @param {any} item
-	* @param {array} array
-	* @param {function} [compareFunction]
-	* @param {function} [_start]
-	* @param {function} [_end]
-	* @returns {number} index (in array) or -1
-	* @memberof Core
-	*/
-	function indexOfSorted(item, array, compareFunction, _start, _end) {
-		var start = _start || 0;
-		var end = _end || array.length;
-		var pivot = parseInt(start + (end - start) / 2);
-		var compared;
-		if (!compareFunction) compareFunction = function(a, b) {
-			if (a > b) return 1;
-			if (a < b) return -1;
-			if (a == b) return 0;
-		};
-		if (end - start <= 0) return -1;
-		compared = compareFunction(array[pivot], item);
-		if (end - start === 1) return compared === 0 ? pivot : -1;
-		if (compared === 0) return pivot;
-		if (compared === -1) return indexOfSorted(item, array, compareFunction, pivot, end);
-		else return indexOfSorted(item, array, compareFunction, start, pivot);
-	}
-	/**
-	* Find the bounds of an element
-	* taking padding and margin into account
-	* @param {element} el
-	* @returns {{ width: Number, height: Number}}
-	* @memberof Core
-	*/
-	function bounds(el) {
-		var style = window.getComputedStyle(el);
-		var widthProps = [
-			"width",
-			"paddingRight",
-			"paddingLeft",
-			"marginRight",
-			"marginLeft",
-			"borderRightWidth",
-			"borderLeftWidth"
-		];
-		var heightProps = [
-			"height",
-			"paddingTop",
-			"paddingBottom",
-			"marginTop",
-			"marginBottom",
-			"borderTopWidth",
-			"borderBottomWidth"
-		];
-		var width = 0;
-		var height = 0;
-		widthProps.forEach(function(prop) {
-			width += parseFloat(style[prop]) || 0;
-		});
-		heightProps.forEach(function(prop) {
-			height += parseFloat(style[prop]) || 0;
-		});
-		return {
-			height,
-			width
-		};
-	}
-	/**
-	* Find the bounds of an element
-	* taking padding, margin and borders into account
-	* @param {element} el
-	* @returns {{ width: Number, height: Number}}
-	* @memberof Core
-	*/
-	function borders(el) {
-		var style = window.getComputedStyle(el);
-		var widthProps = [
-			"paddingRight",
-			"paddingLeft",
-			"marginRight",
-			"marginLeft",
-			"borderRightWidth",
-			"borderLeftWidth"
-		];
-		var heightProps = [
-			"paddingTop",
-			"paddingBottom",
-			"marginTop",
-			"marginBottom",
-			"borderTopWidth",
-			"borderBottomWidth"
-		];
-		var width = 0;
-		var height = 0;
-		widthProps.forEach(function(prop) {
-			width += parseFloat(style[prop]) || 0;
-		});
-		heightProps.forEach(function(prop) {
-			height += parseFloat(style[prop]) || 0;
-		});
-		return {
-			height,
-			width
-		};
-	}
-	/**
-	* Find the bounds of any node
-	* allows for getting bounds of text nodes by wrapping them in a range
-	* @param {node} node
-	* @returns {BoundingClientRect}
-	* @memberof Core
-	*/
-	function nodeBounds(node) {
-		let elPos;
-		let doc = node.ownerDocument;
-		if (node.nodeType == Node.TEXT_NODE) {
-			let elRange = doc.createRange();
-			elRange.selectNodeContents(node);
-			elPos = elRange.getBoundingClientRect();
-		} else elPos = node.getBoundingClientRect();
-		return elPos;
-	}
-	/**
-	* Find the equivalent of getBoundingClientRect of a browser window
-	* @returns {{ width: Number, height: Number, top: Number, left: Number, right: Number, bottom: Number }}
-	* @memberof Core
-	*/
-	function windowBounds() {
-		var width = window.innerWidth;
-		var height = window.innerHeight;
-		return {
-			top: 0,
-			left: 0,
-			right: width,
-			bottom: height,
-			width,
-			height
-		};
-	}
-	/**
-	* Gets the index of a node in its parent
-	* @param {Node} node
-	* @param {string} typeId
-	* @return {number} index
-	* @memberof Core
-	*/
-	function indexOfNode(node, typeId) {
-		var children = node.parentNode.childNodes;
-		var sib;
-		var index = -1;
-		for (var i = 0; i < children.length; i++) {
-			sib = children[i];
-			if (sib.nodeType === typeId) index++;
-			if (sib == node) break;
-		}
-		return index;
-	}
-	/**
-	* Gets the index of a text node in its parent
-	* @param {node} textNode
-	* @returns {number} index
-	* @memberof Core
-	*/
-	function indexOfTextNode(textNode) {
-		return indexOfNode(textNode, TEXT_NODE$2);
-	}
-	/**
-	* Gets the index of an element node in its parent
-	* @param {element} elementNode
-	* @returns {number} index
-	* @memberof Core
-	*/
-	function indexOfElementNode(elementNode) {
-		return indexOfNode(elementNode, ELEMENT_NODE$2);
-	}
-	/**
-	* Check if extension is xml
-	* @param {string} ext
-	* @returns {boolean}
-	* @memberof Core
-	*/
-	function isXml(ext) {
-		return [
-			"xml",
-			"opf",
-			"ncx"
-		].indexOf(ext) > -1;
-	}
-	/**
-	* Create a new blob
-	* @param {any} content
-	* @param {string} mime
-	* @returns {Blob}
-	* @memberof Core
-	*/
-	function createBlob(content, mime) {
-		return new Blob([content], { type: mime });
-	}
-	/**
-	* Create a new blob url
-	* @param {any} content
-	* @param {string} mime
-	* @returns {string} url
-	* @memberof Core
-	*/
-	function createBlobUrl(content, mime) {
-		var tempUrl;
-		var blob = createBlob(content, mime);
-		tempUrl = _URL.createObjectURL(blob);
-		return tempUrl;
-	}
-	/**
-	* Remove a blob url
-	* @param {string} url
-	* @memberof Core
-	*/
-	function revokeBlobUrl(url) {
-		return _URL.revokeObjectURL(url);
-	}
-	/**
-	* Create a new base64 encoded url
-	* @param {any} content
-	* @param {string} mime
-	* @returns {string} url
-	* @memberof Core
-	*/
-	function createBase64Url(content, mime) {
-		var data;
-		var datauri;
-		if (typeof content !== "string") return;
-		data = btoa(content);
-		datauri = "data:" + mime + ";base64," + data;
-		return datauri;
-	}
-	/**
-	* Get type of an object
-	* @param {object} obj
-	* @returns {string} type
-	* @memberof Core
-	*/
-	function type(obj) {
-		return Object.prototype.toString.call(obj).slice(8, -1);
-	}
-	/**
-	* Parse xml (or html) markup
-	* @param {string} markup
-	* @param {string} mime
-	* @param {boolean} forceXMLDom force using xmlDom to parse instead of native parser
-	* @returns {document} document
-	* @memberof Core
-	*/
-	function parse(markup, mime, forceXMLDom) {
-		var doc;
-		var Parser;
-		if (typeof DOMParser === "undefined" || forceXMLDom) Parser = import_lib.DOMParser;
-		else Parser = DOMParser;
-		if (markup.charCodeAt(0) === 65279) markup = markup.slice(1);
-		doc = new Parser().parseFromString(markup, mime);
-		return doc;
-	}
-	/**
-	* querySelector polyfill
-	* @param {element} el
-	* @param {string} sel selector string
-	* @returns {element} element
-	* @memberof Core
-	*/
-	function qs(el, sel) {
-		var elements;
-		if (!el) throw new Error("No Element Provided");
-		if (typeof el.querySelector != "undefined") return el.querySelector(sel);
-		else {
-			elements = el.getElementsByTagName(sel);
-			if (elements.length) return elements[0];
-		}
-	}
-	/**
-	* querySelectorAll polyfill
-	* @param {element} el
-	* @param {string} sel selector string
-	* @returns {element[]} elements
-	* @memberof Core
-	*/
-	function qsa(el, sel) {
-		if (typeof el.querySelector != "undefined") return el.querySelectorAll(sel);
-		else return el.getElementsByTagName(sel);
-	}
-	/**
-	* querySelector by property
-	* @param {element} el
-	* @param {string} sel selector string
-	* @param {object[]} props
-	* @returns {element[]} elements
-	* @memberof Core
-	*/
-	function qsp(el, sel, props) {
-		var q, filtered;
-		if (typeof el.querySelector != "undefined") {
-			sel += "[";
-			for (var prop in props) sel += prop + "~='" + props[prop] + "'";
-			sel += "]";
-			return el.querySelector(sel);
-		} else {
-			q = el.getElementsByTagName(sel);
-			filtered = Array.prototype.slice.call(q, 0).filter(function(el) {
-				for (var prop in props) if (el.getAttribute(prop) === props[prop]) return true;
-				return false;
-			});
-			if (filtered) return filtered[0];
-		}
-	}
-	/**
-	* Sprint through all text nodes in a document
-	* @memberof Core
-	* @param  {element} root element to start with
-	* @param  {function} func function to run on each element
-	*/
-	function sprint(root, func) {
-		if (typeof (root.ownerDocument || root).createTreeWalker !== "undefined") treeWalker(root, func, NodeFilter.SHOW_TEXT);
-		else walk(root, function(node) {
-			if (node && node.nodeType === 3) func(node);
-		}, true);
-	}
-	/**
-	* Create a treeWalker
-	* @memberof Core
-	* @param  {element} root element to start with
-	* @param  {function} func function to run on each element
-	* @param  {function | object} filter function or object to filter with
-	*/
-	function treeWalker(root, func, filter) {
-		var treeWalker = document.createTreeWalker(root, filter, null, false);
-		let node;
-		while (node = treeWalker.nextNode()) func(node);
-	}
-	/**
-	* @memberof Core
-	* @param {node} node
-	* @param {callback} return false for continue,true for break inside callback
-	*/
-	function walk(node, callback) {
-		if (callback(node)) return true;
-		node = node.firstChild;
-		if (node) do {
-			if (walk(node, callback)) return true;
-			node = node.nextSibling;
-		} while (node);
-	}
-	/**
-	* Convert a blob to a base64 encoded string
-	* @param {Blog} blob
-	* @returns {string}
-	* @memberof Core
-	*/
-	function blob2base64(blob) {
-		return new Promise(function(resolve, reject) {
-			var reader = new FileReader();
-			reader.readAsDataURL(blob);
-			reader.onloadend = function() {
-				resolve(reader.result);
-			};
-		});
-	}
-	/**
-	* Creates a new pending promise and provides methods to resolve or reject it.
-	* From: https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/Promise.jsm/Deferred#backwards_forwards_compatible
-	* @memberof Core
-	*/
-	function defer() {
-		this.resolve = null;
-		this.reject = null;
-		this.id = uuid();
-		this.promise = new Promise((resolve, reject) => {
-			this.resolve = resolve;
-			this.reject = reject;
-		});
-		Object.freeze(this);
-	}
-	/**
-	* querySelector with filter by epub type
-	* @param {element} html
-	* @param {string} element element type to find
-	* @param {string} type epub type to find
-	* @returns {element[]} elements
-	* @memberof Core
-	*/
-	function querySelectorByType(html, element, type) {
-		var query;
-		if (typeof html.querySelector != "undefined") query = html.querySelector(`${element}[*|type="${type}"]`);
-		if (!query || query.length === 0) {
-			query = qsa(html, element);
-			for (var i = 0; i < query.length; i++) if (query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type || query[i].getAttribute("epub:type") === type) return query[i];
-		} else return query;
-	}
-	/**
-	* Find direct descendents of an element
-	* @param {element} el
-	* @returns {element[]} children
-	* @memberof Core
-	*/
-	function findChildren(el) {
-		var result = [];
-		var childNodes = el.childNodes;
-		for (var i = 0; i < childNodes.length; i++) {
-			let node = childNodes[i];
-			if (node.nodeType === 1) result.push(node);
-		}
-		return result;
-	}
-	/**
-	* Find all parents (ancestors) of an element
-	* @param {element} node
-	* @returns {element[]} parents
-	* @memberof Core
-	*/
-	function parents(node) {
-		var nodes = [node];
-		for (; node; node = node.parentNode) nodes.unshift(node);
-		return nodes;
-	}
-	/**
-	* Find all direct descendents of a specific type
-	* @param {element} el
-	* @param {string} nodeName
-	* @param {boolean} [single]
-	* @returns {element[]} children
-	* @memberof Core
-	*/
-	function filterChildren(el, nodeName, single) {
-		var result = [];
-		var childNodes = el.childNodes;
-		for (var i = 0; i < childNodes.length; i++) {
-			let node = childNodes[i];
-			if (node.nodeType === 1 && node.nodeName.toLowerCase() === nodeName) if (single) return node;
-			else result.push(node);
-		}
-		if (!single) return result;
-	}
-	/**
-	* Filter all parents (ancestors) with tag name
-	* @param {element} node
-	* @param {string} tagname
-	* @returns {element[]} parents
-	* @memberof Core
-	*/
-	function getParentByTagName(node, tagname) {
-		let parent;
-		if (node === null || tagname === "") return;
-		parent = node.parentNode;
-		while (parent.nodeType === 1) {
-			if (parent.tagName.toLowerCase() === tagname) return parent;
-			parent = parent.parentNode;
-		}
-	}
-	/**
-	* Lightweight Polyfill for DOM Range
-	* @class
-	* @memberof Core
-	*/
-	var RangeObject = class {
-		constructor() {
-			this.collapsed = false;
-			this.commonAncestorContainer = void 0;
-			this.endContainer = void 0;
-			this.endOffset = void 0;
-			this.startContainer = void 0;
-			this.startOffset = void 0;
-		}
-		setStart(startNode, startOffset) {
-			this.startContainer = startNode;
-			this.startOffset = startOffset;
-			if (!this.endContainer) this.collapse(true);
-			else this.commonAncestorContainer = this._commonAncestorContainer();
-			this._checkCollapsed();
-		}
-		setEnd(endNode, endOffset) {
-			this.endContainer = endNode;
-			this.endOffset = endOffset;
-			if (!this.startContainer) this.collapse(false);
-			else {
-				this.collapsed = false;
-				this.commonAncestorContainer = this._commonAncestorContainer();
-			}
-			this._checkCollapsed();
-		}
-		collapse(toStart) {
-			this.collapsed = true;
-			if (toStart) {
-				this.endContainer = this.startContainer;
-				this.endOffset = this.startOffset;
-				this.commonAncestorContainer = this.startContainer.parentNode;
-			} else {
-				this.startContainer = this.endContainer;
-				this.startOffset = this.endOffset;
-				this.commonAncestorContainer = this.endOffset.parentNode;
-			}
-		}
-		selectNode(referenceNode) {
-			let parent = referenceNode.parentNode;
-			let index = Array.prototype.indexOf.call(parent.childNodes, referenceNode);
-			this.setStart(parent, index);
-			this.setEnd(parent, index + 1);
-		}
-		selectNodeContents(referenceNode) {
-			referenceNode.childNodes[referenceNode.childNodes - 1];
-			let endIndex = referenceNode.nodeType === 3 ? referenceNode.textContent.length : parent.childNodes.length;
-			this.setStart(referenceNode, 0);
-			this.setEnd(referenceNode, endIndex);
-		}
-		_commonAncestorContainer(startContainer, endContainer) {
-			var startParents = parents(startContainer || this.startContainer);
-			var endParents = parents(endContainer || this.endContainer);
-			if (startParents[0] != endParents[0]) return void 0;
-			for (var i = 0; i < startParents.length; i++) if (startParents[i] != endParents[i]) return startParents[i - 1];
-		}
-		_checkCollapsed() {
-			if (this.startContainer === this.endContainer && this.startOffset === this.endOffset) this.collapsed = true;
-			else this.collapsed = false;
-		}
-		toString() {}
-	};
-	//#endregion
-	//#region src/utils/path.js
-	var import_path = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
-		if (!process) var process = { "cwd": function() {
-			return "/";
-		} };
-		function assertPath(path) {
-			if (typeof path !== "string") throw new TypeError("Path must be a string. Received " + path);
-		}
-		function normalizeStringPosix(path, allowAboveRoot) {
-			var res = "";
-			var lastSlash = -1;
-			var dots = 0;
-			var code;
-			for (var i = 0; i <= path.length; ++i) {
-				if (i < path.length) code = path.charCodeAt(i);
-				else if (code === 47) break;
-				else code = 47;
-				if (code === 47) {
-					if (lastSlash === i - 1 || dots === 1) {} else if (lastSlash !== i - 1 && dots === 2) {
-						if (res.length < 2 || res.charCodeAt(res.length - 1) !== 46 || res.charCodeAt(res.length - 2) !== 46) {
-							if (res.length > 2) {
-								var start = res.length - 1;
-								var j = start;
-								for (; j >= 0; --j) if (res.charCodeAt(j) === 47) break;
-								if (j !== start) {
-									if (j === -1) res = "";
-									else res = res.slice(0, j);
-									lastSlash = i;
-									dots = 0;
-									continue;
-								}
-							} else if (res.length === 2 || res.length === 1) {
-								res = "";
-								lastSlash = i;
-								dots = 0;
-								continue;
-							}
-						}
-						if (allowAboveRoot) if (res.length > 0) res += "/..";
-						else res = "..";
-					} else if (res.length > 0) res += "/" + path.slice(lastSlash + 1, i);
-					else res = path.slice(lastSlash + 1, i);
-					lastSlash = i;
-					dots = 0;
-				} else if (code === 46 && dots !== -1) ++dots;
-				else dots = -1;
-			}
-			return res;
-		}
-		function _format(sep, pathObject) {
-			var dir = pathObject.dir || pathObject.root;
-			var base = pathObject.base || (pathObject.name || "") + (pathObject.ext || "");
-			if (!dir) return base;
-			if (dir === pathObject.root) return dir + base;
-			return dir + sep + base;
-		}
-		var posix = {
-			resolve: function resolve() {
-				var resolvedPath = "";
-				var resolvedAbsolute = false;
-				var cwd;
-				for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-					var path;
-					if (i >= 0) path = arguments[i];
-					else {
-						if (cwd === void 0) cwd = process.cwd();
-						path = cwd;
-					}
-					assertPath(path);
-					if (path.length === 0) continue;
-					resolvedPath = path + "/" + resolvedPath;
-					resolvedAbsolute = path.charCodeAt(0) === 47;
-				}
-				resolvedPath = normalizeStringPosix(resolvedPath, !resolvedAbsolute);
-				if (resolvedAbsolute) if (resolvedPath.length > 0) return "/" + resolvedPath;
-				else return "/";
-				else if (resolvedPath.length > 0) return resolvedPath;
-				else return ".";
-			},
-			normalize: function normalize(path) {
-				assertPath(path);
-				if (path.length === 0) return ".";
-				var isAbsolute = path.charCodeAt(0) === 47;
-				var trailingSeparator = path.charCodeAt(path.length - 1) === 47;
-				path = normalizeStringPosix(path, !isAbsolute);
-				if (path.length === 0 && !isAbsolute) path = ".";
-				if (path.length > 0 && trailingSeparator) path += "/";
-				if (isAbsolute) return "/" + path;
-				return path;
-			},
-			isAbsolute: function isAbsolute(path) {
-				assertPath(path);
-				return path.length > 0 && path.charCodeAt(0) === 47;
-			},
-			join: function join() {
-				if (arguments.length === 0) return ".";
-				var joined;
-				for (var i = 0; i < arguments.length; ++i) {
-					var arg = arguments[i];
-					assertPath(arg);
-					if (arg.length > 0) if (joined === void 0) joined = arg;
-					else joined += "/" + arg;
-				}
-				if (joined === void 0) return ".";
-				return posix.normalize(joined);
-			},
-			relative: function relative(from, to) {
-				assertPath(from);
-				assertPath(to);
-				if (from === to) return "";
-				from = posix.resolve(from);
-				to = posix.resolve(to);
-				if (from === to) return "";
-				var fromStart = 1;
-				for (; fromStart < from.length; ++fromStart) if (from.charCodeAt(fromStart) !== 47) break;
-				var fromEnd = from.length;
-				var fromLen = fromEnd - fromStart;
-				var toStart = 1;
-				for (; toStart < to.length; ++toStart) if (to.charCodeAt(toStart) !== 47) break;
-				var toLen = to.length - toStart;
-				var length = fromLen < toLen ? fromLen : toLen;
-				var lastCommonSep = -1;
-				var i = 0;
-				for (; i <= length; ++i) {
-					if (i === length) {
-						if (toLen > length) {
-							if (to.charCodeAt(toStart + i) === 47) return to.slice(toStart + i + 1);
-							else if (i === 0) return to.slice(toStart + i);
-						} else if (fromLen > length) {
-							if (from.charCodeAt(fromStart + i) === 47) lastCommonSep = i;
-							else if (i === 0) lastCommonSep = 0;
-						}
-						break;
-					}
-					var fromCode = from.charCodeAt(fromStart + i);
-					if (fromCode !== to.charCodeAt(toStart + i)) break;
-					else if (fromCode === 47) lastCommonSep = i;
-				}
-				var out = "";
-				for (i = fromStart + lastCommonSep + 1; i <= fromEnd; ++i) if (i === fromEnd || from.charCodeAt(i) === 47) if (out.length === 0) out += "..";
-				else out += "/..";
-				if (out.length > 0) return out + to.slice(toStart + lastCommonSep);
-				else {
-					toStart += lastCommonSep;
-					if (to.charCodeAt(toStart) === 47) ++toStart;
-					return to.slice(toStart);
-				}
-			},
-			_makeLong: function _makeLong(path) {
-				return path;
-			},
-			dirname: function dirname(path) {
-				assertPath(path);
-				if (path.length === 0) return ".";
-				var code = path.charCodeAt(0);
-				var hasRoot = code === 47;
-				var end = -1;
-				var matchedSlash = true;
-				for (var i = path.length - 1; i >= 1; --i) {
-					code = path.charCodeAt(i);
-					if (code === 47) {
-						if (!matchedSlash) {
-							end = i;
-							break;
-						}
-					} else matchedSlash = false;
-				}
-				if (end === -1) return hasRoot ? "/" : ".";
-				if (hasRoot && end === 1) return "//";
-				return path.slice(0, end);
-			},
-			basename: function basename(path, ext) {
-				if (ext !== void 0 && typeof ext !== "string") throw new TypeError("\"ext\" argument must be a string");
-				assertPath(path);
-				var start = 0;
-				var end = -1;
-				var matchedSlash = true;
-				var i;
-				if (ext !== void 0 && ext.length > 0 && ext.length <= path.length) {
-					if (ext.length === path.length && ext === path) return "";
-					var extIdx = ext.length - 1;
-					var firstNonSlashEnd = -1;
-					for (i = path.length - 1; i >= 0; --i) {
-						var code = path.charCodeAt(i);
-						if (code === 47) {
-							if (!matchedSlash) {
-								start = i + 1;
-								break;
-							}
-						} else {
-							if (firstNonSlashEnd === -1) {
-								matchedSlash = false;
-								firstNonSlashEnd = i + 1;
-							}
-							if (extIdx >= 0) if (code === ext.charCodeAt(extIdx)) {
-								if (--extIdx === -1) end = i;
-							} else {
-								extIdx = -1;
-								end = firstNonSlashEnd;
-							}
-						}
-					}
-					if (start === end) end = firstNonSlashEnd;
-					else if (end === -1) end = path.length;
-					return path.slice(start, end);
-				} else {
-					for (i = path.length - 1; i >= 0; --i) if (path.charCodeAt(i) === 47) {
-						if (!matchedSlash) {
-							start = i + 1;
-							break;
-						}
-					} else if (end === -1) {
-						matchedSlash = false;
-						end = i + 1;
-					}
-					if (end === -1) return "";
-					return path.slice(start, end);
-				}
-			},
-			extname: function extname(path) {
-				assertPath(path);
-				var startDot = -1;
-				var startPart = 0;
-				var end = -1;
-				var matchedSlash = true;
-				var preDotState = 0;
-				for (var i = path.length - 1; i >= 0; --i) {
-					var code = path.charCodeAt(i);
-					if (code === 47) {
-						if (!matchedSlash) {
-							startPart = i + 1;
-							break;
-						}
-						continue;
-					}
-					if (end === -1) {
-						matchedSlash = false;
-						end = i + 1;
-					}
-					if (code === 46) {
-						if (startDot === -1) startDot = i;
-						else if (preDotState !== 1) preDotState = 1;
-					} else if (startDot !== -1) preDotState = -1;
-				}
-				if (startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) return "";
-				return path.slice(startDot, end);
-			},
-			format: function format(pathObject) {
-				if (pathObject === null || typeof pathObject !== "object") throw new TypeError("Parameter \"pathObject\" must be an object, not " + typeof pathObject);
-				return _format("/", pathObject);
-			},
-			parse: function parse(path) {
-				assertPath(path);
-				var ret = {
-					root: "",
-					dir: "",
-					base: "",
-					ext: "",
-					name: ""
-				};
-				if (path.length === 0) return ret;
-				var code = path.charCodeAt(0);
-				var isAbsolute = code === 47;
-				var start;
-				if (isAbsolute) {
-					ret.root = "/";
-					start = 1;
-				} else start = 0;
-				var startDot = -1;
-				var startPart = 0;
-				var end = -1;
-				var matchedSlash = true;
-				var i = path.length - 1;
-				var preDotState = 0;
-				for (; i >= start; --i) {
-					code = path.charCodeAt(i);
-					if (code === 47) {
-						if (!matchedSlash) {
-							startPart = i + 1;
-							break;
-						}
-						continue;
-					}
-					if (end === -1) {
-						matchedSlash = false;
-						end = i + 1;
-					}
-					if (code === 46) {
-						if (startDot === -1) startDot = i;
-						else if (preDotState !== 1) preDotState = 1;
-					} else if (startDot !== -1) preDotState = -1;
-				}
-				if (startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
-					if (end !== -1) if (startPart === 0 && isAbsolute) ret.base = ret.name = path.slice(1, end);
-					else ret.base = ret.name = path.slice(startPart, end);
-				} else {
-					if (startPart === 0 && isAbsolute) {
-						ret.name = path.slice(1, startDot);
-						ret.base = path.slice(1, end);
-					} else {
-						ret.name = path.slice(startPart, startDot);
-						ret.base = path.slice(startPart, end);
-					}
-					ret.ext = path.slice(startDot, end);
-				}
-				if (startPart > 0) ret.dir = path.slice(0, startPart - 1);
-				else if (isAbsolute) ret.dir = "/";
-				return ret;
-			},
-			sep: "/",
-			delimiter: ":",
-			posix: null
-		};
-		module.exports = posix;
-	})))());
-	/**
-	* Creates a Path object for parsing and manipulation of a path strings
-	*
-	* Uses a polyfill for Nodejs path: https://nodejs.org/api/path.html
-	* @param	{string} pathString	a url string (relative or absolute)
-	* @class
-	*/
-	var Path = class {
-		constructor(pathString) {
-			var protocol;
-			var parsed;
-			protocol = pathString.indexOf("://");
-			if (protocol > -1) pathString = new URL(pathString).pathname;
-			parsed = this.parse(pathString);
-			this.path = pathString;
-			if (this.isDirectory(pathString)) this.directory = pathString;
-			else this.directory = parsed.dir + "/";
-			this.filename = parsed.base;
-			this.extension = parsed.ext.slice(1);
-		}
-		/**
-		* Parse the path: https://nodejs.org/api/path.html#path_path_parse_path
-		* @param	{string} what
-		* @returns {object}
-		*/
-		parse(what) {
-			return import_path.default.parse(what);
-		}
-		/**
-		* @param	{string} what
-		* @returns {boolean}
-		*/
-		isAbsolute(what) {
-			return import_path.default.isAbsolute(what || this.path);
-		}
-		/**
-		* Check if path ends with a directory
-		* @param	{string} what
-		* @returns {boolean}
-		*/
-		isDirectory(what) {
-			return what.charAt(what.length - 1) === "/";
-		}
-		/**
-		* Resolve a path against the directory of the Path
-		*
-		* https://nodejs.org/api/path.html#path_path_resolve_paths
-		* @param	{string} what
-		* @returns {string} resolved
-		*/
-		resolve(what) {
-			return import_path.default.resolve(this.directory, what);
-		}
-		/**
-		* Resolve a path relative to the directory of the Path
-		*
-		* https://nodejs.org/api/path.html#path_path_relative_from_to
-		* @param	{string} what
-		* @returns {string} relative
-		*/
-		relative(what) {
-			if (what && what.indexOf("://") > -1) return what;
-			return import_path.default.relative(this.directory, what);
-		}
-		splitPath(filename) {
-			return this.splitPathRe.exec(filename).slice(1);
-		}
-		/**
-		* Return the path string
-		* @returns {string} path
-		*/
-		toString() {
-			return this.path;
-		}
-	};
-	//#endregion
-	//#region src/utils/url.js
-	/**
-	* creates a Url object for parsing and manipulation of a url string
-	* @param	{string} urlString	a url string (relative or absolute)
-	* @param	{string} [baseString] optional base for the url,
-	* default to window.location.href
-	*/
-	var Url = class {
-		constructor(urlString, baseString) {
-			var absolute = urlString.indexOf("://") > -1;
-			var pathname = urlString;
-			var basePath;
-			this.Url = void 0;
-			this.href = urlString;
-			this.protocol = "";
-			this.origin = "";
-			this.hash = "";
-			this.hash = "";
-			this.search = "";
-			this.base = baseString;
-			if (!absolute && baseString !== false && typeof baseString !== "string" && window && window.location) this.base = window.location.href;
-			if (absolute || this.base) try {
-				if (this.base) this.Url = new URL(urlString, this.base);
-				else this.Url = new URL(urlString);
-				this.href = this.Url.href;
-				this.protocol = this.Url.protocol;
-				this.origin = this.Url.origin;
-				this.hash = this.Url.hash;
-				this.search = this.Url.search;
-				pathname = this.Url.pathname + (this.Url.search ? this.Url.search : "");
-			} catch (e) {
-				this.Url = void 0;
-				if (this.base) {
-					basePath = new Path(this.base);
-					pathname = basePath.resolve(pathname);
-				}
-			}
-			this.Path = new Path(pathname);
-			this.directory = this.Path.directory;
-			this.filename = this.Path.filename;
-			this.extension = this.Path.extension;
-		}
-		/**
-		* @returns {Path}
-		*/
-		path() {
-			return this.Path;
-		}
-		/**
-		* Resolves a relative path to a absolute url
-		* @param {string} what
-		* @returns {string} url
-		*/
-		resolve(what) {
-			var isAbsolute = what.indexOf("://") > -1;
-			var fullpath;
-			if (isAbsolute) return what;
-			fullpath = import_path.default.resolve(this.directory, what);
-			return this.origin + fullpath;
-		}
-		/**
-		* Resolve a path relative to the url
-		* @param {string} what
-		* @returns {string} path
-		*/
-		relative(what) {
-			return import_path.default.relative(what, this.directory);
-		}
-		/**
-		* @returns {string}
-		*/
-		toString() {
-			return this.href;
-		}
-	};
-	//#endregion
-	//#region src/epubcfi.js
-	var ELEMENT_NODE$1 = 1;
-	var TEXT_NODE$1 = 3;
-	var COMMENT_NODE = 8;
-	var DOCUMENT_NODE = 9;
-	/**
-	* Parsing and creation of EpubCFIs: http://www.idpf.org/epub/linking/cfi/epub-cfi.html
-
-	* Implements:
-	* - Character Offset: epubcfi(/6/4[chap01ref]!/4[body01]/10[para05]/2/1:3)
-	* - Simple Ranges : epubcfi(/6/4[chap01ref]!/4[body01]/10[para05],/2/1:1,/3:4)
-
-	* Does Not Implement:
-	* - Temporal Offset (~)
-	* - Spatial Offset (@)
-	* - Temporal-Spatial Offset (~ + @)
-	* - Text Location Assertion ([)
-	* @class
-	@param {string | Range | Node } [cfiFrom]
-	@param {string | object} [base]
-	@param {string} [ignoreClass] class to ignore when parsing DOM
-	*/
-	var EpubCFI = class EpubCFI {
-		constructor(cfiFrom, base, ignoreClass) {
-			var type;
-			this.str = "";
-			this.base = {};
-			this.spinePos = 0;
-			this.range = false;
-			this.path = {};
-			this.start = null;
-			this.end = null;
-			if (!(this instanceof EpubCFI)) return new EpubCFI(cfiFrom, base, ignoreClass);
-			if (typeof base === "string") this.base = this.parseComponent(base);
-			else if (typeof base === "object" && base.steps) this.base = base;
-			type = this.checkType(cfiFrom);
-			if (type === "string") {
-				this.str = cfiFrom;
-				return extend(this, this.parse(cfiFrom));
-			} else if (type === "range") return extend(this, this.fromRange(cfiFrom, this.base, ignoreClass));
-			else if (type === "node") return extend(this, this.fromNode(cfiFrom, this.base, ignoreClass));
-			else if (type === "EpubCFI" && cfiFrom.path) return cfiFrom;
-			else if (!cfiFrom) return this;
-			else throw new TypeError("not a valid argument for EpubCFI");
-		}
-		/**
-		* Check the type of constructor input
-		* @private
-		*/
-		checkType(cfi) {
-			if (this.isCfiString(cfi)) return "string";
-			else if (cfi && typeof cfi === "object" && (type(cfi) === "Range" || typeof cfi.startContainer != "undefined")) return "range";
-			else if (cfi && typeof cfi === "object" && typeof cfi.nodeType != "undefined") return "node";
-			else if (cfi && typeof cfi === "object" && cfi instanceof EpubCFI) return "EpubCFI";
-			else return false;
-		}
-		/**
-		* Parse a cfi string to a CFI object representation
-		* @param {string} cfiStr
-		* @returns {object} cfi
-		*/
-		parse(cfiStr) {
-			var cfi = {
-				spinePos: -1,
-				range: false,
-				base: {},
-				path: {},
-				start: null,
-				end: null
-			};
-			var baseComponent, pathComponent, range;
-			if (typeof cfiStr !== "string") return { spinePos: -1 };
-			if (cfiStr.indexOf("epubcfi(") === 0 && cfiStr[cfiStr.length - 1] === ")") cfiStr = cfiStr.slice(8, cfiStr.length - 1);
-			baseComponent = this.getChapterComponent(cfiStr);
-			if (!baseComponent) return { spinePos: -1 };
-			cfi.base = this.parseComponent(baseComponent);
-			pathComponent = this.getPathComponent(cfiStr);
-			cfi.path = this.parseComponent(pathComponent);
-			range = this.getRange(cfiStr);
-			if (range) {
-				cfi.range = true;
-				cfi.start = this.parseComponent(range[0]);
-				cfi.end = this.parseComponent(range[1]);
-			}
-			cfi.spinePos = cfi.base.steps[1].index;
-			return cfi;
-		}
-		parseComponent(componentStr) {
-			var component = {
-				steps: [],
-				terminal: {
-					offset: null,
-					assertion: null
-				}
-			};
-			var parts = componentStr.split(":");
-			var steps = parts[0].split("/");
-			var terminal;
-			if (parts.length > 1) {
-				terminal = parts[1];
-				component.terminal = this.parseTerminal(terminal);
-			}
-			if (steps[0] === "") steps.shift();
-			component.steps = steps.map(function(step) {
-				return this.parseStep(step);
-			}.bind(this));
-			return component;
-		}
-		parseStep(stepStr) {
-			var type, num, index, has_brackets = stepStr.match(/\[(.*)\]/), id;
-			if (has_brackets && has_brackets[1]) id = has_brackets[1];
-			num = parseInt(stepStr);
-			if (isNaN(num)) return;
-			if (num % 2 === 0) {
-				type = "element";
-				index = num / 2 - 1;
-			} else {
-				type = "text";
-				index = (num - 1) / 2;
-			}
-			return {
-				"type": type,
-				"index": index,
-				"id": id || null
-			};
-		}
-		parseTerminal(termialStr) {
-			var characterOffset, textLocationAssertion;
-			var assertion = termialStr.match(/\[(.*)\]/);
-			if (assertion && assertion[1]) {
-				characterOffset = parseInt(termialStr.split("[")[0]);
-				textLocationAssertion = assertion[1];
-			} else characterOffset = parseInt(termialStr);
-			if (!isNumber(characterOffset)) characterOffset = null;
-			return {
-				"offset": characterOffset,
-				"assertion": textLocationAssertion
-			};
-		}
-		getChapterComponent(cfiStr) {
-			return cfiStr.split("!")[0];
-		}
-		getPathComponent(cfiStr) {
-			var indirection = cfiStr.split("!");
-			if (indirection[1]) return indirection[1].split(",")[0];
-		}
-		getRange(cfiStr) {
-			var ranges = cfiStr.split(",");
-			if (ranges.length === 3) return [ranges[1], ranges[2]];
-			return false;
-		}
-		getCharecterOffsetComponent(cfiStr) {
-			return cfiStr.split(":")[1] || "";
-		}
-		joinSteps(steps) {
-			if (!steps) return "";
-			return steps.map(function(part) {
-				var segment = "";
-				if (part.type === "element") segment += (part.index + 1) * 2;
-				if (part.type === "text") segment += 1 + 2 * part.index;
-				if (part.id) segment += "[" + part.id + "]";
-				return segment;
-			}).join("/");
-		}
-		segmentString(segment) {
-			var segmentString = "/";
-			segmentString += this.joinSteps(segment.steps);
-			if (segment.terminal && segment.terminal.offset != null) segmentString += ":" + segment.terminal.offset;
-			if (segment.terminal && segment.terminal.assertion != null) segmentString += "[" + segment.terminal.assertion + "]";
-			return segmentString;
-		}
-		/**
-		* Convert CFI to a epubcfi(...) string
-		* @returns {string} epubcfi
-		*/
-		toString() {
-			var cfiString = "epubcfi(";
-			cfiString += this.segmentString(this.base);
-			cfiString += "!";
-			cfiString += this.segmentString(this.path);
-			if (this.range && this.start) {
-				cfiString += ",";
-				cfiString += this.segmentString(this.start);
-			}
-			if (this.range && this.end) {
-				cfiString += ",";
-				cfiString += this.segmentString(this.end);
-			}
-			cfiString += ")";
-			return cfiString;
-		}
-		/**
-		* Compare which of two CFIs is earlier in the text
-		* @returns {number} First is earlier = -1, Second is earlier = 1, They are equal = 0
-		*/
-		compare(cfiOne, cfiTwo) {
-			var stepsA, stepsB;
-			var terminalA, terminalB;
-			if (typeof cfiOne === "string") cfiOne = new EpubCFI(cfiOne);
-			if (typeof cfiTwo === "string") cfiTwo = new EpubCFI(cfiTwo);
-			if (cfiOne.spinePos > cfiTwo.spinePos) return 1;
-			if (cfiOne.spinePos < cfiTwo.spinePos) return -1;
-			if (cfiOne.range) {
-				stepsA = cfiOne.path.steps.concat(cfiOne.start.steps);
-				terminalA = cfiOne.start.terminal;
-			} else {
-				stepsA = cfiOne.path.steps;
-				terminalA = cfiOne.path.terminal;
-			}
-			if (cfiTwo.range) {
-				stepsB = cfiTwo.path.steps.concat(cfiTwo.start.steps);
-				terminalB = cfiTwo.start.terminal;
-			} else {
-				stepsB = cfiTwo.path.steps;
-				terminalB = cfiTwo.path.terminal;
-			}
-			for (var i = 0; i < stepsA.length; i++) {
-				if (!stepsA[i]) return -1;
-				if (!stepsB[i]) return 1;
-				if (stepsA[i].index > stepsB[i].index) return 1;
-				if (stepsA[i].index < stepsB[i].index) return -1;
-			}
-			if (stepsA.length < stepsB.length) return -1;
-			if (terminalA.offset > terminalB.offset) return 1;
-			if (terminalA.offset < terminalB.offset) return -1;
-			return 0;
-		}
-		step(node) {
-			var nodeType = node.nodeType === TEXT_NODE$1 ? "text" : "element";
-			return {
-				"id": node.id,
-				"tagName": node.tagName,
-				"type": nodeType,
-				"index": this.position(node)
-			};
-		}
-		filteredStep(node, ignoreClass) {
-			var filteredNode = this.filter(node, ignoreClass);
-			var nodeType;
-			if (!filteredNode) return;
-			nodeType = filteredNode.nodeType === TEXT_NODE$1 ? "text" : "element";
-			return {
-				"id": filteredNode.id,
-				"tagName": filteredNode.tagName,
-				"type": nodeType,
-				"index": this.filteredPosition(filteredNode, ignoreClass)
-			};
-		}
-		pathTo(node, offset, ignoreClass) {
-			var segment = {
-				steps: [],
-				terminal: {
-					offset: null,
-					assertion: null
-				}
-			};
-			var currentNode = node;
-			var step;
-			while (currentNode && currentNode.parentNode && currentNode.parentNode.nodeType != DOCUMENT_NODE) {
-				if (ignoreClass) step = this.filteredStep(currentNode, ignoreClass);
-				else step = this.step(currentNode);
-				if (step) segment.steps.unshift(step);
-				currentNode = currentNode.parentNode;
-			}
-			if (offset != null && offset >= 0) {
-				segment.terminal.offset = offset;
-				if (segment.steps[segment.steps.length - 1].type != "text") segment.steps.push({
-					"type": "text",
-					"index": 0
-				});
-			}
-			return segment;
-		}
-		equalStep(stepA, stepB) {
-			if (!stepA || !stepB) return false;
-			if (stepA.index === stepB.index && stepA.id === stepB.id && stepA.type === stepB.type) return true;
-			return false;
-		}
-		/**
-		* Create a CFI object from a Range
-		* @param {Range} range
-		* @param {string | object} base
-		* @param {string} [ignoreClass]
-		* @returns {object} cfi
-		*/
-		fromRange(range, base, ignoreClass) {
-			var cfi = {
-				range: false,
-				base: {},
-				path: {},
-				start: null,
-				end: null
-			};
-			var start = range.startContainer;
-			var end = range.endContainer;
-			var startOffset = range.startOffset;
-			var endOffset = range.endOffset;
-			var needsIgnoring = false;
-			if (ignoreClass) needsIgnoring = start.ownerDocument.querySelector("." + ignoreClass) != null;
-			if (typeof base === "string") {
-				cfi.base = this.parseComponent(base);
-				cfi.spinePos = cfi.base.steps[1].index;
-			} else if (typeof base === "object") cfi.base = base;
-			if (range.collapsed) {
-				if (needsIgnoring) startOffset = this.patchOffset(start, startOffset, ignoreClass);
-				cfi.path = this.pathTo(start, startOffset, ignoreClass);
-			} else {
-				cfi.range = true;
-				if (needsIgnoring) startOffset = this.patchOffset(start, startOffset, ignoreClass);
-				cfi.start = this.pathTo(start, startOffset, ignoreClass);
-				if (needsIgnoring) endOffset = this.patchOffset(end, endOffset, ignoreClass);
-				cfi.end = this.pathTo(end, endOffset, ignoreClass);
-				cfi.path = {
-					steps: [],
-					terminal: null
-				};
-				var len = cfi.start.steps.length;
-				var i;
-				for (i = 0; i < len; i++) if (this.equalStep(cfi.start.steps[i], cfi.end.steps[i])) if (i === len - 1) {
-					if (cfi.start.terminal === cfi.end.terminal) {
-						cfi.path.steps.push(cfi.start.steps[i]);
-						cfi.range = false;
-					}
-				} else cfi.path.steps.push(cfi.start.steps[i]);
-				else break;
-				cfi.start.steps = cfi.start.steps.slice(cfi.path.steps.length);
-				cfi.end.steps = cfi.end.steps.slice(cfi.path.steps.length);
-			}
-			return cfi;
-		}
-		/**
-		* Create a CFI object from a Node
-		* @param {Node} anchor
-		* @param {string | object} base
-		* @param {string} [ignoreClass]
-		* @returns {object} cfi
-		*/
-		fromNode(anchor, base, ignoreClass) {
-			var cfi = {
-				range: false,
-				base: {},
-				path: {},
-				start: null,
-				end: null
-			};
-			if (typeof base === "string") {
-				cfi.base = this.parseComponent(base);
-				cfi.spinePos = cfi.base.steps[1].index;
-			} else if (typeof base === "object") cfi.base = base;
-			cfi.path = this.pathTo(anchor, null, ignoreClass);
-			return cfi;
-		}
-		filter(anchor, ignoreClass) {
-			var needsIgnoring;
-			var sibling;
-			var parent, previousSibling, nextSibling;
-			var isText = false;
-			if (anchor.nodeType === TEXT_NODE$1) {
-				isText = true;
-				parent = anchor.parentNode;
-				needsIgnoring = anchor.parentNode.classList.contains(ignoreClass);
-			} else {
-				isText = false;
-				needsIgnoring = anchor.classList.contains(ignoreClass);
-			}
-			if (needsIgnoring && isText) {
-				previousSibling = parent.previousSibling;
-				nextSibling = parent.nextSibling;
-				if (previousSibling && previousSibling.nodeType === TEXT_NODE$1) sibling = previousSibling;
-				else if (nextSibling && nextSibling.nodeType === TEXT_NODE$1) sibling = nextSibling;
-				if (sibling) return sibling;
-				else return anchor;
-			} else if (needsIgnoring && !isText) return false;
-			else return anchor;
-		}
-		patchOffset(anchor, offset, ignoreClass) {
-			if (anchor.nodeType != TEXT_NODE$1) throw new Error("Anchor must be a text node");
-			var curr = anchor;
-			var totalOffset = offset;
-			if (anchor.parentNode.classList.contains(ignoreClass)) curr = anchor.parentNode;
-			while (curr.previousSibling) {
-				if (curr.previousSibling.nodeType === ELEMENT_NODE$1) if (curr.previousSibling.classList.contains(ignoreClass)) totalOffset += curr.previousSibling.textContent.length;
-				else break;
-				else totalOffset += curr.previousSibling.textContent.length;
-				curr = curr.previousSibling;
-			}
-			return totalOffset;
-		}
-		normalizedMap(children, nodeType, ignoreClass) {
-			var output = {};
-			var prevIndex = -1;
-			var i, len = children.length;
-			var currNodeType;
-			var prevNodeType;
-			for (i = 0; i < len; i++) {
-				currNodeType = children[i].nodeType;
-				if (currNodeType === ELEMENT_NODE$1 && children[i].classList.contains(ignoreClass)) currNodeType = TEXT_NODE$1;
-				if (i > 0 && currNodeType === TEXT_NODE$1 && prevNodeType === TEXT_NODE$1) output[i] = prevIndex;
-				else if (nodeType === currNodeType) {
-					prevIndex = prevIndex + 1;
-					output[i] = prevIndex;
-				}
-				prevNodeType = currNodeType;
-			}
-			return output;
-		}
-		position(anchor) {
-			var children, index;
-			if (anchor.nodeType === ELEMENT_NODE$1) {
-				children = anchor.parentNode.children;
-				if (!children) children = findChildren(anchor.parentNode);
-				index = Array.prototype.indexOf.call(children, anchor);
-			} else {
-				children = this.textNodes(anchor.parentNode);
-				index = children.indexOf(anchor);
-			}
-			return index;
-		}
-		filteredPosition(anchor, ignoreClass) {
-			var children, index, map;
-			if (anchor.nodeType === ELEMENT_NODE$1) {
-				children = anchor.parentNode.children;
-				map = this.normalizedMap(children, ELEMENT_NODE$1, ignoreClass);
-			} else {
-				children = anchor.parentNode.childNodes;
-				if (anchor.parentNode.classList.contains(ignoreClass)) {
-					anchor = anchor.parentNode;
-					children = anchor.parentNode.childNodes;
-				}
-				map = this.normalizedMap(children, TEXT_NODE$1, ignoreClass);
-			}
-			index = Array.prototype.indexOf.call(children, anchor);
-			return map[index];
-		}
-		stepsToXpath(steps) {
-			var xpath = [".", "*"];
-			steps.forEach(function(step) {
-				var position = step.index + 1;
-				if (step.id) xpath.push("*[position()=" + position + " and @id='" + step.id + "']");
-				else if (step.type === "text") xpath.push("text()[" + position + "]");
-				else xpath.push("*[" + position + "]");
-			});
-			return xpath.join("/");
-		}
-		stepsToQuerySelector(steps) {
-			var query = ["html"];
-			steps.forEach(function(step) {
-				var position = step.index + 1;
-				if (step.id) query.push("#" + step.id);
-				else if (step.type === "text") {} else query.push("*:nth-child(" + position + ")");
-			});
-			return query.join(">");
-		}
-		textNodes(container, ignoreClass) {
-			return Array.prototype.slice.call(container.childNodes).filter(function(node) {
-				if (node.nodeType === TEXT_NODE$1) return true;
-				else if (ignoreClass && node.classList.contains(ignoreClass)) return true;
-				return false;
-			});
-		}
-		walkToNode(steps, _doc, ignoreClass) {
-			var doc = _doc || document;
-			var container = doc.documentElement;
-			var children;
-			var step;
-			var len = steps.length;
-			var i;
-			for (i = 0; i < len; i++) {
-				step = steps[i];
-				if (step.type === "element") if (step.id) container = doc.getElementById(step.id);
-				else {
-					children = container.children || findChildren(container);
-					container = children[step.index];
-				}
-				else if (step.type === "text") container = this.textNodes(container, ignoreClass)[step.index];
-				if (!container) break;
-			}
-			return container;
-		}
-		findNode(steps, _doc, ignoreClass) {
-			var doc = _doc || document;
-			var container;
-			var xpath;
-			if (!ignoreClass && typeof doc.evaluate != "undefined") {
-				xpath = this.stepsToXpath(steps);
-				container = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-			} else if (ignoreClass) container = this.walkToNode(steps, doc, ignoreClass);
-			else container = this.walkToNode(steps, doc);
-			return container;
-		}
-		normalizeOffset(container, offset) {
-			var normalized = isNumber(offset) ? offset : 0;
-			if (!container) return 0;
-			if (normalized < 0) normalized = 0;
-			if (container.nodeType === TEXT_NODE$1 || container.nodeType === COMMENT_NODE) return Math.min(normalized, container.textContent.length);
-			if (container.childNodes) return Math.min(normalized, container.childNodes.length);
-			return normalized;
-		}
-		fixMiss(steps, offset, _doc, ignoreClass) {
-			var container = this.findNode(steps.slice(0, -1), _doc, ignoreClass);
-			if (!container || !container.childNodes) return {
-				container: container || null,
-				offset: this.normalizeOffset(container, offset)
-			};
-			var children = container.childNodes;
-			var map = this.normalizedMap(children, TEXT_NODE$1, ignoreClass);
-			var child;
-			var len;
-			var lastStepIndex = steps[steps.length - 1].index;
-			for (let childIndex in map) {
-				if (!Object.prototype.hasOwnProperty.call(map, childIndex)) continue;
-				if (map[childIndex] === lastStepIndex) {
-					child = children[childIndex];
-					len = child.textContent.length;
-					if (offset > len) offset = offset - len;
-					else {
-						if (child.nodeType === ELEMENT_NODE$1) container = child.childNodes[0];
-						else container = child;
-						break;
-					}
-				}
-			}
-			return {
-				container,
-				offset: this.normalizeOffset(container, offset)
-			};
-		}
-		setRangeBoundary(range, method, container, offset, steps, doc, ignoreClass) {
-			var safeContainer = container;
-			var safeOffset = isNumber(offset) ? offset : 0;
-			var missed;
-			if (!safeContainer) return false;
-			try {
-				range[method](safeContainer, safeOffset);
-				return true;
-			} catch (e) {
-				missed = this.fixMiss(steps, offset, doc, ignoreClass);
-				if (missed && missed.container) {
-					safeContainer = missed.container;
-					safeOffset = missed.offset;
-				}
-				if (!safeContainer) return false;
-				safeOffset = this.normalizeOffset(safeContainer, safeOffset);
-				try {
-					range[method](safeContainer, safeOffset);
-					return true;
-				} catch (_e) {
-					return false;
-				}
-			}
-		}
-		/**
-		* Creates a DOM range representing a CFI
-		* @param {document} _doc document referenced in the base
-		* @param {string} [ignoreClass]
-		* @return {Range}
-		*/
-		toRange(_doc, ignoreClass) {
-			var doc = _doc || document;
-			var range;
-			var start, end, startContainer, endContainer;
-			var cfi = this;
-			var startSteps, endSteps;
-			var needsIgnoring = ignoreClass ? doc.querySelector("." + ignoreClass) != null : false;
-			if (typeof doc.createRange !== "undefined") range = doc.createRange();
-			else range = new RangeObject();
-			if (cfi.range) {
-				start = cfi.start;
-				startSteps = cfi.path.steps.concat(start.steps);
-				startContainer = this.findNode(startSteps, doc, needsIgnoring ? ignoreClass : null);
-				end = cfi.end;
-				endSteps = cfi.path.steps.concat(end.steps);
-				endContainer = this.findNode(endSteps, doc, needsIgnoring ? ignoreClass : null);
-			} else {
-				start = cfi.path;
-				startSteps = cfi.path.steps;
-				startContainer = this.findNode(cfi.path.steps, doc, needsIgnoring ? ignoreClass : null);
-			}
-			if (startContainer) {
-				if (!this.setRangeBoundary(range, "setStart", startContainer, start.terminal.offset != null ? start.terminal.offset : 0, startSteps, doc, needsIgnoring ? ignoreClass : null)) {
-					console.log("No valid range start found for", this.toString());
-					return null;
-				}
-			} else {
-				console.log("No startContainer found for", this.toString());
-				return null;
-			}
-			if (endContainer) this.setRangeBoundary(range, "setEnd", endContainer, end.terminal.offset != null ? end.terminal.offset : 0, endSteps, doc, needsIgnoring ? ignoreClass : null);
-			return range;
-		}
-		/**
-		* Check if a string is wrapped with "epubcfi()"
-		* @param {string} str
-		* @returns {boolean}
-		*/
-		isCfiString(str) {
-			if (typeof str === "string" && str.indexOf("epubcfi(") === 0 && str[str.length - 1] === ")") return true;
-			return false;
-		}
-		generateChapterComponent(_spineNodeIndex, _pos, id) {
-			var pos = parseInt(_pos), cfi = "/" + (_spineNodeIndex + 1) * 2 + "/";
-			cfi += (pos + 1) * 2;
-			if (id) cfi += "[" + id + "]";
-			return cfi;
-		}
-		/**
-		* Collapse a CFI Range to a single CFI Position
-		* @param {boolean} [toStart=false]
-		*/
-		collapse(toStart) {
-			if (!this.range) return;
-			this.range = false;
-			if (toStart) {
-				this.path.steps = this.path.steps.concat(this.start.steps);
-				this.path.terminal = this.start.terminal;
-			} else {
-				this.path.steps = this.path.steps.concat(this.end.steps);
-				this.path.terminal = this.end.terminal;
-			}
-		}
-	};
-	//#endregion
-	//#region src/utils/hook.js
-	/**
-	* Hooks allow for injecting functions that must all complete in order before finishing
-	* They will execute in parallel but all must finish before continuing
-	* Functions may return a promise if they are async.
-	* @param {any} context scope of this
-	* @example this.content = new EPUBJS.Hook(this);
-	*/
-	var Hook = class {
-		constructor(context) {
-			this.context = context || this;
-			this.hooks = [];
-		}
-		/**
-		* Adds a function to be run before a hook completes
-		* @example this.content.register(function(){...});
-		*/
-		register() {
-			for (var i = 0; i < arguments.length; ++i) if (typeof arguments[i] === "function") this.hooks.push(arguments[i]);
-			else for (var j = 0; j < arguments[i].length; ++j) this.hooks.push(arguments[i][j]);
-		}
-		/**
-		* Removes a function
-		* @example this.content.deregister(function(){...});
-		*/
-		deregister(func) {
-			let hook;
-			for (let i = 0; i < this.hooks.length; i++) {
-				hook = this.hooks[i];
-				if (hook === func) {
-					this.hooks.splice(i, 1);
-					break;
-				}
-			}
-		}
-		/**
-		* Triggers a hook to run all functions
-		* @example this.content.trigger(args).then(function(){...});
-		*/
-		trigger() {
-			var args = arguments;
-			var context = this.context;
-			var promises = [];
-			this.hooks.forEach(function(task) {
-				try {
-					var executing = task.apply(context, args);
-				} catch (err) {
-					console.log(err);
-				}
-				if (executing && typeof executing["then"] === "function") promises.push(executing);
-			});
-			return Promise.all(promises);
-		}
-		list() {
-			return this.hooks;
-		}
-		clear() {
-			return this.hooks = [];
-		}
-	};
-	//#endregion
-	//#region src/utils/replacements.js
-	function replaceBase(doc, section) {
-		var base;
-		var head;
-		var url = section.url;
-		var absolute = url.indexOf("://") > -1;
-		if (!doc) return;
-		head = qs(doc, "head");
-		base = qs(head, "base");
-		if (!base) {
-			base = doc.createElement("base");
-			head.insertBefore(base, head.firstChild);
-		}
-		if (!absolute && window && window.location) url = window.location.origin + url;
-		base.setAttribute("href", url);
-	}
-	function replaceCanonical(doc, section) {
-		var head;
-		var link;
-		var url = section.canonical;
-		if (!doc) return;
-		head = qs(doc, "head");
-		link = qs(head, "link[rel='canonical']");
-		if (link) link.setAttribute("href", url);
-		else {
-			link = doc.createElement("link");
-			link.setAttribute("rel", "canonical");
-			link.setAttribute("href", url);
-			head.appendChild(link);
-		}
-	}
-	function replaceMeta(doc, section) {
-		var head;
-		var meta;
-		var id = section.idref;
-		if (!doc) return;
-		head = qs(doc, "head");
-		meta = qs(head, "link[property='dc.identifier']");
-		if (meta) meta.setAttribute("content", id);
-		else {
-			meta = doc.createElement("meta");
-			meta.setAttribute("name", "dc.identifier");
-			meta.setAttribute("content", id);
-			head.appendChild(meta);
-		}
-	}
-	function replaceLinks(contents, fn, sectionHref) {
-		var links = contents.querySelectorAll("a[href]");
-		if (!links.length) return;
-		var base = qs(contents.ownerDocument, "base");
-		var location = base ? base.getAttribute("href") : void 0;
-		var replaceLink = function(link) {
-			var href = link.getAttribute("href");
-			if (href.indexOf("mailto:") === 0) return;
-			if (href.indexOf("://") > -1) link.setAttribute("target", "_blank");
-			else {
-				var linkUrl;
-				try {
-					linkUrl = new Url(href, location);
-				} catch (error) {}
-				link.onclick = function() {
-					if (sectionHref && href && href.indexOf("#") === 0) fn(sectionHref + href);
-					else if (linkUrl && linkUrl.hash) fn(linkUrl.Path.path + linkUrl.hash);
-					else if (linkUrl) fn(linkUrl.Path.path);
-					else fn(href);
-					return false;
-				};
-			}
-		}.bind(this);
-		for (var i = 0; i < links.length; i++) replaceLink(links[i]);
-	}
-	function substitute(content, urls, replacements) {
-		urls.forEach(function(url, i) {
-			if (url && replacements[i]) {
-				url = url.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-				content = content.replace(new RegExp(url, "g"), replacements[i]);
-			}
-		});
-		return content;
-	}
-	//#endregion
-	//#region src/utils/request.js
-	function request(url, type, withCredentials, headers) {
-		var supportsURL = typeof window != "undefined" ? window.URL : false;
-		var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
-		var deferred = new defer();
-		var xhr = new XMLHttpRequest();
-		var xhrPrototype = XMLHttpRequest.prototype;
-		var header;
-		if (!("overrideMimeType" in xhrPrototype)) Object.defineProperty(xhrPrototype, "overrideMimeType", { value: function xmlHttpRequestOverrideMimeType() {} });
-		if (withCredentials) xhr.withCredentials = true;
-		xhr.onreadystatechange = handler;
-		xhr.onerror = err;
-		xhr.open("GET", url, true);
-		for (header in headers) xhr.setRequestHeader(header, headers[header]);
-		if (type == "json") xhr.setRequestHeader("Accept", "application/json");
-		if (!type) type = new Path(url).extension;
-		if (type == "blob") xhr.responseType = BLOB_RESPONSE;
-		if (isXml(type)) xhr.overrideMimeType("text/xml");
-		if (type == "xhtml") {}
-		if (type == "html" || type == "htm") {}
-		if (type == "binary") xhr.responseType = "arraybuffer";
-		xhr.send();
-		function err(e) {
-			deferred.reject(e);
-		}
-		function handler() {
-			if (this.readyState === XMLHttpRequest.DONE) {
-				var responseXML = false;
-				if (this.responseType === "" || this.responseType === "document") responseXML = this.responseXML;
-				if (this.status === 200 || this.status === 0 || responseXML) {
-					var r;
-					if (!this.response && !responseXML) {
-						deferred.reject({
-							status: this.status,
-							message: "Empty Response",
-							stack: (/* @__PURE__ */ new Error()).stack
-						});
-						return deferred.promise;
-					}
-					if (this.status === 403) {
-						deferred.reject({
-							status: this.status,
-							response: this.response,
-							message: "Forbidden",
-							stack: (/* @__PURE__ */ new Error()).stack
-						});
-						return deferred.promise;
-					}
-					if (responseXML) r = this.responseXML;
-					else if (isXml(type)) r = parse(this.response, "text/xml");
-					else if (type == "xhtml") r = parse(this.response, "application/xhtml+xml");
-					else if (type == "html" || type == "htm") r = parse(this.response, "text/html");
-					else if (type == "json") r = JSON.parse(this.response);
-					else if (type == "blob") if (supportsURL) r = this.response;
-					else r = new Blob([this.response]);
-					else r = this.response;
-					deferred.resolve(r);
-				} else deferred.reject({
-					status: this.status,
-					message: this.response,
-					stack: (/* @__PURE__ */ new Error()).stack
-				});
-			}
-		}
-		return deferred.promise;
-	}
-	//#endregion
-	//#region src/section.js
-	/**
-	* Represents a Section of the Book
-	*
-	* In most books this is equivalent to a Chapter
-	* @param {object} item  The spine item representing the section
-	* @param {object} hooks hooks for serialize and content
-	*/
-	var Section = class {
-		constructor(item, hooks) {
-			this.idref = item.idref;
-			this.linear = item.linear === "yes";
-			this.properties = item.properties;
-			this.index = item.index;
-			this.href = item.href;
-			this.url = item.url;
-			this.canonical = item.canonical;
-			this.mediaType = item.mediaType;
-			this.originalHref = item.originalHref;
-			this.originalMediaType = item.originalMediaType;
-			this.fallback = item.fallback;
-			this.fallbackChain = item.fallbackChain;
-			this.next = item.next;
-			this.prev = item.prev;
-			this.cfiBase = item.cfiBase;
-			if (hooks) this.hooks = hooks;
-			else {
-				this.hooks = {};
-				this.hooks.serialize = new Hook(this);
-				this.hooks.content = new Hook(this);
-			}
-			this.document = void 0;
-			this.contents = void 0;
-			this.output = void 0;
-		}
-		/**
-		* Load the section from its url
-		* @param  {method} [_request] a request method to use for loading
-		* @return {document} a promise with the xml document
-		*/
-		load(_request) {
-			var request$1 = _request || this.request || request;
-			var loading = new defer();
-			var loaded = loading.promise;
-			if (this.contents) loading.resolve(this.contents);
-			else request$1(this.url).then(function(xml) {
-				this.document = xml;
-				this.contents = xml.documentElement;
-				return this.hooks.content.trigger(this.document, this);
-			}.bind(this)).then(function() {
-				loading.resolve(this.contents);
-			}.bind(this)).catch(function(error) {
-				loading.reject(error);
-			});
-			return loaded;
-		}
-		/**
-		* Adds a base tag for resolving urls in the section
-		* @private
-		*/
-		base() {
-			return replaceBase(this.document, this);
-		}
-		/**
-		* Render the contents of a section
-		* @param  {method} [_request] a request method to use for loading
-		* @return {string} output a serialized XML Document
-		*/
-		render(_request) {
-			var rendering = new defer();
-			var rendered = rendering.promise;
-			this.output;
-			this.load(_request).then(function(contents) {
-				var isIE = (typeof navigator !== "undefined" && navigator.userAgent || "").indexOf("Trident") >= 0;
-				var Serializer;
-				if (typeof XMLSerializer === "undefined" || isIE) Serializer = import_lib.DOMParser;
-				else Serializer = XMLSerializer;
-				var serializer = new Serializer();
-				this.output = serializer.serializeToString(contents);
-				return this.output;
-			}.bind(this)).then(function() {
-				return this.hooks.serialize.trigger(this.output, this);
-			}.bind(this)).then(function() {
-				rendering.resolve(this.output);
-			}.bind(this)).catch(function(error) {
-				rendering.reject(error);
-			});
-			return rendered;
-		}
-		/**
-		* Find a string in a section
-		* @param  {string} _query The query string to find
-		* @return {object[]} A list of matches, with form {cfi, excerpt}
-		*/
-		find(_query) {
-			var section = this;
-			var matches = [];
-			var query = _query.toLowerCase();
-			var find = function(node) {
-				var text = node.textContent.toLowerCase();
-				var range = section.document.createRange();
-				var cfi;
-				var pos;
-				var last = -1;
-				var excerpt;
-				var limit = 150;
-				while (pos != -1) {
-					pos = text.indexOf(query, last + 1);
-					if (pos != -1) {
-						range = section.document.createRange();
-						range.setStart(node, pos);
-						range.setEnd(node, pos + query.length);
-						cfi = section.cfiFromRange(range);
-						if (node.textContent.length < limit) excerpt = node.textContent;
-						else {
-							excerpt = node.textContent.substring(pos - limit / 2, pos + limit / 2);
-							excerpt = "..." + excerpt + "...";
-						}
-						matches.push({
-							cfi,
-							excerpt
-						});
-					}
-					last = pos;
-				}
-			};
-			sprint(section.document, function(node) {
-				find(node);
-			});
-			return matches;
-		}
-		/**
-		* Search a string in multiple sequential Element of the section. If the document.createTreeWalker api is missed(eg: IE8), use `find` as a fallback.
-		* @param  {string} _query The query string to search
-		* @param  {int} maxSeqEle The maximum number of Element that are combined for search, default value is 5.
-		* @return {object[]} A list of matches, with form {cfi, excerpt}
-		*/
-		search(_query, maxSeqEle = 5) {
-			if (typeof document.createTreeWalker == "undefined") return this.find(_query);
-			let matches = [];
-			const excerptLimit = 150;
-			const section = this;
-			const query = _query.toLowerCase();
-			const search = function(nodeList) {
-				const pos = nodeList.reduce((acc, current) => {
-					return acc + current.textContent;
-				}, "").toLowerCase().indexOf(query);
-				if (pos != -1) {
-					const startNodeIndex = 0, endPos = pos + query.length;
-					let endNodeIndex = 0, l = 0;
-					if (pos < nodeList[startNodeIndex].length) {
-						let cfi;
-						while (endNodeIndex < nodeList.length - 1) {
-							l += nodeList[endNodeIndex].length;
-							if (endPos <= l) break;
-							endNodeIndex += 1;
-						}
-						let startNode = nodeList[startNodeIndex], endNode = nodeList[endNodeIndex];
-						let range = section.document.createRange();
-						range.setStart(startNode, pos);
-						let beforeEndLengthCount = nodeList.slice(0, endNodeIndex).reduce((acc, current) => {
-							return acc + current.textContent.length;
-						}, 0);
-						range.setEnd(endNode, beforeEndLengthCount > endPos ? endPos : endPos - beforeEndLengthCount);
-						cfi = section.cfiFromRange(range);
-						let excerpt = nodeList.slice(0, endNodeIndex + 1).reduce((acc, current) => {
-							return acc + current.textContent;
-						}, "");
-						if (excerpt.length > excerptLimit) {
-							excerpt = excerpt.substring(pos - excerptLimit / 2, pos + excerptLimit / 2);
-							excerpt = "..." + excerpt + "...";
-						}
-						matches.push({
-							cfi,
-							excerpt
-						});
-					}
-				}
-			};
-			const treeWalker = document.createTreeWalker(section.document, NodeFilter.SHOW_TEXT, null, false);
-			let node, nodeList = [];
-			while (node = treeWalker.nextNode()) {
-				nodeList.push(node);
-				if (nodeList.length == maxSeqEle) {
-					search(nodeList.slice(0, maxSeqEle));
-					nodeList = nodeList.slice(1, maxSeqEle);
-				}
-			}
-			if (nodeList.length > 0) search(nodeList);
-			return matches;
-		}
-		/**
-		* Reconciles the current chapters layout properties with
-		* the global layout properties.
-		* @param {object} globalLayout  The global layout settings object, chapter properties string
-		* @return {object} layoutProperties Object with layout properties
-		*/
-		reconcileLayoutSettings(globalLayout) {
-			var settings = {
-				layout: globalLayout.layout,
-				spread: globalLayout.spread,
-				orientation: globalLayout.orientation
-			};
-			this.properties.forEach(function(prop) {
-				var rendition = prop.replace("rendition:", "");
-				var split = rendition.indexOf("-");
-				var property, value;
-				if (split != -1) {
-					property = rendition.slice(0, split);
-					value = rendition.slice(split + 1);
-					settings[property] = value;
-				}
-			});
-			return settings;
-		}
-		/**
-		* Get a CFI from a Range in the Section
-		* @param  {range} _range
-		* @return {string} cfi an EpubCFI string
-		*/
-		cfiFromRange(_range) {
-			return new EpubCFI(_range, this.cfiBase).toString();
-		}
-		/**
-		* Get a CFI from an Element in the Section
-		* @param  {element} el
-		* @return {string} cfi an EpubCFI string
-		*/
-		cfiFromElement(el) {
-			return new EpubCFI(el, this.cfiBase).toString();
-		}
-		/**
-		* Unload the section document
-		*/
-		unload() {
-			this.document = void 0;
-			this.contents = void 0;
-			this.output = void 0;
-		}
-		destroy() {
-			this.unload();
-			this.hooks.serialize.clear();
-			this.hooks.content.clear();
-			this.hooks = void 0;
-			this.idref = void 0;
-			this.linear = void 0;
-			this.properties = void 0;
-			this.index = void 0;
-			this.href = void 0;
-			this.url = void 0;
-			this.next = void 0;
-			this.prev = void 0;
-			this.cfiBase = void 0;
-		}
-	};
-	//#endregion
-	//#region src/spine.js
-	/**
-	* A collection of Spine Items
-	*/
-	var Spine = class {
-		constructor() {
-			this.spineItems = [];
-			this.spineByHref = {};
-			this.spineById = {};
-			this.hooks = {};
-			this.hooks.serialize = new Hook();
-			this.hooks.content = new Hook();
-			this.hooks.content.register(replaceBase);
-			this.hooks.content.register(replaceCanonical);
-			this.hooks.content.register(replaceMeta);
-			this.epubcfi = new EpubCFI();
-			this.loaded = false;
-			this.items = void 0;
-			this.manifest = void 0;
-			this.spineNodeIndex = void 0;
-			this.baseUrl = void 0;
-			this.length = void 0;
-		}
-		/**
-		* Unpack items from a opf into spine items
-		* @param  {Packaging} _package
-		* @param  {method} resolver URL resolver
-		* @param  {method} canonical Resolve canonical url
-		*/
-		unpack(_package, resolver, canonical) {
-			this.items = _package.spine;
-			this.manifest = _package.manifest;
-			this.spineNodeIndex = _package.spineNodeIndex;
-			this.baseUrl = _package.baseUrl || _package.basePath || "";
-			this.length = this.items.length;
-			this.items.forEach((item, index) => {
-				var manifestItem = this.manifest[item.idref];
-				var resolvedManifestItem;
-				var spineItem;
-				item.index = index;
-				item.cfiBase = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.id);
-				if (item.href) {
-					item.url = resolver(item.href, true);
-					item.canonical = canonical(item.href);
-				}
-				if (manifestItem) {
-					resolvedManifestItem = this.resolveFallbackItem(manifestItem);
-					item.href = resolvedManifestItem.href;
-					item.url = resolver(item.href, true);
-					item.canonical = canonical(item.href);
-					item.mediaType = resolvedManifestItem.type;
-					item.originalHref = manifestItem.href;
-					item.originalMediaType = manifestItem.type;
-					item.fallback = manifestItem.fallback;
-					item.fallbackChain = manifestItem.fallbackChain || [];
-					if (manifestItem.properties.length) item.properties.push.apply(item.properties, manifestItem.properties);
-					if (resolvedManifestItem !== manifestItem && resolvedManifestItem.properties.length) item.properties.push.apply(item.properties, resolvedManifestItem.properties);
-				}
-				if (item.linear === "yes") {
-					item.prev = function() {
-						let prevIndex = item.index;
-						while (prevIndex > 0) {
-							let prev = this.get(prevIndex - 1);
-							if (prev && prev.linear) return prev;
-							prevIndex -= 1;
-						}
-					}.bind(this);
-					item.next = function() {
-						let nextIndex = item.index;
-						while (nextIndex < this.spineItems.length - 1) {
-							let next = this.get(nextIndex + 1);
-							if (next && next.linear) return next;
-							nextIndex += 1;
-						}
-					}.bind(this);
-				} else {
-					item.prev = function() {};
-					item.next = function() {};
-				}
-				spineItem = new Section(item, this.hooks);
-				this.append(spineItem);
-			});
-			this.loaded = true;
-		}
-		/**
-		* Resolve a manifest item to a renderable fallback item when needed
-		* @private
-		* @param  {PackagingManifestItem} manifestItem
-		* @return {PackagingManifestItem} manifestItem
-		*/
-		resolveFallbackItem(manifestItem) {
-			if (this.isRenderableType(manifestItem.type)) return manifestItem;
-			var fallbackChain = manifestItem.fallbackChain || [];
-			var index = 0;
-			var fallbackItem;
-			while (index < fallbackChain.length) {
-				fallbackItem = this.manifest[fallbackChain[index]];
-				if (fallbackItem && this.isRenderableType(fallbackItem.type)) return fallbackItem;
-				index += 1;
-			}
-			return manifestItem;
-		}
-		/**
-		* Check whether a manifest media type can be rendered as a spine section
-		* @private
-		* @param  {string} type
-		* @return {boolean}
-		*/
-		isRenderableType(type) {
-			if (!type) return true;
-			return [
-				"application/xhtml+xml",
-				"text/html",
-				"image/svg+xml"
-			].indexOf(type) > -1;
-		}
-		/**
-		* Get an item from the spine
-		* @param  {string|number} [target]
-		* @return {Section} section
-		* @example spine.get();
-		* @example spine.get(1);
-		* @example spine.get("chap1.html");
-		* @example spine.get("#id1234");
-		*/
-		get(target) {
-			var index = 0;
-			if (typeof target === "undefined") while (index < this.spineItems.length) {
-				let next = this.spineItems[index];
-				if (next && next.linear) break;
-				index += 1;
-			}
-			else if (this.epubcfi.isCfiString(target)) index = new EpubCFI(target).spinePos;
-			else if (typeof target === "number" || isNaN(target) === false) index = target;
-			else if (typeof target === "string" && target.indexOf("#") === 0) index = this.spineById[target.substring(1)];
-			else if (typeof target === "string") {
-				target = target.split("#")[0];
-				index = this.spineByHref[target] || this.spineByHref[encodeURI(target)];
-			}
-			return this.spineItems[index] || null;
-		}
-		/**
-		* Index an href and encoded variants for spine lookups
-		* @private
-		* @param  {string} href
-		* @param  {number} index
-		*/
-		indexHref(href, index) {
-			if (!href) return;
-			this.spineByHref[decodeURI(href)] = index;
-			this.spineByHref[encodeURI(href)] = index;
-			this.spineByHref[href] = index;
-		}
-		/**
-		* Remove an href and encoded variants from spine lookups
-		* @private
-		* @param  {string} href
-		*/
-		removeHref(href) {
-			if (!href) return;
-			delete this.spineByHref[decodeURI(href)];
-			delete this.spineByHref[encodeURI(href)];
-			delete this.spineByHref[href];
-		}
-		/**
-		* Append a Section to the Spine
-		* @private
-		* @param  {Section} section
-		*/
-		append(section) {
-			var index = this.spineItems.length;
-			section.index = index;
-			this.spineItems.push(section);
-			this.indexHref(section.href, index);
-			if (section.originalHref !== section.href) this.indexHref(section.originalHref, index);
-			this.spineById[section.idref] = index;
-			return index;
-		}
-		/**
-		* Prepend a Section to the Spine
-		* @private
-		* @param  {Section} section
-		*/
-		prepend(section) {
-			this.indexHref(section.href, 0);
-			if (section.originalHref !== section.href) this.indexHref(section.originalHref, 0);
-			this.spineById[section.idref] = 0;
-			this.spineItems.forEach(function(item, index) {
-				item.index = index;
-			});
-			return 0;
-		}
-		/**
-		* Remove a Section from the Spine
-		* @private
-		* @param  {Section} section
-		*/
-		remove(section) {
-			var index = this.spineItems.indexOf(section);
-			if (index > -1) {
-				this.removeHref(section.href);
-				if (section.originalHref !== section.href) this.removeHref(section.originalHref);
-				delete this.spineById[section.idref];
-				return this.spineItems.splice(index, 1);
-			}
-		}
-		/**
-		* Loop over the Sections in the Spine
-		* @return {method} forEach
-		*/
-		each() {
-			return this.spineItems.forEach.apply(this.spineItems, arguments);
-		}
-		/**
-		* Find the first Section in the Spine
-		* @return {Section} first section
-		*/
-		first() {
-			let index = 0;
-			do {
-				let next = this.get(index);
-				if (next && next.linear) return next;
-				index += 1;
-			} while (index < this.spineItems.length);
-		}
-		/**
-		* Find the last Section in the Spine
-		* @return {Section} last section
-		*/
-		last() {
-			let index = this.spineItems.length - 1;
-			do {
-				let prev = this.get(index);
-				if (prev && prev.linear) return prev;
-				index -= 1;
-			} while (index >= 0);
-		}
-		destroy() {
-			this.each((section) => section.destroy());
-			this.spineItems = void 0;
-			this.spineByHref = void 0;
-			this.spineById = void 0;
-			this.hooks.serialize.clear();
-			this.hooks.content.clear();
-			this.hooks = void 0;
-			this.epubcfi = void 0;
-			this.loaded = false;
-			this.items = void 0;
-			this.manifest = void 0;
-			this.spineNodeIndex = void 0;
-			this.baseUrl = void 0;
-			this.length = void 0;
-		}
-	};
-	//#endregion
-	//#region src/utils/queue.js
-	/**
-	* Queue for handling tasks one at a time
-	* @class
-	* @param {scope} context what this will resolve to in the tasks
-	*/
-	var Queue = class {
-		constructor(context) {
-			this._q = [];
-			this.context = context;
-			this.tick = requestAnimationFrame$1;
-			this.running = false;
-			this.paused = false;
-		}
-		/**
-		* Add an item to the queue
-		* @return {Promise}
-		*/
-		enqueue() {
-			var deferred, promise;
-			var queued;
-			var task = [].shift.call(arguments);
-			var args = arguments;
-			if (!task) throw new Error("No Task Provided");
-			if (typeof task === "function") {
-				deferred = new defer();
-				promise = deferred.promise;
-				queued = {
-					"task": task,
-					"args": args,
-					"deferred": deferred,
-					"promise": promise
-				};
-			} else queued = { "promise": task };
-			this._q.push(queued);
-			if (this.paused == false && !this.running) this.run();
-			return queued.promise;
-		}
-		/**
-		* Run one item
-		* @return {Promise}
-		*/
-		dequeue() {
-			var inwait, task, result;
-			if (this._q.length && !this.paused) {
-				inwait = this._q.shift();
-				task = inwait.task;
-				if (task) {
-					result = task.apply(this.context, inwait.args);
-					if (result && typeof result["then"] === "function") return result.then(function() {
-						inwait.deferred.resolve.apply(this.context, arguments);
-					}.bind(this), function() {
-						inwait.deferred.reject.apply(this.context, arguments);
-					}.bind(this));
-					else {
-						inwait.deferred.resolve.apply(this.context, result);
-						return inwait.promise;
-					}
-				} else if (inwait.promise) return inwait.promise;
-			} else {
-				inwait = new defer();
-				inwait.deferred.resolve();
-				return inwait.promise;
-			}
-		}
-		dump() {
-			while (this._q.length) this.dequeue();
-		}
-		/**
-		* Run all tasks sequentially, at convince
-		* @return {Promise}
-		*/
-		run() {
-			if (!this.running) {
-				this.running = true;
-				this.defered = new defer();
-			}
-			this.tick.call(window, () => {
-				if (this._q.length) this.dequeue().then(function() {
-					this.run();
-				}.bind(this));
-				else {
-					this.defered.resolve();
-					this.running = void 0;
-				}
-			});
-			if (this.paused == true) this.paused = false;
-			return this.defered.promise;
-		}
-		/**
-		* Flush all, as quickly as possible
-		* @return {Promise}
-		*/
-		flush() {
-			if (this.running) return this.running;
-			if (this._q.length) {
-				this.running = this.dequeue().then(function() {
-					this.running = void 0;
-					return this.flush();
-				}.bind(this));
-				return this.running;
-			}
-		}
-		/**
-		* Clear all items in wait
-		*/
-		clear() {
-			this._q = [];
-		}
-		/**
-		* Get the number of tasks in the queue
-		* @return {number} tasks
-		*/
-		length() {
-			return this._q.length;
-		}
-		/**
-		* Pause a running queue
-		*/
-		pause() {
-			this.paused = true;
-		}
-		/**
-		* End the queue
-		*/
-		stop() {
-			this._q = [];
-			this.running = false;
-			this.paused = true;
-		}
-	};
-	//#endregion
-	//#region src/utils/constants.js
-	var DOM_EVENTS = [
-		"keydown",
-		"keyup",
-		"keypressed",
-		"mouseup",
-		"mousedown",
-		"mousemove",
-		"click",
-		"touchend",
-		"touchstart",
-		"touchmove"
-	];
-	var EVENTS = {
-		BOOK: { OPEN_FAILED: "openFailed" },
-		CONTENTS: {
-			EXPAND: "expand",
-			RESIZE: "resize",
-			SELECTED: "selected",
-			SELECTED_RANGE: "selectedRange",
-			LINK_CLICKED: "linkClicked"
-		},
-		LOCATIONS: { CHANGED: "changed" },
-		MANAGERS: {
-			RESIZE: "resize",
-			RESIZED: "resized",
-			ORIENTATION_CHANGE: "orientationchange",
-			ADDED: "added",
-			SCROLL: "scroll",
-			SCROLLED: "scrolled",
-			REMOVED: "removed"
-		},
-		VIEWS: {
-			AXIS: "axis",
-			WRITING_MODE: "writingMode",
-			LOAD_ERROR: "loaderror",
-			RENDERED: "rendered",
-			RESIZED: "resized",
-			DISPLAYED: "displayed",
-			SHOWN: "shown",
-			HIDDEN: "hidden",
-			MARK_CLICKED: "markClicked"
-		},
-		RENDITION: {
-			STARTED: "started",
-			ATTACHED: "attached",
-			DISPLAYED: "displayed",
-			DISPLAY_ERROR: "displayerror",
-			RENDERED: "rendered",
-			REMOVED: "removed",
-			RESIZED: "resized",
-			ORIENTATION_CHANGE: "orientationchange",
-			LOCATION_CHANGED: "locationChanged",
-			RELOCATED: "relocated",
-			MARK_CLICKED: "markClicked",
-			SELECTED: "selected",
-			LAYOUT: "layout"
-		},
-		LAYOUT: { UPDATED: "updated" },
-		ANNOTATION: {
-			ATTACH: "attach",
-			DETACH: "detach"
-		}
-	};
-	//#endregion
-	//#region src/locations.js
-	/**
-	* Find Locations for a Book
-	* @param {Spine} spine
-	* @param {request} request
-	* @param {number} [pause=100]
-	*/
-	var Locations = class {
-		constructor(spine, request, pause) {
-			this.spine = spine;
-			this.request = request;
-			this.pause = pause || 100;
-			this.q = new Queue(this);
-			this.epubcfi = new EpubCFI();
-			this._locations = [];
-			this._locationsWords = [];
-			this.total = 0;
-			this.break = 150;
-			this._current = 0;
-			this._wordCounter = 0;
-			this.currentLocation = "";
-			this._currentCfi = "";
-			this.processingTimeout = void 0;
-		}
-		/**
-		* Load all of sections in the book to generate locations
-		* @param  {int} chars how many chars to split on
-		* @return {Promise<Array<string>>} locations
-		*/
-		generate(chars) {
-			if (chars) this.break = chars;
-			this.q.pause();
-			this.spine.each(function(section) {
-				if (section.linear) this.q.enqueue(this.process.bind(this), section);
-			}.bind(this));
-			return this.q.run().then(function() {
-				this.total = this._locations.length - 1;
-				if (this._currentCfi) this.currentLocation = this._currentCfi;
-				return this._locations;
-			}.bind(this));
-		}
-		createRange() {
-			return {
-				startContainer: void 0,
-				startOffset: void 0,
-				endContainer: void 0,
-				endOffset: void 0
-			};
-		}
-		process(section) {
-			return section.load(this.request).then(function(contents) {
-				var completed = new defer();
-				var locations = this.parse(contents, section.cfiBase);
-				this._locations = this._locations.concat(locations);
-				section.unload();
-				this.processingTimeout = setTimeout(() => completed.resolve(locations), this.pause);
-				return completed.promise;
-			}.bind(this));
-		}
-		parse(contents, cfiBase, chars) {
-			var locations = [];
-			var range;
-			var doc = contents.ownerDocument;
-			var body = qs(doc, "body");
-			var counter = 0;
-			var prev;
-			var _break = chars || this.break;
-			var parser = function(node) {
-				var len = node.length;
-				var dist;
-				var pos = 0;
-				if (counter === 0 && range === void 0) {
-					range = this.createRange();
-					range.startContainer = node;
-					range.startOffset = 0;
-				}
-				if (node.textContent.trim().length === 0) {
-					prev = node;
-					return false;
-				}
-				dist = _break - counter;
-				if (dist > len) {
-					counter += len;
-					pos = len;
-				}
-				while (pos < len) {
-					dist = _break - counter;
-					if (counter === 0) {
-						pos += 1;
-						range = this.createRange();
-						range.startContainer = node;
-						range.startOffset = pos;
-					}
-					if (pos + dist >= len) {
-						counter += len - pos;
-						pos = len;
-					} else {
-						pos += dist;
-						range.endContainer = node;
-						range.endOffset = pos;
-						let cfi = new EpubCFI(range, cfiBase).toString();
-						locations.push(cfi);
-						counter = 0;
-					}
-				}
-				prev = node;
-			};
-			sprint(body, parser.bind(this));
-			if (range && range.startContainer && prev) {
-				range.endContainer = prev;
-				range.endOffset = prev.length;
-				let cfi = new EpubCFI(range, cfiBase).toString();
-				locations.push(cfi);
-				counter = 0;
-			}
-			if (locations.length === 0 && body) {
-				let fallback = this.fallbackCfi(body, cfiBase);
-				if (fallback) locations.push(fallback);
-			}
-			return locations;
-		}
-		fallbackCfi(body, cfiBase) {
-			var fallbackNode = body;
-			var children = body.children || [];
-			if (children.length) fallbackNode = children[0];
-			try {
-				return new EpubCFI(fallbackNode, cfiBase).toString();
-			} catch (error) {
-				return "";
-			}
-		}
-		/**
-		* Generate precise locations for a single section and splice them into
-		* the existing locations array, replacing any entries (e.g. synthetic)
-		* that already belong to that section.
-		*
-		* This allows progressive refinement: call once per section as the reader
-		* navigates through the book without the cost of a full generate().
-		*
-		* @param  {Section} section  epub.js Section object (must have .cfiBase, .load(), .unload(), .linear)
-		* @param  {int}     [chars]  chars per location break (defaults to this.break)
-		* @return {Promise<Array<string>>} full updated locations array
-		*/
-		generateForSection(section, chars) {
-			if (!section || !section.linear || !section.cfiBase) return Promise.resolve(this._locations);
-			var breakSize = chars || this.break;
-			var cfiPrefix = "epubcfi(" + section.cfiBase + "!";
-			return section.load(this.request).then(function(contents) {
-				var newLocs = this.parse(contents, section.cfiBase, breakSize);
-				section.unload();
-				if (newLocs.length === 0) return this._locations;
-				var sectionStart = -1;
-				var sectionCount = 0;
-				for (var i = 0; i < this._locations.length; i++) if (this._locations[i].startsWith(cfiPrefix)) {
-					if (sectionStart === -1) sectionStart = i;
-					sectionCount++;
-				} else if (sectionStart !== -1) break;
-				if (sectionStart !== -1) this._locations.splice.apply(this._locations, [sectionStart, sectionCount].concat(newLocs));
-				else {
-					var insertIdx = locationOf(new EpubCFI(newLocs[0]), this._locations, this.epubcfi.compare);
-					this._locations.splice.apply(this._locations, [insertIdx, 0].concat(newLocs));
-				}
-				this.total = this._locations.length - 1;
-				return this._locations;
-			}.bind(this));
-		}
-		/**
-		* Load all of sections in the book to generate locations
-		* @param  {string} startCfi start position
-		* @param  {int} wordCount how many words to split on
-		* @param  {int} count result count
-		* @return {object} locations
-		*/
-		generateFromWords(startCfi, wordCount, count) {
-			var start = startCfi ? new EpubCFI(startCfi) : void 0;
-			this.q.pause();
-			this._locationsWords = [];
-			this._wordCounter = 0;
-			this.spine.each(function(section) {
-				if (section.linear) if (start) {
-					if (section.index >= start.spinePos) this.q.enqueue(this.processWords.bind(this), section, wordCount, start, count);
-				} else this.q.enqueue(this.processWords.bind(this), section, wordCount, start, count);
-			}.bind(this));
-			return this.q.run().then(function() {
-				if (this._currentCfi) this.currentLocation = this._currentCfi;
-				return this._locationsWords;
-			}.bind(this));
-		}
-		processWords(section, wordCount, startCfi, count) {
-			if (count && this._locationsWords.length >= count) return Promise.resolve();
-			return section.load(this.request).then(function(contents) {
-				var completed = new defer();
-				var locations = this.parseWords(contents, section, wordCount, startCfi);
-				var remainingCount = count - this._locationsWords.length;
-				this._locationsWords = this._locationsWords.concat(locations.length >= count ? locations.slice(0, remainingCount) : locations);
-				section.unload();
-				this.processingTimeout = setTimeout(() => completed.resolve(locations), this.pause);
-				return completed.promise;
-			}.bind(this));
-		}
-		countWords(s) {
-			s = s.replace(/(^\s*)|(\s*$)/gi, "");
-			s = s.replace(/[ ]{2,}/gi, " ");
-			s = s.replace(/\n /, "\n");
-			return s.split(" ").length;
-		}
-		parseWords(contents, section, wordCount, startCfi) {
-			var cfiBase = section.cfiBase;
-			var locations = [];
-			var doc = contents.ownerDocument;
-			var body = qs(doc, "body");
-			var _break = wordCount;
-			var foundStartNode = startCfi ? startCfi.spinePos !== section.index : true;
-			var startNode;
-			if (startCfi && section.index === startCfi.spinePos) startNode = startCfi.findNode(startCfi.range ? startCfi.path.steps.concat(startCfi.start.steps) : startCfi.path.steps, contents.ownerDocument);
-			var parser = function(node) {
-				if (!foundStartNode) if (node === startNode) foundStartNode = true;
-				else return false;
-				if (node.textContent.length < 10) {
-					if (node.textContent.trim().length === 0) return false;
-				}
-				var len = this.countWords(node.textContent);
-				var dist;
-				var pos = 0;
-				if (len === 0) return false;
-				dist = _break - this._wordCounter;
-				if (dist > len) {
-					this._wordCounter += len;
-					pos = len;
-				}
-				while (pos < len) {
-					dist = _break - this._wordCounter;
-					if (pos + dist >= len) {
-						this._wordCounter += len - pos;
-						pos = len;
-					} else {
-						pos += dist;
-						let cfi = new EpubCFI(node, cfiBase);
-						locations.push({
-							cfi: cfi.toString(),
-							wordCount: this._wordCounter
-						});
-						this._wordCounter = 0;
-					}
-				}
-			};
-			sprint(body, parser.bind(this));
-			return locations;
-		}
-		/**
-		* Get a location from an EpubCFI
-		* @param {EpubCFI} cfi
-		* @return {number}
-		*/
-		locationFromCfi(cfi) {
-			let loc;
-			if (EpubCFI.prototype.isCfiString(cfi)) cfi = new EpubCFI(cfi);
-			if (this._locations.length === 0) return -1;
-			loc = locationOf(cfi, this._locations, this.epubcfi.compare);
-			if (loc > this.total) return this.total;
-			return loc;
-		}
-		/**
-		* Get a percentage position in locations from an EpubCFI
-		* @param {EpubCFI} cfi
-		* @return {number}
-		*/
-		percentageFromCfi(cfi) {
-			if (this._locations.length === 0) return null;
-			var loc = this.locationFromCfi(cfi);
-			return this.percentageFromLocation(loc);
-		}
-		/**
-		* Get a percentage position from a location index
-		* @param {number} location
-		* @return {number}
-		*/
-		percentageFromLocation(loc) {
-			if (!loc || !this.total) return 0;
-			return loc / this.total;
-		}
-		/**
-		* Get an EpubCFI from location index
-		* @param {number} loc
-		* @return {EpubCFI} cfi
-		*/
-		cfiFromLocation(loc) {
-			var cfi = -1;
-			if (typeof loc != "number") loc = parseInt(loc);
-			if (loc >= 0 && loc < this._locations.length) cfi = this._locations[loc];
-			return cfi;
-		}
-		/**
-		* Get an EpubCFI from location percentage
-		* @param {number} percentage
-		* @return {EpubCFI} cfi
-		*/
-		cfiFromPercentage(percentage) {
-			let loc;
-			if (percentage > 1) console.warn("Normalize cfiFromPercentage value to between 0 - 1");
-			if (percentage >= 1) {
-				let cfi = new EpubCFI(this._locations[this.total]);
-				cfi.collapse();
-				return cfi.toString();
-			}
-			loc = Math.ceil(this.total * percentage);
-			return this.cfiFromLocation(loc);
-		}
-		/**
-		* Load locations from JSON
-		* @param {json} locations
-		*/
-		load(locations) {
-			if (typeof locations === "string") this._locations = JSON.parse(locations);
-			else this._locations = locations;
-			this.total = this._locations.length - 1;
-			return this._locations;
-		}
-		/**
-		* Save locations to JSON
-		* @return {json}
-		*/
-		save() {
-			return JSON.stringify(this._locations);
-		}
-		getCurrent() {
-			return this._current;
-		}
-		setCurrent(curr) {
-			var loc;
-			if (typeof curr == "string") this._currentCfi = curr;
-			else if (typeof curr == "number") this._current = curr;
-			else return;
-			if (this._locations.length === 0) return;
-			if (typeof curr == "string") {
-				loc = this.locationFromCfi(curr);
-				this._current = loc;
-			} else loc = curr;
-			this.emit(EVENTS.LOCATIONS.CHANGED, { percentage: this.percentageFromLocation(loc) });
-		}
-		/**
-		* Get the current location
-		*/
-		get currentLocation() {
-			return this._current;
-		}
-		/**
-		* Set the current location
-		*/
-		set currentLocation(curr) {
-			this.setCurrent(curr);
-		}
-		/**
-		* Locations length
-		*/
-		length() {
-			return this._locations.length;
-		}
-		destroy() {
-			this.spine = void 0;
-			this.request = void 0;
-			this.pause = void 0;
-			this.q.stop();
-			this.q = void 0;
-			this.epubcfi = void 0;
-			this._locations = void 0;
-			this.total = void 0;
-			this.break = void 0;
-			this._current = void 0;
-			this.currentLocation = void 0;
-			this._currentCfi = void 0;
-			clearTimeout(this.processingTimeout);
-		}
-	};
-	(0, import_event_emitter.default)(Locations.prototype);
-	//#endregion
-	//#region src/container.js
-	/**
-	* Handles Parsing and Accessing an Epub Container
-	* @class
-	* @param {document} [containerDocument] xml document
-	*/
-	var Container = class {
-		constructor(containerDocument) {
-			this.packagePath = "";
-			this.directory = "";
-			this.encoding = "";
-			if (containerDocument) this.parse(containerDocument);
-		}
-		/**
-		* Parse the Container XML
-		* @param  {document} containerDocument
-		*/
-		parse(containerDocument) {
-			var rootfile;
-			if (!containerDocument) throw new Error("Container File Not Found");
-			rootfile = qs(containerDocument, "rootfile");
-			if (!rootfile) throw new Error("No RootFile Found");
-			this.packagePath = rootfile.getAttribute("full-path");
-			this.directory = import_path.default.dirname(this.packagePath);
-			this.encoding = containerDocument.xmlEncoding;
-		}
-		destroy() {
-			this.packagePath = void 0;
-			this.directory = void 0;
-			this.encoding = void 0;
-		}
-	};
-	//#endregion
-	//#region src/packaging.js
-	/**
-	* Open Packaging Format Parser
-	* @class
-	* @param {document} packageDocument OPF XML
-	*/
-	var Packaging = class {
-		constructor(packageDocument) {
-			this.manifest = {};
-			this.navPath = "";
-			this.ncxPath = "";
-			this.coverPath = "";
-			this.spineNodeIndex = 0;
-			this.spine = [];
-			this.metadata = {};
-			if (packageDocument) this.parse(packageDocument);
-		}
-		/**
-		* Parse OPF XML
-		* @param  {document} packageDocument OPF XML
-		* @return {object} parsed package parts
-		*/
-		parse(packageDocument) {
-			var metadataNode, manifestNode, spineNode;
-			if (!packageDocument) throw new Error("Package File Not Found");
-			metadataNode = qs(packageDocument, "metadata");
-			if (!metadataNode) throw new Error("No Metadata Found");
-			manifestNode = qs(packageDocument, "manifest");
-			if (!manifestNode) throw new Error("No Manifest Found");
-			spineNode = qs(packageDocument, "spine");
-			if (!spineNode) throw new Error("No Spine Found");
-			this.manifest = this.parseManifest(manifestNode);
-			this.navPath = this.findNavPath(manifestNode);
-			this.ncxPath = this.findNcxPath(manifestNode, spineNode);
-			this.coverPath = this.findCoverPath(packageDocument);
-			this.spineNodeIndex = indexOfElementNode(spineNode);
-			this.spine = this.parseSpine(spineNode, this.manifest);
-			this.uniqueIdentifier = this.findUniqueIdentifier(packageDocument);
-			this.metadata = this.parseMetadata(metadataNode);
-			this.metadata.direction = spineNode.getAttribute("page-progression-direction");
-			return {
-				"metadata": this.metadata,
-				"spine": this.spine,
-				"manifest": this.manifest,
-				"navPath": this.navPath,
-				"ncxPath": this.ncxPath,
-				"coverPath": this.coverPath,
-				"spineNodeIndex": this.spineNodeIndex
-			};
-		}
-		/**
-		* Parse Metadata
-		* @private
-		* @param  {node} xml
-		* @return {object} metadata
-		*/
-		parseMetadata(xml) {
-			var metadata = {};
-			metadata.title = this.getElementText(xml, "title");
-			metadata.creator = this.getElementText(xml, "creator");
-			metadata.description = this.getElementText(xml, "description");
-			metadata.pubdate = this.getElementText(xml, "date");
-			metadata.publisher = this.getElementText(xml, "publisher");
-			metadata.identifier = this.getElementText(xml, "identifier");
-			metadata.language = this.getElementText(xml, "language");
-			metadata.rights = this.getElementText(xml, "rights");
-			metadata.modified_date = this.getPropertyText(xml, "dcterms:modified");
-			metadata.layout = this.getPropertyText(xml, "rendition:layout");
-			metadata.orientation = this.getPropertyText(xml, "rendition:orientation");
-			metadata.flow = this.getPropertyText(xml, "rendition:flow");
-			metadata.viewport = this.getPropertyText(xml, "rendition:viewport");
-			metadata.media_active_class = this.getPropertyText(xml, "media:active-class");
-			metadata.spread = this.getPropertyText(xml, "rendition:spread");
-			return metadata;
-		}
-		/**
-		* Parse Manifest
-		* @private
-		* @param  {node} manifestXml
-		* @return {object} manifest
-		*/
-		parseManifest(manifestXml) {
-			var manifest = {};
-			var selected = qsa(manifestXml, "item");
-			Array.prototype.slice.call(selected).forEach(function(item) {
-				var id = item.getAttribute("id"), href = item.getAttribute("href") || "", type = item.getAttribute("media-type") || "", overlay = item.getAttribute("media-overlay") || "", fallback = item.getAttribute("fallback") || "", properties = item.getAttribute("properties") || "";
-				manifest[id] = {
-					"href": href,
-					"type": type,
-					"overlay": overlay,
-					"mediaOverlay": overlay,
-					"fallback": fallback,
-					"fallbackChain": [],
-					"properties": properties.length ? properties.split(" ") : []
-				};
-			});
-			Object.keys(manifest).forEach(function(id) {
-				var item = manifest[id], fallback = item.fallback, visited = {};
-				visited[id] = true;
-				while (fallback && manifest[fallback] && !visited[fallback]) {
-					item.fallbackChain.push(fallback);
-					visited[fallback] = true;
-					fallback = manifest[fallback].fallback;
-				}
-			});
-			return manifest;
-		}
-		/**
-		* Parse Spine
-		* @private
-		* @param  {node} spineXml
-		* @param  {Packaging.manifest} manifest
-		* @return {object} spine
-		*/
-		parseSpine(spineXml, manifest) {
-			var spine = [];
-			var selected = qsa(spineXml, "itemref");
-			Array.prototype.slice.call(selected).forEach(function(item, index) {
-				var idref = item.getAttribute("idref");
-				var props = item.getAttribute("properties") || "";
-				var propArray = props.length ? props.split(" ") : [];
-				var itemref = {
-					"id": item.getAttribute("id"),
-					"idref": idref,
-					"linear": item.getAttribute("linear") || "yes",
-					"properties": propArray,
-					"index": index
-				};
-				spine.push(itemref);
-			});
-			return spine;
-		}
-		/**
-		* Find Unique Identifier
-		* @private
-		* @param  {node} packageXml
-		* @return {string} Unique Identifier text
-		*/
-		findUniqueIdentifier(packageXml) {
-			var uniqueIdentifierId = packageXml.documentElement.getAttribute("unique-identifier");
-			if (!uniqueIdentifierId) return "";
-			var identifier = packageXml.getElementById(uniqueIdentifierId);
-			if (!identifier) return "";
-			if (identifier.localName === "identifier" && identifier.namespaceURI === "http://purl.org/dc/elements/1.1/") return identifier.childNodes.length > 0 ? identifier.childNodes[0].nodeValue.trim() : "";
-			return "";
-		}
-		/**
-		* Find TOC NAV
-		* @private
-		* @param {element} manifestNode
-		* @return {string}
-		*/
-		findNavPath(manifestNode) {
-			var node = qsp(manifestNode, "item", { "properties": "nav" });
-			return node ? node.getAttribute("href") : false;
-		}
-		/**
-		* Find TOC NCX
-		* media-type="application/x-dtbncx+xml" href="toc.ncx"
-		* @private
-		* @param {element} manifestNode
-		* @param {element} spineNode
-		* @return {string}
-		*/
-		findNcxPath(manifestNode, spineNode) {
-			var node = qsp(manifestNode, "item", { "media-type": "application/x-dtbncx+xml" });
-			var tocId;
-			if (!node) {
-				tocId = spineNode.getAttribute("toc");
-				if (tocId) node = manifestNode.querySelector(`#${tocId}`);
-			}
-			return node ? node.getAttribute("href") : false;
-		}
-		/**
-		* Find the Cover Path
-		* <item properties="cover-image" id="ci" href="cover.svg" media-type="image/svg+xml" />
-		* Fallback for Epub 2.0
-		* @private
-		* @param  {node} packageXml
-		* @return {string} href
-		*/
-		findCoverPath(packageXml) {
-			qs(packageXml, "package").getAttribute("version");
-			var node = qsp(packageXml, "item", { "properties": "cover-image" });
-			if (node) return node.getAttribute("href");
-			var metaCover = qsp(packageXml, "meta", { "name": "cover" });
-			if (metaCover) {
-				var coverId = metaCover.getAttribute("content");
-				var cover = packageXml.getElementById(coverId);
-				return cover ? cover.getAttribute("href") : "";
-			} else return false;
-		}
-		/**
-		* Get text of a namespaced element
-		* @private
-		* @param  {node} xml
-		* @param  {string} tag
-		* @return {string} text
-		*/
-		getElementText(xml, tag) {
-			var found = xml.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/", tag);
-			var el;
-			if (!found || found.length === 0) return "";
-			el = found[0];
-			if (el.childNodes.length) return el.childNodes[0].nodeValue;
-			return "";
-		}
-		/**
-		* Get text by property
-		* @private
-		* @param  {node} xml
-		* @param  {string} property
-		* @return {string} text
-		*/
-		getPropertyText(xml, property) {
-			var el = qsp(xml, "meta", { "property": property });
-			if (el && el.childNodes.length) return el.childNodes[0].nodeValue;
-			return "";
-		}
-		/**
-		* Load JSON Manifest
-		* @param  {document} packageDocument OPF XML
-		* @return {object} parsed package parts
-		*/
-		load(json) {
-			this.metadata = json.metadata;
-			let spine = json.readingOrder || json.spine;
-			this.spine = spine.map((item, index) => {
-				item.index = index;
-				item.linear = item.linear || "yes";
-				return item;
-			});
-			json.resources.forEach((item, index) => {
-				this.manifest[index] = item;
-				if (item.rel && item.rel[0] === "cover") this.coverPath = item.href;
-			});
-			this.spineNodeIndex = 0;
-			this.toc = json.toc.map((item, index) => {
-				item.label = item.title;
-				return item;
-			});
-			return {
-				"metadata": this.metadata,
-				"spine": this.spine,
-				"manifest": this.manifest,
-				"navPath": this.navPath,
-				"ncxPath": this.ncxPath,
-				"coverPath": this.coverPath,
-				"spineNodeIndex": this.spineNodeIndex,
-				"toc": this.toc
-			};
-		}
-		destroy() {
-			this.manifest = void 0;
-			this.navPath = void 0;
-			this.ncxPath = void 0;
-			this.coverPath = void 0;
-			this.spineNodeIndex = void 0;
-			this.spine = void 0;
-			this.metadata = void 0;
-		}
-	};
-	//#endregion
-	//#region src/navigation.js
-	/**
-	* Navigation Parser
-	* @param {document} xml navigation html / xhtml / ncx
-	*/
-	var Navigation = class {
-		constructor(xml) {
-			this.toc = [];
-			this.tocByHref = {};
-			this.tocById = {};
-			this.landmarks = [];
-			this.landmarksByType = {};
-			this.length = 0;
-			if (xml) this.parse(xml);
-		}
-		/**
-		* Parse out the navigation items
-		* @param {document} xml navigation html / xhtml / ncx
-		*/
-		parse(xml) {
-			let isXml = xml.nodeType;
-			let html;
-			let ncx;
-			if (isXml) {
-				html = qs(xml, "html");
-				ncx = qs(xml, "ncx");
-			}
-			if (!isXml) this.toc = this.load(xml);
-			else if (html) {
-				this.toc = this.parseNav(xml);
-				this.landmarks = this.parseLandmarks(xml);
-			} else if (ncx) this.toc = this.parseNcx(xml);
-			this.length = 0;
-			this.unpack(this.toc);
-		}
-		/**
-		* Unpack navigation items
-		* @private
-		* @param  {array} toc
-		*/
-		unpack(toc) {
-			var item;
-			for (var i = 0; i < toc.length; i++) {
-				item = toc[i];
-				if (item.href) this.tocByHref[item.href] = i;
-				if (item.id) this.tocById[item.id] = i;
-				this.length++;
-				if (item.subitems.length) this.unpack(item.subitems);
-			}
-		}
-		/**
-		* Get an item from the navigation
-		* @param  {string} target
-		* @return {object} navItem
-		*/
-		get(target) {
-			var index;
-			var lookupTarget = target;
-			if (!target) return this.toc;
-			if (target.indexOf("#") === 0) {
-				lookupTarget = target.substring(1);
-				index = this.tocById[lookupTarget];
-			} else if (target in this.tocByHref) index = this.tocByHref[target];
-			else if (target in this.tocById) index = this.tocById[target];
-			return this.getByIndex(lookupTarget, index, this.toc);
-		}
-		/**
-		* Get an item from navigation subitems recursively by index
-		* @param  {string} target
-		* @param  {number} index
-		* @param  {array} navItems
-		* @return {object} navItem
-		*/
-		getByIndex(target, index, navItems) {
-			if (navItems.length === 0) return;
-			const item = navItems[index];
-			if (item && (target === item.id || target === item.href)) return item;
-			else {
-				let result;
-				for (let i = 0; i < navItems.length; ++i) {
-					result = this.getByIndex(target, index, navItems[i].subitems);
-					if (result) break;
-				}
-				return result;
-			}
-		}
-		/**
-		* Get a landmark by type
-		* List of types: https://idpf.github.io/epub-vocabs/structure/
-		* @param  {string} type
-		* @return {object} landmarkItem
-		*/
-		landmark(type) {
-			var index;
-			if (!type) return this.landmarks;
-			index = this.landmarksByType[type];
-			return this.landmarks[index];
-		}
-		/**
-		* Parse toc from a Epub > 3.0 Nav
-		* @private
-		* @param  {document} navHtml
-		* @return {array} navigation list
-		*/
-		parseNav(navHtml) {
-			var navElement = querySelectorByType(navHtml, "nav", "toc");
-			var list = [];
-			if (!navElement) return list;
-			let navList = filterChildren(navElement, "ol", true);
-			if (!navList) return list;
-			list = this.parseNavList(navList);
-			return list;
-		}
-		/**
-		* Parses lists in the toc
-		* @param  {document} navListHtml
-		* @param  {string} parent id
-		* @return {array} navigation list
-		*/
-		parseNavList(navListHtml, parent) {
-			const result = [];
-			if (!navListHtml) return result;
-			if (!navListHtml.children) return result;
-			for (let i = 0; i < navListHtml.children.length; i++) {
-				const item = this.navItem(navListHtml.children[i], parent);
-				if (item) result.push(item);
-			}
-			return result;
-		}
-		/**
-		* Create a navItem
-		* @private
-		* @param  {element} item
-		* @return {object} navItem
-		*/
-		navItem(item, parent) {
-			let id = item.getAttribute("id") || void 0;
-			let content = filterChildren(item, "a", true) || filterChildren(item, "span", true);
-			if (!content) return;
-			let src = content.getAttribute("href") || "";
-			if (!id) id = src;
-			let text = content.textContent || "";
-			let subitems = [];
-			let nested = filterChildren(item, "ol", true);
-			if (nested) subitems = this.parseNavList(nested, id);
-			return {
-				"id": id,
-				"href": src,
-				"label": text,
-				"subitems": subitems,
-				"parent": parent
-			};
-		}
-		/**
-		* Parse landmarks from a Epub > 3.0 Nav
-		* @private
-		* @param  {document} navHtml
-		* @return {array} landmarks list
-		*/
-		parseLandmarks(navHtml) {
-			var navElement = querySelectorByType(navHtml, "nav", "landmarks");
-			var navItems = navElement ? qsa(navElement, "li") : [];
-			var length = navItems.length;
-			var i;
-			var list = [];
-			var item;
-			if (!navItems || length === 0) return list;
-			for (i = 0; i < length; ++i) {
-				item = this.landmarkItem(navItems[i]);
-				if (item) {
-					list.push(item);
-					this.landmarksByType[item.type] = i;
-				}
-			}
-			return list;
-		}
-		/**
-		* Create a landmarkItem
-		* @private
-		* @param  {element} item
-		* @return {object} landmarkItem
-		*/
-		landmarkItem(item) {
-			let content = filterChildren(item, "a", true);
-			if (!content) return;
-			let type = content.getAttributeNS("http://www.idpf.org/2007/ops", "type") || void 0;
-			return {
-				"href": content.getAttribute("href") || "",
-				"label": content.textContent || "",
-				"type": type
-			};
-		}
-		/**
-		* Parse from a Epub > 3.0 NC
-		* @private
-		* @param  {document} navHtml
-		* @return {array} navigation list
-		*/
-		parseNcx(tocXml) {
-			var navPoints = qsa(tocXml, "navPoint");
-			var length = navPoints.length;
-			var i;
-			var toc = {};
-			var list = [];
-			var item, parent;
-			if (!navPoints || length === 0) return list;
-			for (i = 0; i < length; ++i) {
-				item = this.ncxItem(navPoints[i]);
-				toc[item.id] = item;
-				if (!item.parent) list.push(item);
-				else {
-					parent = toc[item.parent];
-					parent.subitems.push(item);
-				}
-			}
-			return list;
-		}
-		/**
-		* Create a ncxItem
-		* @private
-		* @param  {element} item
-		* @return {object} ncxItem
-		*/
-		ncxItem(item) {
-			var id = item.getAttribute("id") || false, src = qs(item, "content").getAttribute("src"), navLabel = qs(item, "navLabel"), text = navLabel.textContent ? navLabel.textContent : "", subitems = [], parentNode = item.parentNode, parent;
-			if (parentNode && (parentNode.nodeName === "navPoint" || parentNode.nodeName.split(":").slice(-1)[0] === "navPoint")) parent = parentNode.getAttribute("id");
-			return {
-				"id": id,
-				"href": src,
-				"label": text,
-				"subitems": subitems,
-				"parent": parent
-			};
-		}
-		/**
-		* Load Spine Items
-		* @param  {object} json the items to be loaded
-		* @return {Array} navItems
-		*/
-		load(json) {
-			return json.map((item) => {
-				item.label = item.title;
-				item.subitems = item.children ? this.load(item.children) : [];
-				return item;
-			});
-		}
-		/**
-		* forEach pass through
-		* @param  {Function} fn function to run on each item
-		* @return {method} forEach loop
-		*/
-		forEach(fn) {
-			return this.toc.forEach(fn);
-		}
-	};
-	//#endregion
-	//#region src/utils/mime.js
+	//#region src/utils/mime.ts
 	var table = {
 		"application": {
 			"ecmascript": ["es", "ecma"],
@@ -9037,8 +7106,8 @@
 	};
 	var mimeTypes = (function() {
 		var type, subtype, val, index, mimeTypes = {};
-		for (type in table) if (table.hasOwnProperty(type)) {
-			for (subtype in table[type]) if (table[type].hasOwnProperty(subtype)) {
+		for (type in table) if (Object.prototype.hasOwnProperty.call(table, type)) {
+			for (subtype in table[type]) if (Object.prototype.hasOwnProperty.call(table[type], subtype)) {
 				val = table[type][subtype];
 				if (typeof val == "string") mimeTypes[val] = type + "/" + subtype;
 				else for (index = 0; index < val.length; index++) mimeTypes[val[index]] = type + "/" + subtype;
@@ -9050,9 +7119,1842 @@
 	function lookup(filename) {
 		return filename && mimeTypes[filename.split(".").pop().toLowerCase()] || defaultValue;
 	}
+	/**
+	* Check if extension is xml.
+	* @param {string} ext Extension to inspect.
+	* @returns {boolean} True for XML-based EPUB resource extensions.
+	*/
+	function isXml$1(ext) {
+		return [
+			"xml",
+			"opf",
+			"ncx"
+		].indexOf(ext) > -1;
+	}
 	var mime_default = { lookup };
 	//#endregion
-	//#region src/resources.js
+	//#region src/utils/request.ts
+	function request(url, type, withCredentials, headers) {
+		var supportsURL = typeof window != "undefined" ? window.URL : false;
+		var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
+		var deferred = new defer$1();
+		var xhr = new XMLHttpRequest();
+		var xhrPrototype = XMLHttpRequest.prototype;
+		var header;
+		if (!("overrideMimeType" in xhrPrototype)) Object.defineProperty(xhrPrototype, "overrideMimeType", { value: function xmlHttpRequestOverrideMimeType() {} });
+		if (withCredentials) xhr.withCredentials = true;
+		xhr.onreadystatechange = handler;
+		xhr.onerror = err;
+		xhr.open("GET", url, true);
+		for (header in headers || {}) xhr.setRequestHeader(header, headers[header]);
+		if (type == "json") xhr.setRequestHeader("Accept", "application/json");
+		if (!type) type = new Path(url).extension;
+		if (type == "blob") xhr.responseType = BLOB_RESPONSE;
+		if (isXml$1(type)) xhr.overrideMimeType("text/xml");
+		if (type == "xhtml") {}
+		if (type == "html" || type == "htm") {}
+		if (type == "binary") xhr.responseType = "arraybuffer";
+		xhr.send();
+		function err(e) {
+			deferred.reject(e);
+		}
+		function handler() {
+			if (this.readyState === XMLHttpRequest.DONE) {
+				var responseXML = false;
+				if (this.responseType === "" || this.responseType === "document") responseXML = this.responseXML;
+				if (this.status === 200 || this.status === 0 || responseXML) {
+					var r;
+					if (!this.response && !responseXML) {
+						deferred.reject({
+							status: this.status,
+							message: "Empty Response",
+							stack: (/* @__PURE__ */ new Error()).stack
+						});
+						return deferred.promise;
+					}
+					if (this.status === 403) {
+						deferred.reject({
+							status: this.status,
+							response: this.response,
+							message: "Forbidden",
+							stack: (/* @__PURE__ */ new Error()).stack
+						});
+						return deferred.promise;
+					}
+					if (responseXML) r = this.responseXML;
+					else if (isXml$1(type)) r = parseMarkup(this.response, "text/xml");
+					else if (type == "xhtml") r = parseMarkup(this.response, "application/xhtml+xml");
+					else if (type == "html" || type == "htm") r = parseMarkup(this.response, "text/html");
+					else if (type == "json") r = JSON.parse(this.response);
+					else if (type == "blob") if (supportsURL) r = this.response;
+					else r = new Blob([this.response]);
+					else r = this.response;
+					deferred.resolve(r);
+				} else deferred.reject({
+					status: this.status,
+					message: this.response,
+					stack: (/* @__PURE__ */ new Error()).stack
+				});
+			}
+		}
+		return deferred.promise;
+	}
+	//#endregion
+	//#region src/section.ts
+	/**
+	* Represents a Section of the Book
+	*
+	* In most books this is equivalent to a Chapter
+	* @param {object} item  The spine item representing the section
+	* @param {object} hooks hooks for serialize and content
+	*/
+	var Section = class {
+		idref;
+		linear;
+		properties;
+		index;
+		href;
+		url;
+		canonical;
+		mediaType;
+		originalHref;
+		originalMediaType;
+		fallback;
+		fallbackChain;
+		next;
+		prev;
+		cfiBase;
+		hooks;
+		document;
+		contents;
+		output;
+		request;
+		constructor(item, hooks) {
+			this.idref = item.idref;
+			this.linear = item.linear === "yes";
+			this.properties = item.properties || [];
+			this.index = item.index;
+			this.href = item.href;
+			this.url = item.url;
+			this.canonical = item.canonical;
+			this.mediaType = item.mediaType;
+			this.originalHref = item.originalHref;
+			this.originalMediaType = item.originalMediaType;
+			this.fallback = item.fallback;
+			this.fallbackChain = item.fallbackChain;
+			this.next = item.next;
+			this.prev = item.prev;
+			this.cfiBase = item.cfiBase;
+			if (hooks) this.hooks = hooks;
+			else this.hooks = {
+				serialize: new Hook(this),
+				content: new Hook(this)
+			};
+			this.document = void 0;
+			this.contents = void 0;
+			this.output = void 0;
+		}
+		/**
+		* Load the section from its url
+		* @param  {method} [_request] a request method to use for loading
+		* @return {document} a promise with the xml document
+		*/
+		load(_request) {
+			var request$1 = _request || this.request || request;
+			var loading = new defer$1();
+			var loaded = loading.promise;
+			if (this.contents) loading.resolve(this.contents);
+			else request$1(this.url).then((xml) => {
+				this.document = xml;
+				this.contents = xml.documentElement;
+				return this.hooks.content.trigger(this.document, this);
+			}).then(() => {
+				loading.resolve(this.contents);
+			}).catch((error) => {
+				loading.reject(error);
+			});
+			return loaded;
+		}
+		/**
+		* Adds a base tag for resolving urls in the section
+		* @private
+		*/
+		base() {
+			return replaceBase(this.document, this);
+		}
+		/**
+		* Render the contents of a section
+		* @param  {method} [_request] a request method to use for loading
+		* @return {string} output a serialized XML Document
+		*/
+		render(_request) {
+			var rendering = new defer$1();
+			var rendered = rendering.promise;
+			this.output;
+			this.load(_request).then((contents) => {
+				var isIE = (typeof navigator !== "undefined" && navigator.userAgent || "").indexOf("Trident") >= 0;
+				var Serializer;
+				if (typeof XMLSerializer === "undefined" || isIE) Serializer = import_lib.DOMParser;
+				else Serializer = XMLSerializer;
+				var serializer = new Serializer();
+				this.output = serializer.serializeToString(contents);
+				return this.output;
+			}).then(() => {
+				return this.hooks.serialize.trigger(this.output, this);
+			}).then(() => {
+				rendering.resolve(this.output);
+			}).catch((error) => {
+				rendering.reject(error);
+			});
+			return rendered;
+		}
+		/**
+		* Find a string in a section
+		* @param  {string} _query The query string to find
+		* @return {object[]} A list of matches, with form {cfi, excerpt}
+		*/
+		find(_query) {
+			var section = this;
+			var matches = [];
+			var query = _query.toLowerCase();
+			var find = function(node) {
+				var text = node.textContent.toLowerCase();
+				var range = section.document.createRange();
+				var cfi;
+				var pos;
+				var last = -1;
+				var excerpt;
+				var limit = 150;
+				while (pos != -1) {
+					pos = text.indexOf(query, last + 1);
+					if (pos != -1) {
+						range = section.document.createRange();
+						range.setStart(node, pos);
+						range.setEnd(node, pos + query.length);
+						cfi = section.cfiFromRange(range);
+						if (node.textContent.length < limit) excerpt = node.textContent;
+						else {
+							excerpt = node.textContent.substring(pos - limit / 2, pos + limit / 2);
+							excerpt = "..." + excerpt + "...";
+						}
+						matches.push({
+							cfi,
+							excerpt
+						});
+					}
+					last = pos;
+				}
+			};
+			sprint$1(section.document, function(node) {
+				find(node);
+			});
+			return matches;
+		}
+		/**
+		* Search a string in multiple sequential Element of the section. If the document.createTreeWalker api is missed(eg: IE8), use `find` as a fallback.
+		* @param  {string} _query The query string to search
+		* @param  {int} maxSeqEle The maximum number of Element that are combined for search, default value is 5.
+		* @return {object[]} A list of matches, with form {cfi, excerpt}
+		*/
+		search(_query, maxSeqEle = 5) {
+			if (typeof document.createTreeWalker == "undefined") return this.find(_query);
+			let matches = [];
+			const excerptLimit = 150;
+			const section = this;
+			const query = _query.toLowerCase();
+			const search = function(nodeList) {
+				const pos = nodeList.reduce((acc, current) => {
+					return acc + current.textContent;
+				}, "").toLowerCase().indexOf(query);
+				if (pos != -1) {
+					const startNodeIndex = 0, endPos = pos + query.length;
+					let endNodeIndex = 0, l = 0;
+					if (pos < nodeList[startNodeIndex].length) {
+						let cfi;
+						while (endNodeIndex < nodeList.length - 1) {
+							l += nodeList[endNodeIndex].length;
+							if (endPos <= l) break;
+							endNodeIndex += 1;
+						}
+						let startNode = nodeList[startNodeIndex], endNode = nodeList[endNodeIndex];
+						let range = section.document.createRange();
+						range.setStart(startNode, pos);
+						let beforeEndLengthCount = nodeList.slice(0, endNodeIndex).reduce((acc, current) => {
+							return acc + current.textContent.length;
+						}, 0);
+						range.setEnd(endNode, beforeEndLengthCount > endPos ? endPos : endPos - beforeEndLengthCount);
+						cfi = section.cfiFromRange(range);
+						let excerpt = nodeList.slice(0, endNodeIndex + 1).reduce((acc, current) => {
+							return acc + current.textContent;
+						}, "");
+						if (excerpt.length > excerptLimit) {
+							excerpt = excerpt.substring(pos - excerptLimit / 2, pos + excerptLimit / 2);
+							excerpt = "..." + excerpt + "...";
+						}
+						matches.push({
+							cfi,
+							excerpt
+						});
+					}
+				}
+			};
+			const treeWalker = document.createTreeWalker(section.document, NodeFilter.SHOW_TEXT, null);
+			let node;
+			let nodeList = [];
+			while (node = treeWalker.nextNode()) {
+				nodeList.push(node);
+				if (nodeList.length == maxSeqEle) {
+					search(nodeList.slice(0, maxSeqEle));
+					nodeList = nodeList.slice(1, maxSeqEle);
+				}
+			}
+			if (nodeList.length > 0) search(nodeList);
+			return matches;
+		}
+		/**
+		* Reconciles the current chapters layout properties with
+		* the global layout properties.
+		* @param {object} globalLayout  The global layout settings object, chapter properties string
+		* @return {object} layoutProperties Object with layout properties
+		*/
+		reconcileLayoutSettings(globalLayout) {
+			var settings = {
+				layout: globalLayout.layout,
+				spread: globalLayout.spread,
+				orientation: globalLayout.orientation
+			};
+			this.properties.forEach(function(prop) {
+				var rendition = prop.replace("rendition:", "");
+				var split = rendition.indexOf("-");
+				var property, value;
+				if (split != -1) {
+					property = rendition.slice(0, split);
+					value = rendition.slice(split + 1);
+					settings[property] = value;
+				}
+			});
+			return settings;
+		}
+		/**
+		* Get a CFI from a Range in the Section
+		* @param  {range} _range
+		* @return {string} cfi an EpubCFI string
+		*/
+		cfiFromRange(_range) {
+			return new EpubCFI(_range, this.cfiBase).toString();
+		}
+		/**
+		* Get a CFI from an Element in the Section
+		* @param  {element} el
+		* @return {string} cfi an EpubCFI string
+		*/
+		cfiFromElement(el) {
+			return new EpubCFI(el, this.cfiBase).toString();
+		}
+		/**
+		* Unload the section document
+		*/
+		unload() {
+			this.document = void 0;
+			this.contents = void 0;
+			this.output = void 0;
+		}
+		destroy() {
+			this.unload();
+			this.hooks.serialize.clear();
+			this.hooks.content.clear();
+			this.hooks = void 0;
+			this.idref = void 0;
+			this.linear = void 0;
+			this.properties = void 0;
+			this.index = void 0;
+			this.href = void 0;
+			this.url = void 0;
+			this.next = void 0;
+			this.prev = void 0;
+			this.cfiBase = void 0;
+		}
+	};
+	//#endregion
+	//#region src/spine.ts
+	/**
+	* A collection of Spine Items
+	*/
+	var Spine = class {
+		spineItems;
+		spineByHref;
+		spineById;
+		hooks;
+		epubcfi;
+		loaded;
+		items;
+		manifest;
+		spineNodeIndex;
+		baseUrl;
+		length;
+		constructor() {
+			this.spineItems = [];
+			this.spineByHref = {};
+			this.spineById = {};
+			this.hooks = {
+				serialize: new Hook(),
+				content: new Hook()
+			};
+			this.hooks.content.register(replaceBase);
+			this.hooks.content.register(replaceCanonical);
+			this.hooks.content.register(replaceMeta);
+			this.epubcfi = new EpubCFI();
+			this.loaded = false;
+			this.items = void 0;
+			this.manifest = void 0;
+			this.spineNodeIndex = void 0;
+			this.baseUrl = void 0;
+			this.length = void 0;
+		}
+		/**
+		* Unpack items from a opf into spine items
+		* @param  {Packaging} _package
+		* @param  {method} resolver URL resolver
+		* @param  {method} canonical Resolve canonical url
+		*/
+		unpack(_package, resolver, canonical) {
+			this.items = _package.spine;
+			this.manifest = _package.manifest;
+			this.spineNodeIndex = _package.spineNodeIndex;
+			this.baseUrl = _package.baseUrl || _package.basePath || "";
+			this.length = this.items.length;
+			this.items.forEach((item, index) => {
+				var manifestItem = this.manifest[item.idref];
+				var resolvedManifestItem;
+				var spineItem;
+				item.index = index;
+				item.cfiBase = this.epubcfi.generateChapterComponent(this.spineNodeIndex, item.index, item.id);
+				if (item.href) {
+					item.url = resolver(item.href, true);
+					item.canonical = canonical(item.href);
+				}
+				if (manifestItem) {
+					resolvedManifestItem = this.resolveFallbackItem(manifestItem);
+					item.href = resolvedManifestItem.href;
+					item.url = resolver(item.href, true);
+					item.canonical = canonical(item.href);
+					item.mediaType = resolvedManifestItem.type;
+					item.originalHref = manifestItem.href;
+					item.originalMediaType = manifestItem.type;
+					item.fallback = manifestItem.fallback;
+					item.fallbackChain = manifestItem.fallbackChain || [];
+					if (manifestItem.properties.length) item.properties.push.apply(item.properties, manifestItem.properties);
+					if (resolvedManifestItem !== manifestItem && resolvedManifestItem.properties.length) item.properties.push.apply(item.properties, resolvedManifestItem.properties);
+				}
+				if (item.linear === "yes") {
+					item.prev = () => {
+						let prevIndex = item.index;
+						while (prevIndex > 0) {
+							let prev = this.get(prevIndex - 1);
+							if (prev && prev.linear) return prev;
+							prevIndex -= 1;
+						}
+					};
+					item.next = () => {
+						let nextIndex = item.index;
+						while (nextIndex < this.spineItems.length - 1) {
+							let next = this.get(nextIndex + 1);
+							if (next && next.linear) return next;
+							nextIndex += 1;
+						}
+					};
+				} else {
+					item.prev = function() {};
+					item.next = function() {};
+				}
+				spineItem = new Section(item, this.hooks);
+				this.append(spineItem);
+			});
+			this.loaded = true;
+		}
+		/**
+		* Resolve a manifest item to a renderable fallback item when needed
+		* @private
+		* @param  {PackagingManifestItem} manifestItem
+		* @return {PackagingManifestItem} manifestItem
+		*/
+		resolveFallbackItem(manifestItem) {
+			if (this.isRenderableType(manifestItem.type)) return manifestItem;
+			var fallbackChain = manifestItem.fallbackChain || [];
+			var index = 0;
+			var fallbackItem;
+			while (index < fallbackChain.length) {
+				fallbackItem = this.manifest[fallbackChain[index]];
+				if (fallbackItem && this.isRenderableType(fallbackItem.type)) return fallbackItem;
+				index += 1;
+			}
+			return manifestItem;
+		}
+		/**
+		* Check whether a manifest media type can be rendered as a spine section
+		* @private
+		* @param  {string} type
+		* @return {boolean}
+		*/
+		isRenderableType(type) {
+			if (!type) return true;
+			return [
+				"application/xhtml+xml",
+				"text/html",
+				"image/svg+xml"
+			].indexOf(type) > -1;
+		}
+		/**
+		* Get an item from the spine
+		* @param  {string|number} [target]
+		* @return {Section} section
+		* @example spine.get();
+		* @example spine.get(1);
+		* @example spine.get("chap1.html");
+		* @example spine.get("#id1234");
+		*/
+		get(target) {
+			var index = 0;
+			if (typeof target === "undefined") while (index < this.spineItems.length) {
+				let next = this.spineItems[index];
+				if (next && next.linear) break;
+				index += 1;
+			}
+			else if (typeof target === "string" && this.epubcfi.isCfiString(target)) index = new EpubCFI(target).spinePos;
+			else if (typeof target === "number" || isNaN(Number(target)) === false) index = Number(target);
+			else if (typeof target === "string" && target.indexOf("#") === 0) index = this.spineById[target.substring(1)];
+			else if (typeof target === "string") {
+				target = target.split("#")[0];
+				index = this.spineByHref[target] || this.spineByHref[encodeURI(target)];
+			}
+			return this.spineItems[index] || null;
+		}
+		/**
+		* Index an href and encoded variants for spine lookups
+		* @private
+		* @param  {string} href
+		* @param  {number} index
+		*/
+		indexHref(href, index) {
+			if (!href) return;
+			this.spineByHref[decodeURI(href)] = index;
+			this.spineByHref[encodeURI(href)] = index;
+			this.spineByHref[href] = index;
+		}
+		/**
+		* Remove an href and encoded variants from spine lookups
+		* @private
+		* @param  {string} href
+		*/
+		removeHref(href) {
+			if (!href) return;
+			delete this.spineByHref[decodeURI(href)];
+			delete this.spineByHref[encodeURI(href)];
+			delete this.spineByHref[href];
+		}
+		/**
+		* Append a Section to the Spine
+		* @private
+		* @param  {Section} section
+		*/
+		append(section) {
+			var index = this.spineItems.length;
+			section.index = index;
+			this.spineItems.push(section);
+			this.indexHref(section.href, index);
+			if (section.originalHref !== section.href) this.indexHref(section.originalHref, index);
+			this.spineById[section.idref] = index;
+			return index;
+		}
+		/**
+		* Prepend a Section to the Spine
+		* @private
+		* @param  {Section} section
+		*/
+		prepend(section) {
+			this.indexHref(section.href, 0);
+			if (section.originalHref !== section.href) this.indexHref(section.originalHref, 0);
+			this.spineById[section.idref] = 0;
+			this.spineItems.forEach(function(item, index) {
+				item.index = index;
+			});
+			return 0;
+		}
+		/**
+		* Remove a Section from the Spine
+		* @private
+		* @param  {Section} section
+		*/
+		remove(section) {
+			var index = this.spineItems.indexOf(section);
+			if (index > -1) {
+				this.removeHref(section.href);
+				if (section.originalHref !== section.href) this.removeHref(section.originalHref);
+				delete this.spineById[section.idref];
+				return this.spineItems.splice(index, 1);
+			}
+		}
+		/**
+		* Loop over the Sections in the Spine
+		* @return {method} forEach
+		*/
+		each(callback, thisArg) {
+			return this.spineItems.forEach(callback, thisArg);
+		}
+		/**
+		* Find the first Section in the Spine
+		* @return {Section} first section
+		*/
+		first() {
+			let index = 0;
+			do {
+				let next = this.get(index);
+				if (next && next.linear) return next;
+				index += 1;
+			} while (index < this.spineItems.length);
+		}
+		/**
+		* Find the last Section in the Spine
+		* @return {Section} last section
+		*/
+		last() {
+			let index = this.spineItems.length - 1;
+			do {
+				let prev = this.get(index);
+				if (prev && prev.linear) return prev;
+				index -= 1;
+			} while (index >= 0);
+		}
+		destroy() {
+			this.each((section) => section.destroy());
+			this.spineItems = void 0;
+			this.spineByHref = void 0;
+			this.spineById = void 0;
+			this.hooks.serialize.clear();
+			this.hooks.content.clear();
+			this.hooks = void 0;
+			this.epubcfi = void 0;
+			this.loaded = false;
+			this.items = void 0;
+			this.manifest = void 0;
+			this.spineNodeIndex = void 0;
+			this.baseUrl = void 0;
+			this.length = void 0;
+		}
+	};
+	//#endregion
+	//#region src/utils/queue.ts
+	var Defer$5 = defer$1;
+	/**
+	* Queue for handling tasks one at a time
+	* @class
+	* @param {scope} context what this will resolve to in the tasks
+	*/
+	var Queue = class {
+		_q;
+		context;
+		defered;
+		paused;
+		running;
+		tick;
+		constructor(context) {
+			this._q = [];
+			this.context = context;
+			this.tick = requestAnimationFrame$2;
+			this.running = false;
+			this.paused = false;
+		}
+		/**
+		* Add an item to the queue
+		* @return {Promise}
+		*/
+		enqueue(...items) {
+			var deferred, promise;
+			var queued;
+			var task = items.shift();
+			var args = items;
+			if (!task) throw new Error("No Task Provided");
+			if (typeof task === "function") {
+				deferred = new Defer$5();
+				promise = deferred.promise;
+				queued = {
+					"task": task,
+					"args": args,
+					"deferred": deferred,
+					"promise": promise
+				};
+			} else queued = { "promise": task };
+			this._q.push(queued);
+			if (this.paused == false && !this.running) this.run();
+			return queued.promise;
+		}
+		/**
+		* Run one item
+		* @return {Promise}
+		*/
+		dequeue() {
+			var inwait, task, result;
+			if (this._q.length && !this.paused) {
+				inwait = this._q.shift();
+				task = inwait.task;
+				if (task) {
+					result = task.apply(this.context, inwait.args);
+					if (result && typeof result["then"] === "function") return result.then(function() {
+						inwait.deferred.resolve.apply(this.context, arguments);
+					}.bind(this), function() {
+						inwait.deferred.reject.apply(this.context, arguments);
+					}.bind(this));
+					else {
+						inwait.deferred.resolve.apply(this.context, result);
+						return inwait.promise;
+					}
+				} else if (inwait.promise) return inwait.promise;
+			} else {
+				inwait = new Defer$5();
+				inwait.deferred.resolve();
+				return inwait.promise;
+			}
+		}
+		dump() {
+			while (this._q.length) this.dequeue();
+		}
+		/**
+		* Run all tasks sequentially, at convince
+		* @return {Promise}
+		*/
+		run() {
+			if (!this.running) {
+				this.running = true;
+				this.defered = new Defer$5();
+			}
+			this.tick.call(window, () => {
+				if (this._q.length) this.dequeue().then(function() {
+					this.run();
+				}.bind(this));
+				else {
+					this.defered.resolve();
+					this.running = void 0;
+				}
+			});
+			if (this.paused == true) this.paused = false;
+			return this.defered.promise;
+		}
+		/**
+		* Flush all, as quickly as possible
+		* @return {Promise}
+		*/
+		flush() {
+			if (this.running) return this.running;
+			if (this._q.length) {
+				this.running = this.dequeue().then(function() {
+					this.running = void 0;
+					return this.flush();
+				}.bind(this));
+				return this.running;
+			}
+		}
+		/**
+		* Clear all items in wait
+		*/
+		clear() {
+			this._q = [];
+		}
+		/**
+		* Get the number of tasks in the queue
+		* @return {number} tasks
+		*/
+		length() {
+			return this._q.length;
+		}
+		/**
+		* Pause a running queue
+		*/
+		pause() {
+			this.paused = true;
+		}
+		/**
+		* End the queue
+		*/
+		stop() {
+			this._q = [];
+			this.running = false;
+			this.paused = true;
+		}
+	};
+	//#endregion
+	//#region src/utils/constants.ts
+	var DOM_EVENTS = [
+		"keydown",
+		"keyup",
+		"keypressed",
+		"mouseup",
+		"mousedown",
+		"mousemove",
+		"click",
+		"touchend",
+		"touchstart",
+		"touchmove"
+	];
+	var EVENTS = {
+		BOOK: { OPEN_FAILED: "openFailed" },
+		CONTENTS: {
+			EXPAND: "expand",
+			RESIZE: "resize",
+			SELECTED: "selected",
+			SELECTED_RANGE: "selectedRange",
+			LINK_CLICKED: "linkClicked"
+		},
+		LOCATIONS: { CHANGED: "changed" },
+		MANAGERS: {
+			RESIZE: "resize",
+			RESIZED: "resized",
+			ORIENTATION_CHANGE: "orientationchange",
+			ADDED: "added",
+			SCROLL: "scroll",
+			SCROLLED: "scrolled",
+			REMOVED: "removed"
+		},
+		VIEWS: {
+			AXIS: "axis",
+			WRITING_MODE: "writingMode",
+			LOAD_ERROR: "loaderror",
+			RENDERED: "rendered",
+			RESIZED: "resized",
+			DISPLAYED: "displayed",
+			SHOWN: "shown",
+			HIDDEN: "hidden",
+			MARK_CLICKED: "markClicked"
+		},
+		RENDITION: {
+			STARTED: "started",
+			ATTACHED: "attached",
+			DISPLAYED: "displayed",
+			DISPLAY_ERROR: "displayerror",
+			RENDERED: "rendered",
+			REMOVED: "removed",
+			RESIZED: "resized",
+			ORIENTATION_CHANGE: "orientationchange",
+			LOCATION_CHANGED: "locationChanged",
+			RELOCATED: "relocated",
+			MARK_CLICKED: "markClicked",
+			SELECTED: "selected",
+			LAYOUT: "layout"
+		},
+		LAYOUT: { UPDATED: "updated" },
+		ANNOTATION: {
+			ATTACH: "attach",
+			DETACH: "detach"
+		}
+	};
+	//#endregion
+	//#region src/locations.ts
+	/**
+	* Find Locations for a Book
+	* @param {Spine} spine
+	* @param {request} request
+	* @param {number} [pause=100]
+	*/
+	var Locations = class {
+		spine;
+		request;
+		pause;
+		q;
+		epubcfi;
+		_locations;
+		_locationsWords;
+		total;
+		break;
+		_current;
+		_wordCounter;
+		_currentCfi;
+		processingTimeout;
+		constructor(spine, request, pause) {
+			this.spine = spine;
+			this.request = request;
+			this.pause = pause || 100;
+			this.q = new Queue(this);
+			this.epubcfi = new EpubCFI();
+			this._locations = [];
+			this._locationsWords = [];
+			this.total = 0;
+			this.break = 150;
+			this._current = 0;
+			this._wordCounter = 0;
+			this.currentLocation = "";
+			this._currentCfi = "";
+			this.processingTimeout = void 0;
+		}
+		/**
+		* Load all of sections in the book to generate locations
+		* @param  {int} chars how many chars to split on
+		* @return {Promise<Array<string>>} locations
+		*/
+		generate(chars) {
+			if (chars) this.break = chars;
+			this.q.pause();
+			this.spine.each(function(section) {
+				if (section.linear) this.q.enqueue(this.process.bind(this), section);
+			}.bind(this));
+			return this.q.run().then(function() {
+				this.total = this._locations.length - 1;
+				if (this._currentCfi) this.currentLocation = this._currentCfi;
+				return this._locations;
+			}.bind(this));
+		}
+		createRange() {
+			return {
+				startContainer: void 0,
+				startOffset: void 0,
+				endContainer: void 0,
+				endOffset: void 0
+			};
+		}
+		process(section) {
+			return section.load(this.request).then(function(contents) {
+				var completed = new defer$1();
+				var locations = this.parse(contents, section.cfiBase);
+				this._locations = this._locations.concat(locations);
+				section.unload();
+				this.processingTimeout = setTimeout(() => completed.resolve(locations), this.pause);
+				return completed.promise;
+			}.bind(this));
+		}
+		parse(contents, cfiBase, chars) {
+			var locations = [];
+			var range;
+			var doc = contents.ownerDocument;
+			var body = qs$1(doc, "body");
+			var counter = 0;
+			var prev;
+			var _break = chars || this.break;
+			var parser = function(node) {
+				var len = node.length;
+				var dist;
+				var pos = 0;
+				if (counter === 0 && range === void 0) {
+					range = this.createRange();
+					range.startContainer = node;
+					range.startOffset = 0;
+				}
+				if (node.textContent.trim().length === 0) {
+					prev = node;
+					return false;
+				}
+				dist = _break - counter;
+				if (dist > len) {
+					counter += len;
+					pos = len;
+				}
+				while (pos < len) {
+					dist = _break - counter;
+					if (counter === 0) {
+						pos += 1;
+						range = this.createRange();
+						range.startContainer = node;
+						range.startOffset = pos;
+					}
+					if (pos + dist >= len) {
+						counter += len - pos;
+						pos = len;
+					} else {
+						pos += dist;
+						range.endContainer = node;
+						range.endOffset = pos;
+						let cfi = new EpubCFI(range, cfiBase).toString();
+						locations.push(cfi);
+						counter = 0;
+					}
+				}
+				prev = node;
+			};
+			sprint$1(body, parser.bind(this));
+			if (range && range.startContainer && prev) {
+				range.endContainer = prev;
+				range.endOffset = prev.length;
+				let cfi = new EpubCFI(range, cfiBase).toString();
+				locations.push(cfi);
+				counter = 0;
+			}
+			if (locations.length === 0 && body) {
+				let fallback = this.fallbackCfi(body, cfiBase);
+				if (fallback) locations.push(fallback);
+			}
+			return locations;
+		}
+		fallbackCfi(body, cfiBase) {
+			var fallbackNode = body;
+			var children = body.children;
+			if (children.length) fallbackNode = children[0];
+			try {
+				return new EpubCFI(fallbackNode, cfiBase).toString();
+			} catch (error) {
+				return "";
+			}
+		}
+		/**
+		* Generate precise locations for a single section and splice them into
+		* the existing locations array, replacing any entries (e.g. synthetic)
+		* that already belong to that section.
+		*
+		* This allows progressive refinement: call once per section as the reader
+		* navigates through the book without the cost of a full generate().
+		*
+		* @param  {Section} section  epub.js Section object (must have .cfiBase, .load(), .unload(), .linear)
+		* @param  {int}     [chars]  chars per location break (defaults to this.break)
+		* @return {Promise<Array<string>>} full updated locations array
+		*/
+		generateForSection(section, chars) {
+			if (!section || !section.linear || !section.cfiBase) return Promise.resolve(this._locations);
+			var breakSize = chars || this.break;
+			var cfiPrefix = "epubcfi(" + section.cfiBase + "!";
+			return section.load(this.request).then(function(contents) {
+				var newLocs = this.parse(contents, section.cfiBase, breakSize);
+				section.unload();
+				if (newLocs.length === 0) return this._locations;
+				var sectionStart = -1;
+				var sectionCount = 0;
+				for (var i = 0; i < this._locations.length; i++) if (this._locations[i].startsWith(cfiPrefix)) {
+					if (sectionStart === -1) sectionStart = i;
+					sectionCount++;
+				} else if (sectionStart !== -1) break;
+				if (sectionStart !== -1) this._locations.splice.apply(this._locations, [sectionStart, sectionCount].concat(newLocs));
+				else {
+					var insertIdx = locationOf$1(new EpubCFI(newLocs[0]), this._locations, this.epubcfi.compare);
+					this._locations.splice.apply(this._locations, [insertIdx, 0].concat(newLocs));
+				}
+				this.total = this._locations.length - 1;
+				return this._locations;
+			}.bind(this));
+		}
+		/**
+		* Load all of sections in the book to generate locations
+		* @param  {string} startCfi start position
+		* @param  {int} wordCount how many words to split on
+		* @param  {int} count result count
+		* @return {object} locations
+		*/
+		generateFromWords(startCfi, wordCount, count) {
+			var start = startCfi ? new EpubCFI(startCfi) : void 0;
+			this.q.pause();
+			this._locationsWords = [];
+			this._wordCounter = 0;
+			this.spine.each(function(section) {
+				if (section.linear) if (start) {
+					if (section.index >= start.spinePos) this.q.enqueue(this.processWords.bind(this), section, wordCount, start, count);
+				} else this.q.enqueue(this.processWords.bind(this), section, wordCount, start, count);
+			}.bind(this));
+			return this.q.run().then(function() {
+				if (this._currentCfi) this.currentLocation = this._currentCfi;
+				return this._locationsWords;
+			}.bind(this));
+		}
+		processWords(section, wordCount, startCfi, count) {
+			if (count && this._locationsWords.length >= count) return Promise.resolve();
+			return section.load(this.request).then(function(contents) {
+				var completed = new defer$1();
+				var locations = this.parseWords(contents, section, wordCount, startCfi);
+				var remainingCount = count ? count - this._locationsWords.length : locations.length;
+				this._locationsWords = this._locationsWords.concat(count && locations.length >= count ? locations.slice(0, remainingCount) : locations);
+				section.unload();
+				this.processingTimeout = setTimeout(() => completed.resolve(locations), this.pause);
+				return completed.promise;
+			}.bind(this));
+		}
+		countWords(s) {
+			s = s.replace(/(^\s*)|(\s*$)/gi, "");
+			s = s.replace(/[ ]{2,}/gi, " ");
+			s = s.replace(/\n /, "\n");
+			return s.split(" ").length;
+		}
+		parseWords(contents, section, wordCount, startCfi) {
+			var cfiBase = section.cfiBase;
+			var locations = [];
+			var doc = contents.ownerDocument;
+			var body = qs$1(doc, "body");
+			var _break = wordCount;
+			var foundStartNode = startCfi ? startCfi.spinePos !== section.index : true;
+			var startNode;
+			if (startCfi && section.index === startCfi.spinePos) startNode = startCfi.findNode(startCfi.range ? startCfi.path.steps.concat(startCfi.start.steps) : startCfi.path.steps, contents.ownerDocument);
+			var parser = function(node) {
+				if (!foundStartNode) if (node === startNode) foundStartNode = true;
+				else return false;
+				if (node.textContent.length < 10) {
+					if (node.textContent.trim().length === 0) return false;
+				}
+				var len = this.countWords(node.textContent);
+				var dist;
+				var pos = 0;
+				if (len === 0) return false;
+				dist = _break - this._wordCounter;
+				if (dist > len) {
+					this._wordCounter += len;
+					pos = len;
+				}
+				while (pos < len) {
+					dist = _break - this._wordCounter;
+					if (pos + dist >= len) {
+						this._wordCounter += len - pos;
+						pos = len;
+					} else {
+						pos += dist;
+						let cfi = new EpubCFI(node, cfiBase);
+						locations.push({
+							cfi: cfi.toString(),
+							wordCount: this._wordCounter
+						});
+						this._wordCounter = 0;
+					}
+				}
+			};
+			sprint$1(body, parser.bind(this));
+			return locations;
+		}
+		/**
+		* Get a location from an EpubCFI
+		* @param {EpubCFI} cfi
+		* @return {number}
+		*/
+		locationFromCfi(cfi) {
+			let loc;
+			if (EpubCFI.prototype.isCfiString(cfi)) cfi = new EpubCFI(cfi);
+			if (this._locations.length === 0) return -1;
+			loc = locationOf$1(cfi, this._locations, this.epubcfi.compare);
+			if (loc > this.total) return this.total;
+			return loc;
+		}
+		/**
+		* Get a percentage position in locations from an EpubCFI
+		* @param {EpubCFI} cfi
+		* @return {number}
+		*/
+		percentageFromCfi(cfi) {
+			if (this._locations.length === 0) return null;
+			var loc = this.locationFromCfi(cfi);
+			return this.percentageFromLocation(loc);
+		}
+		/**
+		* Get a percentage position from a location index
+		* @param {number} location
+		* @return {number}
+		*/
+		percentageFromLocation(loc) {
+			if (!loc || !this.total) return 0;
+			return loc / this.total;
+		}
+		/**
+		* Get an EpubCFI from location index
+		* @param {number} loc
+		* @return {EpubCFI} cfi
+		*/
+		cfiFromLocation(loc) {
+			var cfi = -1;
+			if (typeof loc != "number") loc = parseInt(loc);
+			if (loc >= 0 && loc < this._locations.length) cfi = this._locations[loc];
+			return cfi;
+		}
+		/**
+		* Get an EpubCFI from location percentage
+		* @param {number} percentage
+		* @return {EpubCFI} cfi
+		*/
+		cfiFromPercentage(percentage) {
+			let loc;
+			if (percentage > 1) console.warn("Normalize cfiFromPercentage value to between 0 - 1");
+			if (percentage >= 1) {
+				let cfi = new EpubCFI(this._locations[this.total]);
+				cfi.collapse();
+				return cfi.toString();
+			}
+			loc = Math.ceil(this.total * percentage);
+			return this.cfiFromLocation(loc);
+		}
+		/**
+		* Load locations from JSON
+		* @param {json} locations
+		*/
+		load(locations) {
+			if (typeof locations === "string") this._locations = JSON.parse(locations);
+			else this._locations = locations;
+			this.total = this._locations.length - 1;
+			return this._locations;
+		}
+		/**
+		* Save locations to JSON
+		* @return {json}
+		*/
+		save() {
+			return JSON.stringify(this._locations);
+		}
+		getCurrent() {
+			return this._current;
+		}
+		setCurrent(curr) {
+			var loc;
+			if (typeof curr == "string") this._currentCfi = curr;
+			else if (typeof curr == "number") this._current = curr;
+			else return;
+			if (this._locations.length === 0) return;
+			if (typeof curr == "string") {
+				loc = this.locationFromCfi(curr);
+				this._current = loc;
+			} else loc = curr;
+			this.emit(EVENTS.LOCATIONS.CHANGED, { percentage: this.percentageFromLocation(loc) });
+		}
+		/**
+		* Get the current location
+		*/
+		get currentLocation() {
+			return this._current;
+		}
+		/**
+		* Set the current location
+		*/
+		set currentLocation(curr) {
+			this.setCurrent(curr);
+		}
+		/**
+		* Locations length
+		*/
+		length() {
+			return this._locations.length;
+		}
+		destroy() {
+			this.spine = void 0;
+			this.request = void 0;
+			this.pause = void 0;
+			this.q.stop();
+			this.q = void 0;
+			this.epubcfi = void 0;
+			this._locations = void 0;
+			this.total = void 0;
+			this.break = void 0;
+			this._current = void 0;
+			this.currentLocation = void 0;
+			this._currentCfi = void 0;
+			clearTimeout(this.processingTimeout);
+		}
+	};
+	(0, import_event_emitter.default)(Locations.prototype);
+	//#endregion
+	//#region src/container.ts
+	/**
+	* Handles Parsing and Accessing an Epub Container
+	* @class
+	* @param {document} [containerDocument] xml document
+	*/
+	var Container = class {
+		packagePath;
+		directory;
+		encoding;
+		constructor(containerDocument) {
+			this.packagePath = "";
+			this.directory = "";
+			this.encoding = "";
+			if (containerDocument) this.parse(containerDocument);
+		}
+		/**
+		* Parse the Container XML
+		* @param  {document} containerDocument
+		*/
+		parse(containerDocument) {
+			var rootfile;
+			if (!containerDocument) throw new Error("Container File Not Found");
+			rootfile = qs$1(containerDocument, "rootfile");
+			if (!rootfile) throw new Error("No RootFile Found");
+			this.packagePath = rootfile.getAttribute("full-path");
+			this.directory = import_path.default.dirname(this.packagePath);
+			this.encoding = containerDocument.xmlEncoding;
+		}
+		destroy() {
+			this.packagePath = void 0;
+			this.directory = void 0;
+			this.encoding = void 0;
+		}
+	};
+	//#endregion
+	//#region src/packaging.ts
+	/**
+	* Open Packaging Format Parser
+	* @class
+	* @param {document} packageDocument OPF XML
+	*/
+	var Packaging = class {
+		manifest;
+		navPath;
+		ncxPath;
+		coverPath;
+		spineNodeIndex;
+		spine;
+		metadata;
+		uniqueIdentifier;
+		toc;
+		constructor(packageDocument) {
+			this.manifest = {};
+			this.navPath = "";
+			this.ncxPath = "";
+			this.coverPath = "";
+			this.spineNodeIndex = 0;
+			this.spine = [];
+			this.metadata = {};
+			if (packageDocument) this.parse(packageDocument);
+		}
+		/**
+		* Parse OPF XML
+		* @param  {document} packageDocument OPF XML
+		* @return {object} parsed package parts
+		*/
+		parse(packageDocument) {
+			var metadataNode, manifestNode, spineNode;
+			if (!packageDocument) throw new Error("Package File Not Found");
+			metadataNode = qs$1(packageDocument, "metadata");
+			if (!metadataNode) throw new Error("No Metadata Found");
+			manifestNode = qs$1(packageDocument, "manifest");
+			if (!manifestNode) throw new Error("No Manifest Found");
+			spineNode = qs$1(packageDocument, "spine");
+			if (!spineNode) throw new Error("No Spine Found");
+			this.manifest = this.parseManifest(manifestNode);
+			this.navPath = this.findNavPath(manifestNode);
+			this.ncxPath = this.findNcxPath(manifestNode, spineNode);
+			this.coverPath = this.findCoverPath(packageDocument);
+			this.spineNodeIndex = indexOfElementNode$1(spineNode);
+			this.spine = this.parseSpine(spineNode, this.manifest);
+			this.uniqueIdentifier = this.findUniqueIdentifier(packageDocument);
+			this.metadata = this.parseMetadata(metadataNode);
+			this.metadata.direction = spineNode.getAttribute("page-progression-direction");
+			return {
+				"metadata": this.metadata,
+				"spine": this.spine,
+				"manifest": this.manifest,
+				"navPath": this.navPath,
+				"ncxPath": this.ncxPath,
+				"coverPath": this.coverPath,
+				"spineNodeIndex": this.spineNodeIndex
+			};
+		}
+		/**
+		* Parse Metadata
+		* @private
+		* @param  {node} xml
+		* @return {object} metadata
+		*/
+		parseMetadata(xml) {
+			var metadata = {};
+			metadata.title = this.getElementText(xml, "title");
+			metadata.creator = this.getElementText(xml, "creator");
+			metadata.description = this.getElementText(xml, "description");
+			metadata.pubdate = this.getElementText(xml, "date");
+			metadata.publisher = this.getElementText(xml, "publisher");
+			metadata.identifier = this.getElementText(xml, "identifier");
+			metadata.language = this.getElementText(xml, "language");
+			metadata.rights = this.getElementText(xml, "rights");
+			metadata.modified_date = this.getPropertyText(xml, "dcterms:modified");
+			metadata.layout = this.getPropertyText(xml, "rendition:layout");
+			metadata.orientation = this.getPropertyText(xml, "rendition:orientation");
+			metadata.flow = this.getPropertyText(xml, "rendition:flow");
+			metadata.viewport = this.getPropertyText(xml, "rendition:viewport");
+			metadata.media_active_class = this.getPropertyText(xml, "media:active-class");
+			metadata.spread = this.getPropertyText(xml, "rendition:spread");
+			return metadata;
+		}
+		/**
+		* Parse Manifest
+		* @private
+		* @param  {node} manifestXml
+		* @return {object} manifest
+		*/
+		parseManifest(manifestXml) {
+			var manifest = {};
+			var selected = qsa$1(manifestXml, "item");
+			Array.prototype.slice.call(selected).forEach(function(item) {
+				var id = item.getAttribute("id"), href = item.getAttribute("href") || "", type = item.getAttribute("media-type") || "", overlay = item.getAttribute("media-overlay") || "", fallback = item.getAttribute("fallback") || "", properties = item.getAttribute("properties") || "";
+				if (!id) return;
+				manifest[id] = {
+					"href": href,
+					"type": type,
+					"overlay": overlay,
+					"mediaOverlay": overlay,
+					"fallback": fallback,
+					"fallbackChain": [],
+					"properties": properties.length ? properties.split(" ") : []
+				};
+			});
+			Object.keys(manifest).forEach(function(id) {
+				var item = manifest[id], fallback = item.fallback, visited = {};
+				visited[id] = true;
+				while (fallback && manifest[fallback] && !visited[fallback]) {
+					item.fallbackChain.push(fallback);
+					visited[fallback] = true;
+					fallback = manifest[fallback].fallback;
+				}
+			});
+			return manifest;
+		}
+		/**
+		* Parse Spine
+		* @private
+		* @param  {node} spineXml
+		* @param  {Packaging.manifest} manifest
+		* @return {object} spine
+		*/
+		parseSpine(spineXml, manifest) {
+			var spine = [];
+			var selected = qsa$1(spineXml, "itemref");
+			Array.prototype.slice.call(selected).forEach(function(item, index) {
+				var idref = item.getAttribute("idref");
+				var props = item.getAttribute("properties") || "";
+				var propArray = props.length ? props.split(" ") : [];
+				var itemref = {
+					"id": item.getAttribute("id"),
+					"idref": idref,
+					"linear": item.getAttribute("linear") || "yes",
+					"properties": propArray,
+					"index": index
+				};
+				spine.push(itemref);
+			});
+			return spine;
+		}
+		/**
+		* Find Unique Identifier
+		* @private
+		* @param  {node} packageXml
+		* @return {string} Unique Identifier text
+		*/
+		findUniqueIdentifier(packageXml) {
+			var uniqueIdentifierId = packageXml.documentElement.getAttribute("unique-identifier");
+			if (!uniqueIdentifierId) return "";
+			var identifier = packageXml.getElementById(uniqueIdentifierId);
+			if (!identifier) return "";
+			if (identifier.localName === "identifier" && identifier.namespaceURI === "http://purl.org/dc/elements/1.1/") return identifier.childNodes.length > 0 ? (identifier.childNodes[0].nodeValue || "").trim() : "";
+			return "";
+		}
+		/**
+		* Find TOC NAV
+		* @private
+		* @param {element} manifestNode
+		* @return {string}
+		*/
+		findNavPath(manifestNode) {
+			var node = qsp$1(manifestNode, "item", { "properties": "nav" });
+			return node ? node.getAttribute("href") : false;
+		}
+		/**
+		* Find TOC NCX
+		* media-type="application/x-dtbncx+xml" href="toc.ncx"
+		* @private
+		* @param {element} manifestNode
+		* @param {element} spineNode
+		* @return {string}
+		*/
+		findNcxPath(manifestNode, spineNode) {
+			var node = qsp$1(manifestNode, "item", { "media-type": "application/x-dtbncx+xml" });
+			var tocId;
+			if (!node) {
+				tocId = spineNode.getAttribute("toc");
+				if (tocId) node = manifestNode.querySelector(`#${tocId}`);
+			}
+			return node ? node.getAttribute("href") : false;
+		}
+		/**
+		* Find the Cover Path
+		* <item properties="cover-image" id="ci" href="cover.svg" media-type="image/svg+xml" />
+		* Fallback for Epub 2.0
+		* @private
+		* @param  {node} packageXml
+		* @return {string} href
+		*/
+		findCoverPath(packageXml) {
+			qs$1(packageXml, "package").getAttribute("version");
+			var node = qsp$1(packageXml, "item", { "properties": "cover-image" });
+			if (node) return node.getAttribute("href");
+			var metaCover = qsp$1(packageXml, "meta", { "name": "cover" });
+			if (metaCover) {
+				var coverId = metaCover.getAttribute("content");
+				var cover = packageXml.getElementById(coverId);
+				return cover ? cover.getAttribute("href") : "";
+			} else return false;
+		}
+		/**
+		* Get text of a namespaced element
+		* @private
+		* @param  {node} xml
+		* @param  {string} tag
+		* @return {string} text
+		*/
+		getElementText(xml, tag) {
+			var found = xml.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/", tag);
+			var el;
+			if (!found || found.length === 0) return "";
+			el = found[0];
+			if (el.childNodes.length) return el.childNodes[0].nodeValue || "";
+			return "";
+		}
+		/**
+		* Get text by property
+		* @private
+		* @param  {node} xml
+		* @param  {string} property
+		* @return {string} text
+		*/
+		getPropertyText(xml, property) {
+			var el = qsp$1(xml, "meta", { "property": property });
+			if (el && el.childNodes.length) return el.childNodes[0].nodeValue || "";
+			return "";
+		}
+		/**
+		* Load JSON Manifest
+		* @param  {document} packageDocument OPF XML
+		* @return {object} parsed package parts
+		*/
+		load(json) {
+			this.metadata = json.metadata;
+			let spine = json.readingOrder || json.spine;
+			this.spine = spine.map((item, index) => {
+				item.index = index;
+				item.linear = item.linear || "yes";
+				return item;
+			});
+			json.resources.forEach((item, index) => {
+				this.manifest[index] = item;
+				if (item.rel && item.rel[0] === "cover") this.coverPath = item.href;
+			});
+			this.spineNodeIndex = 0;
+			this.toc = json.toc.map((item, index) => {
+				item.label = item.title;
+				return item;
+			});
+			return {
+				"metadata": this.metadata,
+				"spine": this.spine,
+				"manifest": this.manifest,
+				"navPath": this.navPath,
+				"ncxPath": this.ncxPath,
+				"coverPath": this.coverPath,
+				"spineNodeIndex": this.spineNodeIndex,
+				"toc": this.toc
+			};
+		}
+		destroy() {
+			this.manifest = void 0;
+			this.navPath = void 0;
+			this.ncxPath = void 0;
+			this.coverPath = void 0;
+			this.spineNodeIndex = void 0;
+			this.spine = void 0;
+			this.metadata = void 0;
+		}
+	};
+	//#endregion
+	//#region src/navigation.ts
+	/**
+	* Navigation Parser
+	* @param {document} xml navigation html / xhtml / ncx
+	*/
+	var Navigation = class {
+		toc;
+		tocByHref;
+		tocById;
+		landmarks;
+		landmarksByType;
+		length;
+		constructor(xml) {
+			this.toc = [];
+			this.tocByHref = {};
+			this.tocById = {};
+			this.landmarks = [];
+			this.landmarksByType = {};
+			this.length = 0;
+			if (xml) this.parse(xml);
+		}
+		/**
+		* Parse out the navigation items
+		* @param {document} xml navigation html / xhtml / ncx
+		*/
+		parse(xml) {
+			let isXml = !Array.isArray(xml) && xml.nodeType;
+			let html;
+			let ncx;
+			if (isXml) {
+				html = qs$1(xml, "html");
+				ncx = qs$1(xml, "ncx");
+			}
+			if (!isXml) this.toc = this.load(xml);
+			else if (html) {
+				this.toc = this.parseNav(xml);
+				this.landmarks = this.parseLandmarks(xml);
+			} else if (ncx) this.toc = this.parseNcx(xml);
+			this.length = 0;
+			this.unpack(this.toc);
+		}
+		/**
+		* Unpack navigation items
+		* @private
+		* @param  {array} toc
+		*/
+		unpack(toc) {
+			var item;
+			for (var i = 0; i < toc.length; i++) {
+				item = toc[i];
+				if (item.href) this.tocByHref[item.href] = i;
+				if (item.id) this.tocById[item.id] = i;
+				this.length++;
+				if (item.subitems.length) this.unpack(item.subitems);
+			}
+		}
+		get(target) {
+			var index;
+			var lookupTarget = target;
+			if (!target) return this.toc;
+			if (target.indexOf("#") === 0) {
+				lookupTarget = target.substring(1);
+				index = this.tocById[lookupTarget];
+			} else if (target in this.tocByHref) index = this.tocByHref[target];
+			else if (target in this.tocById) index = this.tocById[target];
+			return this.getByIndex(lookupTarget, index, this.toc);
+		}
+		/**
+		* Get an item from navigation subitems recursively by index
+		* @param  {string} target
+		* @param  {number} index
+		* @param  {array} navItems
+		* @return {object} navItem
+		*/
+		getByIndex(target, index, navItems) {
+			if (navItems.length === 0) return;
+			const item = navItems[index];
+			if (item && (target === item.id || target === item.href)) return item;
+			else {
+				let result;
+				for (let i = 0; i < navItems.length; ++i) {
+					result = this.getByIndex(target, index, navItems[i].subitems);
+					if (result) break;
+				}
+				return result;
+			}
+		}
+		landmark(type) {
+			var index;
+			if (!type) return this.landmarks;
+			index = this.landmarksByType[type];
+			return this.landmarks[index];
+		}
+		/**
+		* Parse toc from a Epub > 3.0 Nav
+		* @private
+		* @param  {document} navHtml
+		* @return {array} navigation list
+		*/
+		parseNav(navHtml) {
+			var navElement = querySelectorByType$1(navHtml, "nav", "toc");
+			var list = [];
+			if (!navElement) return list;
+			let navList = filterChildren$1(navElement, "ol", true);
+			if (!navList) return list;
+			list = this.parseNavList(navList);
+			return list;
+		}
+		/**
+		* Parses lists in the toc
+		* @param  {document} navListHtml
+		* @param  {string} parent id
+		* @return {array} navigation list
+		*/
+		parseNavList(navListHtml, parent) {
+			const result = [];
+			if (!navListHtml) return result;
+			if (!navListHtml.children) return result;
+			for (let i = 0; i < navListHtml.children.length; i++) {
+				const item = this.navItem(navListHtml.children[i], parent);
+				if (item) result.push(item);
+			}
+			return result;
+		}
+		/**
+		* Create a navItem
+		* @private
+		* @param  {element} item
+		* @return {object} navItem
+		*/
+		navItem(item, parent) {
+			let id = item.getAttribute("id") || void 0;
+			let content = filterChildren$1(item, "a", true) || filterChildren$1(item, "span", true);
+			if (!content) return;
+			let src = content.getAttribute("href") || "";
+			if (!id) id = src;
+			let text = content.textContent || "";
+			let subitems = [];
+			let nested = filterChildren$1(item, "ol", true);
+			if (nested) subitems = this.parseNavList(nested, id);
+			return {
+				"id": id,
+				"href": src,
+				"label": text,
+				"subitems": subitems,
+				"parent": parent
+			};
+		}
+		/**
+		* Parse landmarks from a Epub > 3.0 Nav
+		* @private
+		* @param  {document} navHtml
+		* @return {array} landmarks list
+		*/
+		parseLandmarks(navHtml) {
+			var navElement = querySelectorByType$1(navHtml, "nav", "landmarks");
+			var navItems = navElement ? qsa$1(navElement, "li") : [];
+			var length = navItems.length;
+			var i;
+			var list = [];
+			var item;
+			if (!navItems || length === 0) return list;
+			for (i = 0; i < length; ++i) {
+				item = this.landmarkItem(navItems[i]);
+				if (item) {
+					list.push(item);
+					this.landmarksByType[item.type] = i;
+				}
+			}
+			return list;
+		}
+		/**
+		* Create a landmarkItem
+		* @private
+		* @param  {element} item
+		* @return {object} landmarkItem
+		*/
+		landmarkItem(item) {
+			let content = filterChildren$1(item, "a", true);
+			if (!content) return;
+			let type = content.getAttributeNS("http://www.idpf.org/2007/ops", "type") || void 0;
+			return {
+				"href": content.getAttribute("href") || "",
+				"label": content.textContent || "",
+				"type": type
+			};
+		}
+		/**
+		* Parse from a Epub > 3.0 NC
+		* @private
+		* @param  {document} navHtml
+		* @return {array} navigation list
+		*/
+		parseNcx(tocXml) {
+			var navPoints = qsa$1(tocXml, "navPoint");
+			var length = navPoints.length;
+			var i;
+			var toc = {};
+			var list = [];
+			var item, parent;
+			if (!navPoints || length === 0) return list;
+			for (i = 0; i < length; ++i) {
+				item = this.ncxItem(navPoints[i]);
+				toc[item.id] = item;
+				if (!item.parent) list.push(item);
+				else {
+					parent = toc[item.parent];
+					parent.subitems.push(item);
+				}
+			}
+			return list;
+		}
+		/**
+		* Create a ncxItem
+		* @private
+		* @param  {element} item
+		* @return {object} ncxItem
+		*/
+		ncxItem(item) {
+			var id = item.getAttribute("id") || "", src = qs$1(item, "content").getAttribute("src") || "", navLabel = qs$1(item, "navLabel"), text = navLabel.textContent ? navLabel.textContent : "", subitems = [], parentNode = item.parentNode, parent;
+			if (parentNode && (parentNode.nodeName === "navPoint" || parentNode.nodeName.split(":").slice(-1)[0] === "navPoint")) parent = parentNode.getAttribute("id") || void 0;
+			return {
+				"id": id,
+				"href": src,
+				"label": text,
+				"subitems": subitems,
+				"parent": parent
+			};
+		}
+		/**
+		* Load Spine Items
+		* @param  {object} json the items to be loaded
+		* @return {Array} navItems
+		*/
+		load(json) {
+			return json.map((item) => {
+				item.label = item.title;
+				item.subitems = item.children ? this.load(item.children) : [];
+				return item;
+			});
+		}
+		/**
+		* forEach pass through
+		* @param  {Function} fn function to run on each item
+		* @return {method} forEach loop
+		*/
+		forEach(fn) {
+			return this.toc.forEach(fn);
+		}
+	};
+	//#endregion
+	//#region src/platform/blob.ts
+	/**
+	* Create a Blob using the browser platform implementation.
+	* @param {any} content Blob content.
+	* @param {string} mime Blob MIME type.
+	* @returns {Blob} Browser Blob instance.
+	*/
+	function createBlob$1(content, mime) {
+		return new Blob([content], { type: mime });
+	}
+	/**
+	* Create an object URL for browser-rendered content.
+	* @param {any} content Blob content.
+	* @param {string} mime Blob MIME type.
+	* @returns {string} Browser object URL.
+	*/
+	function createBlobUrl$1(content, mime) {
+		var blob = createBlob$1(content, mime);
+		return getURLConstructor().createObjectURL(blob);
+	}
+	/**
+	* Revoke an object URL created by the browser platform.
+	* @param {string} url Browser object URL.
+	* @returns {void}
+	*/
+	function revokeBlobUrl$1(url) {
+		return getURLConstructor().revokeObjectURL(url);
+	}
+	/**
+	* Create a base64 data URL for string content.
+	* @param {any} content Source content.
+	* @param {string} mime Data URL MIME type.
+	* @returns {string | undefined} Base64 data URL.
+	*/
+	function createBase64Url$1(content, mime) {
+		var data;
+		if (typeof content !== "string") return;
+		data = btoa(content);
+		return "data:" + mime + ";base64," + data;
+	}
+	/**
+	* Convert a browser Blob to a base64 data URL.
+	* @param {Blob} blob Source Blob.
+	* @returns {Promise<string | ArrayBuffer | null>} Base64 data URL.
+	*/
+	function blobToBase64(blob) {
+		return new Promise(function(resolve, reject) {
+			var reader = new FileReader();
+			reader.onloadend = function() {
+				resolve(reader.result);
+			};
+			reader.onerror = function() {
+				reject(reader.error);
+			};
+			reader.readAsDataURL(blob);
+		});
+	}
+	//#endregion
+	//#region src/resources.ts
 	/**
 	* Handle Package Resources
 	* @class
@@ -9063,6 +8965,15 @@
 	* @param {method} [options.resolver]
 	*/
 	var Resources = class {
+		settings;
+		manifest;
+		resources;
+		replacementUrls;
+		html;
+		assets;
+		css;
+		urls;
+		cssUrls;
 		constructor(manifest, options) {
 			this.settings = {
 				replacements: options && options.replacements || "base64",
@@ -9110,10 +9021,10 @@
 		* @private
 		*/
 		splitUrls() {
-			this.urls = this.assets.map(function(item) {
+			this.urls = this.assets.map((item) => {
 				return item.href;
-			}.bind(this));
-			this.cssUrls = this.css.map(function(item) {
+			});
+			this.cssUrls = this.css.map((item) => {
 				return item.href;
 			});
 		}
@@ -9127,12 +9038,12 @@
 			var mimeType = mime_default.lookup(parsedUrl.filename);
 			if (this.settings.archive) return this.settings.archive.createUrl(url, { "base64": this.settings.replacements === "base64" });
 			else if (this.settings.replacements === "base64") return this.settings.request(url, "blob").then((blob) => {
-				return blob2base64(blob);
+				return blobToBase64(blob);
 			}).then((blob) => {
-				return createBase64Url(blob, mimeType);
+				return createBase64Url$1(blob, mimeType);
 			});
 			else return this.settings.request(url, "blob").then((blob) => {
-				return createBlobUrl(blob, mimeType);
+				return createBlobUrl$1(blob, mimeType);
 			});
 		}
 		/**
@@ -9140,9 +9051,7 @@
 		* @return {Promise}         returns replacement urls
 		*/
 		replacements() {
-			if (this.settings.replacements === "none") return new Promise(function(resolve) {
-				resolve(this.urls);
-			}.bind(this));
+			if (this.settings.replacements === "none") return Promise.resolve(this.urls);
 			var replacements = this.urls.map((url) => {
 				var absolute = this.settings.resolver(url);
 				return this.createUrl(absolute).catch((err) => {
@@ -9168,13 +9077,13 @@
 			var replaced = [];
 			archive = archive || this.settings.archive;
 			resolver = resolver || this.settings.resolver;
-			this.cssUrls.forEach(function(href) {
-				var replacement = this.createCssFile(href, archive, resolver).then(function(replacementUrl) {
+			this.cssUrls.forEach((href) => {
+				var replacement = this.createCssFile(href, archive, resolver).then((replacementUrl) => {
 					var indexInUrls = this.urls.indexOf(href);
 					if (indexInUrls > -1) this.replacementUrls[indexInUrls] = replacementUrl;
-				}.bind(this));
+				});
 				replaced.push(replacement);
-			}.bind(this));
+			});
 			return Promise.all(replaced);
 		}
 		/**
@@ -9183,31 +9092,27 @@
 		* @param  {string} href the original css file
 		* @return {Promise}  returns a BlobUrl to the new CSS file or a data url
 		*/
-		createCssFile(href) {
+		createCssFile(href, archive, resolver) {
 			var newUrl;
-			if (import_path.default.isAbsolute(href)) return new Promise(function(resolve) {
-				resolve();
-			});
-			var absolute = this.settings.resolver(href);
+			if (import_path.default.isAbsolute(href)) return Promise.resolve(void 0);
+			resolver = resolver || this.settings.resolver;
+			archive = archive || this.settings.archive;
+			var absolute = resolver(href);
 			var textResponse;
-			if (this.settings.archive) textResponse = this.settings.archive.getText(absolute);
+			if (archive) textResponse = archive.getText(absolute);
 			else textResponse = this.settings.request(absolute, "text");
 			var relUrls = this.urls.map((assetHref) => {
-				var resolved = this.settings.resolver(assetHref);
+				var resolved = resolver(assetHref);
 				return new Path(absolute).relative(resolved);
 			});
-			if (!textResponse) return new Promise(function(resolve) {
-				resolve();
-			});
+			if (!textResponse) return Promise.resolve(void 0);
 			return textResponse.then((text) => {
 				text = substitute(text, relUrls, this.replacementUrls);
-				if (this.settings.replacements === "base64") newUrl = createBase64Url(text, "text/css");
-				else newUrl = createBlobUrl(text, "text/css");
+				if (this.settings.replacements === "base64") newUrl = createBase64Url$1(text, "text/css");
+				else newUrl = createBlobUrl$1(text, "text/css");
 				return newUrl;
 			}, (err) => {
-				return new Promise(function(resolve) {
-					resolve();
-				});
+				return Promise.resolve(void 0);
 			});
 		}
 		/**
@@ -9218,10 +9123,10 @@
 		*/
 		relativeTo(absolute, resolver) {
 			resolver = resolver || this.settings.resolver;
-			return this.urls.map(function(href) {
+			return this.urls.map((href) => {
 				var resolved = resolver(href);
 				return new Path(absolute).relative(resolved);
-			}.bind(this));
+			});
 		}
 		/**
 		* Get a URL for a resource
@@ -9231,9 +9136,7 @@
 		get(path) {
 			var indexInUrls = this.urls.indexOf(path);
 			if (indexInUrls === -1) return;
-			if (this.replacementUrls.length) return new Promise(function(resolve, reject) {
-				resolve(this.replacementUrls[indexInUrls]);
-			}.bind(this));
+			if (this.replacementUrls.length) return Promise.resolve(this.replacementUrls[indexInUrls]);
 			else return this.createUrl(path);
 		}
 		/**
@@ -9262,12 +9165,24 @@
 		}
 	};
 	//#endregion
-	//#region src/pagelist.js
+	//#region src/pagelist.ts
 	/**
 	* Page List Parser
 	* @param {document} [xml]
 	*/
 	var PageList = class {
+		pages;
+		locations;
+		hrefs;
+		hrefByPage;
+		pageByHref;
+		epubcfi;
+		firstPage;
+		lastPage;
+		totalPages;
+		toc;
+		ncx;
+		pageList;
 		constructor(xml) {
 			this.pages = [];
 			this.locations = [];
@@ -9288,8 +9203,8 @@
 		* @param  {document} xml
 		*/
 		parse(xml) {
-			var html = qs(xml, "html");
-			var ncx = qs(xml, "ncx");
+			var html = qs$1(xml, "html");
+			var ncx = qs$1(xml, "ncx");
 			if (html) return this.parseNav(xml);
 			else if (ncx) return this.parseNcx(xml);
 		}
@@ -9300,8 +9215,8 @@
 		* @return {PageList.item[]} list
 		*/
 		parseNav(navHtml) {
-			var navElement = querySelectorByType(navHtml, "nav", "page-list");
-			var navItems = navElement ? qsa(navElement, "li") : [];
+			var navElement = querySelectorByType$1(navHtml, "nav", "page-list");
+			var navItems = navElement ? qsa$1(navElement, "li") : [];
 			var length = navItems.length;
 			var i;
 			var list = [];
@@ -9320,9 +9235,9 @@
 			var pageList;
 			var pageTargets;
 			var length = 0;
-			pageList = qs(navXml, "pageList");
+			pageList = qs$1(navXml, "pageList");
 			if (!pageList) return list;
-			pageTargets = qsa(pageList, "pageTarget");
+			pageTargets = qsa$1(pageList, "pageTarget");
 			length = pageTargets.length;
 			if (!pageTargets || pageTargets.length === 0) return list;
 			for (i = 0; i < length; ++i) {
@@ -9332,9 +9247,9 @@
 			return list;
 		}
 		ncxItem(item) {
-			var pageText = qs(qs(item, "navLabel"), "text").textContent;
+			var pageText = qs$1(qs$1(item, "navLabel"), "text").textContent || "";
 			return {
-				"href": qs(item, "content").getAttribute("src"),
+				"href": qs$1(item, "content").getAttribute("src") || "",
 				"page": pageText
 			};
 		}
@@ -9345,7 +9260,7 @@
 		* @return {object} pageListItem
 		*/
 		item(item) {
-			var content = qs(item, "a"), href = content.getAttribute("href") || "", page = content.textContent || "", isCfi = href.indexOf("epubcfi"), split, packageUrl, cfi;
+			var content = qs$1(item, "a"), href = content.getAttribute("href") || "", page = content.textContent || "", isCfi = href.indexOf("epubcfi"), split, packageUrl, cfi;
 			if (isCfi != -1) {
 				split = href.split("#");
 				packageUrl = split[0];
@@ -9376,8 +9291,8 @@
 				}
 				if (item.cfi) this.locations.push(item.cfi);
 			}, this);
-			this.firstPage = parseInt(this.pages[0]);
-			this.lastPage = parseInt(this.pages[this.pages.length - 1]);
+			this.firstPage = parseInt(String(this.pages[0]));
+			this.lastPage = parseInt(String(this.pages[this.pages.length - 1]));
 			this.totalPages = isNaN(this.firstPage) || isNaN(this.lastPage) ? this.pages.length : this.lastPage - this.firstPage;
 		}
 		/**
@@ -9388,10 +9303,10 @@
 		pageFromCfi(cfi) {
 			var pg = -1;
 			if (this.locations.length === 0) return -1;
-			var index = indexOfSorted(cfi, this.locations, this.epubcfi.compare);
+			var index = indexOfSorted$1(cfi, this.locations, this.epubcfi.compare);
 			if (index != -1) pg = this.pages[index];
 			else {
-				index = locationOf(cfi, this.locations, this.epubcfi.compare);
+				index = locationOf$1(cfi, this.locations, this.epubcfi.compare);
 				pg = index - 1 >= 0 ? this.pages[index - 1] : this.pages[0];
 				if (pg !== void 0) {} else pg = -1;
 			}
@@ -9448,7 +9363,7 @@
 		*/
 		percentageFromCfi(cfi) {
 			var pg = this.pageFromCfi(cfi);
-			return this.percentageFromPage(pg);
+			return this.percentageFromPage(Number(pg));
 		}
 		/**
 		* Destroy
@@ -9466,7 +9381,7 @@
 		}
 	};
 	//#endregion
-	//#region src/layout.js
+	//#region src/layout.ts
 	/**
 	* Figures out the CSS values to apply for a layout
 	* @class
@@ -9477,7 +9392,26 @@
 	* @param {boolean} [settings.evenSpreads=false]
 	*/
 	var Layout = class {
-		constructor(settings) {
+		settings;
+		name;
+		_spread;
+		_minSpreadWidth;
+		_evenSpreads;
+		_flow;
+		width;
+		height;
+		spreadWidth;
+		pageWidth;
+		delta;
+		effectivePageAdvance;
+		viewportPageWidth;
+		pageBoundaryShift;
+		edgeGuardPx;
+		columnWidth;
+		gap;
+		divisor;
+		props;
+		constructor(settings = {}) {
 			this.settings = settings;
 			this.name = settings.layout || "reflowable";
 			this._spread = settings.spread === "none" ? false : true;
@@ -9488,6 +9422,7 @@
 			this.width = 0;
 			this.height = 0;
 			this.spreadWidth = 0;
+			this.pageWidth = 0;
 			this.delta = 0;
 			this.effectivePageAdvance = 0;
 			this.viewportPageWidth = 0;
@@ -9503,6 +9438,7 @@
 				width: 0,
 				height: 0,
 				spreadWidth: 0,
+				pageWidth: 0,
 				delta: 0,
 				effectivePageAdvance: 0,
 				viewportPageWidth: 0,
@@ -9519,7 +9455,7 @@
 		* @return {string} simplified flow
 		*/
 		flow(flow) {
-			if (typeof flow != "undefined") {
+			if (typeof flow !== "undefined") {
 				if (flow === "scrolled" || flow === "scrolled-continuous" || flow === "scrolled-doc") this._flow = "scrolled";
 				else this._flow = "paginated";
 				this.update({ flow: this._flow });
@@ -9538,7 +9474,7 @@
 				this._spread = spread === "none" ? false : true;
 				this.update({ spread: this._spread });
 			}
-			if (min >= 0) this._minSpreadWidth = min;
+			if (typeof min === "number" && min >= 0) this._minSpreadWidth = min;
 			return this._spread;
 		}
 		/**
@@ -9651,20 +9587,25 @@
 				if (this.props[propName] === props[propName]) delete props[propName];
 			});
 			if (Object.keys(props).length > 0) {
-				let newProps = extend(this.props, props);
+				let newProps = extend$1(this.props, props);
 				this.emit(EVENTS.LAYOUT.UPDATED, newProps, props);
 			}
 		}
 	};
 	(0, import_event_emitter.default)(Layout.prototype);
 	//#endregion
-	//#region src/themes.js
+	//#region src/themes.ts
 	/**
 	* Themes to apply to displayed content
 	* @class
 	* @param {Rendition} rendition
 	*/
 	var Themes = class {
+		rendition;
+		_themes;
+		_overrides;
+		_current;
+		_injected;
 		constructor(rendition) {
 			this.rendition = rendition;
 			this._themes = { "default": {
@@ -9685,12 +9626,12 @@
 		* @example themes.register("light", { "body": { "color": "purple"}})
 		* @example themes.register({ "light" : {...}, "dark" : {...}})
 		*/
-		register() {
-			if (arguments.length === 0) return;
-			if (arguments.length === 1 && typeof arguments[0] === "object") return this.registerThemes(arguments[0]);
-			if (arguments.length === 1 && typeof arguments[0] === "string") return this.default(arguments[0]);
-			if (arguments.length === 2 && typeof arguments[1] === "string") return this.registerUrl(arguments[0], arguments[1]);
-			if (arguments.length === 2 && typeof arguments[1] === "object") return this.registerRules(arguments[0], arguments[1]);
+		register(...args) {
+			if (args.length === 0) return;
+			if (args.length === 1 && typeof args[0] === "object") return this.registerThemes(args[0]);
+			if (args.length === 1 && typeof args[0] === "string") return this.default(args[0]);
+			if (args.length === 2 && typeof args[1] === "string") return this.registerUrl(args[0], args[1]);
+			if (args.length === 2 && typeof args[1] === "object") return this.registerRules(args[0], args[1]);
 		}
 		/**
 		* Add a default theme to be used by a rendition
@@ -9849,7 +9790,374 @@
 		}
 	};
 	//#endregion
-	//#region src/mapping.js
+	//#region src/annotations.ts
+	/**
+	* Handles managing adding & removing Annotations
+	* @param {Rendition} rendition
+	* @class
+	*/
+	var Annotations = class {
+		rendition;
+		highlights;
+		underlines;
+		marks;
+		_annotations;
+		_annotationsBySectionIndex;
+		constructor(rendition) {
+			this.rendition = rendition;
+			this.highlights = [];
+			this.underlines = [];
+			this.marks = [];
+			this._annotations = {};
+			this._annotationsBySectionIndex = {};
+			this.rendition.hooks.render.register(this.inject.bind(this));
+			this.rendition.hooks.unloaded.register(this.clear.bind(this));
+		}
+		/**
+		* Add an annotation to store
+		* @param {string} type Type of annotation to add: "highlight", "underline", "mark"
+		* @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
+		* @param {object} data Data to assign to annotation
+		* @param {function} [cb] Callback after annotation is added
+		* @param {string} className CSS class to assign to annotation
+		* @param {object} styles CSS styles to assign to annotation
+		* @returns {Annotation} annotation
+		*/
+		add(type, cfiRange, data, cb, className, styles) {
+			let hash = encodeURI(cfiRange + type);
+			let sectionIndex = new EpubCFI(cfiRange).spinePos;
+			let annotation = new Annotation({
+				type,
+				cfiRange,
+				data,
+				sectionIndex,
+				cb,
+				className,
+				styles
+			});
+			this._annotations[hash] = annotation;
+			if (sectionIndex in this._annotationsBySectionIndex) this._annotationsBySectionIndex[sectionIndex].push(hash);
+			else this._annotationsBySectionIndex[sectionIndex] = [hash];
+			this.rendition.views().forEach((view) => {
+				if (annotation.sectionIndex === view.index) annotation.attach(view);
+			});
+			return annotation;
+		}
+		/**
+		* Remove an annotation from store
+		* @param {EpubCFI} cfiRange EpubCFI range the annotation is attached to
+		* @param {string} type Type of annotation to add: "highlight", "underline", "mark"
+		*/
+		remove(cfiRange, type) {
+			let hash = encodeURI(cfiRange + type);
+			if (hash in this._annotations) {
+				let annotation = this._annotations[hash];
+				if (type && annotation.type !== type) return;
+				this.rendition.views().forEach((view) => {
+					this._removeFromAnnotationBySectionIndex(annotation.sectionIndex, hash);
+					if (annotation.sectionIndex === view.index) annotation.detach(view);
+				});
+				delete this._annotations[hash];
+			}
+		}
+		/**
+		* Remove an annotations by Section Index
+		* @private
+		*/
+		_removeFromAnnotationBySectionIndex(sectionIndex, hash) {
+			this._annotationsBySectionIndex[sectionIndex] = this._annotationsAt(sectionIndex).filter((h) => h !== hash);
+		}
+		/**
+		* Get annotations by Section Index
+		* @private
+		*/
+		_annotationsAt(index) {
+			return this._annotationsBySectionIndex[index];
+		}
+		/**
+		* Add a highlight to the store
+		* @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
+		* @param {object} data Data to assign to annotation
+		* @param {function} cb Callback after annotation is clicked
+		* @param {string} className CSS class to assign to annotation
+		* @param {object} styles CSS styles to assign to annotation
+		*/
+		highlight(cfiRange, data, cb, className, styles) {
+			return this.add("highlight", cfiRange, data, cb, className, styles);
+		}
+		/**
+		* Add a underline to the store
+		* @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
+		* @param {object} data Data to assign to annotation
+		* @param {function} cb Callback after annotation is clicked
+		* @param {string} className CSS class to assign to annotation
+		* @param {object} styles CSS styles to assign to annotation
+		*/
+		underline(cfiRange, data, cb, className, styles) {
+			return this.add("underline", cfiRange, data, cb, className, styles);
+		}
+		/**
+		* Add a mark to the store
+		* @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
+		* @param {object} data Data to assign to annotation
+		* @param {function} cb Callback after annotation is clicked
+		*/
+		mark(cfiRange, data, cb) {
+			return this.add("mark", cfiRange, data, cb);
+		}
+		/**
+		* iterate over annotations in the store
+		*/
+		each(...args) {
+			return this._annotations.forEach.apply(this._annotations, args);
+		}
+		/**
+		* Hook for injecting annotation into a view
+		* @param {View} view
+		* @private
+		*/
+		inject(view) {
+			let sectionIndex = view.index;
+			if (sectionIndex in this._annotationsBySectionIndex) this._annotationsBySectionIndex[sectionIndex].forEach((hash) => {
+				this._annotations[hash].attach(view);
+			});
+		}
+		/**
+		* Hook for removing annotation from a view
+		* @param {View} view
+		* @private
+		*/
+		clear(view) {
+			let sectionIndex = view.index;
+			if (sectionIndex in this._annotationsBySectionIndex) this._annotationsBySectionIndex[sectionIndex].forEach((hash) => {
+				this._annotations[hash].detach(view);
+			});
+		}
+		/**
+		* [Not Implemented] Show annotations
+		* @TODO: needs implementation in View
+		*/
+		show() {}
+		/**
+		* [Not Implemented] Hide annotations
+		* @TODO: needs implementation in View
+		*/
+		hide() {}
+	};
+	/**
+	* Annotation object
+	* @class
+	* @param {object} options
+	* @param {string} options.type Type of annotation to add: "highlight", "underline", "mark"
+	* @param {EpubCFI} options.cfiRange EpubCFI range to attach annotation to
+	* @param {object} options.data Data to assign to annotation
+	* @param {int} options.sectionIndex Index in the Spine of the Section annotation belongs to
+	* @param {function} [options.cb] Callback after annotation is clicked
+	* @param {string} className CSS class to assign to annotation
+	* @param {object} styles CSS styles to assign to annotation
+	* @returns {Annotation} annotation
+	*/
+	var Annotation = class {
+		type;
+		cfiRange;
+		data;
+		sectionIndex;
+		mark;
+		cb;
+		className;
+		styles;
+		constructor({ type, cfiRange, data, sectionIndex, cb, className, styles }) {
+			this.type = type;
+			this.cfiRange = cfiRange;
+			this.data = data;
+			this.sectionIndex = sectionIndex;
+			this.mark = void 0;
+			this.cb = cb;
+			this.className = className;
+			this.styles = styles;
+		}
+		/**
+		* Update stored data
+		* @param {object} data
+		*/
+		update(data) {
+			this.data = data;
+		}
+		/**
+		* Add to a view
+		* @param {View} view
+		*/
+		attach(view) {
+			let { cfiRange, data, type, cb, className, styles } = this;
+			let result;
+			if (type === "highlight") result = view.highlight(cfiRange, data, cb, className, styles);
+			else if (type === "underline") result = view.underline(cfiRange, data, cb, className, styles);
+			else if (type === "mark") result = view.mark(cfiRange, data, cb);
+			this.mark = result;
+			this.emit(EVENTS.ANNOTATION.ATTACH, result);
+			return result;
+		}
+		/**
+		* Remove from a view
+		* @param {View} view
+		*/
+		detach(view) {
+			let { cfiRange, type } = this;
+			let result;
+			if (view) {
+				if (type === "highlight") result = view.unhighlight(cfiRange);
+				else if (type === "underline") result = view.ununderline(cfiRange);
+				else if (type === "mark") result = view.unmark(cfiRange);
+			}
+			this.mark = void 0;
+			this.emit(EVENTS.ANNOTATION.DETACH, result);
+			return result;
+		}
+		/**
+		* [Not Implemented] Get text of an annotation
+		* @TODO: needs implementation in contents
+		*/
+		text() {}
+	};
+	(0, import_event_emitter.default)(Annotation.prototype);
+	//#endregion
+	//#region src/compat/css.ts
+	/**
+	* Resolve the CSS property spelling supported by the current browser.
+	*
+	* This keeps legacy prefixed CSS lookup separate from generic core helpers
+	* while `utils/core.prefixed()` remains the compatibility export.
+	* @param {string} unprefixed CSS property name without a vendor prefix
+	* @returns {string} supported CSS property name
+	*/
+	function prefixed$1(unprefixed) {
+		var doc = getDocument();
+		var vendors = [
+			"Webkit",
+			"webkit",
+			"Moz",
+			"O",
+			"ms"
+		];
+		var prefixes = [
+			"-webkit-",
+			"-webkit-",
+			"-moz-",
+			"-o-",
+			"-ms-"
+		];
+		var lower = unprefixed.toLowerCase();
+		var length = vendors.length;
+		var style = doc && doc.body ? doc.body.style : void 0;
+		if (!doc || !doc.body || typeof style[lower] != "undefined") return unprefixed;
+		for (var i = 0; i < length; i++) if (typeof style[prefixes[i] + lower] != "undefined") return prefixes[i] + lower;
+		return unprefixed;
+	}
+	//#endregion
+	//#region src/platform/layout.ts
+	function sumStylePixels(style, props) {
+		var total = 0;
+		props.forEach(function(prop) {
+			total += parseFloat(style[prop]) || 0;
+		});
+		return total;
+	}
+	/**
+	* Gets the height of the current browser document.
+	* @returns {number} Document height.
+	*/
+	function documentHeight$1() {
+		var doc = getDocument();
+		return Math.max(doc.documentElement.clientHeight, doc.body.scrollHeight, doc.documentElement.scrollHeight, doc.body.offsetHeight, doc.documentElement.offsetHeight);
+	}
+	/**
+	* Find the bounds of an element, taking padding and margin into account.
+	* @param {Element} el Target element.
+	* @returns {{ width: number, height: number }} Element bounds.
+	*/
+	function bounds$1(el) {
+		var style = getWindow().getComputedStyle(el);
+		return {
+			height: sumStylePixels(style, [
+				"height",
+				"paddingTop",
+				"paddingBottom",
+				"marginTop",
+				"marginBottom",
+				"borderTopWidth",
+				"borderBottomWidth"
+			]),
+			width: sumStylePixels(style, [
+				"width",
+				"paddingRight",
+				"paddingLeft",
+				"marginRight",
+				"marginLeft",
+				"borderRightWidth",
+				"borderLeftWidth"
+			])
+		};
+	}
+	/**
+	* Find the bounds added around an element by padding, margin, and borders.
+	* @param {Element} el Target element.
+	* @returns {{ width: number, height: number }} Element border bounds.
+	*/
+	function borders$1(el) {
+		var style = getWindow().getComputedStyle(el);
+		return {
+			height: sumStylePixels(style, [
+				"paddingTop",
+				"paddingBottom",
+				"marginTop",
+				"marginBottom",
+				"borderTopWidth",
+				"borderBottomWidth"
+			]),
+			width: sumStylePixels(style, [
+				"paddingRight",
+				"paddingLeft",
+				"marginRight",
+				"marginLeft",
+				"borderRightWidth",
+				"borderLeftWidth"
+			])
+		};
+	}
+	/**
+	* Find the bounds of any node, including text nodes.
+	* @param {Node} node Target node.
+	* @returns {BoundingClientRect} Node bounds.
+	*/
+	function nodeBounds$1(node) {
+		var doc = node.ownerDocument;
+		var range;
+		if (node.nodeType == 3) {
+			range = doc.createRange();
+			range.selectNodeContents(node);
+			return range.getBoundingClientRect();
+		}
+		return node.getBoundingClientRect();
+	}
+	/**
+	* Find the equivalent of getBoundingClientRect for the browser window.
+	* @returns {{ width: number, height: number, top: number, left: number, right: number, bottom: number }} Window bounds.
+	*/
+	function windowBounds$1() {
+		var win = getWindow();
+		var width = win.innerWidth;
+		var height = win.innerHeight;
+		return {
+			top: 0,
+			left: 0,
+			right: width,
+			bottom: height,
+			width,
+			height
+		};
+	}
+	//#endregion
+	//#region src/mapping.ts
 	/**
 	* Map text locations to CFI ranges
 	* @class
@@ -9859,6 +10167,10 @@
 	* @param {boolean} [dev] toggle developer highlighting
 	*/
 	var Mapping = class {
+		layout;
+		horizontal;
+		direction;
+		_dev;
 		constructor(layout, direction, axis, dev = false) {
 			this.layout = layout;
 			this.horizontal = axis === "horizontal" ? true : false;
@@ -9958,7 +10270,7 @@
 				$el = stack.shift();
 				found = this.walk($el, (node) => {
 					var left, right, top, bottom;
-					var elPos = nodeBounds(node);
+					var elPos = nodeBounds$1(node);
 					if (this.horizontal && this.direction === "ltr") {
 						left = this.horizontal ? elPos.left : elPos.top;
 						right = this.horizontal ? elPos.right : elPos.bottom;
@@ -10009,7 +10321,7 @@
 				$el = stack.shift();
 				found = this.walk($el, (node) => {
 					var left, right, top, bottom;
-					var elPos = nodeBounds(node);
+					var elPos = nodeBounds$1(node);
 					if (this.horizontal && this.direction === "ltr") {
 						left = Math.round(elPos.left);
 						right = Math.round(elPos.right);
@@ -10187,7 +10499,7 @@
 		}
 	};
 	//#endregion
-	//#region src/contents.js
+	//#region src/contents.ts
 	var hasNavigator = typeof navigator !== "undefined";
 	var isChrome = hasNavigator && /Chrome/.test(navigator.userAgent);
 	var isWebkit = hasNavigator && !isChrome && /AppleWebKit/.test(navigator.userAgent);
@@ -10206,7 +10518,7 @@
 		const parsed = parseFloat(value);
 		return Number.isFinite(parsed) ? parsed : 0;
 	};
-	var countVerticalRlBoundaryCrossings = (contentWidth, pageLength, totalPages, lineBoxes) => {
+	var countVerticalRlBoundaryCrossings$1 = (contentWidth, pageLength, totalPages, lineBoxes) => {
 		let count = 0;
 		for (let page = 1; page < totalPages; page += 1) {
 			const boundary = contentWidth - page * pageLength;
@@ -10217,7 +10529,7 @@
 	var snapVerticalRlContentWidthToTextBoundaries = ({ snappedContentWidth, pageLength, totalPages, rawWidth, lineBoxes }) => {
 		if (!Number.isFinite(snappedContentWidth) || !Number.isFinite(pageLength) || !Number.isFinite(totalPages) || totalPages <= 1 || !Array.isArray(lineBoxes) || !lineBoxes.length) return snappedContentWidth;
 		const candidates = [0];
-		const initialCrossings = countVerticalRlBoundaryCrossings(snappedContentWidth, pageLength, totalPages, lineBoxes);
+		const initialCrossings = countVerticalRlBoundaryCrossings$1(snappedContentWidth, pageLength, totalPages, lineBoxes);
 		const maxLineRight = Math.max(0, ...lineBoxes.map((box) => Number(box && box.right)).filter((value) => Number.isFinite(value) && value > 0));
 		const rawWidthValue = Number.isFinite(rawWidth) && rawWidth > 0 ? rawWidth : 0;
 		const rawWidthLooksLikeFrameOverhang = Boolean(initialCrossings > 0 && rawWidthValue > 0 && maxLineRight > 0 && rawWidthValue > maxLineRight + VERTICAL_RL_WIDTH_GUARD && rawWidthValue - maxLineRight <= Math.max(32, pageLength * .1));
@@ -10235,7 +10547,7 @@
 			if (!Number.isFinite(delta) || delta >= 0) continue;
 			const width = snappedContentWidth + delta;
 			if (width < minContentWidth) continue;
-			const crossings = countVerticalRlBoundaryCrossings(width, pageLength, totalPages, lineBoxes);
+			const crossings = countVerticalRlBoundaryCrossings$1(width, pageLength, totalPages, lineBoxes);
 			if (crossings < best.crossings || crossings === best.crossings && Math.abs(delta) < Math.abs(best.delta)) best = {
 				width,
 				delta,
@@ -10251,6 +10563,16 @@
 		const maxReframeDrift = Math.max(24, Math.min(48, Math.ceil(Number(lineWidth || 0) + VERTICAL_RL_WIDTH_GUARD)));
 		if (Math.abs(width - previousWidth) > maxReframeDrift) return snappedContentWidth;
 		return Math.min(width, previousWidth);
+	};
+	var resolveVerticalRlEffectivePageAdvance = ({ viewportPageWidth, linePitch, lineBoxes }) => {
+		const safeViewportPageWidth = Number(viewportPageWidth);
+		const safeLinePitch = Number(linePitch);
+		if (!Number.isFinite(safeViewportPageWidth) || safeViewportPageWidth <= 0 || !Number.isFinite(safeLinePitch) || safeLinePitch <= 1 || !Array.isArray(lineBoxes) || !lineBoxes.length) return safeViewportPageWidth;
+		const nearestColumnAdvance = Math.round(safeViewportPageWidth / safeLinePitch) * safeLinePitch;
+		if (Math.abs(nearestColumnAdvance - safeViewportPageWidth) <= VERTICAL_RL_WIDTH_GUARD) return safeViewportPageWidth;
+		const flooredColumnAdvance = Math.floor(safeViewportPageWidth / safeLinePitch) * safeLinePitch;
+		if (Number.isFinite(flooredColumnAdvance) && flooredColumnAdvance > 0 && safeViewportPageWidth - flooredColumnAdvance > VERTICAL_RL_MIN_EDGE_GUARD) return flooredColumnAdvance;
+		return safeViewportPageWidth;
 	};
 	var resolveHorizontalTextWidth = (range, rangeRect, content) => {
 		const width = Number(rangeRect && rangeRect.width);
@@ -10332,8 +10654,8 @@
 		*/
 		width(w) {
 			var frame = this.content;
-			if (w && isNumber(w)) w = w + "px";
-			if (w) frame.style.width = w;
+			if (w && isNumber$1(w)) w = w + "px";
+			if (w) frame.style.width = String(w);
 			return parseInt(this.window.getComputedStyle(frame)["width"]);
 		}
 		/**
@@ -10343,8 +10665,8 @@
 		*/
 		height(h) {
 			var frame = this.content;
-			if (h && isNumber(h)) h = h + "px";
-			if (h) frame.style.height = h;
+			if (h && isNumber$1(h)) h = h + "px";
+			if (h) frame.style.height = String(h);
 			return parseInt(this.window.getComputedStyle(frame)["height"]);
 		}
 		/**
@@ -10354,8 +10676,8 @@
 		*/
 		contentWidth(w) {
 			var content = this.content || this.document.body;
-			if (w && isNumber(w)) w = w + "px";
-			if (w) content.style.width = w;
+			if (w && isNumber$1(w)) w = w + "px";
+			if (w) content.style.width = String(w);
 			return parseInt(this.window.getComputedStyle(content)["width"]);
 		}
 		/**
@@ -10365,8 +10687,8 @@
 		*/
 		contentHeight(h) {
 			var content = this.content || this.document.body;
-			if (h && isNumber(h)) h = h + "px";
-			if (h) content.style.height = h;
+			if (h && isNumber$1(h)) h = h + "px";
+			if (h) content.style.height = String(h);
 			return parseInt(this.window.getComputedStyle(content)["height"]);
 		}
 		/**
@@ -10378,7 +10700,7 @@
 			let width;
 			let range = this.document.createRange();
 			let content = this.content || this.document.body;
-			let border = borders(content);
+			let border = borders$1(content);
 			if ((this.window && this.window.getComputedStyle(content).writingMode) === "vertical-rl") {
 				const cacheKey = this.verticalRlMetricsCacheKey();
 				if (this._verticalRlMetricsCache && this._verticalRlMetricsCache.key === cacheKey) return this._verticalRlMetricsCache.width;
@@ -10537,7 +10859,7 @@
 			this.invalidateVerticalRlMetricsCache();
 			if (value) content.style.setProperty(property, value, priority ? "important" : "");
 			else content.style.removeProperty(property);
-			return this.window.getComputedStyle(content)[property];
+			return this.window.getComputedStyle(content).getPropertyValue(property);
 		}
 		/**
 		* Get or Set the viewport element
@@ -10562,7 +10884,7 @@
 			var newContent = [];
 			var settings = {};
 			if ($viewport && $viewport.hasAttribute("content")) {
-				let content = $viewport.getAttribute("content");
+				let content = $viewport.getAttribute("content") || "";
 				let _width = content.match(/width\s*=\s*([^,]*)/);
 				let _height = content.match(/height\s*=\s*([^,]*)/);
 				let _scale = content.match(/initial-scale\s*=\s*([^,]*)/);
@@ -10576,7 +10898,7 @@
 				if (_maximum && _maximum.length && typeof _maximum[1] !== "undefined") parsed.maximum = _maximum[1];
 				if (_scalable && _scalable.length && typeof _scalable[1] !== "undefined") parsed.scalable = _scalable[1];
 			}
-			settings = defaults(options || {}, parsed);
+			settings = defaults$1(options || {}, parsed);
 			if (options) {
 				if (settings.width) newContent.push("width=" + settings.width);
 				if (settings.height) newContent.push("height=" + settings.height);
@@ -10798,7 +11120,7 @@
 						let newRange = new Range();
 						try {
 							if (container.nodeType === ELEMENT_NODE) position = container.getBoundingClientRect();
-							else if (range.startOffset + 2 < container.length) {
+							else if (range.startOffset + 2 < (container.length || 0)) {
 								newRange.setStart(container, range.startOffset);
 								newRange.setEnd(container, range.startOffset + 2);
 								position = newRange.getBoundingClientRect();
@@ -10895,6 +11217,7 @@
 			if (!this.document || !serializedCss) return false;
 			this.invalidateVerticalRlMetricsCache();
 			var styleEl = this._getStylesheetNode(key);
+			if (!styleEl) return false;
 			styleEl.innerHTML = serializedCss;
 			return true;
 		}
@@ -10909,7 +11232,9 @@
 			var styleSheet;
 			if (!this.document || !rules || rules.length === 0) return;
 			this.invalidateVerticalRlMetricsCache();
-			styleSheet = this._getStylesheetNode(key).sheet;
+			const styleEl = this._getStylesheetNode(key);
+			if (!styleEl || !styleEl.sheet) return;
+			styleSheet = styleEl.sheet;
 			if (Object.prototype.toString.call(rules) === "[object Array]") for (var i = 0, rl = rules.length; i < rl; i++) {
 				var j = 1, rule = rules[i], selector = rules[i][0], propStr = "";
 				if (Object.prototype.toString.call(rule[1][0]) === "[object Array]") {
@@ -11087,7 +11412,7 @@
 			return new EpubCFI(node, this.cfiBase, ignoreClass).toString();
 		}
 		map(layout) {
-			return new Mapping(layout).section();
+			return new Mapping(layout).section(void 0);
 		}
 		/**
 		* Size the contents to a given width and height
@@ -11122,10 +11447,10 @@
 		*/
 		columns(width, height, columnWidth, gap, dir) {
 			this.invalidateVerticalRlMetricsCache();
-			let COLUMN_AXIS = prefixed("column-axis");
-			let COLUMN_GAP = prefixed("column-gap");
-			let COLUMN_WIDTH = prefixed("column-width");
-			let COLUMN_FILL = prefixed("column-fill");
+			let COLUMN_AXIS = prefixed$1("column-axis");
+			let COLUMN_GAP = prefixed$1("column-gap");
+			let COLUMN_WIDTH = prefixed$1("column-width");
+			let COLUMN_FILL = prefixed$1("column-fill");
 			let writingMode = this.writingMode();
 			let axis = writingMode.indexOf("vertical") === 0 ? "vertical" : "horizontal";
 			this.layoutStyle("paginated");
@@ -11266,6 +11591,7 @@
 				linePitch: null,
 				lineWidth: null,
 				lineLefts: [],
+				lineBoxes: [],
 				sampleCount: 0,
 				gapMad: null,
 				stable: false
@@ -11325,11 +11651,15 @@
 			rawHeight = Math.ceil(rawHeight);
 			const metrics = this.estimateVerticalRlLineMetrics(safePageWidth);
 			let viewportPageWidth = Number.isFinite(safePageWidth) && safePageWidth > 0 ? safePageWidth : null;
-			let effectivePageAdvance = viewportPageWidth;
+			let effectivePageAdvance = metrics.stable ? resolveVerticalRlEffectivePageAdvance({
+				viewportPageWidth,
+				linePitch: metrics.linePitch,
+				lineBoxes: metrics.lineBoxes
+			}) : viewportPageWidth;
 			const structuralBleed = viewportPageWidth && effectivePageAdvance ? Math.max(0, viewportPageWidth - effectivePageAdvance) : 0;
 			const edgeGuardPx = metrics.stable && Number.isFinite(metrics.lineWidth) && metrics.lineWidth > 0 && structuralBleed > VERTICAL_RL_MIN_EDGE_GUARD ? Math.min(Math.floor(structuralBleed / 2), Math.max(VERTICAL_RL_MIN_EDGE_GUARD, Math.ceil(metrics.lineWidth / 2) + 1)) : 0;
 			const pageLength = effectivePageAdvance || viewportPageWidth || 1;
-			let totalPages = Math.max(1, Math.ceil(rawWidth / pageLength));
+			let totalPages = Math.max(1, viewportPageWidth && effectivePageAdvance && viewportPageWidth > effectivePageAdvance ? Math.ceil(Math.max(0, rawWidth - viewportPageWidth) / effectivePageAdvance) + 1 : Math.ceil(rawWidth / pageLength));
 			let verticalFragmentPages = 1;
 			if (totalPages <= 1 && Number.isFinite(safePageHeight) && safePageHeight > 0 && Number.isFinite(rawHeight) && rawHeight > safePageHeight + VERTICAL_RL_MIN_EDGE_GUARD) {
 				const contentStyle = content && this.window ? this.window.getComputedStyle(content) : null;
@@ -11339,7 +11669,7 @@
 				totalPages = Math.max(totalPages, verticalFragmentPages);
 			}
 			let snappedContentWidth = snapVerticalRlContentWidthToTextBoundaries({
-				snappedContentWidth: totalPages * pageLength,
+				snappedContentWidth: viewportPageWidth && effectivePageAdvance && viewportPageWidth > effectivePageAdvance ? (totalPages - 1) * effectivePageAdvance + viewportPageWidth : totalPages * pageLength,
 				pageLength,
 				totalPages,
 				rawWidth,
@@ -11362,7 +11692,7 @@
 				rawWidth,
 				rawPaintWidth: rawWidth,
 				rawHeight,
-				pageWidth: pageLength,
+				pageWidth: viewportPageWidth || pageLength,
 				viewportPageWidth,
 				effectivePageAdvance,
 				linePitch: metrics.linePitch,
@@ -11472,10 +11802,10 @@
 		* @param {string} [dir="ltr"] "rtl" | "ltr"
 		*/
 		direction(dir) {
-			if (this.documentElement) this.documentElement.style["direction"] = dir;
+			if (this.documentElement) this.documentElement.style["direction"] = dir || "";
 		}
 		mapPage(cfiBase, layout, start, end, dev) {
-			return new Mapping(layout, dev).page(this, cfiBase, start, end);
+			return new Mapping(layout, void 0, void 0, dev).page(this, cfiBase, start, end);
 		}
 		/**
 		* Emit event when link in content is clicked
@@ -11491,8 +11821,8 @@
 		* @param {string} [mode="horizontal-tb"] "horizontal-tb" | "vertical-rl" | "vertical-lr"
 		*/
 		writingMode(mode) {
-			let WRITING_MODE = prefixed("writing-mode");
-			if (mode && this.documentElement) this.documentElement.style[WRITING_MODE] = mode;
+			let WRITING_MODE = prefixed$1("writing-mode");
+			if (mode && this.documentElement) this.documentElement.style.setProperty(WRITING_MODE, mode);
 			const bodyEl = this.document && this.document.body;
 			if (bodyEl) {
 				const inlineWM = bodyEl.style && bodyEl.style.getPropertyValue(WRITING_MODE);
@@ -11506,21 +11836,24 @@
 						} catch (e) {
 							continue;
 						}
-						for (const rule of rules) if (rule.style && rule.selectorText) {
-							const sel = rule.selectorText.toLowerCase();
-							if (sel === "body" || sel === "html, body" || sel === "body, html") {
-								const wm = rule.style.getPropertyValue(WRITING_MODE);
-								if (wm && wm !== "horizontal-tb") return wm;
+						for (const rule of rules) {
+							const styleRule = rule;
+							if (styleRule.style && styleRule.selectorText) {
+								const sel = styleRule.selectorText.toLowerCase();
+								if (sel === "body" || sel === "html, body" || sel === "body, html") {
+									const wm = styleRule.style.getPropertyValue(WRITING_MODE);
+									if (wm && wm !== "horizontal-tb") return wm;
+								}
 							}
 						}
 					}
 				} catch (e) {}
 			}
 			if (bodyEl) {
-				const bodyComputedWM = this.window.getComputedStyle(bodyEl)[WRITING_MODE];
+				const bodyComputedWM = this.window.getComputedStyle(bodyEl).getPropertyValue(WRITING_MODE);
 				if (bodyComputedWM && bodyComputedWM !== "horizontal-tb") return bodyComputedWM;
 			}
-			const documentComputedWM = this.window.getComputedStyle(this.documentElement)[WRITING_MODE] || "";
+			const documentComputedWM = this.window.getComputedStyle(this.documentElement).getPropertyValue(WRITING_MODE) || "";
 			if (documentComputedWM && documentComputedWM !== "horizontal-tb") return documentComputedWM;
 			return this._forcedWritingMode || documentComputedWM;
 		}
@@ -11570,223 +11903,6 @@
 		}
 	};
 	(0, import_event_emitter.default)(Contents.prototype);
-	//#endregion
-	//#region src/annotations.js
-	/**
-	* Handles managing adding & removing Annotations
-	* @param {Rendition} rendition
-	* @class
-	*/
-	var Annotations = class {
-		constructor(rendition) {
-			this.rendition = rendition;
-			this.highlights = [];
-			this.underlines = [];
-			this.marks = [];
-			this._annotations = {};
-			this._annotationsBySectionIndex = {};
-			this.rendition.hooks.render.register(this.inject.bind(this));
-			this.rendition.hooks.unloaded.register(this.clear.bind(this));
-		}
-		/**
-		* Add an annotation to store
-		* @param {string} type Type of annotation to add: "highlight", "underline", "mark"
-		* @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
-		* @param {object} data Data to assign to annotation
-		* @param {function} [cb] Callback after annotation is added
-		* @param {string} className CSS class to assign to annotation
-		* @param {object} styles CSS styles to assign to annotation
-		* @returns {Annotation} annotation
-		*/
-		add(type, cfiRange, data, cb, className, styles) {
-			let hash = encodeURI(cfiRange + type);
-			let sectionIndex = new EpubCFI(cfiRange).spinePos;
-			let annotation = new Annotation({
-				type,
-				cfiRange,
-				data,
-				sectionIndex,
-				cb,
-				className,
-				styles
-			});
-			this._annotations[hash] = annotation;
-			if (sectionIndex in this._annotationsBySectionIndex) this._annotationsBySectionIndex[sectionIndex].push(hash);
-			else this._annotationsBySectionIndex[sectionIndex] = [hash];
-			this.rendition.views().forEach((view) => {
-				if (annotation.sectionIndex === view.index) annotation.attach(view);
-			});
-			return annotation;
-		}
-		/**
-		* Remove an annotation from store
-		* @param {EpubCFI} cfiRange EpubCFI range the annotation is attached to
-		* @param {string} type Type of annotation to add: "highlight", "underline", "mark"
-		*/
-		remove(cfiRange, type) {
-			let hash = encodeURI(cfiRange + type);
-			if (hash in this._annotations) {
-				let annotation = this._annotations[hash];
-				if (type && annotation.type !== type) return;
-				this.rendition.views().forEach((view) => {
-					this._removeFromAnnotationBySectionIndex(annotation.sectionIndex, hash);
-					if (annotation.sectionIndex === view.index) annotation.detach(view);
-				});
-				delete this._annotations[hash];
-			}
-		}
-		/**
-		* Remove an annotations by Section Index
-		* @private
-		*/
-		_removeFromAnnotationBySectionIndex(sectionIndex, hash) {
-			this._annotationsBySectionIndex[sectionIndex] = this._annotationsAt(sectionIndex).filter((h) => h !== hash);
-		}
-		/**
-		* Get annotations by Section Index
-		* @private
-		*/
-		_annotationsAt(index) {
-			return this._annotationsBySectionIndex[index];
-		}
-		/**
-		* Add a highlight to the store
-		* @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
-		* @param {object} data Data to assign to annotation
-		* @param {function} cb Callback after annotation is clicked
-		* @param {string} className CSS class to assign to annotation
-		* @param {object} styles CSS styles to assign to annotation
-		*/
-		highlight(cfiRange, data, cb, className, styles) {
-			return this.add("highlight", cfiRange, data, cb, className, styles);
-		}
-		/**
-		* Add a underline to the store
-		* @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
-		* @param {object} data Data to assign to annotation
-		* @param {function} cb Callback after annotation is clicked
-		* @param {string} className CSS class to assign to annotation
-		* @param {object} styles CSS styles to assign to annotation
-		*/
-		underline(cfiRange, data, cb, className, styles) {
-			return this.add("underline", cfiRange, data, cb, className, styles);
-		}
-		/**
-		* Add a mark to the store
-		* @param {EpubCFI} cfiRange EpubCFI range to attach annotation to
-		* @param {object} data Data to assign to annotation
-		* @param {function} cb Callback after annotation is clicked
-		*/
-		mark(cfiRange, data, cb) {
-			return this.add("mark", cfiRange, data, cb);
-		}
-		/**
-		* iterate over annotations in the store
-		*/
-		each() {
-			return this._annotations.forEach.apply(this._annotations, arguments);
-		}
-		/**
-		* Hook for injecting annotation into a view
-		* @param {View} view
-		* @private
-		*/
-		inject(view) {
-			let sectionIndex = view.index;
-			if (sectionIndex in this._annotationsBySectionIndex) this._annotationsBySectionIndex[sectionIndex].forEach((hash) => {
-				this._annotations[hash].attach(view);
-			});
-		}
-		/**
-		* Hook for removing annotation from a view
-		* @param {View} view
-		* @private
-		*/
-		clear(view) {
-			let sectionIndex = view.index;
-			if (sectionIndex in this._annotationsBySectionIndex) this._annotationsBySectionIndex[sectionIndex].forEach((hash) => {
-				this._annotations[hash].detach(view);
-			});
-		}
-		/**
-		* [Not Implemented] Show annotations
-		* @TODO: needs implementation in View
-		*/
-		show() {}
-		/**
-		* [Not Implemented] Hide annotations
-		* @TODO: needs implementation in View
-		*/
-		hide() {}
-	};
-	/**
-	* Annotation object
-	* @class
-	* @param {object} options
-	* @param {string} options.type Type of annotation to add: "highlight", "underline", "mark"
-	* @param {EpubCFI} options.cfiRange EpubCFI range to attach annotation to
-	* @param {object} options.data Data to assign to annotation
-	* @param {int} options.sectionIndex Index in the Spine of the Section annotation belongs to
-	* @param {function} [options.cb] Callback after annotation is clicked
-	* @param {string} className CSS class to assign to annotation
-	* @param {object} styles CSS styles to assign to annotation
-	* @returns {Annotation} annotation
-	*/
-	var Annotation = class {
-		constructor({ type, cfiRange, data, sectionIndex, cb, className, styles }) {
-			this.type = type;
-			this.cfiRange = cfiRange;
-			this.data = data;
-			this.sectionIndex = sectionIndex;
-			this.mark = void 0;
-			this.cb = cb;
-			this.className = className;
-			this.styles = styles;
-		}
-		/**
-		* Update stored data
-		* @param {object} data
-		*/
-		update(data) {
-			this.data = data;
-		}
-		/**
-		* Add to a view
-		* @param {View} view
-		*/
-		attach(view) {
-			let { cfiRange, data, type, mark, cb, className, styles } = this;
-			let result;
-			if (type === "highlight") result = view.highlight(cfiRange, data, cb, className, styles);
-			else if (type === "underline") result = view.underline(cfiRange, data, cb, className, styles);
-			else if (type === "mark") result = view.mark(cfiRange, data, cb);
-			this.mark = result;
-			this.emit(EVENTS.ANNOTATION.ATTACH, result);
-			return result;
-		}
-		/**
-		* Remove from a view
-		* @param {View} view
-		*/
-		detach(view) {
-			let { cfiRange, type } = this;
-			let result;
-			if (view) {
-				if (type === "highlight") result = view.unhighlight(cfiRange);
-				else if (type === "underline") result = view.ununderline(cfiRange);
-				else if (type === "mark") result = view.unmark(cfiRange);
-			}
-			this.mark = void 0;
-			this.emit(EVENTS.ANNOTATION.DETACH, result);
-			return result;
-		}
-		/**
-		* [Not Implemented] Get text of an annotation
-		* @TODO: needs implementation in contents
-		*/
-		text() {}
-	};
-	(0, import_event_emitter.default)(Annotation.prototype);
 	//#endregion
 	//#region node_modules/marks-pane/lib/svg.js
 	var require_svg = /* @__PURE__ */ __commonJSMin(((exports) => {
@@ -11889,7 +12005,7 @@
 		}
 	}));
 	//#endregion
-	//#region src/managers/views/iframe.js
+	//#region src/managers/views/iframe.ts
 	var import_marks = (/* @__PURE__ */ __commonJSMin(((exports) => {
 		Object.defineProperty(exports, "__esModule", { value: true });
 		exports.Underline = exports.Highlight = exports.Mark = exports.Pane = void 0;
@@ -12168,6 +12284,8 @@
 			return rect2.right <= rect1.right && rect2.left >= rect1.left && rect2.top >= rect1.top && rect2.bottom <= rect1.bottom;
 		}
 	})))();
+	var Defer$4 = defer$1;
+	var ContentsCtor = Contents;
 	function stripScriptTagsFromContents(contents) {
 		if (typeof contents !== "string" || contents.toLowerCase().indexOf("<script") === -1) return contents;
 		return contents.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, "").replace(/<script\b[^>]*\/\s*>/gi, "");
@@ -12177,7 +12295,7 @@
 	};
 	var IframeView = class {
 		constructor(section, options) {
-			this.settings = extend({
+			this.settings = extend$1({
 				ignoreClass: "",
 				axis: void 0,
 				direction: void 0,
@@ -12190,7 +12308,7 @@
 				allowScriptedContent: false,
 				allowPopups: false
 			}, options || {});
-			this.id = "epubjs-view-" + uuid();
+			this.id = "epubjs-view-" + uuid$1();
 			this.section = section;
 			this.index = section.index;
 			this.element = this.container(this.settings.axis);
@@ -12240,7 +12358,7 @@
 			this._height = 0;
 			this.element.setAttribute("ref", this.index);
 			this.added = true;
-			this.elementBounds = bounds(this.element);
+			this.elementBounds = bounds$1(this.element);
 			if ("srcdoc" in this.iframe) this.supportsSrcdoc = true;
 			else this.supportsSrcdoc = false;
 			if (!this.settings.method) this.settings.method = this.supportsSrcdoc ? "srcdoc" : "write";
@@ -12302,18 +12420,18 @@
 			this.settings.height = height;
 		}
 		lock(what, width, height) {
-			var elBorders = borders(this.element);
+			var elBorders = borders$1(this.element);
 			var iframeBorders;
-			if (this.iframe) iframeBorders = borders(this.iframe);
+			if (this.iframe) iframeBorders = borders$1(this.iframe);
 			else iframeBorders = {
 				width: 0,
 				height: 0
 			};
-			if (what == "width" && isNumber(width)) this.lockedWidth = width - elBorders.width - iframeBorders.width;
-			if (what == "height" && isNumber(height)) this.lockedHeight = height - elBorders.height - iframeBorders.height;
-			if (what === "both" && isNumber(width) && isNumber(height)) {
-				this.lockedWidth = width - elBorders.width - iframeBorders.width;
-				this.lockedHeight = height - elBorders.height - iframeBorders.height;
+			if (what == "width" && isNumber$1(width)) this.lockedWidth = Number(width) - elBorders.width - iframeBorders.width;
+			if (what == "height" && isNumber$1(height)) this.lockedHeight = Number(height) - elBorders.height - iframeBorders.height;
+			if (what === "both" && isNumber$1(width) && isNumber$1(height)) {
+				this.lockedWidth = Number(width) - elBorders.width - iframeBorders.width;
+				this.lockedHeight = Number(height) - elBorders.height - iframeBorders.height;
 			}
 			if (this.displayed && this.iframe) this.expand();
 		}
@@ -12396,26 +12514,28 @@
 		}
 		reframe(width, height) {
 			var size;
-			if (isNumber(width)) {
+			if (isNumber$1(width)) {
 				this.element.style.width = width + "px";
 				this.iframe.style.width = width + "px";
 				this._width = width;
 			}
-			if (isNumber(height)) {
+			if (isNumber$1(height)) {
 				this.element.style.height = height + "px";
 				this.iframe.style.height = height + "px";
 				this._height = height;
 			}
+			let safeWidth = Number(width) || 0;
+			let safeHeight = Number(height) || 0;
 			size = {
-				width,
-				height,
-				widthDelta: this.prevBounds ? width - this.prevBounds.width : width,
-				heightDelta: this.prevBounds ? height - this.prevBounds.height : height
+				width: safeWidth,
+				height: safeHeight,
+				widthDelta: this.prevBounds ? safeWidth - this.prevBounds.width : safeWidth,
+				heightDelta: this.prevBounds ? safeHeight - this.prevBounds.height : safeHeight
 			};
 			this.pane && this.pane.render();
 			requestAnimationFrame(() => {
 				let mark;
-				for (let m in this.marks) if (this.marks.hasOwnProperty(m)) {
+				for (let m in this.marks) if (Object.prototype.hasOwnProperty.call(this.marks, m)) {
 					mark = this.marks[m];
 					this.placeMark(mark.element, mark.range);
 				}
@@ -12423,10 +12543,10 @@
 			this.onResize(this, size);
 			this.emit(EVENTS.VIEWS.RESIZED, size);
 			this.prevBounds = size;
-			this.elementBounds = bounds(this.element);
+			this.elementBounds = bounds$1(this.element);
 		}
 		load(contents) {
-			var loading = new defer();
+			var loading = new Defer$4();
 			var loaded = loading.promise;
 			if (!this.iframe) {
 				loading.reject(/* @__PURE__ */ new Error("No Iframe Available"));
@@ -12437,7 +12557,7 @@
 			}.bind(this);
 			if (!this.settings.allowScriptedContent) contents = stripScriptTagsFromContents(contents);
 			if (this.settings.method === "blobUrl") {
-				this.blobUrl = createBlobUrl(contents, "application/xhtml+xml");
+				this.blobUrl = createBlobUrl$1(contents, "application/xhtml+xml");
 				this.iframe.src = this.blobUrl;
 				this.element.appendChild(this.iframe);
 			} else if (this.settings.method === "srcdoc") {
@@ -12451,9 +12571,9 @@
 					return loaded;
 				}
 				this.iframe.contentDocument.open();
-				if (window.MSApp && MSApp.execUnsafeLocalFunction) {
+				if (window.MSApp && window.MSApp.execUnsafeLocalFunction) {
 					var outerThis = this;
-					MSApp.execUnsafeLocalFunction(function() {
+					window.MSApp.execUnsafeLocalFunction(function() {
 						outerThis.iframe.contentDocument.write(contents);
 					});
 				} else this.iframe.contentDocument.write(contents);
@@ -12464,7 +12584,7 @@
 		onLoad(event, promise) {
 			this.window = this.iframe.contentWindow;
 			this.document = this.iframe.contentDocument;
-			this.contents = new Contents(this.document, this.document.body, this.section.cfiBase, this.section.index, this.section.href);
+			this.contents = new ContentsCtor(this.document, this.document.body, this.section.cfiBase, this.section.index, this.section.href);
 			this.rendering = false;
 			var link = this.document.querySelector("link[rel='canonical']");
 			if (link) link.setAttribute("href", this.section.canonical);
@@ -12507,7 +12627,7 @@
 		addListeners() {}
 		removeListeners(layoutFunc) {}
 		display(request) {
-			var displayed = new defer();
+			var displayed = new Defer$4();
 			if (!this.displayed) this.render(request).then(function() {
 				this.emit(EVENTS.VIEWS.DISPLAYED, this);
 				this.onDisplayed(this);
@@ -12551,7 +12671,6 @@
 			return this.element.getBoundingClientRect();
 		}
 		locationOf(target) {
-			this.iframe.getBoundingClientRect();
 			var targetPos = this.contents.locationOf(target, this.settings.ignoreClass);
 			return {
 				"left": targetPos.left,
@@ -12561,7 +12680,7 @@
 		onDisplayed(view) {}
 		onResize(view, e) {}
 		bounds(force) {
-			if (force || !this.elementBounds) this.elementBounds = bounds(this.element);
+			if (force || !this.elementBounds) this.elementBounds = bounds$1(this.element);
 			return this.elementBounds;
 		}
 		highlight(cfiRange, data = {}, cb, className = "epubjs-hl", styles = {}) {
@@ -12728,7 +12847,7 @@
 			for (let cfiRange in this.highlights) this.unhighlight(cfiRange);
 			for (let cfiRange in this.underlines) this.ununderline(cfiRange);
 			for (let cfiRange in this.marks) this.unmark(cfiRange);
-			if (this.blobUrl) revokeBlobUrl(this.blobUrl);
+			if (this.blobUrl) revokeBlobUrl$1(this.blobUrl);
 			if (this.displayed) {
 				this.displayed = false;
 				this.removeListeners();
@@ -12750,7 +12869,7 @@
 	};
 	(0, import_event_emitter.default)(IframeView.prototype);
 	//#endregion
-	//#region src/utils/scrolltype.js
+	//#region src/utils/scrolltype.ts
 	function scrollType() {
 		var type = "reverse";
 		var definer = createDefiner();
@@ -12787,6 +12906,931 @@
 		innerDiv.appendChild(spanB);
 		definer.appendChild(innerDiv);
 		return definer;
+	}
+	//#endregion
+	//#region src/rendering/page-metrics.ts
+	function countPagesWithFractionalTolerance(totalLength, pageLength) {
+		if (!Number.isFinite(totalLength) || totalLength <= 0 || !Number.isFinite(pageLength) || pageLength <= 0) return 1;
+		const ratio = totalLength / pageLength;
+		const rounded = Math.max(1, Math.round(ratio));
+		const tolerance = Math.max(1, Math.min(4, pageLength * .005));
+		if (Math.abs(totalLength - rounded * pageLength) <= tolerance) return rounded;
+		return Math.max(1, Math.ceil(ratio));
+	}
+	function getPageSnapTolerance(pageAdvance, edgeGuard = 0) {
+		const advance = Number(pageAdvance) || 0;
+		const safeEdgeGuard = Number(edgeGuard) || 0;
+		const tolerance = Math.max(2, safeEdgeGuard, Math.round(advance * .08));
+		return advance > 0 ? Math.min(Math.max(2, Math.round(advance / 4)), tolerance) : 2;
+	}
+	function getPageBoundaryShift(pageBoundaryShift, pageAdvance, isRtlVerticalPaginated = false) {
+		if (!isRtlVerticalPaginated) return 0;
+		const shift = Number(pageBoundaryShift || 0);
+		const advance = Number(pageAdvance) || 0;
+		if (!Number.isFinite(shift) || shift <= 0 || !advance) return 0;
+		return Math.min(shift, Math.max(0, Math.floor(advance / 3)));
+	}
+	function hasVerticalRlStructuralPageGutter(pageAdvance, visibleWidth, boundaryShift, isRtlVerticalPaginated = false) {
+		const advance = Number(pageAdvance) || 0;
+		const width = Number(visibleWidth) || 0;
+		const shift = Number(boundaryShift) || 0;
+		return !!(isRtlVerticalPaginated && advance && width && width - advance > 1 && shift === 0);
+	}
+	//#endregion
+	//#region src/rendering/logical-page.ts
+	function getVerticalRlLogicalPageStepToNextPage(pageAdvance, totalPages, currentPageIndex, nextPageIndex, currentOffset, nextOffset, hasStructuralPageGutter) {
+		const advance = Number(pageAdvance) || 0;
+		const total = Number(totalPages) || 0;
+		const nextIndex = Number(nextPageIndex) || 0;
+		const step = Math.abs((Number(nextOffset) || 0) - (Number(currentOffset) || 0));
+		if (nextIndex === total - 1 && step > advance && hasStructuralPageGutter) return advance;
+		return step > 0 ? step : advance;
+	}
+	function getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll, contentWidth, visibleWidth, pageAdvance, edgeGuard = 0) {
+		const content = Number(contentWidth) || 0;
+		const visible = Number(visibleWidth) || 0;
+		const advance = Number(pageAdvance) || 0;
+		if (!content || !visible || !advance) return null;
+		return [
+			Math.round((Number(totalPages) || 0) * 100) / 100,
+			Math.round((Number(maxScroll) || 0) * 100) / 100,
+			Math.round(content * 100) / 100,
+			Math.round(visible * 100) / 100,
+			Math.round(advance * 100) / 100,
+			Math.round((Number(edgeGuard) || 0) * 100) / 100
+		].join(":");
+	}
+	function getCachedVerticalRlLogicalPageOffset(cache, pageIndex, cacheKey) {
+		if (!cache || cache.key !== cacheKey || !cache.offsets) return null;
+		const cachedOffset = Number(cache.offsets[pageIndex]);
+		return Number.isFinite(cachedOffset) ? cachedOffset : null;
+	}
+	function cacheVerticalRlLogicalPageOffset(cache, pageIndex, logicalOffset, cacheKey) {
+		if (!cacheKey || !Number.isFinite(Number(logicalOffset))) return cache;
+		const nextCache = !cache || cache.key !== cacheKey ? {
+			key: cacheKey,
+			offsets: Object.create(null)
+		} : cache;
+		nextCache.offsets[pageIndex] = Number(logicalOffset);
+		return nextCache;
+	}
+	function getLogicalOffsetForPageIndex(pageIndex, totalPages, maxScroll, pageAdvance, boundaryShift = 0, isRtlVerticalPaginated = false) {
+		const advance = Number(pageAdvance) || 0;
+		const targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
+		let logicalOffset = targetIndex * advance;
+		if (isRtlVerticalPaginated && boundaryShift > 0 && targetIndex > 0 && targetIndex < totalPages - 1) logicalOffset = Math.max(0, logicalOffset - boundaryShift);
+		return Math.min(maxScroll, logicalOffset);
+	}
+	function getCurrentPageIndexForOffset(normalizedOffset, totalPages, pageAdvance, maxScroll, snapTolerance, boundaryShift = 0, isRtlVerticalPaginated = false) {
+		const advance = Number(pageAdvance) || 0;
+		if (!advance || advance <= 0) return 0;
+		const pageCount = Math.max(1, Math.floor(Number(totalPages) || 1));
+		const normalized = Number(normalizedOffset) || 0;
+		const maxLogicalScroll = Number(maxScroll) || 0;
+		const tolerance = Number(snapTolerance) || 0;
+		if (isRtlVerticalPaginated && pageCount > 1 && maxLogicalScroll > 0 && normalized >= maxLogicalScroll - tolerance) return pageCount - 1;
+		if (isRtlVerticalPaginated) {
+			let nearestPageIndex = 0;
+			let nearestDistance = Infinity;
+			for (let i = 0; i < pageCount; i++) {
+				const targetOffset = getLogicalOffsetForPageIndex(i, pageCount, maxLogicalScroll, advance, boundaryShift, isRtlVerticalPaginated);
+				const distance = Math.abs(normalized - targetOffset);
+				if (distance < nearestDistance) {
+					nearestDistance = distance;
+					nearestPageIndex = i;
+				}
+			}
+			return nearestPageIndex;
+		}
+		const nearestPageIndex = Math.round(normalized / advance);
+		if (Math.abs(normalized - nearestPageIndex * advance) <= tolerance) return Math.max(0, Math.min(pageCount - 1, nearestPageIndex));
+		const pageIndex = Math.floor((normalized + .5) / advance);
+		return Math.max(0, Math.min(pageCount - 1, pageIndex));
+	}
+	//#endregion
+	//#region src/rendering/edge-mask.ts
+	function getVerticalRlEdgeMaskLimit(pageAdvance) {
+		const advance = Number(pageAdvance) || 0;
+		return Math.max(0, Math.floor(advance / 4));
+	}
+	function runVerticalRlEdgeMaskSnapLoop(snapLeft, snapRight, maxIterations = 4) {
+		const iterationsLimit = Math.max(0, Math.floor(Number(maxIterations) || 0));
+		let iterations = 0;
+		let lastShift = 0;
+		for (let i = 0; i < iterationsLimit; i++) {
+			iterations++;
+			lastShift = (Number(snapLeft()) || 0) + (Number(snapRight()) || 0);
+			if (!lastShift) return {
+				iterations,
+				lastShift,
+				stopped: true
+			};
+		}
+		return {
+			iterations,
+			lastShift,
+			stopped: false
+		};
+	}
+	function hasVerticalRlEdgeMaskStructuralGutter(visibleWidth, pageAdvance, leftMask, boundaryShift, currentPageIndex, previousPageStep) {
+		const visible = Number(visibleWidth) || 0;
+		const advance = Number(pageAdvance) || 0;
+		const left = Number(leftMask) || 0;
+		const shift = Number(boundaryShift) || 0;
+		const pageIndex = Number(currentPageIndex) || 0;
+		const previousStep = Number(previousPageStep) || 0;
+		return !!(visible && advance && Math.abs(visible - advance - left) <= 1 && shift === 0 && (pageIndex <= 0 || Math.abs(previousStep - advance) <= 1));
+	}
+	function getVerticalRlPreviousPageRightMask(visibleWidth, previousPageStep, previousPageLeftMask, maxMask) {
+		const visible = Number(visibleWidth) || 0;
+		const previousStep = Number(previousPageStep) || 0;
+		const previousLeft = Number(previousPageLeftMask) || 0;
+		const maskLimit = Math.max(0, Number(maxMask) || 0);
+		if (!visible || !previousStep || !maskLimit) return 0;
+		const overlap = Math.max(0, visible - previousStep - previousLeft);
+		return Math.min(Math.ceil(overlap), maskLimit);
+	}
+	function getVerticalRlEdgeMaskSnapInput(left, right, maxMask, previousPageStep = 0) {
+		const maskLimit = Math.max(0, Number(maxMask) || 0);
+		if (!maskLimit) return null;
+		const rightMask = Math.min(Number(right) || 0, maskLimit);
+		return {
+			widths: {
+				left: Math.min(Number(left) || 0, maskLimit),
+				right: rightMask
+			},
+			maxMask: maskLimit,
+			previousPageStep: Number(previousPageStep) || 0,
+			rightMaxMask: rightMask
+		};
+	}
+	function getVerticalRlStructuralGutterEdgeMaskSnapInput(left, right, maxMask, nextPageStep) {
+		const maskLimit = Math.max(0, Number(maxMask) || 0);
+		if (!maskLimit) return null;
+		return {
+			widths: {
+				left: Math.min(Number(left) || 0, maskLimit),
+				right: Number(right) || 0
+			},
+			maxMask: maskLimit,
+			nextPageStep: Number(nextPageStep) || 0,
+			rightMaxMask: 0
+		};
+	}
+	function getRenderedVerticalRlEdgeMaskWidths(computed, renderedLeft, renderedRight, renderedFallback) {
+		let left = Number(renderedLeft);
+		let right = Number(renderedRight);
+		if (!Number.isFinite(left)) left = Number(renderedFallback);
+		if (!Number.isFinite(right)) right = 0;
+		return {
+			left: Math.max(Number(computed && computed.left) || 0, left || 0),
+			right: Math.max(Number(computed && computed.right) || 0, right || 0)
+		};
+	}
+	function getVerticalRlEdgeMaskWidth(widths) {
+		return Math.max(Number(widths && widths.left) || 0, Number(widths && widths.right) || 0);
+	}
+	function getVerticalRlEdgeMaskSnapViewportInput(widths, maxMask, containerLeft, containerRight, iframeLeft, limits, defaultNextPageStep, edgeGuardPx = 0) {
+		const maskLimit = Math.max(0, Number(maxMask) || 0);
+		const leftLimit = Math.max(0, Number(limits.leftMaxMask !== void 0 ? limits.leftMaxMask : maskLimit) || 0);
+		const rightLimit = Math.max(0, Number(limits.rightMaxMask !== void 0 ? limits.rightMaxMask : maskLimit) || 0);
+		const rawLeft = Number.isFinite(Number(limits.rawLeft)) ? Number(limits.rawLeft) : (Number(containerLeft) || 0) - (Number(iframeLeft) || 0);
+		const rawRight = Number.isFinite(Number(limits.rawRight)) ? Number(limits.rawRight) : (Number(containerRight) || 0) - (Number(iframeLeft) || 0);
+		const guard = Number(edgeGuardPx) || 0;
+		const edgeTolerance = Math.max(1, Math.min(4, Math.round(guard || 1)));
+		const hasStructuralEdgeGuard = guard > 0;
+		const canExpandClippedRawRight = (Number(iframeLeft) || 0) < 0 || hasStructuralEdgeGuard || !!limits.allowRawRightMask;
+		return {
+			rawLeft,
+			rawRight,
+			leftMaxMask: leftLimit,
+			rightMaxMask: rightLimit,
+			left: Math.max(0, Math.min(Number(widths && widths.left) || 0, leftLimit)),
+			right: Math.max(0, Math.min(Number(widths && widths.right) || 0, rightLimit)),
+			nextPageStep: Number(limits.nextPageStep !== void 0 ? limits.nextPageStep : defaultNextPageStep) || 0,
+			previousPageStep: Number(limits.previousPageStep) || 0,
+			forceRawLeftMask: !!limits.forceRawLeftMask,
+			allowRawLeftMask: !!limits.allowRawLeftMask,
+			edgeTolerance,
+			hasStructuralEdgeGuard,
+			canExpandClippedRawRight,
+			rightPaintGuardMax: Math.min(maskLimit, Math.max(rightLimit, edgeTolerance))
+		};
+	}
+	function getVerticalRlSnappedRightEdgeMask(right, shift, maxMask, rightMaxMask, requiredRawRightMask, rightPaintGuardMax, expandBeyondPaintGuard) {
+		const currentRight = Math.max(0, Number(right) || 0);
+		const maskLimit = Math.max(0, Number(maxMask) || 0);
+		const delta = Number(shift) || 0;
+		if (!delta) return currentRight;
+		const maxAllowedRight = delta > 0 ? expandBeyondPaintGuard ? maskLimit : Math.max(0, Number(rightPaintGuardMax) || 0) : Math.max(Math.max(0, Number(rightMaxMask) || 0), Math.max(0, Number(requiredRawRightMask) || 0), currentRight + delta);
+		return Math.max(0, Math.min(maxAllowedRight, currentRight + delta));
+	}
+	function getVerticalRlSnappedLeftEdgeMask(left, shift, leftMaxMask) {
+		const currentLeft = Math.max(0, Number(left) || 0);
+		const delta = Number(shift) || 0;
+		if (!delta) return currentLeft;
+		return Math.max(0, Math.min(Math.max(0, Number(leftMaxMask) || 0), currentLeft + delta));
+	}
+	//#endregion
+	//#region src/rendering/raw-right-snap.ts
+	function getVerticalRlRequiredRawRightMask(currentRequiredRawRightMask, rectLeft, rectRight, rawLeft, rawRight, previousRawLeft, previousPageStep, edgeTolerance) {
+		const currentRequired = Math.max(0, Number(currentRequiredRawRightMask) || 0);
+		const left = Number(rectLeft) || 0;
+		const right = Number(rectRight) || 0;
+		const viewportLeft = Number(rawLeft) || 0;
+		const viewportRight = Number(rawRight) || 0;
+		const previousLeft = Number(previousRawLeft) || 0;
+		const previousStep = Number(previousPageStep) || 0;
+		const tolerance = Math.max(0, Number(edgeTolerance) || 0);
+		if (!(left < viewportRight && right > viewportRight)) return currentRequired;
+		if (previousStep > 0 && left < previousLeft && right > previousLeft) return currentRequired;
+		const rawRightOverhang = right - viewportRight;
+		const visibleInsideRawRight = viewportRight - Math.max(left, viewportLeft);
+		if (visibleInsideRawRight > tolerance && rawRightOverhang > Math.max(tolerance, 4)) return Math.max(currentRequired, Math.ceil(visibleInsideRawRight + 1));
+		return currentRequired;
+	}
+	function getVerticalRlRequiredRawRightMaskForRects(rects, rawLeft, rawRight, previousRawLeft, previousPageStep, edgeTolerance, initialRequiredRawRightMask = 0) {
+		let requiredRawRightMask = Math.max(0, Number(initialRequiredRawRightMask) || 0);
+		for (const rect of rects || []) requiredRawRightMask = getVerticalRlRequiredRawRightMask(requiredRawRightMask, rect.left, rect.right, rawLeft, rawRight, previousRawLeft, previousPageStep, edgeTolerance);
+		return requiredRawRightMask;
+	}
+	function getVerticalRlRawRightSnapRectInput(rectLeft, rectRight, rawLeft, rawRight, previousRawLeft, previousPageStep) {
+		const left = Number(rectLeft) || 0;
+		const right = Number(rectRight) || 0;
+		const viewportLeft = Number(rawLeft) || 0;
+		const viewportRight = Number(rawRight) || 0;
+		const previousLeft = Number(previousRawLeft) || 0;
+		const previousStep = Number(previousPageStep) || 0;
+		const rawRightStraddler = left < viewportRight && right > viewportRight;
+		return {
+			clippedAtPreviousLeft: previousStep > 0 && left < previousLeft && right > previousLeft,
+			rawRightStraddler,
+			rawRightOverhang: rawRightStraddler ? right - viewportRight : 0,
+			visibleInsideRawRight: rawRightStraddler ? viewportRight - Math.max(left, viewportLeft) : 0
+		};
+	}
+	function hasVerticalRlRightEdgeMaskConsumingVisibleEdge(isRawRightStraddler, right, visibleInsideRawRight, rightMaxMask, edgeTolerance) {
+		const visibleInside = Number(visibleInsideRawRight) || 0;
+		const currentRight = Number(right) || 0;
+		const rightLimit = Number(rightMaxMask) || 0;
+		const tolerance = Number(edgeTolerance) || 0;
+		return !!(isRawRightStraddler && currentRight < visibleInside && visibleInside <= Math.max(currentRight, rightLimit) + tolerance);
+	}
+	function getVerticalRlJustOutsideRawRightMaskTarget(rectLeft, rawRight, edgeTolerance) {
+		const left = Number(rectLeft) || 0;
+		const viewportRight = Number(rawRight) || 0;
+		const tolerance = Math.max(0, Number(edgeTolerance) || 0);
+		if (left < viewportRight || left - viewportRight > tolerance) return 0;
+		return Math.ceil(Math.min(tolerance, left - viewportRight + tolerance));
+	}
+	function getVerticalRlShallowRawRightStraddlerMaskTarget(isRawRightStraddler, visibleInsideRawRight, edgeTolerance) {
+		const visibleInside = Math.max(0, Number(visibleInsideRawRight) || 0);
+		const tolerance = Math.max(0, Number(edgeTolerance) || 0);
+		if (!isRawRightStraddler || visibleInside > tolerance) return 0;
+		return Math.ceil(visibleInside + 1);
+	}
+	function shouldClearVerticalRlRawRightStraddlerMask(isRawRightStraddler, rawRightOverhang, edgeTolerance, maskConsumesVisibleRightEdge, requiredRawRightMask, nextPageStep) {
+		const overhang = Number(rawRightOverhang) || 0;
+		const tolerance = Math.max(0, Number(edgeTolerance) || 0);
+		const required = Math.max(0, Number(requiredRawRightMask) || 0);
+		const nextStep = Number(nextPageStep) || 0;
+		return !!(isRawRightStraddler && (overhang <= Math.max(tolerance, 4) || maskConsumesVisibleRightEdge && (required <= 0 || nextStep <= 0)));
+	}
+	function shouldClearVerticalRlCoveredRawRightStraddlerMask(isRawRightStraddler, visibleInsideRawRight, edgeTolerance, right, rightMaxMask, requiredRawRightMask, nextPageStep) {
+		const visibleInside = Math.max(0, Number(visibleInsideRawRight) || 0);
+		const tolerance = Math.max(0, Number(edgeTolerance) || 0);
+		const currentRight = Math.max(0, Number(right) || 0);
+		const rightLimit = Math.max(0, Number(rightMaxMask) || 0);
+		const required = Math.max(0, Number(requiredRawRightMask) || 0);
+		const nextStep = Number(nextPageStep) || 0;
+		return !!(isRawRightStraddler && visibleInside > tolerance && currentRight >= visibleInside && rightLimit >= visibleInside && (required <= 0 || nextStep <= 0));
+	}
+	function getVerticalRlDeepRawRightStraddlerExpandTarget(isRawRightStraddler, visibleInsideRawRight, edgeTolerance) {
+		const visibleInside = Math.max(0, Number(visibleInsideRawRight) || 0);
+		const tolerance = Math.max(0, Number(edgeTolerance) || 0);
+		if (!isRawRightStraddler || visibleInside <= tolerance) return 0;
+		return Math.ceil(visibleInside + 1);
+	}
+	function getVerticalRlBoundaryCrossingExpandTarget(rectLeft, rectRight, boundary) {
+		const left = Number(rectLeft) || 0;
+		const right = Number(rectRight) || 0;
+		const targetBoundary = Number(boundary) || 0;
+		if (left >= targetBoundary || right <= targetBoundary) return 0;
+		return Math.ceil(targetBoundary - left + 1);
+	}
+	function getVerticalRlPreviousLeftClippedRightMaskTarget(requiredRawRightMask, rectRight, rawRight) {
+		const required = Math.max(0, Number(requiredRawRightMask) || 0);
+		const right = Number(rectRight) || 0;
+		const viewportRight = Number(rawRight) || 0;
+		const clippedWidth = Math.max(0, Math.floor(viewportRight - Math.min(right, viewportRight)));
+		return Math.max(required, clippedWidth);
+	}
+	function getVerticalRlRawRightSnapRectShift(rectLeft, rectRight, rawRight, boundary, right, clippedAtPreviousLeft, rawRightStraddler, rawRightOverhang, visibleInsideRawRight, edgeTolerance, rightMaxMask, requiredRawRightMask, nextPageStep, canExpandClippedRawRight) {
+		const rectStart = Number(rectLeft) || 0;
+		const rectEnd = Number(rectRight) || 0;
+		const viewportRight = Number(rawRight) || 0;
+		const edge = Number(boundary) || 0;
+		const currentRight = Math.max(0, Number(right) || 0);
+		if (clippedAtPreviousLeft && rectEnd > edge && rectStart < viewportRight) {
+			const targetRight = getVerticalRlPreviousLeftClippedRightMaskTarget(requiredRawRightMask, rectEnd, viewportRight);
+			return {
+				shift: targetRight < currentRight ? targetRight - currentRight : 0,
+				expandBeyondPaintGuard: false
+			};
+		}
+		const justOutsideRawRightTarget = getVerticalRlJustOutsideRawRightMaskTarget(rectStart, viewportRight, edgeTolerance);
+		if (justOutsideRawRightTarget > 0) return {
+			shift: justOutsideRawRightTarget > currentRight ? justOutsideRawRightTarget - currentRight : 0,
+			expandBeyondPaintGuard: false
+		};
+		const shallowRawRightStraddlerTarget = getVerticalRlShallowRawRightStraddlerMaskTarget(rawRightStraddler, visibleInsideRawRight, edgeTolerance);
+		if (shallowRawRightStraddlerTarget > 0) return {
+			shift: shallowRawRightStraddlerTarget > currentRight ? shallowRawRightStraddlerTarget - currentRight : 0,
+			expandBeyondPaintGuard: false
+		};
+		if (shouldClearVerticalRlRawRightStraddlerMask(rawRightStraddler, rawRightOverhang, edgeTolerance, hasVerticalRlRightEdgeMaskConsumingVisibleEdge(rawRightStraddler, currentRight, visibleInsideRawRight, rightMaxMask, edgeTolerance), requiredRawRightMask, nextPageStep) || shouldClearVerticalRlCoveredRawRightStraddlerMask(rawRightStraddler, visibleInsideRawRight, edgeTolerance, currentRight, rightMaxMask, requiredRawRightMask, nextPageStep)) return {
+			shift: currentRight > 0 ? -currentRight : 0,
+			expandBeyondPaintGuard: false
+		};
+		const deepRawRightStraddlerExpandTarget = getVerticalRlDeepRawRightStraddlerExpandTarget(rawRightStraddler, visibleInsideRawRight, edgeTolerance);
+		if (deepRawRightStraddlerExpandTarget > 0) {
+			const shouldExpand = canExpandClippedRawRight && deepRawRightStraddlerExpandTarget > currentRight;
+			return {
+				shift: shouldExpand ? deepRawRightStraddlerExpandTarget - currentRight : 0,
+				expandBeyondPaintGuard: shouldExpand
+			};
+		}
+		return {
+			shift: getVerticalRlBoundaryCrossingExpandTarget(rectStart, rectEnd, edge),
+			expandBeyondPaintGuard: false
+		};
+	}
+	function getVerticalRlRawRightSnapRectShiftForRect(rectLeft, rectRight, rawLeft, rawRight, previousRawLeft, previousPageStep, boundary, right, edgeTolerance, rightMaxMask, requiredRawRightMask, nextPageStep, canExpandClippedRawRight) {
+		const { clippedAtPreviousLeft, rawRightStraddler, rawRightOverhang, visibleInsideRawRight } = getVerticalRlRawRightSnapRectInput(rectLeft, rectRight, rawLeft, rawRight, previousRawLeft, previousPageStep);
+		return getVerticalRlRawRightSnapRectShift(rectLeft, rectRight, rawRight, boundary, right, clippedAtPreviousLeft, rawRightStraddler, rawRightOverhang, visibleInsideRawRight, edgeTolerance, rightMaxMask, requiredRawRightMask, nextPageStep, canExpandClippedRawRight);
+	}
+	function getVerticalRlRawRightSnapShiftAggregate(currentExpand, currentShrink, currentExpandBeyondPaintGuard, rectShift) {
+		const shift = Number(rectShift.shift) || 0;
+		const expand = Number(currentExpand) || 0;
+		const shrink = Number(currentShrink) || 0;
+		if (shift < 0) return {
+			expand,
+			shrink: Math.min(shrink, shift),
+			expandBeyondPaintGuard: currentExpandBeyondPaintGuard
+		};
+		if (shift > 0) return {
+			expand: Math.max(expand, shift),
+			shrink,
+			expandBeyondPaintGuard: currentExpandBeyondPaintGuard || rectShift.expandBeyondPaintGuard
+		};
+		return {
+			expand,
+			shrink,
+			expandBeyondPaintGuard: currentExpandBeyondPaintGuard
+		};
+	}
+	function getVerticalRlRawRightSnapShiftForRects(rects, rawLeft, rawRight, boundary, right, previousRawLeft, previousPageStep, edgeTolerance, rightMaxMask, requiredRawRightMask, nextPageStep, canExpandClippedRawRight) {
+		let expand = 0;
+		let shrink = 0;
+		let expandBeyondPaintGuard = false;
+		for (const rect of rects || []) {
+			const rectShift = getVerticalRlRawRightSnapRectShiftForRect(rect.left, rect.right, rawLeft, rawRight, previousRawLeft, previousPageStep, boundary, right, edgeTolerance, rightMaxMask, requiredRawRightMask, nextPageStep, canExpandClippedRawRight);
+			const aggregate = getVerticalRlRawRightSnapShiftAggregate(expand, shrink, expandBeyondPaintGuard, rectShift);
+			expand = aggregate.expand;
+			shrink = aggregate.shrink;
+			expandBeyondPaintGuard = aggregate.expandBeyondPaintGuard;
+		}
+		return {
+			expand,
+			shrink,
+			expandBeyondPaintGuard
+		};
+	}
+	function getVerticalRlRawRightSnapDecisionForRects(rects, rawLeft, rawRight, right, previousPageStep, edgeTolerance, maxMask, rightMaxMask, rightPaintGuardMax, nextPageStep, canExpandClippedRawRight) {
+		const boundary = rawRight - right;
+		const previousRawLeft = rawLeft + previousPageStep;
+		const requiredRawRightMask = getVerticalRlRequiredRawRightMaskForRects(rects, rawLeft, rawRight, previousRawLeft, previousPageStep, edgeTolerance);
+		const aggregate = getVerticalRlRawRightSnapShiftForRects(rects, rawLeft, rawRight, boundary, right, previousRawLeft, previousPageStep, edgeTolerance, rightMaxMask, requiredRawRightMask, nextPageStep, canExpandClippedRawRight);
+		return {
+			shift: aggregate.shrink < 0 ? aggregate.shrink : aggregate.expand,
+			right: getVerticalRlSnappedRightEdgeMask(right, aggregate.shrink < 0 ? aggregate.shrink : aggregate.expand, maxMask, rightMaxMask, requiredRawRightMask, rightPaintGuardMax, aggregate.expandBeyondPaintGuard),
+			requiredRawRightMask,
+			expandBeyondPaintGuard: aggregate.expandBeyondPaintGuard
+		};
+	}
+	//#endregion
+	//#region src/rendering/raw-left-snap.ts
+	function getVerticalRlRawLeftSnapRectInput(rectLeft, rectRight, rawLeft, rawRight, nextPageStep, edgeTolerance) {
+		const left = Number(rectLeft) || 0;
+		const right = Number(rectRight) || 0;
+		const viewportLeft = Number(rawLeft) || 0;
+		const viewportRight = Number(rawRight) || 0;
+		const nextStep = Number(nextPageStep) || 0;
+		const tolerance = Number(edgeTolerance) || 0;
+		const shiftedRight = right + nextStep;
+		const hasNextPage = nextStep > 0;
+		return {
+			rawLeftStraddler: left < viewportLeft && right > viewportLeft,
+			hasNextPage,
+			clippedAtNextRight: !hasNextPage || shiftedRight > viewportRight,
+			visibleAtNextRight: hasNextPage && shiftedRight <= viewportRight,
+			nearlyVisibleAtNextRight: hasNextPage && shiftedRight <= viewportRight + tolerance
+		};
+	}
+	function getVerticalRlRawLeftBoundaryCrossingShift(rectLeft, rectRight, boundary, left, hasNextPage, visibleAtNextRight, nearlyVisibleAtNextRight, allowRawLeftMask) {
+		const rectStart = Number(rectLeft) || 0;
+		const rectEnd = Number(rectRight) || 0;
+		const edge = Number(boundary) || 0;
+		const currentLeft = Math.max(0, Number(left) || 0);
+		if (rectStart >= edge || rectEnd <= edge) return 0;
+		const expand = Math.ceil(rectEnd - edge + 1);
+		const shrink = Math.ceil(edge - rectStart + 1);
+		if (hasNextPage && (visibleAtNextRight || nearlyVisibleAtNextRight || allowRawLeftMask)) return expand;
+		if (shrink > 0 && currentLeft - shrink >= 0) return -shrink;
+		return expand;
+	}
+	function getVerticalRlRawLeftCoveredShrinkShift(rectLeft, rectRight, rawLeft, boundary, left, rawLeftStraddler, forceRawLeftMask, visibleAtNextRight, hasStructuralEdgeGuard, nearlyVisibleAtNextRight, allowRawLeftMask, clippedAtNextRight) {
+		const rectStart = Number(rectLeft) || 0;
+		const rectEnd = Number(rectRight) || 0;
+		const viewportLeft = Number(rawLeft) || 0;
+		const edge = Number(boundary) || 0;
+		const currentLeft = Math.max(0, Number(left) || 0);
+		if (currentLeft <= 0 || rectEnd <= viewportLeft || rectStart >= edge || rectEnd > edge || rawLeftStraddler && forceRawLeftMask || (rawLeftStraddler ? visibleAtNextRight || hasStructuralEdgeGuard && nearlyVisibleAtNextRight || allowRawLeftMask : nearlyVisibleAtNextRight) || rawLeftStraddler && !clippedAtNextRight) return 0;
+		const targetLeft = Math.max(0, Math.floor(Math.max(rectStart, viewportLeft) - viewportLeft - 1));
+		return targetLeft < currentLeft ? targetLeft - currentLeft : 0;
+	}
+	function getVerticalRlRawLeftVisibleExpandShift(rectLeft, rectRight, rawLeft, boundary, left, visibleAtNextRight, edgeTolerance) {
+		const rectStart = Number(rectLeft) || 0;
+		const rectEnd = Number(rectRight) || 0;
+		const viewportLeft = Number(rawLeft) || 0;
+		const edge = Number(boundary) || 0;
+		const currentLeft = Math.max(0, Number(left) || 0);
+		const tolerance = Math.max(0, Number(edgeTolerance) || 0);
+		if (currentLeft <= 0 || !visibleAtNextRight || rectStart < edge || rectStart - edge > tolerance) return 0;
+		const targetLeft = Math.ceil(rectEnd - viewportLeft + 1);
+		return targetLeft > currentLeft ? targetLeft - currentLeft : 0;
+	}
+	function getVerticalRlRawLeftSnapRectShift(rectLeft, rectRight, rawLeft, boundary, left, rawLeftStraddler, hasNextPage, clippedAtNextRight, visibleAtNextRight, nearlyVisibleAtNextRight, forceRawLeftMask, allowRawLeftMask, hasStructuralEdgeGuard, edgeTolerance) {
+		const currentLeft = Math.max(0, Number(left) || 0);
+		if (currentLeft <= 0 && rawLeftStraddler && clippedAtNextRight && !forceRawLeftMask && !allowRawLeftMask) return 0;
+		const boundaryCrossingShift = getVerticalRlRawLeftBoundaryCrossingShift(rectLeft, rectRight, boundary, currentLeft, hasNextPage, visibleAtNextRight, nearlyVisibleAtNextRight, allowRawLeftMask);
+		if (boundaryCrossingShift) return boundaryCrossingShift;
+		const coveredShrinkShift = getVerticalRlRawLeftCoveredShrinkShift(rectLeft, rectRight, rawLeft, boundary, currentLeft, rawLeftStraddler, forceRawLeftMask, visibleAtNextRight, hasStructuralEdgeGuard, nearlyVisibleAtNextRight, allowRawLeftMask, clippedAtNextRight);
+		if (coveredShrinkShift < 0) return coveredShrinkShift;
+		return getVerticalRlRawLeftVisibleExpandShift(rectLeft, rectRight, rawLeft, boundary, currentLeft, visibleAtNextRight, edgeTolerance);
+	}
+	function getVerticalRlRawLeftSnapShiftAggregate(currentShift, rectShift) {
+		const shift = Number(currentShift) || 0;
+		const nextShift = Number(rectShift) || 0;
+		if (nextShift > 0) return Math.max(shift, nextShift);
+		if (nextShift < 0) return Math.min(shift, nextShift);
+		return shift;
+	}
+	function getVerticalRlRawLeftSnapShiftForRects(rects, rawLeft, rawRight, boundary, left, nextPageStep, forceRawLeftMask, allowRawLeftMask, hasStructuralEdgeGuard, edgeTolerance) {
+		let shift = 0;
+		for (const rect of rects || []) {
+			let { rawLeftStraddler, hasNextPage, clippedAtNextRight, visibleAtNextRight, nearlyVisibleAtNextRight } = getVerticalRlRawLeftSnapRectInput(rect.left, rect.right, rawLeft, rawRight, nextPageStep, edgeTolerance);
+			let rectShift = getVerticalRlRawLeftSnapRectShift(rect.left, rect.right, rawLeft, boundary, left, rawLeftStraddler, hasNextPage, clippedAtNextRight, visibleAtNextRight, nearlyVisibleAtNextRight, forceRawLeftMask, allowRawLeftMask, hasStructuralEdgeGuard, edgeTolerance);
+			shift = getVerticalRlRawLeftSnapShiftAggregate(shift, rectShift);
+		}
+		return shift;
+	}
+	function getVerticalRlRawLeftSnapDecisionForRects(rects, rawLeft, rawRight, left, leftMaxMask, nextPageStep, forceRawLeftMask, allowRawLeftMask, hasStructuralEdgeGuard, edgeTolerance) {
+		const shift = getVerticalRlRawLeftSnapShiftForRects(rects, rawLeft, rawRight, rawLeft + left, left, nextPageStep, forceRawLeftMask, allowRawLeftMask, hasStructuralEdgeGuard, edgeTolerance);
+		return {
+			shift,
+			left: getVerticalRlSnappedLeftEdgeMask(left, shift, leftMaxMask)
+		};
+	}
+	//#endregion
+	//#region src/rendering/boundary-mask.ts
+	function getVerticalRlCurrentEffectiveLeftBoundary(contentWidth, currentOffset, visibleWidth, currentLeftMask) {
+		const effectiveLeftBoundary = Number(contentWidth) - Number(currentOffset) - Number(visibleWidth) + (Number(currentLeftMask) || 0);
+		return Number.isFinite(effectiveLeftBoundary) && effectiveLeftBoundary > 0 ? effectiveLeftBoundary : null;
+	}
+	function getVerticalRlSequentialRightBoundaryConstraint(pageIndex, forcedRightBoundary, contentWidth, currentOffset, currentGridOffset, visibleWidth, pageAdvance, currentLeftMask) {
+		const forcedBoundary = Number(forcedRightBoundary);
+		const targetPageIndex = Number(pageIndex) || 0;
+		if (Number.isFinite(forcedBoundary) && forcedBoundary > 0) return {
+			pageIndex: targetPageIndex,
+			maxRightBoundary: forcedBoundary,
+			preferredRightBoundary: forcedBoundary
+		};
+		const visible = Number(visibleWidth) || 0;
+		const advance = Number(pageAdvance) || 0;
+		const leftMask = Number(currentLeftMask) || 0;
+		const hasCleanPageLeftMask = leftMask > 0 && Math.max(0, visible - advance) <= 1;
+		const maxRightBoundary = getVerticalRlCurrentEffectiveLeftBoundary(contentWidth, currentOffset, visible, leftMask);
+		if (maxRightBoundary !== null && (Math.abs((Number(currentOffset) || 0) - (Number(currentGridOffset) || 0)) > 1 || hasCleanPageLeftMask)) return {
+			pageIndex: targetPageIndex,
+			maxRightBoundary,
+			preferredRightBoundary: maxRightBoundary
+		};
+		return null;
+	}
+	function isVerticalRlBoundarySnapTextReady(options = {}) {
+		return !!(options.iframe && options.document && options.window && options.body && options.contentWidth && options.visibleWidth && typeof options.document.createTreeWalker === "function");
+	}
+	function getVerticalRlBoundaryRightBoundaryLimits(options = {}) {
+		const maxRightBoundary = Number(options && options.maxRightBoundary);
+		const preferredRightBoundary = Number(options && options.preferredRightBoundary);
+		return {
+			maxRightBoundary,
+			hasMaxRightBoundary: Number.isFinite(maxRightBoundary),
+			preferredRightBoundary,
+			hasPreferredRightBoundary: Number.isFinite(preferredRightBoundary)
+		};
+	}
+	function getVerticalRlBoundaryMaxRightBoundaryLimitOptions(limits) {
+		return {
+			hasMaxRightBoundary: limits.hasMaxRightBoundary,
+			maxRightBoundary: limits.maxRightBoundary
+		};
+	}
+	function getVerticalRlBoundaryRightBoundaryLimitOptions(limits) {
+		return {
+			...getVerticalRlBoundaryMaxRightBoundaryLimitOptions(limits),
+			hasPreferredRightBoundary: limits.hasPreferredRightBoundary,
+			preferredRightBoundary: limits.preferredRightBoundary
+		};
+	}
+	function getCachedVerticalRlBoundarySnap(cache, key) {
+		return cache && cache.key === key ? cache.value : null;
+	}
+	function getVerticalRlBoundarySnapCacheEntry(key, value, nearestDelta) {
+		return nearestDelta ? {
+			key,
+			value
+		} : null;
+	}
+	function getVerticalRlBoundaryConstrainedOffset(logicalOffset, maxScroll, contentWidth, options = {}) {
+		const scrollMax = Number(maxScroll) || 0;
+		const content = Number(contentWidth) || 0;
+		let offset = Number(logicalOffset) || 0;
+		let preferredRightBoundary = Number(options.preferredRightBoundary);
+		const maxRightBoundary = Number(options.maxRightBoundary);
+		if (options.hasPreferredRightBoundary) {
+			let targetRightBoundary = Math.max(0, preferredRightBoundary);
+			if (options.hasMaxRightBoundary) targetRightBoundary = Math.min(targetRightBoundary, maxRightBoundary);
+			preferredRightBoundary = targetRightBoundary;
+			offset = Math.max(0, Math.min(scrollMax, content - targetRightBoundary));
+		}
+		if (options.hasMaxRightBoundary) offset = Math.max(offset, Math.max(0, Math.min(scrollMax, content - maxRightBoundary)));
+		return {
+			logicalOffset: offset,
+			preferredRightBoundary
+		};
+	}
+	function getVerticalRlBoundarySnapCacheKey(logicalOffset, maxScroll, contentWidth, visibleWidth, edgeGuardPx, options = {}) {
+		const round = (value) => Math.round((Number(value) || 0) * 100) / 100;
+		return [
+			round(logicalOffset),
+			round(maxScroll),
+			round(contentWidth),
+			round(visibleWidth),
+			Number(edgeGuardPx) || 0,
+			options.hasMaxRightBoundary ? round(Number(options.maxRightBoundary)) : "none",
+			options.hasPreferredRightBoundary ? round(Number(options.preferredRightBoundary)) : "none"
+		].join(":");
+	}
+	function getVerticalRlBoundarySnapCacheLookup(cache, logicalOffset, maxScroll, contentWidth, visibleWidth, edgeGuardPx, options = {}) {
+		const cacheKey = getVerticalRlBoundarySnapCacheKey(logicalOffset, maxScroll, contentWidth, visibleWidth, edgeGuardPx, options);
+		return {
+			cacheKey,
+			cachedSnap: getCachedVerticalRlBoundarySnap(cache, cacheKey)
+		};
+	}
+	function getVerticalRlBoundarySnapPreflight(cache, logicalOffset, maxScroll, contentWidth, visibleWidth, edgeGuardPx, limitOptions = {}, readiness = {}) {
+		const rightBoundaryLimits = getVerticalRlBoundaryRightBoundaryLimits(limitOptions);
+		const constrainedOffset = getVerticalRlBoundaryConstrainedOffset(logicalOffset, maxScroll, contentWidth, getVerticalRlBoundaryRightBoundaryLimitOptions(rightBoundaryLimits));
+		rightBoundaryLimits.preferredRightBoundary = constrainedOffset.preferredRightBoundary;
+		const rightBoundaryOptions = getVerticalRlBoundaryRightBoundaryLimitOptions(rightBoundaryLimits);
+		const maxRightBoundaryOptions = getVerticalRlBoundaryMaxRightBoundaryLimitOptions(rightBoundaryLimits);
+		const shouldMeasureText = isVerticalRlBoundarySnapTextReady({
+			...readiness,
+			contentWidth,
+			visibleWidth
+		});
+		return {
+			cacheLookup: shouldMeasureText ? getVerticalRlBoundarySnapCacheLookup(cache, constrainedOffset.logicalOffset, maxScroll, contentWidth, visibleWidth, edgeGuardPx, rightBoundaryOptions) : null,
+			logicalOffset: constrainedOffset.logicalOffset,
+			maxRightBoundaryOptions,
+			rightBoundaryLimits,
+			rightBoundaryOptions,
+			shouldMeasureText
+		};
+	}
+	function getVerticalRlBoundarySnapViewportBounds(logicalOffset, contentWidth, visibleWidth) {
+		const offset = Number(logicalOffset) || 0;
+		const content = Number(contentWidth) || 0;
+		const visible = Number(visibleWidth) || 0;
+		const rightOriginRight = content - offset;
+		const rightOriginLeft = rightOriginRight - visible;
+		const leftOriginLeft = offset;
+		const leftOriginRight = offset + visible;
+		return [{
+			left: rightOriginLeft,
+			right: rightOriginRight
+		}, {
+			left: leftOriginLeft,
+			right: leftOriginRight
+		}];
+	}
+	function getVerticalRlBoundarySnapEdgeGuard(edgeGuardPx) {
+		return Math.max(1, Math.min(8, Math.round(Number(edgeGuardPx) || 2)));
+	}
+	function getVerticalRlBoundarySnapRawEdgeGuard(edgeGuardPx) {
+		return Number(edgeGuardPx) || 0;
+	}
+	function getVerticalRlBoundarySnapEdgeGuards(edgeGuardPx) {
+		return {
+			edgeGuard: getVerticalRlBoundarySnapEdgeGuard(edgeGuardPx),
+			rawEdgeGuard: getVerticalRlBoundarySnapRawEdgeGuard(edgeGuardPx)
+		};
+	}
+	function getVerticalRlBoundarySnapStructuralBleed(visibleWidth, pageAdvance) {
+		const visible = Number(visibleWidth) || 0;
+		return visible - (Number(pageAdvance) || visible);
+	}
+	function getVerticalRlBoundarySnapStructuralMasks(widths) {
+		return {
+			left: Number(widths && widths.left) || 0,
+			right: Number(widths && widths.right) || 0
+		};
+	}
+	function getVerticalRlBoundarySnapDeltaInputs(edgeGuardPx, structuralGutterMask, visibleWidth, pageAdvance, boundaryShift) {
+		const edgeGuards = getVerticalRlBoundarySnapEdgeGuards(edgeGuardPx);
+		return {
+			edgeGuard: edgeGuards.edgeGuard,
+			edgeGuardPx: edgeGuards.rawEdgeGuard,
+			structuralMasks: getVerticalRlBoundarySnapStructuralMasks(structuralGutterMask),
+			boundaryShift,
+			structuralBleed: getVerticalRlBoundarySnapStructuralBleed(visibleWidth, pageAdvance)
+		};
+	}
+	function getVerticalRlCleanPageEdgeMaskInput(pageAdvance, totalPages, currentPageIndex, currentOffset, previousOffset, actualCurrentOffset, currentGridOffset, sequentialBoundaryPageIndex) {
+		const advance = Number(pageAdvance) || 0;
+		const total = Number(totalPages) || 0;
+		const pageIndex = Number(currentPageIndex) || 0;
+		const maxMask = getVerticalRlEdgeMaskLimit(advance);
+		if (!advance || total <= 1 || pageIndex <= 0 || !maxMask) return null;
+		const previousPageStep = Math.abs((Number(currentOffset) || 0) - (Number(previousOffset) || 0)) || advance;
+		const forceRawLeftMask = Number.isFinite(Number(sequentialBoundaryPageIndex)) && Number(sequentialBoundaryPageIndex) === pageIndex || Math.abs((Number(actualCurrentOffset) || 0) - (Number(currentGridOffset) || 0)) > 1;
+		return {
+			widths: {
+				left: 0,
+				right: 0
+			},
+			maxMask,
+			nextPageStep: previousPageStep,
+			previousPageStep,
+			rightMaxMask: maxMask,
+			allowRawRightMask: true,
+			allowRawLeftMask: pageIndex === total - 2,
+			forceRawLeftMask
+		};
+	}
+	function getPreviousVerticalRlLeftMaskInput(previousPageStep, left, maxMask, containerLeft, containerRight, iframeLeft) {
+		const previousStep = Number(previousPageStep) || 0;
+		const maskLimit = Math.max(0, Number(maxMask) || 0);
+		if (!previousStep || !maskLimit) return null;
+		const rawLeft = (Number(containerLeft) || 0) - (Number(iframeLeft) || 0) + previousStep;
+		const rawRight = (Number(containerRight) || 0) - (Number(iframeLeft) || 0) + previousStep;
+		return {
+			widths: {
+				left: Math.min(Number(left) || 0, maskLimit),
+				right: 0
+			},
+			maxMask: maskLimit,
+			rawLeft,
+			rawRight,
+			nextPageStep: previousStep,
+			rightMaxMask: 0
+		};
+	}
+	function getVerticalRlStructuralEdgeMaskInput(logicalOffset, contentWidth, visibleWidth, pageAdvance) {
+		const advance = Number(pageAdvance) || 0;
+		const content = Number(contentWidth) || 0;
+		const visible = Number(visibleWidth) || 0;
+		const offset = Number(logicalOffset) || 0;
+		const bleed = visible - advance;
+		if (!advance || !content || !visible || bleed <= 1) return null;
+		const rawRight = content - offset;
+		const rawLeft = rawRight - visible;
+		const maxMask = getVerticalRlEdgeMaskLimit(advance);
+		return {
+			widths: {
+				left: Math.min(Math.ceil(bleed), maxMask),
+				right: 0
+			},
+			maxMask,
+			rawLeft,
+			rawRight,
+			nextPageStep: advance,
+			rightMaxMask: 0
+		};
+	}
+	function getVerticalRlRectDistanceToLogicalViewport(left, right, rawLeft, rawRight) {
+		if (right < rawLeft) return rawLeft - right;
+		if (left > rawRight) return left - rawRight;
+		return 0;
+	}
+	function getVerticalRlViewportRectCoordinates(rectLeft, rectRight, shiftedLeft, shiftedRight, rawLeft, rawRight, iframeLeft, tolerance = .5) {
+		const directLeft = Number(rectLeft) || 0;
+		const directRight = Number(rectRight) || 0;
+		const embeddedLeft = Number(shiftedLeft) || 0;
+		const embeddedRight = Number(shiftedRight) || 0;
+		if ((Number(iframeLeft) || 0) >= 0) return {
+			left: directLeft,
+			right: directRight
+		};
+		const directDistance = getVerticalRlRectDistanceToLogicalViewport(directLeft, directRight, rawLeft, rawRight);
+		if (getVerticalRlRectDistanceToLogicalViewport(embeddedLeft, embeddedRight, rawLeft, rawRight) + (Number(tolerance) || 0) < directDistance) return {
+			left: embeddedLeft,
+			right: embeddedRight
+		};
+		return {
+			left: directLeft,
+			right: directRight
+		};
+	}
+	function getVerticalRlViewportRect(rect, rawLeft, rawRight, iframeLeft, tolerance = .5) {
+		const rectLeft = Number(rect && rect.left) || 0;
+		const rectRight = Number(rect && rect.right) || 0;
+		const rectCoordinates = getVerticalRlViewportRectCoordinates(rectLeft, rectRight, rectLeft - (Number(iframeLeft) || 0), rectRight - (Number(iframeLeft) || 0), rawLeft, rawRight, iframeLeft, tolerance);
+		return {
+			...rect,
+			left: rectCoordinates.left,
+			right: rectCoordinates.right
+		};
+	}
+	function getVerticalRlViewportRects(rects, rawLeft, rawRight, iframeLeft, tolerance = .5) {
+		return (rects || []).map((rect) => getVerticalRlViewportRect(rect, rawLeft, rawRight, iframeLeft, tolerance));
+	}
+	function getVerticalRlClosestViewportRectCoordinates(rectLeft, rectRight, shiftedLeft, shiftedRight, viewports, tolerance = .5) {
+		const directLeft = Number(rectLeft) || 0;
+		const directRight = Number(rectRight) || 0;
+		const embeddedLeft = Number(shiftedLeft) || 0;
+		const embeddedRight = Number(shiftedRight) || 0;
+		const normalizedViewports = (Array.isArray(viewports) ? viewports : []).map((viewport) => ({
+			left: Number(viewport && viewport.left),
+			right: Number(viewport && viewport.right)
+		})).filter((viewport) => Number.isFinite(viewport.left) && Number.isFinite(viewport.right) && viewport.right >= viewport.left);
+		if (!normalizedViewports.length) return {
+			left: directLeft,
+			right: directRight
+		};
+		const directDistance = Math.min(...normalizedViewports.map((viewport) => getVerticalRlRectDistanceToLogicalViewport(directLeft, directRight, viewport.left, viewport.right)));
+		if (Math.min(...normalizedViewports.map((viewport) => getVerticalRlRectDistanceToLogicalViewport(embeddedLeft, embeddedRight, viewport.left, viewport.right))) + (Number(tolerance) || 0) < directDistance) return {
+			left: embeddedLeft,
+			right: embeddedRight
+		};
+		return {
+			left: directLeft,
+			right: directRight
+		};
+	}
+	function getVerticalRlClosestViewportRect(rect, iframeLeft, viewports, tolerance = .5) {
+		const rectLeft = Number(rect && rect.left) || 0;
+		const rectRight = Number(rect && rect.right) || 0;
+		const rectCoordinates = getVerticalRlClosestViewportRectCoordinates(rectLeft, rectRight, rectLeft - (Number(iframeLeft) || 0), rectRight - (Number(iframeLeft) || 0), viewports, tolerance);
+		return {
+			...rect,
+			left: rectCoordinates.left,
+			right: rectCoordinates.right
+		};
+	}
+	function getVerticalRlClosestViewportRects(rects, iframeLeft, viewports, tolerance = .5) {
+		return (rects || []).map((rect) => getVerticalRlClosestViewportRect(rect, iframeLeft, viewports, tolerance));
+	}
+	function getVerticalRlBoundarySnapCandidateRects(rects, iframeLeft, logicalOffset, contentWidth, visibleWidth, tolerance = .5) {
+		return getVerticalRlClosestViewportRects(rects, iframeLeft, getVerticalRlBoundarySnapViewportBounds(logicalOffset, contentWidth, visibleWidth), tolerance);
+	}
+	function getVerticalRlBoundarySnapMeasurementInputs(rects, iframeLeft, logicalOffset, contentWidth, visibleWidth, edgeGuardPx, structuralGutterMask, pageAdvance, boundaryShift, tolerance = .5) {
+		return {
+			rects: getVerticalRlBoundarySnapCandidateRects(rects, iframeLeft, logicalOffset, contentWidth, visibleWidth, tolerance),
+			deltaInputs: getVerticalRlBoundarySnapDeltaInputs(edgeGuardPx, structuralGutterMask, visibleWidth, pageAdvance, boundaryShift)
+		};
+	}
+	function countVerticalRlBoundaryCrossings(rects, leftBoundary, rightBoundary) {
+		let count = 0;
+		for (const rect of rects || []) if (rect.left < leftBoundary && rect.right > leftBoundary || rect.left < rightBoundary && rect.right > rightBoundary) count += 1;
+		return count;
+	}
+	function evaluateVerticalRlBoundaryModel(rects, leftBoundary, rightBoundary, boundaryOffsetDirection, logicalOffset, maxScroll, edgeGuard, options = {}) {
+		let candidates = [];
+		let roundDelta = (delta) => delta < 0 ? Math.floor(delta) : Math.ceil(delta);
+		let addBoundaryCandidates = (boundary) => {
+			let straddlers = (rects || []).filter((rect) => rect.left < boundary && rect.right > boundary);
+			if (!straddlers.length) return;
+			let minLeft = Math.min(...straddlers.map((rect) => rect.left));
+			let maxRight = Math.max(...straddlers.map((rect) => rect.right));
+			candidates.push(roundDelta((minLeft - edgeGuard - boundary) / boundaryOffsetDirection));
+			candidates.push(roundDelta((maxRight + edgeGuard - boundary) / boundaryOffsetDirection));
+		};
+		let initialCrossings = countVerticalRlBoundaryCrossings(rects, leftBoundary, rightBoundary);
+		let best = null;
+		if (initialCrossings > 0) {
+			addBoundaryCandidates(leftBoundary);
+			addBoundaryCandidates(rightBoundary);
+			let uniqueCandidates = Array.from(new Set(candidates.filter((delta) => Number.isFinite(delta) && delta !== 0)));
+			for (const delta of uniqueCandidates) {
+				let snappedOffset = Math.max(0, Math.min(maxScroll, logicalOffset + delta));
+				let clampedDelta = snappedOffset - logicalOffset;
+				if (!clampedDelta) continue;
+				if (options.hasMaxRightBoundary && boundaryOffsetDirection < 0 && (Number(options.contentWidth) || 0) - snappedOffset > (Number(options.maxRightBoundary) || 0) + 1) continue;
+				let shiftedDelta = boundaryOffsetDirection * clampedDelta;
+				let score = countVerticalRlBoundaryCrossings(rects, leftBoundary + shiftedDelta, rightBoundary + shiftedDelta);
+				let distance = Math.abs(clampedDelta);
+				if (!best || score < best.score || score === best.score && distance < best.distance) best = {
+					delta: clampedDelta,
+					distance,
+					score
+				};
+			}
+		}
+		if (best && best.score < initialCrossings) return {
+			delta: best.delta,
+			distance: best.distance,
+			initialCrossings,
+			score: best.score
+		};
+		return {
+			delta: 0,
+			distance: 0,
+			initialCrossings,
+			score: initialCrossings
+		};
+	}
+	function getBestVerticalRlBoundarySnap(snaps) {
+		return (snaps || []).filter((snap) => snap && snap.delta).sort(function(a, b) {
+			if (a.score !== b.score) return a.score - b.score;
+			if (a.model !== b.model) return a.model === "right-origin" ? -1 : 1;
+			return a.distance - b.distance;
+		})[0] || null;
+	}
+	function getVerticalRlBoundarySnapModels(rects, logicalOffset, contentWidth, visibleWidth, maxScroll, edgeGuard, structuralLeftMask, structuralRightMask, options = {}) {
+		const offset = Number(logicalOffset) || 0;
+		const content = Number(contentWidth) || 0;
+		const visible = Number(visibleWidth) || 0;
+		const leftMask = Number(structuralLeftMask) || 0;
+		const rightMask = Number(structuralRightMask) || 0;
+		const rightOriginRawRight = content - offset;
+		let rightOriginSnap = evaluateVerticalRlBoundaryModel(rects, rightOriginRawRight - visible + leftMask, rightOriginRawRight - rightMask, -1, offset, maxScroll, edgeGuard, {
+			hasMaxRightBoundary: options.hasMaxRightBoundary,
+			maxRightBoundary: options.maxRightBoundary,
+			contentWidth: content
+		});
+		rightOriginSnap.model = "right-origin";
+		let leftOriginSnap = evaluateVerticalRlBoundaryModel(rects, offset + leftMask, offset + visible - rightMask, 1, offset, maxScroll, edgeGuard, {
+			hasMaxRightBoundary: options.hasMaxRightBoundary,
+			maxRightBoundary: options.maxRightBoundary,
+			contentWidth: content
+		});
+		leftOriginSnap.model = "left-origin";
+		return {
+			rightOriginSnap,
+			leftOriginSnap
+		};
+	}
+	function getVerticalRlBoundaryShiftAdjustedDelta(nearestDelta, boundaryShift, edgeGuardPx, structuralBleed) {
+		const delta = Number(nearestDelta) || 0;
+		const shift = Number(boundaryShift) || 0;
+		const guard = Number(edgeGuardPx) || 0;
+		const bleed = Number(structuralBleed) || 0;
+		if (delta > 0 && shift > 0 && guard > 0 && bleed > 1 && Math.abs(shift - guard) <= 1) return Math.min(delta, Math.max(1, Math.floor(guard / 2)));
+		return delta;
+	}
+	function getVerticalRlBoundarySnapDelta(rects, logicalOffset, contentWidth, visibleWidth, maxScroll, edgeGuard, structuralLeftMask, structuralRightMask, boundaryShift, boundaryShiftEdgeGuardPx, structuralBleed, options = {}) {
+		const models = getVerticalRlBoundarySnapModels(rects, logicalOffset, contentWidth, visibleWidth, maxScroll, edgeGuard, structuralLeftMask, structuralRightMask, options);
+		const bestSnap = getBestVerticalRlBoundarySnap([models.rightOriginSnap, models.leftOriginSnap]);
+		return getVerticalRlBoundaryShiftAdjustedDelta(bestSnap ? bestSnap.delta : 0, boundaryShift, boundaryShiftEdgeGuardPx, structuralBleed);
+	}
+	function getVerticalRlBoundarySnappedOffset(nearestDelta, logicalOffset, maxScroll, contentWidth, options = {}) {
+		const offset = Number(logicalOffset) || 0;
+		const scrollMax = Number(maxScroll) || 0;
+		const content = Number(contentWidth) || 0;
+		const delta = Number(nearestDelta) || 0;
+		let snapped = delta ? Math.max(0, Math.min(scrollMax, offset + delta)) : offset;
+		if (options.hasPreferredRightBoundary) {
+			let preferredRightBoundary = Number(options.preferredRightBoundary) || 0;
+			if (content - snapped < preferredRightBoundary - 1) snapped = Math.min(snapped, Math.max(0, Math.min(scrollMax, content - preferredRightBoundary)));
+		}
+		if (options.hasMaxRightBoundary) {
+			let maxRightBoundary = Number(options.maxRightBoundary) || 0;
+			if (content - snapped > maxRightBoundary + 1) snapped = Math.max(snapped, Math.max(0, Math.min(scrollMax, content - maxRightBoundary)));
+		}
+		return snapped;
+	}
+	function getVerticalRlBoundarySnapResult(cacheKey, nearestDelta, logicalOffset, maxScroll, contentWidth, options = {}) {
+		const snapped = getVerticalRlBoundarySnappedOffset(nearestDelta, logicalOffset, maxScroll, contentWidth, options);
+		return {
+			cacheEntry: getVerticalRlBoundarySnapCacheEntry(cacheKey, snapped, nearestDelta),
+			snapped
+		};
+	}
+	function getVerticalRlBoundarySnapPipelineResult(cacheKey, measurementInputs, logicalOffset, contentWidth, visibleWidth, maxScroll, maxRightBoundaryOptions = {}, rightBoundaryOptions = {}) {
+		return getVerticalRlBoundarySnapResult(cacheKey, getVerticalRlBoundarySnapDelta(measurementInputs.rects, logicalOffset, contentWidth, visibleWidth, maxScroll, measurementInputs.deltaInputs.edgeGuard, measurementInputs.deltaInputs.structuralMasks.left, measurementInputs.deltaInputs.structuralMasks.right, measurementInputs.deltaInputs.boundaryShift, measurementInputs.deltaInputs.edgeGuardPx, measurementInputs.deltaInputs.structuralBleed, maxRightBoundaryOptions), logicalOffset, maxScroll, contentWidth, rightBoundaryOptions);
 	}
 	//#endregion
 	//#region node_modules/lodash/isObject.js
@@ -13225,7 +14269,7 @@
 		module.exports = debounce;
 	}));
 	//#endregion
-	//#region src/managers/helpers/stage.js
+	//#region src/managers/helpers/stage.ts
 	var import_throttle = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var debounce = require_debounce(), isObject = require_isObject();
 		/** Error message constants. */
@@ -13290,9 +14334,19 @@
 		module.exports = throttle;
 	})))());
 	var Stage = class {
+		settings;
+		id;
+		container;
+		wrapper;
+		element;
+		resizeFunc;
+		orientationChangeFunc;
+		containerStyles;
+		containerPadding;
+		sheet;
 		constructor(_options) {
 			this.settings = _options || {};
-			this.id = "epubjs-container-" + uuid();
+			this.id = "epubjs-container-" + uuid$1();
 			this.container = this.create(this.settings);
 			if (this.settings.hidden) this.wrapper = this.wrap(this.container);
 		}
@@ -13302,9 +14356,9 @@
 			let overflow = options.overflow || false;
 			let axis = options.axis || "vertical";
 			let direction = options.direction;
-			extend(this.settings, options);
-			if (options.height && isNumber(options.height)) height = options.height + "px";
-			if (options.width && isNumber(options.width)) width = options.width + "px";
+			extend$1(this.settings, options);
+			if (options.height && isNumber$1(options.height)) height = options.height + "px";
+			if (options.width && isNumber$1(options.width)) width = options.width + "px";
 			let container = document.createElement("div");
 			container.id = this.id;
 			container.classList.add("epub-container");
@@ -13320,12 +14374,12 @@
 			if (width) container.style.width = width;
 			if (height) container.style.height = height;
 			if (overflow) if (overflow === "scroll" && axis === "vertical") {
-				container.style["overflow-y"] = overflow;
-				container.style["overflow-x"] = "hidden";
+				container.style.overflowY = overflow;
+				container.style.overflowX = "hidden";
 			} else if (overflow === "scroll" && axis === "horizontal") {
-				container.style["overflow-y"] = "hidden";
-				container.style["overflow-x"] = overflow;
-			} else container.style["overflow"] = overflow;
+				container.style.overflowY = "hidden";
+				container.style.overflowX = overflow;
+			} else container.style.overflow = overflow;
 			if (direction) {
 				container.dir = direction;
 				container.style["direction"] = direction;
@@ -13344,7 +14398,7 @@
 		}
 		getElement(_element) {
 			var element;
-			if (isElement(_element)) element = _element;
+			if (isElement$1(_element)) element = _element;
 			else if (typeof _element === "string") element = document.getElementById(_element);
 			if (!element) throw new Error("Not an Element");
 			return element;
@@ -13363,7 +14417,7 @@
 			return this.container;
 		}
 		onResize(func) {
-			if (!isNumber(this.settings.width) || !isNumber(this.settings.height)) {
+			if (!isNumber$1(this.settings.width) || !isNumber$1(this.settings.height)) {
 				this.resizeFunc = (0, import_throttle.default)(func, 50);
 				window.addEventListener("resize", this.resizeFunc, false);
 			}
@@ -13382,7 +14436,7 @@
 					width = Math.floor(bounds.width);
 					this.container.style.width = width + "px";
 				}
-			} else if (isNumber(width)) this.container.style.width = width + "px";
+			} else if (isNumber$1(width)) this.container.style.width = width + "px";
 			else this.container.style.width = width;
 			if (height === null) {
 				bounds = bounds || this.element.getBoundingClientRect();
@@ -13390,27 +14444,27 @@
 					height = bounds.height;
 					this.container.style.height = height + "px";
 				}
-			} else if (isNumber(height)) this.container.style.height = height + "px";
+			} else if (isNumber$1(height)) this.container.style.height = height + "px";
 			else this.container.style.height = height;
-			if (!isNumber(width)) {
+			if (!isNumber$1(width)) {
 				let containerBounds = this.container && this.container.getBoundingClientRect ? this.container.getBoundingClientRect() : null;
 				width = containerBounds && containerBounds.width ? containerBounds.width : this.container.clientWidth;
 			}
-			if (!isNumber(height)) height = this.container.clientHeight;
+			if (!isNumber$1(height)) height = this.container.clientHeight;
 			this.containerStyles = window.getComputedStyle(this.container);
 			this.containerPadding = {
-				left: parseFloat(this.containerStyles["padding-left"]) || 0,
-				right: parseFloat(this.containerStyles["padding-right"]) || 0,
-				top: parseFloat(this.containerStyles["padding-top"]) || 0,
-				bottom: parseFloat(this.containerStyles["padding-bottom"]) || 0
+				left: parseFloat(this.containerStyles.paddingLeft) || 0,
+				right: parseFloat(this.containerStyles.paddingRight) || 0,
+				top: parseFloat(this.containerStyles.paddingTop) || 0,
+				bottom: parseFloat(this.containerStyles.paddingBottom) || 0
 			};
-			let _windowBounds = windowBounds();
+			let _windowBounds = windowBounds$1();
 			let bodyStyles = window.getComputedStyle(document.body);
 			let bodyPadding = {
-				left: parseFloat(bodyStyles["padding-left"]) || 0,
-				right: parseFloat(bodyStyles["padding-right"]) || 0,
-				top: parseFloat(bodyStyles["padding-top"]) || 0,
-				bottom: parseFloat(bodyStyles["padding-bottom"]) || 0
+				left: parseFloat(bodyStyles.paddingLeft) || 0,
+				right: parseFloat(bodyStyles.paddingRight) || 0,
+				top: parseFloat(bodyStyles.paddingTop) || 0,
+				bottom: parseFloat(bodyStyles.paddingBottom) || 0
 			};
 			if (!_width) width = _windowBounds.width - bodyPadding.left - bodyPadding.right;
 			if (this.settings.fullsize && !_height || !_height) height = _windowBounds.height - bodyPadding.top - bodyPadding.bottom;
@@ -13422,7 +14476,7 @@
 		bounds() {
 			let box;
 			if (this.container.style.overflow !== "visible") box = this.container && this.container.getBoundingClientRect();
-			if (!box || !box.width || !box.height) return windowBounds();
+			if (!box || !box.width || !box.height) return windowBounds$1();
 			else return box;
 		}
 		getSheet() {
@@ -13436,7 +14490,7 @@
 			var rules = "";
 			if (!this.sheet) this.sheet = this.getSheet();
 			rulesArray.forEach(function(set) {
-				for (var prop in set) if (set.hasOwnProperty(prop)) rules += prop + ":" + set[prop] + ";";
+				for (var prop in set) if (Object.prototype.hasOwnProperty.call(set, prop)) rules += prop + ":" + set[prop] + ";";
 			});
 			this.sheet.insertRule(scope + selector + " {" + rules + "}", 0);
 		}
@@ -13451,25 +14505,23 @@
 		direction(dir) {
 			if (this.container) {
 				this.container.dir = dir;
-				this.container.style["direction"] = dir;
+				this.container.style.direction = dir;
 			}
-			if (this.settings.fullsize) document.body.style["direction"] = dir;
+			if (this.settings.fullsize) document.body.style.direction = dir;
 			this.settings.dir = dir;
 		}
 		overflow(overflow) {
 			if (this.container) if (overflow === "scroll" && this.settings.axis === "vertical") {
-				this.container.style["overflow-y"] = overflow;
-				this.container.style["overflow-x"] = "hidden";
+				this.container.style.overflowY = overflow;
+				this.container.style.overflowX = "hidden";
 			} else if (overflow === "scroll" && this.settings.axis === "horizontal") {
-				this.container.style["overflow-y"] = "hidden";
-				this.container.style["overflow-x"] = overflow;
-			} else this.container.style["overflow"] = overflow;
+				this.container.style.overflowY = "hidden";
+				this.container.style.overflowX = overflow;
+			} else this.container.style.overflow = overflow;
 			this.settings.overflow = overflow;
 		}
 		destroy() {
 			if (this.element) {
-				if (this.settings.hidden) this.wrapper;
-				else this.container;
 				if (this.element.contains(this.container)) this.element.removeChild(this.container);
 				window.removeEventListener("resize", this.resizeFunc);
 				window.removeEventListener("orientationchange", this.orientationChangeFunc);
@@ -13477,8 +14529,12 @@
 		}
 	};
 	//#endregion
-	//#region src/managers/helpers/views.js
+	//#region src/managers/helpers/views.ts
 	var Views = class {
+		container;
+		_views;
+		length;
+		hidden;
 		constructor(container) {
 			this.container = container;
 			this._views = [];
@@ -13497,8 +14553,8 @@
 		indexOf(view) {
 			return this._views.indexOf(view);
 		}
-		slice() {
-			return this._views.slice.apply(this._views, arguments);
+		slice(...args) {
+			return this._views.slice.apply(this._views, args);
 		}
 		get(i) {
 			return this._views[i];
@@ -13533,8 +14589,8 @@
 			if (this.container) this.container.removeChild(view.element);
 			view = null;
 		}
-		forEach() {
-			return this._views.forEach.apply(this._views, arguments);
+		forEach(...args) {
+			return this._views.forEach.apply(this._views, args);
 		}
 		clear() {
 			var view;
@@ -13585,7 +14641,8 @@
 		}
 	};
 	//#endregion
-	//#region src/managers/default/index.js
+	//#region src/managers/default/index.ts
+	var Deferred = defer$1;
 	var DefaultViewManager = class {
 		constructor(options) {
 			this.name = "default";
@@ -13594,7 +14651,7 @@
 			this.request = options.request;
 			this.renditionQueue = options.queue;
 			this.q = new Queue(this);
-			this.settings = extend(this.settings || {}, {
+			this.settings = extend$1(this.settings || {}, {
 				infinite: true,
 				hidden: false,
 				width: void 0,
@@ -13607,7 +14664,7 @@
 				allowScriptedContent: false,
 				allowPopups: false
 			});
-			extend(this.settings, options.settings || {});
+			extend$1(this.settings, options.settings || {});
 			this.viewSettings = {
 				ignoreClass: this.settings.ignoreClass,
 				axis: this.settings.axis,
@@ -13700,7 +14757,7 @@
 		}
 		resize(width, height, epubcfi) {
 			let stageSize = this.stage.size(width, height);
-			this.winBounds = windowBounds();
+			this.winBounds = windowBounds$1();
 			if (this.orientationTimeout && this.winBounds.width === this.winBounds.height) {
 				this._stageSize = void 0;
 				return;
@@ -13718,7 +14775,7 @@
 			}, epubcfi || this.target);
 		}
 		createView(section, forceRight) {
-			return new this.View(section, extend(this.viewSettings, { forceRight }));
+			return new this.View(section, extend$1(this.viewSettings, { forceRight }));
 		}
 		handleNextPrePaginated(forceRight, section, action) {
 			let next;
@@ -13729,9 +14786,9 @@
 			}
 		}
 		display(section, target) {
-			var displaying = new defer();
+			var displaying = new Deferred();
 			var displayed = displaying.promise;
-			if (target === section.href || isNumber(target)) target = void 0;
+			if (target === section.href || isNumber$1(target)) target = void 0;
 			this.target = target;
 			var visible = this.views.find(section);
 			if (visible && section && this.layout.name !== "pre-paginated") {
@@ -13916,7 +14973,7 @@
 			if (bleed <= 1) return this.getVerticalRlCleanPageEdgeMaskWidths(advance);
 			let left = Math.ceil(bleed);
 			let right = 0;
-			let maxMask = Math.max(0, Math.floor(advance / 4));
+			let maxMask = getVerticalRlEdgeMaskLimit(advance);
 			let totalPages = this.getTotalPagesForCurrentView();
 			let currentPageIndex = this.getCurrentPageIndex();
 			let previousPageStep = 0;
@@ -13926,37 +14983,35 @@
 				let previousOffset = this.getLogicalOffsetForPageIndex(currentPageIndex - 1, totalPages, maxScroll);
 				previousPageStep = Math.abs(currentOffset - previousOffset);
 			}
-			if (Math.abs(visibleWidth - advance - left) <= 1 && this.getPageBoundaryShift() === 0 && (currentPageIndex <= 0 || Math.abs(previousPageStep - advance) <= 1)) return this.snapVerticalRlEdgeMaskWidths({
-				left: Math.min(left, maxMask),
-				right
-			}, maxMask, {
-				nextPageStep: advance,
-				rightMaxMask: 0
-			});
+			if (hasVerticalRlEdgeMaskStructuralGutter(visibleWidth, advance, left, this.getPageBoundaryShift(), currentPageIndex, previousPageStep)) {
+				let structuralMask = getVerticalRlStructuralGutterEdgeMaskSnapInput(left, right, maxMask, advance);
+				if (!structuralMask) return {
+					left: 0,
+					right: 0
+				};
+				return this.snapVerticalRlEdgeMaskWidths(structuralMask.widths, structuralMask.maxMask, {
+					nextPageStep: structuralMask.nextPageStep,
+					rightMaxMask: structuralMask.rightMaxMask
+				});
+			}
 			if (currentPageIndex > 0) {
 				let previousPageLeftMask = this.getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask);
-				let overlap = Math.max(0, visibleWidth - previousPageStep - previousPageLeftMask);
-				right = Math.min(Math.ceil(overlap), maxMask);
+				right = getVerticalRlPreviousPageRightMask(visibleWidth, previousPageStep, previousPageLeftMask, maxMask);
 			}
-			return this.snapVerticalRlEdgeMaskWidths({
-				left: Math.min(left, maxMask),
-				right
-			}, maxMask, {
-				previousPageStep,
-				rightMaxMask: Math.min(right, maxMask)
+			let edgeMask = getVerticalRlEdgeMaskSnapInput(left, right, maxMask, previousPageStep);
+			if (!edgeMask) return {
+				left: 0,
+				right: 0
+			};
+			return this.snapVerticalRlEdgeMaskWidths(edgeMask.widths, edgeMask.maxMask, {
+				previousPageStep: edgeMask.previousPageStep,
+				rightMaxMask: edgeMask.rightMaxMask
 			});
 		}
 		getVerticalRlRenderedEdgeMaskWidths() {
 			let computed = this.getVerticalRlEdgeMaskWidths();
 			let dataset = this.container && this.container.dataset ? this.container.dataset : {};
-			let renderedLeft = Number(dataset.epubVrlEdgeMaskLeft);
-			let renderedRight = Number(dataset.epubVrlEdgeMaskRight);
-			if (!Number.isFinite(renderedLeft)) renderedLeft = Number(dataset.epubVrlEdgeMask);
-			if (!Number.isFinite(renderedRight)) renderedRight = 0;
-			return {
-				left: Math.max(Number(computed && computed.left) || 0, renderedLeft || 0),
-				right: Math.max(Number(computed && computed.right) || 0, renderedRight || 0)
-			};
+			return getRenderedVerticalRlEdgeMaskWidths(computed, Number(dataset.epubVrlEdgeMaskLeft), Number(dataset.epubVrlEdgeMaskRight), Number(dataset.epubVrlEdgeMask));
 		}
 		getVerticalRlCurrentEffectiveLeftBoundary() {
 			if (!this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) return null;
@@ -13966,39 +15021,18 @@
 			let visibleWidth = this.layout.pageWidth || this.layout.width || advance || this.container.clientWidth || 0;
 			let currentOffset = this.getNormalizedLogicalScrollLeft();
 			let currentMaskWidths = this.getVerticalRlRenderedEdgeMaskWidths();
-			let currentLeftMask = Number(currentMaskWidths && currentMaskWidths.left) || 0;
-			let effectiveLeftBoundary = contentWidth - currentOffset - visibleWidth + currentLeftMask;
-			return Number.isFinite(effectiveLeftBoundary) && effectiveLeftBoundary > 0 ? effectiveLeftBoundary : null;
+			return getVerticalRlCurrentEffectiveLeftBoundary(contentWidth, currentOffset, visibleWidth, Number(currentMaskWidths && currentMaskWidths.left) || 0);
 		}
 		getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll) {
 			if (!this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) return null;
 			let view = this.views.first() || this.views.last();
-			let contentWidth = view ? this.getVerticalRlVisualContentWidth(view) : 0;
-			let visibleWidth = this.layout.pageWidth || this.layout.width || this.getPageAdvance() || this.container.clientWidth || 0;
-			let advance = this.getPageAdvance() || 0;
-			if (!contentWidth || !visibleWidth || !advance) return null;
-			return [
-				Math.round((Number(totalPages) || 0) * 100) / 100,
-				Math.round((Number(maxScroll) || 0) * 100) / 100,
-				Math.round(contentWidth * 100) / 100,
-				Math.round(visibleWidth * 100) / 100,
-				Math.round(advance * 100) / 100,
-				Math.round((Number(this.layout.edgeGuardPx) || 0) * 100) / 100
-			].join(":");
+			return getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll, view ? this.getVerticalRlVisualContentWidth(view) : 0, this.layout.pageWidth || this.layout.width || this.getPageAdvance() || this.container.clientWidth || 0, this.getPageAdvance() || 0, this.layout.edgeGuardPx || 0);
 		}
 		getCachedVerticalRlLogicalPageOffset(pageIndex, cacheKey) {
-			let cache = this._verticalRlLogicalPageOffsetCache;
-			if (!cache || cache.key !== cacheKey || !cache.offsets) return null;
-			let cachedOffset = Number(cache.offsets[pageIndex]);
-			return Number.isFinite(cachedOffset) ? cachedOffset : null;
+			return getCachedVerticalRlLogicalPageOffset(this._verticalRlLogicalPageOffsetCache, pageIndex, cacheKey);
 		}
 		cacheVerticalRlLogicalPageOffset(pageIndex, logicalOffset, cacheKey) {
-			if (!cacheKey || !Number.isFinite(Number(logicalOffset))) return;
-			if (!this._verticalRlLogicalPageOffsetCache || this._verticalRlLogicalPageOffsetCache.key !== cacheKey) this._verticalRlLogicalPageOffsetCache = {
-				key: cacheKey,
-				offsets: Object.create(null)
-			};
-			this._verticalRlLogicalPageOffsetCache.offsets[pageIndex] = Number(logicalOffset);
+			this._verticalRlLogicalPageOffsetCache = cacheVerticalRlLogicalPageOffset(this._verticalRlLogicalPageOffsetCache, pageIndex, logicalOffset, cacheKey);
 		}
 		getVerticalRlCleanPageEdgeMaskWidths(advance) {
 			if (!this.container || !this.views || !advance) return {
@@ -14011,28 +15045,23 @@
 				left: 0,
 				right: 0
 			};
-			let maxMask = Math.max(0, Math.floor(advance / 4));
-			if (!maxMask) return {
+			if (!getVerticalRlEdgeMaskLimit(advance)) return {
 				left: 0,
 				right: 0
 			};
 			let maxScroll = this.getMaxLogicalScrollLeft();
-			let currentOffset = this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll);
-			let previousOffset = this.getLogicalOffsetForPageIndex(currentPageIndex - 1, totalPages, maxScroll);
-			let previousPageStep = Math.abs(currentOffset - previousOffset) || advance;
-			let actualCurrentOffset = this.getNormalizedLogicalScrollLeft();
-			let currentGridOffset = this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll);
-			let forceRawLeftMask = !!(this._verticalRlSequentialBoundaryConstraint && this._verticalRlSequentialBoundaryConstraint.pageIndex === currentPageIndex) || Math.abs(actualCurrentOffset - currentGridOffset) > 1;
-			return this.snapVerticalRlEdgeMaskWidths({
+			let cleanPageMask = getVerticalRlCleanPageEdgeMaskInput(advance, totalPages, currentPageIndex, this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll), this.getLogicalOffsetForPageIndex(currentPageIndex - 1, totalPages, maxScroll), this.getNormalizedLogicalScrollLeft(), this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll), this._verticalRlSequentialBoundaryConstraint ? this._verticalRlSequentialBoundaryConstraint.pageIndex : null);
+			if (!cleanPageMask) return {
 				left: 0,
 				right: 0
-			}, maxMask, {
-				nextPageStep: previousPageStep,
-				previousPageStep,
-				rightMaxMask: maxMask,
-				allowRawRightMask: true,
-				allowRawLeftMask: currentPageIndex === totalPages - 2,
-				forceRawLeftMask
+			};
+			return this.snapVerticalRlEdgeMaskWidths(cleanPageMask.widths, cleanPageMask.maxMask, {
+				nextPageStep: cleanPageMask.nextPageStep,
+				previousPageStep: cleanPageMask.previousPageStep,
+				rightMaxMask: cleanPageMask.rightMaxMask,
+				allowRawRightMask: cleanPageMask.allowRawRightMask,
+				allowRawLeftMask: cleanPageMask.allowRawLeftMask,
+				forceRawLeftMask: cleanPageMask.forceRawLeftMask
 			});
 		}
 		getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask) {
@@ -14042,22 +15071,18 @@
 			if (!iframe) return Math.min(left, maxMask);
 			let containerRect = this.container.getBoundingClientRect();
 			let iframeRect = iframe.getBoundingClientRect();
-			let rawLeft = containerRect.left - iframeRect.left + previousPageStep;
-			let rawRight = containerRect.right - iframeRect.left + previousPageStep;
-			let snapped = this.snapVerticalRlEdgeMaskWidths({
-				left: Math.min(left, maxMask),
-				right: 0
-			}, maxMask, {
-				rawLeft,
-				rawRight,
-				nextPageStep: previousPageStep,
-				rightMaxMask: 0
+			let previousMask = getPreviousVerticalRlLeftMaskInput(previousPageStep, left, maxMask, containerRect.left, containerRect.right, iframeRect.left);
+			if (!previousMask) return Math.min(left, maxMask);
+			let snapped = this.snapVerticalRlEdgeMaskWidths(previousMask.widths, previousMask.maxMask, {
+				rawLeft: previousMask.rawLeft,
+				rawRight: previousMask.rawRight,
+				nextPageStep: previousMask.nextPageStep,
+				rightMaxMask: previousMask.rightMaxMask
 			});
 			return Math.min(Number(snapped && snapped.left) || 0, maxMask);
 		}
 		getVerticalRlEdgeMaskWidth() {
-			let widths = this.getVerticalRlEdgeMaskWidths();
-			return Math.max(widths.left, widths.right);
+			return getVerticalRlEdgeMaskWidth(this.getVerticalRlEdgeMaskWidths());
 		}
 		expandVerticalRlLeftMaskToVisibleLine(maskWidths) {
 			if (!maskWidths || !maskWidths.left || !this.container || !this.views) return maskWidths;
@@ -14066,46 +15091,24 @@
 			let doc = view && view.contents && view.contents.document;
 			let win = view && view.contents && view.contents.window;
 			let body = doc && doc.body;
-			if (!iframe || !doc || !win || !body || typeof doc.createTreeWalker !== "function") return maskWidths;
-			let advance = this.getPageAdvance() || 0;
-			let maxMask = Math.max(0, Math.floor(advance / 4));
+			if (!iframe || !doc || !win || !body) return maskWidths;
+			let maxMask = getVerticalRlEdgeMaskLimit(this.getPageAdvance() || 0);
 			if (!maxMask) return maskWidths;
 			let containerRect = this.container.getBoundingClientRect();
 			let iframeRect = iframe.getBoundingClientRect();
 			let rawLeft = containerRect.left - iframeRect.left;
 			let rawRight = containerRect.right - iframeRect.left;
 			let left = Math.max(0, Number(maskWidths.left) || 0);
-			let walker = doc.createTreeWalker(body, 4, { acceptNode(node) {
-				if (String(node.nodeValue || "").replace(/\s+/g, "").length < 2) return 2;
-				let parent = node.parentElement;
-				if (!parent) return 2;
-				let style = win.getComputedStyle(parent);
-				if (style.display === "none" || style.visibility === "hidden") return 2;
-				return 1;
-			} });
-			let node;
-			let rectCount = 0;
-			while ((node = walker.nextNode()) && rectCount < 1e3) {
-				let range = doc.createRange();
-				range.selectNodeContents(node);
-				for (const rect of Array.from(range.getClientRects())) {
-					rectCount += 1;
-					if (rect.width <= 0 || rect.height <= 0) continue;
-					let rectLeft = rect.left;
-					let rectRight = rect.right;
-					let shiftedLeft = rect.left - iframeRect.left;
-					let shiftedRight = rect.right - iframeRect.left;
-					if (iframeRect.left < 0) {
-						let directDistance = this.getVerticalRlRectDistanceToLogicalViewport(rectLeft, rectRight, rawLeft, rawRight);
-						if (this.getVerticalRlRectDistanceToLogicalViewport(shiftedLeft, shiftedRight, rawLeft, rawRight) + .5 < directDistance) {
-							rectLeft = shiftedLeft;
-							rectRight = shiftedRight;
-						}
-					}
-					if (rectLeft < rawLeft && rectRight > rawLeft) left = Math.max(left, Math.ceil(rectRight - rawLeft + 1));
-					if (rectCount >= 1e3) break;
-				}
-				if (range.detach) range.detach();
+			let textRects = collectVisibleTextClientRects(doc, win, body, {
+				limit: 1e3,
+				countInvalidRects: true
+			});
+			if (!textRects) return maskWidths;
+			for (const rect of textRects) {
+				let logicalRect = getVerticalRlViewportRect(rect, rawLeft, rawRight, iframeRect.left);
+				let rectLeft = logicalRect.left;
+				let rectRight = logicalRect.right;
+				if (rectLeft < rawLeft && rectRight > rawLeft) left = Math.max(left, Math.ceil(rectRight - rawLeft + 1));
 			}
 			return {
 				left: Math.min(left, maxMask),
@@ -14120,11 +15123,7 @@
 			let nextPageIndex = Math.min(totalPages - 1, currentPageIndex + 1);
 			if (nextPageIndex <= currentPageIndex) return 0;
 			let maxScroll = this.getMaxLogicalScrollLeft();
-			let currentOffset = this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll);
-			let nextOffset = this.getLogicalOffsetForPageIndex(nextPageIndex, totalPages, maxScroll);
-			let step = Math.abs(nextOffset - currentOffset);
-			if (nextPageIndex === totalPages - 1 && step > advance && this.hasVerticalRlStructuralPageGutter()) return advance;
-			return step > 0 ? step : advance;
+			return getVerticalRlLogicalPageStepToNextPage(advance, totalPages, currentPageIndex, nextPageIndex, this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll), this.getLogicalOffsetForPageIndex(nextPageIndex, totalPages, maxScroll), this.hasVerticalRlStructuralPageGutter());
 		}
 		snapVerticalRlEdgeMaskWidths(widths, maxMask, limits = {}) {
 			if (!this.container || !widths || maxMask <= 0) return widths;
@@ -14133,150 +15132,41 @@
 			let doc = view && view.contents && view.contents.document;
 			let win = view && view.contents && view.contents.window;
 			let body = doc && doc.body;
-			if (!iframe || !doc || !win || !body || typeof doc.createTreeWalker !== "function") return widths;
+			if (!iframe || !doc || !win || !body) return widths;
 			let containerRect = this.container.getBoundingClientRect();
 			let iframeRect = iframe.getBoundingClientRect();
-			let rawLeft = Number.isFinite(Number(limits.rawLeft)) ? Number(limits.rawLeft) : containerRect.left - iframeRect.left;
-			let rawRight = Number.isFinite(Number(limits.rawRight)) ? Number(limits.rawRight) : containerRect.right - iframeRect.left;
-			let leftMaxMask = Math.max(0, Number(limits.leftMaxMask ?? maxMask) || 0);
-			let rightMaxMask = Math.max(0, Number(limits.rightMaxMask ?? maxMask) || 0);
-			let left = Math.max(0, Math.min(Number(widths.left) || 0, leftMaxMask));
-			let right = Math.max(0, Math.min(Number(widths.right) || 0, rightMaxMask));
-			let nextPageStep = Number(limits.nextPageStep ?? this.getLogicalPageStepToNextPage()) || 0;
-			let previousPageStep = Number(limits.previousPageStep) || 0;
-			let forceRawLeftMask = !!limits.forceRawLeftMask;
-			let allowRawLeftMask = !!limits.allowRawLeftMask;
-			let edgeTolerance = Math.max(1, Math.min(4, Math.round(this.layout && this.layout.edgeGuardPx || 1)));
-			let canExpandClippedRawRight = iframeRect.left < 0 || !!(this.layout && Number(this.layout.edgeGuardPx) > 0) || !!limits.allowRawRightMask;
-			let rightPaintGuardMax = Math.min(maxMask, Math.max(rightMaxMask, edgeTolerance));
-			let rects = [];
-			let walker = doc.createTreeWalker(body, 4, { acceptNode(node) {
-				if (String(node.nodeValue || "").replace(/\s+/g, "").length < 2) return 2;
-				let parent = node.parentElement;
-				if (!parent) return 2;
-				let style = win.getComputedStyle(parent);
-				if (style.display === "none" || style.visibility === "hidden") return 2;
-				return 1;
-			} });
-			let node;
-			while ((node = walker.nextNode()) && rects.length < 1e3) {
-				let range = doc.createRange();
-				range.selectNodeContents(node);
-				for (const rect of Array.from(range.getClientRects())) {
-					if (rect.width > 0 && rect.height > 0) {
-						let left = rect.left;
-						let right = rect.right;
-						let shiftedLeft = rect.left - iframeRect.left;
-						let shiftedRight = rect.right - iframeRect.left;
-						if (iframeRect.left < 0) {
-							let directDistance = this.getVerticalRlRectDistanceToLogicalViewport(left, right, rawLeft, rawRight);
-							if (this.getVerticalRlRectDistanceToLogicalViewport(shiftedLeft, shiftedRight, rawLeft, rawRight) + .5 < directDistance) {
-								left = shiftedLeft;
-								right = shiftedRight;
-							}
-						}
-						rects.push({
-							left,
-							right,
-							top: rect.top,
-							bottom: rect.bottom,
-							width: rect.width,
-							height: rect.height
-						});
-					}
-					if (rects.length >= 1e3) break;
-				}
-				if (range.detach) range.detach();
-			}
+			let defaultNextPageStep = limits.nextPageStep !== void 0 ? 0 : this.getLogicalPageStepToNextPage();
+			let viewportInput = getVerticalRlEdgeMaskSnapViewportInput(widths, maxMask, containerRect.left, containerRect.right, iframeRect.left, limits, defaultNextPageStep, this.layout && this.layout.edgeGuardPx);
+			let rawLeft = viewportInput.rawLeft;
+			let rawRight = viewportInput.rawRight;
+			let leftMaxMask = viewportInput.leftMaxMask;
+			let rightMaxMask = viewportInput.rightMaxMask;
+			let left = viewportInput.left;
+			let right = viewportInput.right;
+			let nextPageStep = viewportInput.nextPageStep;
+			let previousPageStep = viewportInput.previousPageStep;
+			let forceRawLeftMask = viewportInput.forceRawLeftMask;
+			let allowRawLeftMask = viewportInput.allowRawLeftMask;
+			let edgeTolerance = viewportInput.edgeTolerance;
+			let hasStructuralEdgeGuard = viewportInput.hasStructuralEdgeGuard;
+			let canExpandClippedRawRight = viewportInput.canExpandClippedRawRight;
+			let rightPaintGuardMax = viewportInput.rightPaintGuardMax;
+			let textRects = collectVisibleTextClientRects(doc, win, body, { limit: 1e3 });
+			if (!textRects) return widths;
+			let rects = getVerticalRlViewportRects(textRects, rawLeft, rawRight, iframeRect.left);
 			const snapLeft = () => {
-				let boundary = rawLeft + left;
-				let shift = 0;
-				for (const rect of rects) {
-					let rawLeftStraddler = rect.left < rawLeft && rect.right > rawLeft;
-					let hasNextPage = nextPageStep > 0;
-					let clippedAtNextRight = !hasNextPage || rect.right + nextPageStep > rawRight;
-					let visibleAtNextRight = hasNextPage && rect.right + nextPageStep <= rawRight;
-					let nearlyVisibleAtNextRight = hasNextPage && rect.right + nextPageStep <= rawRight + edgeTolerance;
-					if (left <= 0 && rawLeftStraddler && clippedAtNextRight && !forceRawLeftMask && !allowRawLeftMask) continue;
-					if (rect.left < boundary && rect.right > boundary) {
-						let expand = Math.ceil(rect.right - boundary + 1);
-						let shrink = Math.ceil(boundary - rect.left + 1);
-						if (hasNextPage && (visibleAtNextRight || nearlyVisibleAtNextRight || allowRawLeftMask)) shift = Math.max(shift, expand);
-						else if (shrink > 0 && left - shrink >= 0) shift = Math.min(shift, -shrink);
-						else shift = Math.max(shift, expand);
-					} else if (left > 0 && rect.right > rawLeft && rect.left < boundary && rect.right <= boundary && (!rawLeftStraddler || !forceRawLeftMask) && (rawLeftStraddler ? !visibleAtNextRight && !allowRawLeftMask : !nearlyVisibleAtNextRight) && (!rawLeftStraddler || clippedAtNextRight)) {
-						let targetLeft = Math.max(0, Math.floor(Math.max(rect.left, rawLeft) - rawLeft - 1));
-						if (targetLeft < left) shift = Math.min(shift, targetLeft - left);
-					} else if (left > 0 && visibleAtNextRight && rect.left >= boundary && rect.left - boundary <= edgeTolerance) {
-						let targetLeft = Math.ceil(rect.right - rawLeft + 1);
-						if (targetLeft > left) shift = Math.max(shift, targetLeft - left);
-					}
-				}
-				if (shift !== 0) left = Math.max(0, Math.min(leftMaxMask, left + shift));
+				let decision = getVerticalRlRawLeftSnapDecisionForRects(rects, rawLeft, rawRight, left, leftMaxMask, nextPageStep, forceRawLeftMask, allowRawLeftMask, hasStructuralEdgeGuard, edgeTolerance);
+				let shift = decision.shift;
+				if (shift !== 0) left = decision.left;
 				return shift;
 			};
 			const snapRight = () => {
-				let boundary = rawRight - right;
-				let expand = 0;
-				let shrink = 0;
-				let expandBeyondPaintGuard = false;
-				let requiredRawRightMask = 0;
-				let previousRawLeft = rawLeft + previousPageStep;
-				for (const rect of rects) {
-					if (!(rect.left < rawRight && rect.right > rawRight)) continue;
-					if (previousPageStep > 0 && rect.left < previousRawLeft && rect.right > previousRawLeft) continue;
-					let rawRightOverhang = rect.right - rawRight;
-					let visibleInsideRawRight = rawRight - Math.max(rect.left, rawLeft);
-					if (visibleInsideRawRight > edgeTolerance && rawRightOverhang > Math.max(edgeTolerance, 4)) requiredRawRightMask = Math.max(requiredRawRightMask, Math.ceil(visibleInsideRawRight + 1));
-				}
-				for (const rect of rects) {
-					let clippedAtPreviousLeft = previousPageStep > 0 && rect.left < previousRawLeft && rect.right > previousRawLeft;
-					let rawRightStraddler = rect.left < rawRight && rect.right > rawRight;
-					let rawRightOverhang = rawRightStraddler ? rect.right - rawRight : 0;
-					let visibleInsideRawRight = rawRightStraddler ? rawRight - Math.max(rect.left, rawLeft) : 0;
-					let maskConsumesVisibleRightEdge = rawRightStraddler && right < visibleInsideRawRight && visibleInsideRawRight <= Math.max(right, rightMaxMask) + edgeTolerance;
-					let startsJustOutsideRawRight = rect.left >= rawRight && rect.left - rawRight <= edgeTolerance;
-					if (clippedAtPreviousLeft && rect.right > boundary && rect.left < rawRight) {
-						let targetRight = Math.max(requiredRawRightMask, Math.max(0, Math.floor(rawRight - Math.min(rect.right, rawRight))));
-						if (targetRight < right) shrink = Math.min(shrink, targetRight - right);
-						continue;
-					}
-					if (startsJustOutsideRawRight) {
-						let targetRight = Math.ceil(Math.min(edgeTolerance, rect.left - rawRight + edgeTolerance));
-						if (targetRight > right) expand = Math.max(expand, targetRight - right);
-						continue;
-					}
-					if (rawRightStraddler && visibleInsideRawRight <= edgeTolerance) {
-						let targetRight = Math.ceil(visibleInsideRawRight + 1);
-						if (targetRight > right) expand = Math.max(expand, targetRight - right);
-						continue;
-					}
-					if (rawRightStraddler && (rawRightOverhang <= Math.max(edgeTolerance, 4) || maskConsumesVisibleRightEdge && (requiredRawRightMask <= 0 || nextPageStep <= 0))) {
-						if (right > 0) shrink = Math.min(shrink, -right);
-						continue;
-					}
-					if (rawRightStraddler && visibleInsideRawRight > edgeTolerance && right >= visibleInsideRawRight && rightMaxMask >= visibleInsideRawRight && (requiredRawRightMask <= 0 || nextPageStep <= 0)) {
-						if (right > 0) shrink = Math.min(shrink, -right);
-						continue;
-					}
-					if (rawRightStraddler && visibleInsideRawRight > edgeTolerance) {
-						let targetRight = Math.ceil(visibleInsideRawRight + 1);
-						if (canExpandClippedRawRight && targetRight > right) {
-							expand = Math.max(expand, targetRight - right);
-							expandBeyondPaintGuard = true;
-						}
-						continue;
-					}
-					if (rect.left < boundary && rect.right > boundary) expand = Math.max(expand, Math.ceil(boundary - rect.left + 1));
-				}
-				let shift = shrink < 0 ? shrink : expand;
-				if (shift !== 0) {
-					let maxAllowedRight = shift > 0 ? expandBeyondPaintGuard ? maxMask : rightPaintGuardMax : Math.max(rightMaxMask, requiredRawRightMask, right + shift);
-					right = Math.max(0, Math.min(maxAllowedRight, right + shift));
-				}
+				let decision = getVerticalRlRawRightSnapDecisionForRects(rects, rawLeft, rawRight, right, previousPageStep, edgeTolerance, maxMask, rightMaxMask, rightPaintGuardMax, nextPageStep, canExpandClippedRawRight);
+				let shift = decision.shift;
+				if (shift !== 0) right = decision.right;
 				return shift;
 			};
-			for (let i = 0; i < 4; i++) if (!(snapLeft() + snapRight())) break;
+			runVerticalRlEdgeMaskSnapLoop(snapLeft, snapRight, 4);
 			return {
 				left,
 				right
@@ -14306,7 +15196,7 @@
 			overlay.style.width = `${overlayWidth}px`;
 			overlay.style.height = `${overlayHeight}px`;
 			overlay.style.boxShadow = `inset ${maskWidths.left}px 0 0 ${color}, inset -${maskWidths.right}px 0 0 ${color}`;
-			this.container.dataset.epubVrlEdgeMask = String(Math.max(maskWidths.left, maskWidths.right));
+			this.container.dataset.epubVrlEdgeMask = String(getVerticalRlEdgeMaskWidth(maskWidths));
 			this.container.dataset.epubVrlEdgeMaskLeft = String(maskWidths.left);
 			this.container.dataset.epubVrlEdgeMaskRight = String(maskWidths.right);
 		}
@@ -14343,43 +15233,26 @@
 			}
 		}
 		getPageBoundaryShift() {
-			if (!this.isRtlVerticalPaginated() || !this.layout) return 0;
-			let shift = Number(this.layout.pageBoundaryShift || 0);
-			let advance = this.getPageAdvance() || 0;
-			if (!Number.isFinite(shift) || shift <= 0 || !advance) return 0;
-			return Math.min(shift, Math.max(0, Math.floor(advance / 3)));
+			if (!this.layout) return 0;
+			return getPageBoundaryShift(this.layout.pageBoundaryShift || 0, this.getPageAdvance() || 0, this.isRtlVerticalPaginated());
 		}
 		hasVerticalRlStructuralPageGutter() {
 			if (!this.isRtlVerticalPaginated() || !this.container || !this.layout) return false;
-			let advance = this.getPageAdvance() || 0;
-			let visibleWidth = this.container.clientWidth || 0;
-			return !!(advance && visibleWidth && visibleWidth - advance > 1 && this.getPageBoundaryShift() === 0);
+			return hasVerticalRlStructuralPageGutter(this.getPageAdvance() || 0, this.container.clientWidth || 0, this.getPageBoundaryShift(), this.isRtlVerticalPaginated());
 		}
 		getVerticalRlStructuralEdgeMaskWidthsForLogicalOffset(logicalOffset, contentWidth, visibleWidth) {
 			if (!this.hasVerticalRlStructuralPageGutter()) return null;
-			let advance = this.getPageAdvance() || 0;
-			let bleed = visibleWidth - advance;
-			if (!advance || !contentWidth || !visibleWidth || bleed <= 1) return null;
-			let rawRight = contentWidth - logicalOffset;
-			let rawLeft = rawRight - visibleWidth;
-			let maxMask = Math.max(0, Math.floor(advance / 4));
-			return this.snapVerticalRlEdgeMaskWidths({
-				left: Math.min(Math.ceil(bleed), maxMask),
-				right: 0
-			}, maxMask, {
-				rawLeft,
-				rawRight,
-				nextPageStep: advance,
-				rightMaxMask: 0
+			let structuralEdgeMask = getVerticalRlStructuralEdgeMaskInput(logicalOffset, contentWidth, visibleWidth, this.getPageAdvance() || 0);
+			if (!structuralEdgeMask) return null;
+			return this.snapVerticalRlEdgeMaskWidths(structuralEdgeMask.widths, structuralEdgeMask.maxMask, {
+				rawLeft: structuralEdgeMask.rawLeft,
+				rawRight: structuralEdgeMask.rawRight,
+				nextPageStep: structuralEdgeMask.nextPageStep,
+				rightMaxMask: structuralEdgeMask.rightMaxMask
 			});
 		}
 		getLogicalOffsetForPageIndex(pageIndex, totalPages, maxScroll) {
-			let advance = this.getPageAdvance() || 0;
-			let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
-			let logicalOffset = targetIndex * advance;
-			let boundaryShift = this.getPageBoundaryShift();
-			if (this.isRtlVerticalPaginated() && boundaryShift > 0 && targetIndex > 0 && targetIndex < totalPages - 1) logicalOffset = Math.max(0, logicalOffset - boundaryShift);
-			return Math.min(maxScroll, logicalOffset);
+			return getLogicalOffsetForPageIndex(pageIndex, totalPages, maxScroll, this.getPageAdvance() || 0, this.getPageBoundaryShift(), this.isRtlVerticalPaginated());
 		}
 		snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll, options = {}) {
 			if (!this.container || !this.views || !this.layout) return logicalOffset;
@@ -14390,153 +15263,26 @@
 			let body = doc && doc.body;
 			let contentWidth = this.isRtlVerticalPaginated() ? this.getVerticalRlVisualContentWidth(view) : this.getNavigableWidthForView(view);
 			let visibleWidth = this.layout.pageWidth || this.layout.width || this.getPageAdvance() || 0;
-			let maxRightBoundary = Number(options && options.maxRightBoundary);
-			let hasMaxRightBoundary = Number.isFinite(maxRightBoundary);
-			let preferredRightBoundary = Number(options && options.preferredRightBoundary);
-			let hasPreferredRightBoundary = Number.isFinite(preferredRightBoundary);
-			if (hasPreferredRightBoundary) {
-				let targetRightBoundary = Math.max(0, preferredRightBoundary);
-				if (hasMaxRightBoundary) targetRightBoundary = Math.min(targetRightBoundary, maxRightBoundary);
-				preferredRightBoundary = targetRightBoundary;
-				logicalOffset = Math.max(0, Math.min(maxScroll, contentWidth - targetRightBoundary));
-			}
-			if (hasMaxRightBoundary) logicalOffset = Math.max(logicalOffset, Math.max(0, Math.min(maxScroll, contentWidth - maxRightBoundary)));
-			if (!iframe || !doc || !win || !body || !contentWidth || !visibleWidth || typeof doc.createTreeWalker !== "function") return logicalOffset;
-			let cacheKey = [
-				Math.round(logicalOffset * 100) / 100,
-				Math.round(maxScroll * 100) / 100,
-				Math.round(contentWidth * 100) / 100,
-				Math.round(visibleWidth * 100) / 100,
-				this.layout.edgeGuardPx || 0,
-				hasMaxRightBoundary ? Math.round(maxRightBoundary * 100) / 100 : "none",
-				hasPreferredRightBoundary ? Math.round(preferredRightBoundary * 100) / 100 : "none"
-			].join(":");
-			if (this._verticalRlBoundarySnapCache && this._verticalRlBoundarySnapCache.key === cacheKey) return this._verticalRlBoundarySnapCache.value;
+			let preflight = getVerticalRlBoundarySnapPreflight(this._verticalRlBoundarySnapCache, logicalOffset, maxScroll, contentWidth, visibleWidth, this.layout.edgeGuardPx || 0, options, {
+				iframe,
+				document: doc,
+				window: win,
+				body
+			});
+			logicalOffset = preflight.logicalOffset;
+			if (!preflight.shouldMeasureText || !preflight.cacheLookup) return logicalOffset;
+			if (preflight.cacheLookup.cachedSnap !== null) return preflight.cacheLookup.cachedSnap;
 			let iframeRect = iframe.getBoundingClientRect();
-			let edgeGuard = Math.max(1, Math.min(8, Math.round(this.layout && this.layout.edgeGuardPx || 2)));
 			let structuralGutterMask = this.getVerticalRlStructuralEdgeMaskWidthsForLogicalOffset(logicalOffset, contentWidth, visibleWidth);
-			let rects = [];
-			let walker = doc.createTreeWalker(body, 4, { acceptNode(node) {
-				if (String(node.nodeValue || "").replace(/\s+/g, "").length < 2) return 2;
-				let parent = node.parentElement;
-				if (!parent) return 2;
-				let style = win.getComputedStyle(parent);
-				if (style.display === "none" || style.visibility === "hidden") return 2;
-				return 1;
-			} });
-			let node;
-			let inspected = 0;
-			while ((node = walker.nextNode()) && inspected < 1e3) {
-				let range = doc.createRange();
-				range.selectNodeContents(node);
-				for (const rect of Array.from(range.getClientRects())) {
-					if (rect.width <= 0 || rect.height <= 0) continue;
-					inspected += 1;
-					let left = rect.left;
-					let right = rect.right;
-					let shiftedLeft = rect.left - iframeRect.left;
-					let shiftedRight = rect.right - iframeRect.left;
-					let rightOriginRight = contentWidth - logicalOffset;
-					let rightOriginLeft = rightOriginRight - visibleWidth;
-					let leftOriginLeft = logicalOffset;
-					let leftOriginRight = logicalOffset + visibleWidth;
-					let directDistance = Math.min(this.getVerticalRlRectDistanceToLogicalViewport(left, right, rightOriginLeft, rightOriginRight), this.getVerticalRlRectDistanceToLogicalViewport(left, right, leftOriginLeft, leftOriginRight));
-					if (Math.min(this.getVerticalRlRectDistanceToLogicalViewport(shiftedLeft, shiftedRight, rightOriginLeft, rightOriginRight), this.getVerticalRlRectDistanceToLogicalViewport(shiftedLeft, shiftedRight, leftOriginLeft, leftOriginRight)) + .5 < directDistance) {
-						left = shiftedLeft;
-						right = shiftedRight;
-					}
-					rects.push({
-						left,
-						right
-					});
-					if (inspected >= 1e3) break;
-				}
-				if (range.detach) range.detach();
-			}
-			let crossingCount = (leftBoundary, rightBoundary) => {
-				let count = 0;
-				for (const rect of rects) if (rect.left < leftBoundary && rect.right > leftBoundary || rect.left < rightBoundary && rect.right > rightBoundary) count += 1;
-				return count;
-			};
-			let evaluateBoundaryModel = (leftBoundary, rightBoundary, boundaryOffsetDirection) => {
-				let candidates = [];
-				let roundDelta = (delta) => delta < 0 ? Math.floor(delta) : Math.ceil(delta);
-				let addBoundaryCandidates = (boundary) => {
-					let straddlers = rects.filter((rect) => rect.left < boundary && rect.right > boundary);
-					if (!straddlers.length) return;
-					let minLeft = Math.min(...straddlers.map((rect) => rect.left));
-					let maxRight = Math.max(...straddlers.map((rect) => rect.right));
-					candidates.push(roundDelta((minLeft - edgeGuard - boundary) / boundaryOffsetDirection));
-					candidates.push(roundDelta((maxRight + edgeGuard - boundary) / boundaryOffsetDirection));
-				};
-				let initialCrossings = crossingCount(leftBoundary, rightBoundary);
-				let best = null;
-				if (initialCrossings > 0) {
-					addBoundaryCandidates(leftBoundary);
-					addBoundaryCandidates(rightBoundary);
-					let uniqueCandidates = Array.from(new Set(candidates.filter((delta) => Number.isFinite(delta) && delta !== 0)));
-					for (const delta of uniqueCandidates) {
-						let snappedOffset = Math.max(0, Math.min(maxScroll, logicalOffset + delta));
-						let clampedDelta = snappedOffset - logicalOffset;
-						if (!clampedDelta) continue;
-						if (hasMaxRightBoundary && boundaryOffsetDirection < 0 && contentWidth - snappedOffset > maxRightBoundary + 1) continue;
-						let shiftedDelta = boundaryOffsetDirection * clampedDelta;
-						let score = crossingCount(leftBoundary + shiftedDelta, rightBoundary + shiftedDelta);
-						let distance = Math.abs(clampedDelta);
-						if (!best || score < best.score || score === best.score && distance < best.distance) best = {
-							delta: clampedDelta,
-							distance,
-							score
-						};
-					}
-				}
-				if (best && best.score < initialCrossings) return {
-					delta: best.delta,
-					distance: best.distance,
-					initialCrossings,
-					score: best.score
-				};
-				return {
-					delta: 0,
-					distance: 0,
-					initialCrossings,
-					score: initialCrossings
-				};
-			};
-			let structuralLeftMask = Number(structuralGutterMask && structuralGutterMask.left) || 0;
-			let structuralRightMask = Number(structuralGutterMask && structuralGutterMask.right) || 0;
-			let rightOriginRawRight = contentWidth - logicalOffset;
-			let rightOriginSnap = evaluateBoundaryModel(rightOriginRawRight - visibleWidth + structuralLeftMask, rightOriginRawRight - structuralRightMask, -1);
-			rightOriginSnap.model = "right-origin";
-			let leftOriginSnap = evaluateBoundaryModel(logicalOffset + structuralLeftMask, logicalOffset + visibleWidth - structuralRightMask, 1);
-			leftOriginSnap.model = "left-origin";
-			let bestSnap = [rightOriginSnap, leftOriginSnap].filter((snap) => snap && snap.delta).sort(function(a, b) {
-				if (a.score !== b.score) return a.score - b.score;
-				if (a.model !== b.model) return a.model === "right-origin" ? -1 : 1;
-				return a.distance - b.distance;
-			})[0];
-			let nearestDelta = bestSnap ? bestSnap.delta : 0;
-			let boundaryShift = this.getPageBoundaryShift();
-			let edgeGuardPx = Number(this.layout && this.layout.edgeGuardPx) || 0;
-			let structuralBleed = visibleWidth - (this.getPageAdvance() || visibleWidth);
-			if (nearestDelta > 0 && boundaryShift > 0 && edgeGuardPx > 0 && structuralBleed > 1 && Math.abs(boundaryShift - edgeGuardPx) <= 1) nearestDelta = Math.min(nearestDelta, Math.max(1, Math.floor(edgeGuardPx / 2)));
-			let snapped = nearestDelta ? Math.max(0, Math.min(maxScroll, logicalOffset + nearestDelta)) : logicalOffset;
-			if (hasPreferredRightBoundary) {
-				if (contentWidth - snapped < preferredRightBoundary - 1) snapped = Math.min(snapped, Math.max(0, Math.min(maxScroll, contentWidth - preferredRightBoundary)));
-			}
-			if (hasMaxRightBoundary) {
-				if (contentWidth - snapped > maxRightBoundary + 1) snapped = Math.max(snapped, Math.max(0, Math.min(maxScroll, contentWidth - maxRightBoundary)));
-			}
-			if (nearestDelta) this._verticalRlBoundarySnapCache = {
-				key: cacheKey,
-				value: snapped
-			};
-			return snapped;
+			let textRects = collectVisibleTextClientRects(doc, win, body, { limit: 1e3 });
+			if (!textRects) return null;
+			let measurementInputs = getVerticalRlBoundarySnapMeasurementInputs(textRects, iframeRect.left, logicalOffset, contentWidth, visibleWidth, this.layout && this.layout.edgeGuardPx, structuralGutterMask, this.getPageAdvance(), this.getPageBoundaryShift());
+			let snapResult = getVerticalRlBoundarySnapPipelineResult(preflight.cacheLookup.cacheKey, measurementInputs, logicalOffset, contentWidth, visibleWidth, maxScroll, preflight.maxRightBoundaryOptions, preflight.rightBoundaryOptions);
+			if (snapResult.cacheEntry) this._verticalRlBoundarySnapCache = snapResult.cacheEntry;
+			return snapResult.snapped;
 		}
 		getVerticalRlRectDistanceToLogicalViewport(left, right, rawLeft, rawRight) {
-			if (right < rawLeft) return rawLeft - right;
-			if (left > rawRight) return left - rawRight;
-			return 0;
+			return getVerticalRlRectDistanceToLogicalViewport(left, right, rawLeft, rawRight);
 		}
 		snapVerticalRlLogicalOffsetFromEdgeMask(logicalOffset, maxScroll) {
 			if (!this.isRtlVerticalPaginated() || !this.container || !this.layout) return logicalOffset;
@@ -14585,18 +15331,10 @@
 			return width;
 		}
 		getPageSnapTolerance() {
-			let advance = this.getPageAdvance() || 0;
-			let edgeGuard = this.layout && this.layout.edgeGuardPx ? this.layout.edgeGuardPx : 0;
-			let tolerance = Math.max(2, edgeGuard, Math.round(advance * .08));
-			return advance > 0 ? Math.min(Math.max(2, Math.round(advance / 4)), tolerance) : 2;
+			return getPageSnapTolerance(this.getPageAdvance() || 0, this.layout && this.layout.edgeGuardPx ? this.layout.edgeGuardPx : 0);
 		}
 		countPagesWithFractionalTolerance(totalLength, pageLength) {
-			if (!Number.isFinite(totalLength) || totalLength <= 0 || !Number.isFinite(pageLength) || pageLength <= 0) return 1;
-			let ratio = totalLength / pageLength;
-			let rounded = Math.max(1, Math.round(ratio));
-			let tolerance = Math.max(1, Math.min(4, pageLength * .005));
-			if (Math.abs(totalLength - rounded * pageLength) <= tolerance) return rounded;
-			return Math.max(1, Math.ceil(ratio));
+			return countPagesWithFractionalTolerance(totalLength, pageLength);
 		}
 		getTotalPagesForCurrentView() {
 			let view = this.views && (this.views.first() || this.views.last());
@@ -14615,27 +15353,7 @@
 			let advance = this.getPageAdvance();
 			if (!advance || advance <= 0 || !this.container) return 0;
 			let totalPages = this.getTotalPagesForCurrentView();
-			let normalized = this.getNormalizedLogicalScrollLeft();
-			let maxLogicalScroll = this.getMaxLogicalScrollLeft();
-			let snapTolerance = this.getPageSnapTolerance();
-			if (this.isRtlVerticalPaginated() && totalPages > 1 && maxLogicalScroll > 0 && normalized >= maxLogicalScroll - snapTolerance) return totalPages - 1;
-			if (this.isRtlVerticalPaginated()) {
-				let nearestPageIndex = 0;
-				let nearestDistance = Infinity;
-				for (let i = 0; i < totalPages; i++) {
-					let targetOffset = this.getLogicalOffsetForPageIndex(i, totalPages, maxLogicalScroll);
-					let distance = Math.abs(normalized - targetOffset);
-					if (distance < nearestDistance) {
-						nearestDistance = distance;
-						nearestPageIndex = i;
-					}
-				}
-				return nearestPageIndex;
-			}
-			let nearestPageIndex = Math.round(normalized / advance);
-			if (Math.abs(normalized - nearestPageIndex * advance) <= snapTolerance) return Math.max(0, Math.min(totalPages - 1, nearestPageIndex));
-			let pageIndex = Math.floor((normalized + .5) / advance);
-			return Math.max(0, Math.min(totalPages - 1, pageIndex));
+			return getCurrentPageIndexForOffset(this.getNormalizedLogicalScrollLeft(), totalPages, advance, this.getMaxLogicalScrollLeft(), this.getPageSnapTolerance(), this.getPageBoundaryShift(), this.isRtlVerticalPaginated());
 		}
 		scrollToLogicalPage(pageIndex, options = {}) {
 			this.syncVerticalRlViewportClip();
@@ -14648,11 +15366,7 @@
 			let cachedLogicalOffset = Boolean(options && options.ignoreCachedLogicalOffset) ? null : this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey);
 			if (this.isRtlVerticalPaginated() && targetIndex > 0) {
 				let forcedRightBoundary = Number(options && options.sequentialRightBoundary);
-				if (Number.isFinite(forcedRightBoundary) && forcedRightBoundary > 0) sequentialBoundaryConstraint = {
-					pageIndex: targetIndex,
-					maxRightBoundary: forcedRightBoundary,
-					preferredRightBoundary: forcedRightBoundary
-				};
+				if (Number.isFinite(forcedRightBoundary) && forcedRightBoundary > 0) sequentialBoundaryConstraint = getVerticalRlSequentialRightBoundaryConstraint(targetIndex, forcedRightBoundary, 0, 0, 0, 0, 0, 0);
 				else if (targetIndex < totalPages - 1) {
 					let currentIndex = this.getCurrentPageIndex();
 					if (currentIndex === targetIndex - 1) {
@@ -14662,14 +15376,7 @@
 						let currentOffset = this.getNormalizedLogicalScrollLeft();
 						let currentGridOffset = this.getLogicalOffsetForPageIndex(currentIndex, totalPages, maxScroll);
 						let currentMaskWidths = this.getVerticalRlRenderedEdgeMaskWidths();
-						let currentLeftMask = Number(currentMaskWidths && currentMaskWidths.left) || 0;
-						let hasCleanPageLeftMask = currentLeftMask > 0 && Math.max(0, visibleWidth - advance) <= 1;
-						let maxRightBoundary = contentWidth - currentOffset - visibleWidth + currentLeftMask;
-						if ((Math.abs(currentOffset - currentGridOffset) > 1 || hasCleanPageLeftMask) && Number.isFinite(maxRightBoundary) && maxRightBoundary > 0) sequentialBoundaryConstraint = {
-							pageIndex: targetIndex,
-							maxRightBoundary,
-							preferredRightBoundary: maxRightBoundary
-						};
+						sequentialBoundaryConstraint = getVerticalRlSequentialRightBoundaryConstraint(targetIndex, forcedRightBoundary, contentWidth, currentOffset, currentGridOffset, visibleWidth, advance, Number(currentMaskWidths && currentMaskWidths.left) || 0);
 					}
 				}
 			}
@@ -14857,14 +15564,14 @@
 			if (this.isRtlVerticalPaginated()) {
 				let pageIndex = this.getCurrentPageIndex();
 				if (pageIndex > 0) {
-					this.scrollToLogicalPage(pageIndex - 1);
+					this.scrollToLogicalPage(pageIndex - 1, { ignoreCachedLogicalOffset: true });
 					return;
 				} else prev = this.views.first().section.prev();
 			}
 			if (!prev && this.isPaginated && this.settings.axis === "horizontal" && (!dir || dir === "ltr")) {
 				let pageIndex = this.getCurrentPageIndex();
 				this.scrollLeft = this.container.scrollLeft;
-				if (pageIndex > 0) this.scrollToLogicalPage(pageIndex - 1);
+				if (pageIndex > 0) this.scrollToLogicalPage(pageIndex - 1, { ignoreCachedLogicalOffset: true });
 				else prev = this.views.first().section.prev();
 			} else if (!prev && this.isPaginated && this.settings.axis === "horizontal" && dir === "rtl") {
 				let pageAdvance = this.getPageAdvance();
@@ -14917,7 +15624,6 @@
 			let pageHeight = container.height < window.innerHeight ? container.height : window.innerHeight;
 			let pageWidth = container.width < window.innerWidth ? container.width : window.innerWidth;
 			let vertical = this.settings.axis === "vertical";
-			this.settings.direction;
 			let offset = 0;
 			let used = 0;
 			if (this.settings.fullsize) offset = vertical ? window.scrollY : window.scrollX;
@@ -15193,7 +15899,8 @@
 	};
 	(0, import_event_emitter.default)(DefaultViewManager.prototype);
 	//#endregion
-	//#region src/managers/helpers/snap.js
+	//#region src/managers/helpers/snap.ts
+	var Defer$3 = defer$1;
 	var PI_D2 = Math.PI / 2;
 	var EASING_EQUATIONS = {
 		easeOutSine: function(pos) {
@@ -15211,14 +15918,39 @@
 		}
 	};
 	var Snap = class {
+		settings;
+		supportsTouch;
+		manager;
+		layout;
+		fullsize;
+		element;
+		scroller;
+		isVertical;
+		touchCanceler;
+		resizeCanceler;
+		snapping;
+		scrollLeft;
+		scrollTop;
+		startTouchX;
+		startTouchY;
+		startTime;
+		endTouchX;
+		endTouchY;
+		endTime;
+		_onResize;
+		_onScroll;
+		_onTouchStart;
+		_onTouchMove;
+		_onTouchEnd;
+		_afterDisplayed;
 		constructor(manager, options) {
-			this.settings = extend({
+			this.settings = extend$1({
 				duration: 80,
 				minVelocity: .2,
 				minDistance: 10,
 				easing: EASING_EQUATIONS["easeInCubic"]
 			}, options || {});
-			this.supportsTouch = this.supportsTouch();
+			this.supportsTouch = this.detectSupportsTouch();
 			if (this.supportsTouch) this.setup(manager);
 		}
 		setup(manager) {
@@ -15251,8 +15983,8 @@
 			this.endTime = void 0;
 			this.addListeners();
 		}
-		supportsTouch() {
-			if ("ontouchstart" in window || window.DocumentTouch && document instanceof DocumentTouch) return true;
+		detectSupportsTouch() {
+			if ("ontouchstart" in window || window.DocumentTouch && document instanceof window.DocumentTouch) return true;
 			return false;
 		}
 		disableScroll() {
@@ -15371,16 +16103,14 @@
 			return this.smoothScrollTo(snapTo);
 		}
 		smoothScrollTo(destination) {
-			const deferred = new defer();
+			const deferred = new Defer$3();
 			const start = this.scrollLeft;
 			const startTime = this.now();
 			const duration = this.settings.duration;
-			const easing = this.settings.easing;
 			this.snapping = true;
 			function tick() {
 				const now = this.now();
 				const time = Math.min(1, (now - startTime) / duration);
-				easing(time);
 				if (this.touchCanceler || this.resizeCanceler) {
 					this.resizeCanceler = false;
 					this.snapping = false;
@@ -15418,13 +16148,14 @@
 	};
 	(0, import_event_emitter.default)(Snap.prototype);
 	//#endregion
-	//#region src/managers/continuous/index.js
+	//#region src/managers/continuous/index.ts
 	var import_debounce = /* @__PURE__ */ __toESM(require_debounce());
+	var Defer$2 = defer$1;
 	var ContinuousViewManager = class extends DefaultViewManager {
 		constructor(options) {
 			super(options);
 			this.name = "continuous";
-			this.settings = extend(this.settings || {}, {
+			this.settings = extend$1(this.settings || {}, {
 				infinite: true,
 				overflow: void 0,
 				axis: void 0,
@@ -15439,7 +16170,7 @@
 				allowScriptedContent: false,
 				allowPopups: false
 			});
-			extend(this.settings, options.settings || {});
+			extend$1(this.settings, options.settings || {});
 			if (options.settings.gap != "undefined" && options.settings.gap === 0) this.settings.gap = options.settings.gap;
 			this.viewSettings = {
 				ignoreClass: this.settings.ignoreClass,
@@ -15481,7 +16212,7 @@
 			}.bind(this));
 		}
 		fill(_full) {
-			var full = _full || new defer();
+			var full = _full || new Defer$2();
 			this.q.enqueue(() => {
 				return this.check();
 			}).then((result) => {
@@ -15492,13 +16223,8 @@
 		}
 		moveTo(offset) {
 			var distX = 0, distY = 0;
-			if (!this.isPaginated) {
-				distY = offset.top;
-				offset.top + this.settings.offsetDelta;
-			} else {
-				distX = Math.floor(offset.left / this.layout.delta) * this.layout.delta;
-				distX + this.settings.offsetDelta;
-			}
+			if (!this.isPaginated) distY = offset.top;
+			else distX = Math.floor(offset.left / this.layout.delta) * this.layout.delta;
 			if (distX > 0 || distY > 0) this.scrollBy(distX, distY, true);
 		}
 		afterResized(view) {
@@ -15508,13 +16234,13 @@
 			view.onDisplayed = function() {};
 		}
 		add(section) {
-			var view = this.createView(section);
+			var view = this.createView(section, void 0);
 			this.views.append(view);
 			view.on(EVENTS.VIEWS.RESIZED, (bounds) => {
 				view.expanded = true;
 			});
 			view.on(EVENTS.VIEWS.AXIS, (axis) => {
-				this.updateAxis(axis);
+				this.updateAxis(axis, void 0);
 			});
 			view.on(EVENTS.VIEWS.WRITING_MODE, (mode) => {
 				this.updateWritingMode(mode);
@@ -15524,12 +16250,12 @@
 			return view.display(this.request);
 		}
 		append(section) {
-			var view = this.createView(section);
+			var view = this.createView(section, void 0);
 			view.on(EVENTS.VIEWS.RESIZED, (bounds) => {
 				view.expanded = true;
 			});
 			view.on(EVENTS.VIEWS.AXIS, (axis) => {
-				this.updateAxis(axis);
+				this.updateAxis(axis, void 0);
 			});
 			view.on(EVENTS.VIEWS.WRITING_MODE, (mode) => {
 				this.updateWritingMode(mode);
@@ -15539,13 +16265,13 @@
 			return view;
 		}
 		prepend(section) {
-			var view = this.createView(section);
+			var view = this.createView(section, void 0);
 			view.on(EVENTS.VIEWS.RESIZED, (bounds) => {
 				this.counter(bounds);
 				view.expanded = true;
 			});
 			view.on(EVENTS.VIEWS.AXIS, (axis) => {
-				this.updateAxis(axis);
+				this.updateAxis(axis, void 0);
 			});
 			view.on(EVENTS.VIEWS.WRITING_MODE, (mode) => {
 				this.updateWritingMode(mode);
@@ -15555,8 +16281,8 @@
 			return view;
 		}
 		counter(bounds) {
-			if (this.settings.axis === "vertical") this.scrollBy(0, bounds.heightDelta, true);
-			else this.scrollBy(bounds.widthDelta, 0, true);
+			if (this.settings.axis === "vertical") this.scrollBy(0, bounds.heightDelta || 0, true);
+			else this.scrollBy(bounds.widthDelta || 0, 0, true);
 		}
 		update(_offset) {
 			var container = this.bounds();
@@ -15566,7 +16292,7 @@
 			var offset = typeof _offset != "undefined" ? _offset : this.settings.offset || 0;
 			var isVisible;
 			var view;
-			var updating = new defer();
+			var updating = new Defer$2();
 			var promises = [];
 			for (var i = 0; i < viewsLength; i++) {
 				view = views[i];
@@ -15605,7 +16331,7 @@
 			}.bind(this), delay);
 		}
 		check(_offsetLeft, _offsetTop) {
-			var checking = new defer();
+			var checking = new Defer$2();
 			var newViews = [];
 			var horizontal = this.settings.axis === "horizontal";
 			var delta = this.settings.offset || 0;
@@ -15656,7 +16382,7 @@
 			}
 		}
 		trim() {
-			var task = new defer();
+			var task = new Defer$2();
 			var displayed = this.views.displayed();
 			var first = displayed[0];
 			var last = displayed[displayed.length - 1];
@@ -15697,7 +16423,7 @@
 		}
 		addScrollListeners() {
 			var scroller;
-			this.tick = requestAnimationFrame$1;
+			this.tick = requestAnimationFrame$2;
 			this.scrollDeltaVert = 0;
 			this.scrollDeltaHorz = 0;
 			if (!this.settings.fullsize) scroller = this.container;
@@ -15791,7 +16517,8 @@
 		}
 	};
 	//#endregion
-	//#region src/rendition.js
+	//#region src/rendition.ts
+	var Defer$1 = defer$1;
 	/**
 	* Displays an Epub as a series of Views for each Section.
 	* Requires Manager and View class to handle specifics of rendering
@@ -15816,8 +16543,27 @@
 	* @param {boolean} [options.allowPopups=false] enable opening popup in content
 	*/
 	var Rendition = class {
+		settings;
+		book;
+		hooks;
+		manager;
+		ViewManager;
+		View;
+		q;
+		_layout;
+		themes;
+		annotations;
+		epubcfi;
+		location;
+		starting;
+		started;
+		displaying;
+		emit;
+		on;
+		off;
+		once;
 		constructor(book, options) {
-			this.settings = extend(this.settings || {}, {
+			this.settings = extend$1(this.settings || {}, {
 				width: null,
 				height: null,
 				ignoreClass: "",
@@ -15835,7 +16581,7 @@
 				allowScriptedContent: false,
 				allowPopups: false
 			});
-			extend(this.settings, options);
+			extend$1(this.settings, options);
 			if (typeof this.settings.manager === "object") this.manager = this.settings.manager;
 			this.book = book;
 			/**
@@ -15898,7 +16644,7 @@
 			*/
 			this.location = void 0;
 			this.q.enqueue(this.book.opened);
-			this.starting = new defer();
+			this.starting = new Defer$1();
 			/**
 			* @member {promise} started returns after the rendition has started
 			* @memberof Rendition
@@ -16006,7 +16752,7 @@
 		* @return {Promise}
 		*/
 		display(target) {
-			if (this.displaying) this.displaying.resolve();
+			if (this.displaying) this.displaying.resolve(void 0);
 			return this.q.enqueue(this._display, target);
 		}
 		/**
@@ -16017,12 +16763,11 @@
 		*/
 		_display(target) {
 			if (!this.book) return;
-			this.epubcfi.isCfiString(target);
-			var displaying = new defer();
+			var displaying = new Defer$1();
 			var displayed = displaying.promise;
 			var section;
 			this.displaying = displaying;
-			if (this.book.locations.length() && isFloat(target)) target = this.book.locations.cfiFromPercentage(parseFloat(target));
+			if (this.book.locations.length() && isFloat$1(target)) target = this.book.locations.cfiFromPercentage(parseFloat(String(target)));
 			section = this.book.spine.get(target);
 			if (!section) {
 				displaying.reject(/* @__PURE__ */ new Error("No Section Found"));
@@ -16223,7 +16968,7 @@
 			var viewport = metadata.viewport || "";
 			var minSpreadWidth = this.settings.minSpreadWidth || metadata.minSpreadWidth || 800;
 			var direction = this.settings.direction || metadata.direction || "ltr";
-			if ((this.settings.width === 0 || this.settings.width > 0) && (this.settings.height === 0 || this.settings.height > 0)) {}
+			if ((Number(this.settings.width) === 0 || Number(this.settings.width) > 0) && (Number(this.settings.height) === 0 || Number(this.settings.height) > 0)) {}
 			properties = {
 				layout,
 				spread,
@@ -16357,7 +17102,7 @@
 		*/
 		currentLocation() {
 			var location = this.manager.currentLocation();
-			if (location && location.then && typeof location.then === "function") location.then(function(result) {
+			if (location && location.then && typeof location.then === "function") return location.then(function(result) {
 				return this.located(result);
 			}.bind(this));
 			else if (location) return this.located(location);
@@ -16512,7 +17257,7 @@
 					"break-inside": "avoid"
 				}
 			});
-			return new Promise(function(resolve, reject) {
+			return new Promise(function(resolve) {
 				setTimeout(function() {
 					resolve();
 				}, 1);
@@ -16556,7 +17301,7 @@
 		* @param  {Section} section
 		* @private
 		*/
-		injectStylesheet(doc, section) {
+		injectStylesheet(doc, _section) {
 			let style = doc.createElement("link");
 			style.setAttribute("type", "text/css");
 			style.setAttribute("rel", "stylesheet");
@@ -16570,7 +17315,7 @@
 		* @param  {Section} section
 		* @private
 		*/
-		injectScript(doc, section) {
+		injectScript(doc, _section) {
 			let script = doc.createElement("script");
 			script.setAttribute("type", "text/javascript");
 			script.setAttribute("src", this.settings.script);
@@ -16584,7 +17329,7 @@
 		* @param  {Section} section
 		* @private
 		*/
-		injectIdentifier(doc, section) {
+		injectIdentifier(doc, _section) {
 			let ident = this.book.packaging.metadata.identifier;
 			let meta = doc.createElement("meta");
 			meta.setAttribute("name", "dc.relation.ispartof");
@@ -16594,12 +17339,14 @@
 	};
 	(0, import_event_emitter.default)(Rendition.prototype);
 	//#endregion
-	//#region src/archive.js
+	//#region src/archive.ts
 	/**
 	* Handles Unzipping a requesting files from an Epub Archive
 	* @class
 	*/
 	var Archive = class {
+		zip;
+		urlCache;
 		constructor() {
 			this.zip = void 0;
 			this.urlCache = {};
@@ -16633,9 +17380,9 @@
 		* @return {Promise} zipfile
 		*/
 		openUrl(zipUrl, isBase64) {
-			return request(zipUrl, "binary").then(function(data) {
+			return request(zipUrl, "binary").then((data) => {
 				return this.zip.loadAsync(data, { "base64": isBase64 });
-			}.bind(this));
+			});
 		}
 		/**
 		* Request a url from the archive
@@ -16644,16 +17391,16 @@
 		* @return {Promise<Blob | string | JSON | Document | XMLDocument>}
 		*/
 		request(url, type) {
-			var deferred = new defer();
+			var deferred = new defer$1();
 			var response;
 			var path = new Path(url);
 			if (!type) type = path.extension;
 			if (type == "blob") response = this.getBlob(url);
 			else response = this.getText(url);
-			if (response) response.then(function(r) {
+			if (response) response.then((r) => {
 				let result = this.handleResponse(r, type);
 				deferred.resolve(result);
-			}.bind(this));
+			});
 			else deferred.reject({
 				message: "File not found in the epub: " + url,
 				stack: (/* @__PURE__ */ new Error()).stack
@@ -16670,9 +17417,9 @@
 		handleResponse(response, type) {
 			var r;
 			if (type == "json") r = JSON.parse(response);
-			else if (isXml(type)) r = parse(response, "text/xml");
-			else if (type == "xhtml") r = parse(response, "application/xhtml+xml");
-			else if (type == "html" || type == "htm") r = parse(response, "text/html");
+			else if (isXml$1(type)) r = parseMarkup(response, "text/xml");
+			else if (type == "xhtml") r = parseMarkup(response, "application/xhtml+xml");
+			else if (type == "html" || type == "htm") r = parseMarkup(response, "text/html");
 			else r = response;
 			return r;
 		}
@@ -16728,7 +17475,7 @@
 		* @return {Promise} url promise with Url string
 		*/
 		createUrl(url, options) {
-			var deferred = new defer();
+			var deferred = new defer$1();
 			var _URL = window.URL || window.webkitURL || window.mozURL;
 			var tempUrl;
 			var response;
@@ -16739,17 +17486,17 @@
 			}
 			if (useBase64) {
 				response = this.getBase64(url);
-				if (response) response.then(function(tempUrl) {
+				if (response) response.then((tempUrl) => {
 					this.urlCache[url] = tempUrl;
 					deferred.resolve(tempUrl);
-				}.bind(this));
+				});
 			} else {
 				response = this.getBlob(url);
-				if (response) response.then(function(blob) {
+				if (response) response.then((blob) => {
 					tempUrl = _URL.createObjectURL(blob);
 					this.urlCache[url] = tempUrl;
 					deferred.resolve(tempUrl);
-				}.bind(this));
+				});
 			}
 			if (!response) deferred.reject({
 				message: "File not found in the epub: " + url,
@@ -16780,7 +17527,7 @@
 	(c) 2013-2017 Mozilla, Apache License 2.0
 	*/
 	//#endregion
-	//#region src/store.js
+	//#region src/store.ts
 	var import_localforage = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
 		(function(f) {
 			if (typeof exports === "object" && typeof module !== "undefined") module.exports = f();
@@ -18577,6 +19324,14 @@
 	* @param {function} [resolver]
 	*/
 	var Store = class {
+		urlCache;
+		storage;
+		name;
+		requester;
+		resolver;
+		online;
+		_status;
+		emit;
 		constructor(name, requester, resolver) {
 			this.urlCache = {};
 			this.storage = void 0;
@@ -18594,7 +19349,7 @@
 		*/
 		checkRequirements() {
 			try {
-				let store;
+				let store = import_localforage.default;
 				if (typeof import_localforage.default === "undefined") store = import_localforage.default;
 				this.storage = store.createInstance({ name: this.name });
 			} catch (e) {
@@ -18687,14 +19442,13 @@
 		* @return {Promise<Blob | string | JSON | Document | XMLDocument>}
 		*/
 		retrieve(url, type) {
-			new defer();
 			var response;
 			var path = new Path(url);
 			if (!type) type = path.extension;
 			if (type == "blob") response = this.getBlob(url);
 			else response = this.getText(url);
 			return response.then((r) => {
-				var deferred = new defer();
+				var deferred = new defer$1();
 				var result;
 				if (r) {
 					result = this.handleResponse(r, type);
@@ -18716,9 +19470,9 @@
 		handleResponse(response, type) {
 			var r;
 			if (type == "json") r = JSON.parse(response);
-			else if (isXml(type)) r = parse(response, "text/xml");
-			else if (type == "xhtml") r = parse(response, "application/xhtml+xml");
-			else if (type == "html" || type == "htm") r = parse(response, "text/html");
+			else if (isXml$1(type)) r = parseMarkup(response, "text/xml");
+			else if (type == "xhtml") r = parseMarkup(response, "application/xhtml+xml");
+			else if (type == "html" || type == "htm") r = parseMarkup(response, "text/html");
 			else r = response;
 			return r;
 		}
@@ -18746,7 +19500,7 @@
 			let encodedUrl = window.encodeURIComponent(url);
 			mimeType = mimeType || mime_default.lookup(url);
 			return this.storage.getItem(encodedUrl).then(function(uint8array) {
-				var deferred = new defer();
+				var deferred = new defer$1();
 				var reader = new FileReader();
 				var blob;
 				if (!uint8array) return;
@@ -18768,7 +19522,7 @@
 			let encodedUrl = window.encodeURIComponent(url);
 			mimeType = mimeType || mime_default.lookup(url);
 			return this.storage.getItem(encodedUrl).then((uint8array) => {
-				var deferred = new defer();
+				var deferred = new defer$1();
 				var reader = new FileReader();
 				var blob;
 				if (!uint8array) return;
@@ -18776,7 +19530,7 @@
 				reader.addEventListener("loadend", () => {
 					deferred.resolve(reader.result);
 				});
-				reader.readAsDataURL(blob, mimeType);
+				reader.readAsDataURL(blob);
 				return deferred.promise;
 			});
 		}
@@ -18787,7 +19541,7 @@
 		* @return {Promise} url promise with Url string
 		*/
 		createUrl(url, options) {
-			var deferred = new defer();
+			var deferred = new defer$1();
 			var _URL = window.URL || window.webkitURL || window.mozURL;
 			var tempUrl;
 			var response;
@@ -18798,17 +19552,17 @@
 			}
 			if (useBase64) {
 				response = this.getBase64(url);
-				if (response) response.then(function(tempUrl) {
+				if (response) response.then((tempUrl) => {
 					this.urlCache[url] = tempUrl;
 					deferred.resolve(tempUrl);
-				}.bind(this));
+				});
 			} else {
 				response = this.getBlob(url);
-				if (response) response.then(function(blob) {
+				if (response) response.then((blob) => {
 					tempUrl = _URL.createObjectURL(blob);
 					this.urlCache[url] = tempUrl;
 					deferred.resolve(tempUrl);
-				}.bind(this));
+				});
 			}
 			if (!response) deferred.reject({
 				message: "File not found in storage: " + url,
@@ -18834,13 +19588,17 @@
 	};
 	(0, import_event_emitter.default)(Store.prototype);
 	//#endregion
-	//#region src/displayoptions.js
+	//#region src/displayoptions.ts
 	/**
 	* Open DisplayOptions Format Parser
 	* @class
 	* @param {document} displayOptionsDocument XML
 	*/
 	var DisplayOptions = class {
+		interactive;
+		fixedLayout;
+		openToSpread;
+		orientationLock;
 		constructor(displayOptionsDocument) {
 			this.interactive = "";
 			this.fixedLayout = "";
@@ -18855,11 +19613,12 @@
 		*/
 		parse(displayOptionsDocument) {
 			if (!displayOptionsDocument) return this;
-			const displayOptionsNode = qs(displayOptionsDocument, "display_options");
+			const displayOptionsNode = qs$1(displayOptionsDocument, "display_options");
 			if (!displayOptionsNode) return this;
-			qsa(displayOptionsNode, "option").forEach((el) => {
+			const options = qsa$1(displayOptionsNode, "option");
+			Array.from(options).forEach((el) => {
 				let value = "";
-				if (el.childNodes.length) value = el.childNodes[0].nodeValue;
+				if (el.childNodes.length) value = el.childNodes[0].nodeValue || "";
 				switch (el.attributes.name.value) {
 					case "interactive":
 						this.interactive = value;
@@ -18885,7 +19644,8 @@
 		}
 	};
 	//#endregion
-	//#region src/book.js
+	//#region src/book.ts
+	var Defer = defer$1;
 	var CONTAINER_PATH = "META-INF/container.xml";
 	var IBOOKS_DISPLAY_OPTIONS_PATH = "META-INF/com.apple.ibooks.display-options.xml";
 	var INPUT_TYPE = {
@@ -18915,12 +19675,41 @@
 	* @example new Book({ replacements: "blobUrl" })
 	*/
 	var Book = class {
+		settings;
+		opening;
+		opened;
+		isOpen;
+		loading;
+		loaded;
+		ready;
+		isRendered;
+		request;
+		spine;
+		locations;
+		navigation;
+		pageList;
+		url;
+		path;
+		archived;
+		archive;
+		storage;
+		resources;
+		rendition;
+		container;
+		packaging;
+		package;
+		displayOptions;
+		cover;
+		emit;
+		on;
+		off;
+		once;
 		constructor(url, options) {
 			if (typeof options === "undefined" && typeof url !== "string" && url instanceof Blob === false && url instanceof ArrayBuffer === false) {
 				options = url;
 				url = void 0;
 			}
-			this.settings = extend(this.settings || {}, {
+			this.settings = extend$1(this.settings || {}, {
 				requestMethod: void 0,
 				requestCredentials: void 0,
 				requestHeaders: void 0,
@@ -18930,8 +19719,8 @@
 				openAs: void 0,
 				store: void 0
 			});
-			extend(this.settings, options);
-			this.opening = new defer();
+			extend$1(this.settings, options);
+			this.opening = new Defer();
 			/**
 			* @member {promise} opened returns after the book is loaded
 			* @memberof Book
@@ -18939,14 +19728,14 @@
 			this.opened = this.opening.promise;
 			this.isOpen = false;
 			this.loading = {
-				manifest: new defer(),
-				spine: new defer(),
-				metadata: new defer(),
-				cover: new defer(),
-				navigation: new defer(),
-				pageList: new defer(),
-				resources: new defer(),
-				displayOptions: new defer()
+				manifest: new Defer(),
+				spine: new Defer(),
+				metadata: new Defer(),
+				cover: new Defer(),
+				navigation: new Defer(),
+				pageList: new Defer(),
+				resources: new Defer(),
+				displayOptions: new Defer()
 			};
 			this.loaded = {
 				manifest: this.loading.manifest.promise,
@@ -19060,7 +19849,7 @@
 			*/
 			this.displayOptions = void 0;
 			if (this.settings.store) this.store(this.settings.store);
-			if (url) this.open(url, this.settings.openAs).catch((error) => {
+			if (url) this.open(url, this.settings.openAs).catch((_error) => {
 				var err = /* @__PURE__ */ new Error("Cannot load book at " + url);
 				this.emit(EVENTS.BOOK.OPEN_FAILED, err);
 			});
@@ -19157,7 +19946,7 @@
 		* @param  {string} path path to the resource to load
 		* @return {Promise}     returns a promise with the requested resource
 		*/
-		load(path) {
+		load(path, _type) {
 			var resolved = this.resolve(path);
 			if (this.archived) return this.archive.request(resolved);
 			else return this.request(resolved, null, this.settings.requestCredentials, this.settings.requestHeaders);
@@ -19185,7 +19974,7 @@
 			var url = path;
 			if (!path) return "";
 			if (this.settings.canonical) url = this.settings.canonical(path);
-			else url = this.resolve(path, true);
+			else url = this.resolve(path, true) || "";
 			return url;
 		}
 		/**
@@ -19219,7 +20008,7 @@
 			if (this.packaging.metadata.layout === "") this.load(this.url.resolve(IBOOKS_DISPLAY_OPTIONS_PATH)).then((xml) => {
 				this.displayOptions = new DisplayOptions(xml);
 				this.loading.displayOptions.resolve(this.displayOptions);
-			}).catch((err) => {
+			}).catch((_err) => {
 				this.displayOptions = new DisplayOptions();
 				this.loading.displayOptions.resolve(this.displayOptions);
 			});
@@ -19264,12 +20053,12 @@
 		loadNavigation(packaging) {
 			let navPath = packaging.navPath || packaging.ncxPath;
 			let toc = packaging.toc;
-			if (toc) return new Promise((resolve, reject) => {
+			if (toc) return new Promise((resolve) => {
 				this.navigation = new Navigation(toc);
 				if (packaging.pageList) this.pageList = new PageList(packaging.pageList);
 				resolve(this.navigation);
 			});
-			if (!navPath) return new Promise((resolve, reject) => {
+			if (!navPath) return new Promise((resolve) => {
 				this.navigation = new Navigation();
 				this.pageList = new PageList();
 				resolve(this.navigation);
@@ -19394,7 +20183,7 @@
 			if (!item) return new Promise((resolve, reject) => {
 				reject("CFI could not be found");
 			});
-			return item.load(_request).then(function(contents) {
+			return item.load(_request).then(function(_contents) {
 				return cfi.toRange(item.document);
 			});
 		}
@@ -19441,7 +20230,433 @@
 	};
 	(0, import_event_emitter.default)(Book.prototype);
 	//#endregion
-	//#region src/epub.js
+	//#region src/utils/core.ts
+	/**
+	* Core Utilities and Helpers
+	* @module Core
+	*/
+	var core_exports = /* @__PURE__ */ __exportAll({
+		RangeObject: () => RangeObject,
+		blob2base64: () => blob2base64,
+		borders: () => borders,
+		bounds: () => bounds,
+		createBase64Url: () => createBase64Url,
+		createBlob: () => createBlob,
+		createBlobUrl: () => createBlobUrl,
+		defaults: () => defaults,
+		defer: () => defer,
+		documentHeight: () => documentHeight,
+		extend: () => extend,
+		filterChildren: () => filterChildren,
+		findChildren: () => findChildren,
+		getParentByTagName: () => getParentByTagName,
+		indexOfElementNode: () => indexOfElementNode,
+		indexOfNode: () => indexOfNode,
+		indexOfSorted: () => indexOfSorted,
+		indexOfTextNode: () => indexOfTextNode,
+		insert: () => insert,
+		isElement: () => isElement,
+		isFloat: () => isFloat,
+		isNumber: () => isNumber,
+		isXml: () => isXml,
+		locationOf: () => locationOf,
+		nodeBounds: () => nodeBounds,
+		parents: () => parents,
+		parse: () => parse,
+		prefixed: () => prefixed,
+		qs: () => qs,
+		qsa: () => qsa,
+		qsp: () => qsp,
+		querySelectorByType: () => querySelectorByType,
+		requestAnimationFrame: () => requestAnimationFrame$1,
+		revokeBlobUrl: () => revokeBlobUrl,
+		sprint: () => sprint,
+		treeWalker: () => treeWalker,
+		type: () => type,
+		uuid: () => uuid,
+		walk: () => walk,
+		windowBounds: () => windowBounds
+	});
+	/**
+	* Vendor prefixed requestAnimationFrame
+	* @returns {function} requestAnimationFrame
+	* @memberof Core
+	*/
+	var requestAnimationFrame$1 = requestAnimationFrame$2;
+	/**
+	* Generates a UUID
+	* based on: http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
+	* @returns {string} uuid
+	* @memberof Core
+	*/
+	function uuid() {
+		return uuid$1();
+	}
+	/**
+	* Gets the height of a document
+	* @returns {number} height
+	* @memberof Core
+	*/
+	function documentHeight() {
+		return documentHeight$1();
+	}
+	/**
+	* Checks if a node is an element
+	* @param {object} obj
+	* @returns {boolean}
+	* @memberof Core
+	*/
+	function isElement(obj) {
+		return isElement$1(obj);
+	}
+	/**
+	* @param {any} n
+	* @returns {boolean}
+	* @memberof Core
+	*/
+	function isNumber(n) {
+		return isNumber$1(n);
+	}
+	/**
+	* @param {any} n
+	* @returns {boolean}
+	* @memberof Core
+	*/
+	function isFloat(n) {
+		return isFloat$1(n);
+	}
+	/**
+	* Get a prefixed css property
+	* @param {string} unprefixed
+	* @returns {string}
+	* @memberof Core
+	*/
+	function prefixed(unprefixed) {
+		return prefixed$1(unprefixed);
+	}
+	/**
+	* Apply defaults to an object
+	* @param {object} obj
+	* @returns {object}
+	* @memberof Core
+	*/
+	function defaults(obj, ..._sources) {
+		return defaults$1.apply(null, arguments);
+	}
+	/**
+	* Extend properties of an object
+	* @param {object} target
+	* @returns {object}
+	* @memberof Core
+	*/
+	function extend(target, ..._sources) {
+		return extend$1.apply(null, arguments);
+	}
+	/**
+	* Fast quicksort insert for sorted array -- based on:
+	*  http://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers
+	* @param {any} item
+	* @param {array} array
+	* @param {function} [compareFunction]
+	* @returns {number} location (in array)
+	* @memberof Core
+	*/
+	function insert(item, array, compareFunction) {
+		return insert$1(item, array, compareFunction);
+	}
+	/**
+	* Finds where something would fit into a sorted array
+	* @param {any} item
+	* @param {array} array
+	* @param {function} [compareFunction]
+	* @param {function} [_start]
+	* @param {function} [_end]
+	* @returns {number} location (in array)
+	* @memberof Core
+	*/
+	function locationOf(item, array, compareFunction, _start, _end) {
+		return locationOf$1(item, array, compareFunction, _start, _end);
+	}
+	/**
+	* Finds index of something in a sorted array
+	* Returns -1 if not found
+	* @param {any} item
+	* @param {array} array
+	* @param {function} [compareFunction]
+	* @param {function} [_start]
+	* @param {function} [_end]
+	* @returns {number} index (in array) or -1
+	* @memberof Core
+	*/
+	function indexOfSorted(item, array, compareFunction, _start, _end) {
+		return indexOfSorted$1(item, array, compareFunction, _start, _end);
+	}
+	/**
+	* Find the bounds of an element
+	* taking padding and margin into account
+	* @param {element} el
+	* @returns {{ width: Number, height: Number}}
+	* @memberof Core
+	*/
+	function bounds(el) {
+		return bounds$1(el);
+	}
+	/**
+	* Find the bounds of an element
+	* taking padding, margin and borders into account
+	* @param {element} el
+	* @returns {{ width: Number, height: Number}}
+	* @memberof Core
+	*/
+	function borders(el) {
+		return borders$1(el);
+	}
+	/**
+	* Find the bounds of any node
+	* allows for getting bounds of text nodes by wrapping them in a range
+	* @param {node} node
+	* @returns {BoundingClientRect}
+	* @memberof Core
+	*/
+	function nodeBounds(node) {
+		return nodeBounds$1(node);
+	}
+	/**
+	* Find the equivalent of getBoundingClientRect of a browser window
+	* @returns {{ width: Number, height: Number, top: Number, left: Number, right: Number, bottom: Number }}
+	* @memberof Core
+	*/
+	function windowBounds() {
+		return windowBounds$1();
+	}
+	/**
+	* Gets the index of a node in its parent
+	* @param {Node} node
+	* @param {string} typeId
+	* @return {number} index
+	* @memberof Core
+	*/
+	function indexOfNode(node, typeId) {
+		return indexOfNode$1(node, typeId);
+	}
+	/**
+	* Gets the index of a text node in its parent
+	* @param {node} textNode
+	* @returns {number} index
+	* @memberof Core
+	*/
+	function indexOfTextNode(textNode) {
+		return indexOfTextNode$1(textNode);
+	}
+	/**
+	* Gets the index of an element node in its parent
+	* @param {element} elementNode
+	* @returns {number} index
+	* @memberof Core
+	*/
+	function indexOfElementNode(elementNode) {
+		return indexOfElementNode$1(elementNode);
+	}
+	/**
+	* Check if extension is xml
+	* @param {string} ext
+	* @returns {boolean}
+	* @memberof Core
+	*/
+	function isXml(ext) {
+		return isXml$1(ext);
+	}
+	/**
+	* Create a new blob
+	* @param {any} content
+	* @param {string} mime
+	* @returns {Blob}
+	* @memberof Core
+	*/
+	function createBlob(content, mime) {
+		return createBlob$1(content, mime);
+	}
+	/**
+	* Create a new blob url
+	* @param {any} content
+	* @param {string} mime
+	* @returns {string} url
+	* @memberof Core
+	*/
+	function createBlobUrl(content, mime) {
+		return createBlobUrl$1(content, mime);
+	}
+	/**
+	* Remove a blob url
+	* @param {string} url
+	* @memberof Core
+	*/
+	function revokeBlobUrl(url) {
+		return revokeBlobUrl$1(url);
+	}
+	/**
+	* Create a new base64 encoded url
+	* @param {any} content
+	* @param {string} mime
+	* @returns {string} url
+	* @memberof Core
+	*/
+	function createBase64Url(content, mime) {
+		return createBase64Url$1(content, mime);
+	}
+	/**
+	* Get type of an object
+	* @param {object} obj
+	* @returns {string} type
+	* @memberof Core
+	*/
+	function type(obj) {
+		return type$1(obj);
+	}
+	/**
+	* Parse xml (or html) markup
+	* @param {string} markup
+	* @param {string} mime
+	* @param {boolean} forceXMLDom force using xmlDom to parse instead of native parser
+	* @returns {document} document
+	* @memberof Core
+	*/
+	function parse(markup, mime, forceXMLDom) {
+		return parseMarkup(markup, mime, forceXMLDom);
+	}
+	/**
+	* querySelector polyfill
+	* @param {element} el
+	* @param {string} sel selector string
+	* @returns {element} element
+	* @memberof Core
+	*/
+	function qs(el, sel) {
+		return qs$1(el, sel);
+	}
+	/**
+	* querySelectorAll polyfill
+	* @param {element} el
+	* @param {string} sel selector string
+	* @returns {element[]} elements
+	* @memberof Core
+	*/
+	function qsa(el, sel) {
+		return qsa$1(el, sel);
+	}
+	/**
+	* querySelector by property
+	* @param {element} el
+	* @param {string} sel selector string
+	* @param {object[]} props
+	* @returns {element[]} elements
+	* @memberof Core
+	*/
+	function qsp(el, sel, props) {
+		return qsp$1(el, sel, props);
+	}
+	/**
+	* Sprint through all text nodes in a document
+	* @memberof Core
+	* @param  {element} root element to start with
+	* @param  {function} func function to run on each element
+	*/
+	function sprint(root, func) {
+		return sprint$1(root, func);
+	}
+	/**
+	* Create a treeWalker
+	* @memberof Core
+	* @param  {element} root element to start with
+	* @param  {function} func function to run on each element
+	* @param  {function | object} filter function or object to filter with
+	*/
+	function treeWalker(root, func, filter) {
+		return treeWalker$1(root, func, filter);
+	}
+	/**
+	* @memberof Core
+	* @param {node} node
+	* @param {callback} return false for continue,true for break inside callback
+	*/
+	function walk(node, callback) {
+		return walk$1(node, callback);
+	}
+	/**
+	* Convert a blob to a base64 encoded string
+	* @param {Blob} blob
+	* @returns {Promise<string | ArrayBuffer | null>}
+	* @memberof Core
+	*/
+	function blob2base64(blob) {
+		return blobToBase64(blob);
+	}
+	/**
+	* Creates a new pending promise and provides methods to resolve or reject it.
+	* From: https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/Promise.jsm/Deferred#backwards_forwards_compatible
+	* @memberof Core
+	*/
+	function defer() {
+		defer$1.call(this);
+	}
+	/**
+	* querySelector with filter by epub type
+	* @param {element} html
+	* @param {string} element element type to find
+	* @param {string} type epub type to find
+	* @returns {element[]} elements
+	* @memberof Core
+	*/
+	function querySelectorByType(html, element, type) {
+		return querySelectorByType$1(html, element, type);
+	}
+	/**
+	* Find direct descendents of an element
+	* @param {element} el
+	* @returns {element[]} children
+	* @memberof Core
+	*/
+	function findChildren(el) {
+		return findChildren$1(el);
+	}
+	/**
+	* Find all parents (ancestors) of an element
+	* @param {element} node
+	* @returns {element[]} parents
+	* @memberof Core
+	*/
+	function parents(node) {
+		return parents$1(node);
+	}
+	/**
+	* Find all direct descendents of a specific type
+	* @param {element} el
+	* @param {string} nodeName
+	* @param {boolean} [single]
+	* @returns {element[]} children
+	* @memberof Core
+	*/
+	function filterChildren(el, nodeName, single) {
+		return filterChildren$1(el, nodeName, single);
+	}
+	/**
+	* Filter all parents (ancestors) with tag name
+	* @param {element} node
+	* @param {string} tagname
+	* @returns {element[]} parents
+	* @memberof Core
+	*/
+	function getParentByTagName(node, tagname) {
+		return getParentByTagName$1(node, tagname);
+	}
+	/**
+	* Lightweight Polyfill for DOM Range
+	* @class
+	* @memberof Core
+	*/
+	var RangeObject = class extends RangeObject$1 {};
+	//#endregion
+	//#region src/epub.ts
 	/**
 	* Creates a new Book
 	* @param {string|ArrayBuffer} url URL, Path or ArrayBuffer
@@ -19449,11 +20664,11 @@
 	* @returns {Book} a new Book object
 	* @example ePub("/path/to/book.epub", {})
 	*/
-	function ePub(url, options) {
+	var ePub = function(url, options) {
 		return new Book(url, options);
-	}
+	};
 	ePub.VERSION = "0.3";
-	if (typeof global !== "undefined") global.EPUBJS_VERSION = "0.3";
+	globalThis.EPUBJS_VERSION = "0.3";
 	ePub.Book = Book;
 	ePub.Rendition = Rendition;
 	ePub.Contents = Contents;

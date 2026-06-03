@@ -16,7 +16,7 @@
 
 ##### cfiFrom?
 
-`string` \| `Range` \| `Node`
+`any`
 
 ##### base?
 
@@ -38,6 +38,18 @@
 
 ***
 
+### end
+
+> **end**: `EpubCFIComponent`
+
+***
+
+### path
+
+> **path**: `EpubCFIComponent`
+
+***
+
 ### range
 
 > **range**: `boolean`
@@ -47,6 +59,12 @@
 ### spinePos
 
 > **spinePos**: `number`
+
+***
+
+### start
+
+> **start**: `EpubCFIComponent`
 
 ## Methods
 
@@ -108,13 +126,13 @@
 
 ### filter()
 
-> **filter**(`anchor`, `ignoreClass?`): `false` \| `Element`
+> **filter**(`anchor`, `ignoreClass?`): `false` \| `Node`
 
 #### Parameters
 
 ##### anchor
 
-`Element`
+`Node`
 
 ##### ignoreClass?
 
@@ -122,7 +140,7 @@
 
 #### Returns
 
-`false` \| `Element`
+`false` \| `Node`
 
 ***
 
@@ -158,7 +176,7 @@
 
 ##### range
 
-`Range`
+`any`
 
 ##### base
 
@@ -192,7 +210,7 @@
 
 ### parse()
 
-> **parse**(`cfiStr`): `EpubCFI`
+> **parse**(`cfiStr`): `EpubCFI` \| \{ `spinePos`: `number`; \}
 
 #### Parameters
 
@@ -202,13 +220,13 @@
 
 #### Returns
 
-`EpubCFI`
+`EpubCFI` \| \{ `spinePos`: `number`; \}
 
 ***
 
 ### toRange()
 
-> **toRange**(`_doc?`, `ignoreClass?`): `Range`
+> **toRange**(`_doc?`, `ignoreClass?`): `any`
 
 #### Parameters
 
@@ -222,7 +240,7 @@
 
 #### Returns
 
-`Range`
+`any`
 
 ***
 

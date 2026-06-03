@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import EpubCFI from "../../src/epubcfi.js";
+import { RangeObject } from "../../src/compat/range";
+import EpubCFI from "../../src/epubcfi";
 import chapter from "../fixtures/chapter1.xhtml?raw";
 import chapterHighlights from "../fixtures/chapter1-highlights.xhtml?raw";
 import highlightContents from "../fixtures/highlight.xhtml?raw";
@@ -19,6 +20,17 @@ describe("EpubCFI", () => {
 		var cfi = new EpubCFI("epubcfi(/6/2[cover]!/6)", "/6/6[end]");
 
 		expect(cfi.spinePos).toBe(0);
+	});
+
+	it("keeps constructor defaults and public fields available", () => {
+		var cfi = new EpubCFI();
+
+		expect(cfi.str).toBe("");
+		expect(cfi.spinePos).toBe(0);
+		expect(cfi.range).toBe(false);
+		expect(cfi.start).toBeNull();
+		expect(cfi.end).toBeNull();
+		expect(cfi.toString()).toBe("epubcfi(/!/)");
 	});
 
 	describe("#parse()", () => {
@@ -171,6 +183,19 @@ describe("EpubCFI", () => {
 		it("gets a cfi from a collapsed range", () => {
 			var t1 = doc.getElementById("c001p0004").childNodes[0];
 			var range = doc.createRange();
+			var cfi;
+
+			range.setStart(t1, 6);
+
+			cfi = new EpubCFI(range, base);
+
+			expect(cfi.range).toBe(false);
+			expect(cfi.toString()).toBe("epubcfi(/6/4[chap01ref]!/4/2/10/2[c001p0004]/1:6)");
+		});
+
+		it("gets a cfi from the RangeObject fallback", () => {
+			var t1 = doc.getElementById("c001p0004").childNodes[0];
+			var range = new RangeObject();
 			var cfi;
 
 			range.setStart(t1, 6);

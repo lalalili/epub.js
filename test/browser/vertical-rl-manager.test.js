@@ -1803,6 +1803,48 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(capturedOptions.sequentialRightBoundary, 7767.45458984375);
 	});
 
+	it("ignores cached logical offsets when moving to the previous horizontal paginated page", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let capturedPageIndex = null;
+		let capturedOptions = null;
+
+		manager.views = {
+			length: 1,
+			first: function() {
+				return {
+					section: {
+						prev: function() {
+							return null;
+						}
+					}
+				};
+			}
+		};
+		manager.isRtlVerticalPaginated = function() {
+			return false;
+		};
+		manager.isPaginated = true;
+		manager.settings = {
+			axis: "horizontal",
+			direction: "ltr"
+		};
+		manager.container = {
+			scrollLeft: 1320
+		};
+		manager.getCurrentPageIndex = function() {
+			return 1;
+		};
+		manager.scrollToLogicalPage = function(pageIndex, options) {
+			capturedPageIndex = pageIndex;
+			capturedOptions = options;
+		};
+
+		manager.prev();
+
+		assert.equal(capturedPageIndex, 0);
+		assert.equal(capturedOptions.ignoreCachedLogicalOffset, true);
+	});
+
 	it("uses the page advance for the penultimate vertical-rl step when the final page clamps to max scroll", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 
@@ -3664,6 +3706,7 @@ describe("Vertical RL manager pagination", function() {
 		let overlay = parent.querySelector(".epub-vrl-edge-mask");
 		assert.equal(overlay.style.width, "1064px");
 		assert.equal(overlay.style.height, "710px");
+		assert.equal(container.dataset.epubVrlEdgeMask, "16");
 		assert.equal(container.dataset.epubVrlEdgeMaskRight, "14");
 
 		parent.remove();
@@ -5615,6 +5658,73 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(metrics.snappedContentWidth, 900);
 	});
 
+	it("snaps vertical-rl page advance to complete text columns on Android WebView fractional widths", function() {
+		let contents = Object.create(Contents.prototype);
+		contents._verticalRlPageMetricsCache = null;
+		contents.content = {
+			clientWidth: 411,
+			clientHeight: 742,
+			childElementCount: 1,
+			scrollWidth: 17280,
+			scrollHeight: 742
+		};
+		contents.documentElement = {
+			clientWidth: 411,
+			clientHeight: 742,
+			scrollWidth: 17280,
+			scrollHeight: 742
+		};
+		contents.document = {
+			body: contents.content,
+			fonts: null
+		};
+		contents.window = {
+			getComputedStyle: function() {
+				return {
+					fontSize: "20px",
+					lineHeight: "36px",
+					letterSpacing: "0px",
+					fontFamily: "serif"
+				};
+			}
+		};
+		contents.measureVerticalRlRect = function() {
+			return {
+				rawWidth: 17280,
+				rawHeight: 742
+			};
+		};
+		contents.estimateVerticalRlLineMetrics = function() {
+			return {
+				linePitch: 36,
+				lineWidth: 22,
+				lineLefts: [],
+				lineBoxes: [{
+					left: 17229,
+					right: 17251,
+					width: 22
+				}, {
+					left: 17193,
+					right: 17215,
+					width: 22
+				}],
+				sampleCount: 32,
+				gapMad: 0,
+				stable: true
+			};
+		};
+
+		let metrics = contents.verticalRlPageMetrics(411.4285888671875, 742);
+
+		assert.equal(metrics.viewportPageWidth, 411.4285888671875);
+		assert.equal(metrics.effectivePageAdvance, 396);
+		assert.equal(metrics.pageWidth, 411.4285888671875);
+		assert.equal(metrics.edgeGuardPx, 7);
+		assert.equal(metrics.pageBoundaryShift, 7);
+		assert.equal(metrics.totalPages, 44);
+		assert.equal(metrics.snappedContentWidth, 17439.428588867188);
+	});
+
 	it("snaps vertical-rl content width to an integer visible page width", function() {
 		let contents = Object.create(Contents.prototype);
 		contents._verticalRlPageMetricsCache = null;
@@ -6246,5 +6356,93 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(metrics.totalPages, 1);
 		assert.equal(metrics.snappedContentWidth, 1296);
 		assert.equal(metrics.rawWidth, 1296);
+	});
+
+	it("keeps a left mask for a raw-left straddler that is nearly owned by the next page", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let yielded = false;
+		let textNode = {
+			nodeValue: "支持過法西斯而使聲譽蒙上瑕疵，但我們不應該以言廢人。",
+			parentElement: {}
+		};
+
+		manager.container = {
+			getBoundingClientRect: function() {
+				return {
+					left: 0,
+					right: 411.4285888671875
+				};
+			}
+		};
+		manager.layout = {
+			edgeGuardPx: 7
+		};
+		manager.views = {
+			first: function() {
+				return {
+					iframe: {
+						getBoundingClientRect: function() {
+							return {
+								left: 0
+							};
+						}
+					},
+					contents: {
+						window: {
+							getComputedStyle: function() {
+								return {
+									display: "block",
+									visibility: "visible"
+								};
+							}
+						},
+						document: {
+							body: {},
+							createTreeWalker: function() {
+								return {
+									nextNode: function() {
+										if (yielded) {
+											return null;
+										}
+										yielded = true;
+										return textNode;
+									}
+								};
+							},
+							createRange: function() {
+								return {
+									selectNodeContents: function() {},
+									getClientRects: function() {
+										return [{
+											left: 3273.238,
+											right: 3299.143,
+											width: 25.905,
+											height: 684
+										}];
+									},
+									detach: function() {}
+								};
+							}
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+
+		let maskWidths = manager.snapVerticalRlEdgeMaskWidths({
+			left: 16,
+			right: 0
+		}, 102, {
+			rawLeft: 3281.429,
+			rawRight: 3692.858,
+			nextPageStep: 396,
+			rightMaxMask: 0
+		});
+
+		assert.equal(maskWidths.left, 19);
+		assert.equal(maskWidths.right, 0);
 	});
 });

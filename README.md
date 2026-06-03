@@ -166,19 +166,24 @@ npm run test:legacy
 Before cutting a fork release, run:
 
 ```sh
-npm run typecheck
-npm run compile
-npm run build
-npm run docs:md
-npm test
-npm audit
-npm audit --omit=dev
+npm run verify:release
 ```
 
 `npm run lint` enforces the current ESLint debt ceiling from
 `eslint-baseline.json`. The legacy source tree is not lint-clean yet, but CI
 must fail if the total error or warning count increases. When lint debt is
 fixed, lower the matching baseline counts in the same change.
+
+`npm run verify:contracts` checks the package entry surface, TypeDoc toolchain,
+Vitest-only test layout, dry-run tarball contents, and packed-package consumer
+resolution that Aitehub release tarball consumers depend on. It also verifies
+the shared release gate wiring used by CI and the internal source boundary that
+keeps `utils/core` as a public compatibility facade.
+
+`npm run verify:release` runs the full fork release gate: lint, TypeScript
+declarations, Babel output, Vite/Rollup builds, TypeDoc Markdown, package
+contracts, Vitest Browser Mode, dependency audits, and the final `npm pack
+--dry-run` lifecycle check.
 
 The fork should keep both full dependency audit and production dependency audit
 clean. `npm run docs:md` is powered by TypeDoc from the public declaration

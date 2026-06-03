@@ -8,7 +8,54 @@ function delay(ms) {
 }
 
 describe("ContinuousViewManager", () => {
-	it("does not re-show already visible displayed views during update", async () => {
+	it("keeps constructor defaults, gap zero, and initial scroll state stable", function() {
+		var manager = new ContinuousViewManager({
+			settings: {
+				gap: 0,
+				ignoreClass: "ignore",
+				axis: "horizontal",
+				allowScriptedContent: true,
+				allowPopups: true
+			},
+			view: function() {},
+			request: function() {},
+			queue: {}
+		});
+
+		expect(manager.name).toBe("continuous");
+		expect(manager.settings.infinite).toBe(true);
+		expect(manager.settings.flow).toBe("scrolled");
+		expect(manager.settings.offset).toBe(500);
+		expect(manager.settings.offsetDelta).toBe(250);
+		expect(manager.settings.afterScrolledTimeout).toBe(10);
+		expect(manager.settings.gap).toBe(0);
+		expect(manager.scrollTop).toBe(0);
+		expect(manager.scrollLeft).toBe(0);
+		expect(manager.viewSettings.ignoreClass).toBe("ignore");
+		expect(manager.viewSettings.axis).toBe("horizontal");
+		expect(manager.viewSettings.forceEvenPages).toBe(false);
+		expect(manager.viewSettings.allowScriptedContent).toBe(true);
+		expect(manager.viewSettings.allowPopups).toBe(true);
+	});
+
+	it("continues filling until check reports no more views are needed", function() {
+		var checks = 0;
+		var manager = Object.create(ContinuousViewManager.prototype);
+
+		manager.q = {
+			enqueue: (task) => task()
+		};
+		manager.check = () => {
+			checks += 1;
+			return Promise.resolve(checks < 3);
+		};
+
+		return manager.fill().then(function() {
+			expect(checks).toBe(3);
+		});
+	});
+
+	it("does not re-show already visible displayed views during update", function() {
 		var showCount = 0;
 		var view = {
 			displayed: true,
@@ -45,12 +92,12 @@ describe("ContinuousViewManager", () => {
 		};
 		manager.isVisible = () => true;
 
-		await manager.update();
-
-		expect(showCount).toBe(0);
+		return manager.update().then(function() {
+			expect(showCount).toBe(0);
+		});
 	});
 
-	it("emits scrolled only after the queued check has completed", async () => {
+	it("emits scrolled only after the queued check has completed", function() {
 		var emitted = [];
 		var resolveCheck;
 		var checkPromise = new Promise((resolve) => {
@@ -72,17 +119,18 @@ describe("ContinuousViewManager", () => {
 		};
 
 		manager.scrolled();
-		await delay(10);
-
-		expect(emitted).toEqual(["scroll"]);
-
-		resolveCheck();
-		await delay(10);
-
-		expect(emitted).toEqual(["scroll", "scrolled"]);
+		return delay(10)
+			.then(function() {
+				expect(emitted).toEqual(["scroll"]);
+				resolveCheck();
+				return delay(10);
+			})
+			.then(function() {
+				expect(emitted).toEqual(["scroll", "scrolled"]);
+			});
 	});
 
-	it("skips stale scrolled callbacks when a newer scroll request is queued", async () => {
+	it("skips stale scrolled callbacks when a newer scroll request is queued", function() {
 		var emitted = [];
 		var checkResolvers = [];
 		var manager = Object.create(ContinuousViewManager.prototype);
@@ -108,31 +156,35 @@ describe("ContinuousViewManager", () => {
 		};
 
 		manager.scrolled();
-		await delay(10);
+		return delay(10)
+			.then(function() {
+				manager.scrollTop = 200;
+				manager.scrolled();
+				return delay(10);
+			})
+			.then(function() {
+				checkResolvers[0]();
+				return delay(10);
+			})
+			.then(function() {
+				expect(emitted).toEqual([
+					{ eventName: "scroll", top: 100 },
+					{ eventName: "scroll", top: 200 }
+				]);
 
-		manager.scrollTop = 200;
-		manager.scrolled();
-		await delay(10);
-
-		checkResolvers[0]();
-		await delay(10);
-
-		expect(emitted).toEqual([
-			{ eventName: "scroll", top: 100 },
-			{ eventName: "scroll", top: 200 }
-		]);
-
-		checkResolvers[1]();
-		await delay(10);
-
-		expect(emitted).toEqual([
-			{ eventName: "scroll", top: 100 },
-			{ eventName: "scroll", top: 200 },
-			{ eventName: "scrolled", top: 200 }
-		]);
+				checkResolvers[1]();
+				return delay(10);
+			})
+			.then(function() {
+				expect(emitted).toEqual([
+					{ eventName: "scroll", top: 100 },
+					{ eventName: "scroll", top: 200 },
+					{ eventName: "scrolled", top: 200 }
+				]);
+			});
 	});
 
-	it("delays trimming while scroll delta is still active", async () => {
+	it("delays trimming while scroll delta is still active", function() {
 		var trimCount = 0;
 		var manager = Object.create(ContinuousViewManager.prototype);
 
@@ -146,13 +198,14 @@ describe("ContinuousViewManager", () => {
 		};
 
 		manager.scheduleTrim(0);
-		await delay(10);
-
-		expect(trimCount).toBe(0);
-
-		manager.scrollDeltaVert = 0;
-		await delay(140);
-
-		expect(trimCount).toBe(1);
+		return delay(10)
+			.then(function() {
+				expect(trimCount).toBe(0);
+				manager.scrollDeltaVert = 0;
+				return delay(140);
+			})
+			.then(function() {
+				expect(trimCount).toBe(1);
+			});
 	});
 });

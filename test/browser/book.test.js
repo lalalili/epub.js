@@ -3,6 +3,61 @@ import Book from "../../src/book";
 import { expectBlobUrl, expectFixtureUrl, fixtureUrl } from "./helpers/fixtures";
 
 describe("Book", () => {
+	it("keeps options-only construction and public defaults stable", () => {
+		var canonicalCalls = [];
+		var book = new Book({
+			replacements: "blobUrl",
+			canonical: function(path) {
+				canonicalCalls.push(path);
+				return "canonical:" + path;
+			}
+		});
+
+		try {
+			expect(book.isOpen).toBe(false);
+			expect(book.isRendered).toBe(false);
+			expect(book.archived).toBe(false);
+			expect(book.settings.replacements).toBe("blobUrl");
+			expect(book.spine).toBeTruthy();
+			expect(book.locations).toBeTruthy();
+			expect(book.navigation).toBeUndefined();
+			expect(book.pageList).toBeUndefined();
+			expect(book.determineType("OPS/package.opf")).toBe("opf");
+			expect(book.determineType("manifest.json?cache=1")).toBe("json");
+			expect(book.determineType("book.epub")).toBe("epub");
+			expect(book.determineType("OPS/")).toBe("directory");
+			expect(book.determineType(new ArrayBuffer(0))).toBe("binary");
+			expect(book.canonical("OPS/chapter.xhtml")).toBe("canonical:OPS/chapter.xhtml");
+			expect(canonicalCalls).toEqual(["OPS/chapter.xhtml"]);
+		} finally {
+			book.destroy();
+		}
+	});
+
+	it("resolves relative and absolute paths against the open package path", () => {
+		var book = new Book();
+
+		try {
+			book.url = {
+				resolve(path) {
+					return "https://example.test/books/" + path;
+				}
+			};
+			book.path = {
+				resolve(path) {
+					return "OPS/" + path;
+				}
+			};
+
+			expect(book.resolve("chapter.xhtml")).toBe("https://example.test/books/OPS/chapter.xhtml");
+			expect(book.resolve("chapter.xhtml", false)).toBe("OPS/chapter.xhtml");
+			expect(book.resolve("https://cdn.test/chapter.xhtml")).toBe("https://cdn.test/chapter.xhtml");
+			expect(book.resolve()).toBeUndefined();
+		} finally {
+			book.destroy();
+		}
+	});
+
 	it("opens an unpacked EPUB package document", async () => {
 		var book = new Book(fixtureUrl("alice/OPS/package.opf"));
 

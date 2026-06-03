@@ -10,11 +10,11 @@
 
 ### Constructor
 
-> **new Book**(`url`, `options?`): `Book`
+> **new Book**(`url?`, `options?`): `Book`
 
 #### Parameters
 
-##### url
+##### url?
 
 `string` \| `ArrayBuffer` \| `Blob`
 
@@ -42,9 +42,9 @@
 
 ## Properties
 
-### archive
+### archive?
 
-> **archive**: `Archive`
+> `optional` **archive?**: `Archive`
 
 ***
 
@@ -54,9 +54,9 @@
 
 ***
 
-### container
+### container?
 
-> **container**: `Container`
+> `optional` **container?**: `Container`
 
 ***
 
@@ -73,6 +73,10 @@
 #### cover
 
 > **cover**: `Promise`\<`string`\>
+
+#### displayOptions
+
+> **displayOptions**: `Promise`\<`DisplayOptions`\>
 
 #### manifest
 
@@ -106,9 +110,9 @@
 
 ***
 
-### navigation
+### navigation?
 
-> **navigation**: `Navigation`
+> `optional` **navigation?**: `Navigation`
 
 ***
 
@@ -124,21 +128,21 @@
 
 ***
 
-### packaging
+### packaging?
 
-> **packaging**: `Packaging`
-
-***
-
-### pageList
-
-> **pageList**: `Pagelist`
+> `optional` **packaging?**: `Packaging`
 
 ***
 
-### path
+### pageList?
 
-> **path**: `Path`
+> `optional` **pageList?**: `Pagelist`
+
+***
+
+### path?
+
+> `optional` **path?**: `Path`
 
 ***
 
@@ -148,9 +152,9 @@
 
 ***
 
-### rendition
+### rendition?
 
-> **rendition**: [`Rendition`](Rendition.md)
+> `optional` **rendition?**: [`Rendition`](Rendition.md)
 
 ***
 
@@ -160,9 +164,9 @@
 
 ***
 
-### resources
+### resources?
 
-> **resources**: `Resources`
+> `optional` **resources?**: `Resources`
 
 ***
 
@@ -178,15 +182,15 @@
 
 ***
 
-### storage
+### storage?
 
-> **storage**: `Store`
+> `optional` **storage?**: `Store`
 
 ***
 
-### url
+### url?
 
-> **url**: `Url`
+> `optional` **url?**: `Url`
 
 ## Methods
 
@@ -234,7 +238,7 @@
 
 ##### input
 
-`string`
+`string` \| `ArrayBuffer` \| `Blob`
 
 #### Returns
 
@@ -296,11 +300,15 @@
 
 ### load()
 
-> **load**(`path`): `Promise`\<`RequestResponse`\>
+> **load**(`path`, `type?`): `Promise`\<`RequestResponse`\>
 
 #### Parameters
 
 ##### path
+
+`string`
+
+##### type?
 
 `string`
 
@@ -312,13 +320,13 @@
 
 ### loadNavigation()
 
-> **loadNavigation**(`opf`): `Promise`\<`Navigation`\>
+> **loadNavigation**(`packaging`): `Promise`\<`Navigation`\>
 
 #### Parameters
 
-##### opf
+##### packaging
 
-`XMLDocument`
+`Packaging`
 
 #### Returns
 
@@ -598,7 +606,7 @@
 
 ##### credentials
 
-`object`
+`boolean`
 
 #### Returns
 
@@ -614,7 +622,7 @@
 
 ##### headers
 
-`object`
+`RequestHeaders`
 
 #### Returns
 
@@ -660,14 +668,14 @@
 
 ### unpack()
 
-> **unpack**(`opf`): `Promise`\<`Book`\>
+> **unpack**(`packaging`): `void`
 
 #### Parameters
 
-##### opf
+##### packaging
 
-`XMLDocument`
+`Packaging`
 
 #### Returns
 
-`Promise`\<`Book`\>
+`void`

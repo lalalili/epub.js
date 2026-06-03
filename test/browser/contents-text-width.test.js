@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import Contents from "../../src/contents";
+import { EVENTS } from "../../src/utils/constants";
 
 describe("Contents textWidth", () => {
 	let fixtures = [];
@@ -31,6 +32,79 @@ describe("Contents textWidth", () => {
 			}
 		});
 	}
+
+	it("keeps constructor defaults, reading system, and style cache behavior stable", () => {
+		let content = appendFixture(document.createElement("div"));
+		content.innerHTML = "<p id=\"p1\">Readable</p>";
+		let contents = new Contents(document, content, "/6/2[chap]", 7, "OPS/chapter.xhtml");
+
+		try {
+			expect(Contents.listenedEvents.length).toBeGreaterThan(0);
+			expect(contents.document).toBe(document);
+			expect(contents.documentElement).toBe(document.documentElement);
+			expect(contents.content).toBe(content);
+			expect(contents.window).toBe(window);
+			expect(contents.sectionIndex).toBe(7);
+			expect(contents.cfiBase).toBe("/6/2[chap]");
+			expect(contents.sectionHref).toBe("OPS/chapter.xhtml");
+			expect(contents._size).toEqual({ width: 0, height: 0 });
+			expect(contents._verticalRlMetricsCache).toBeNull();
+			expect(contents._verticalRlPageMetricsCache).toBeNull();
+			expect(contents._forcedWritingMode).toBe("");
+			expect(contents.called).toBe(0);
+			expect(contents.active).toBe(true);
+			expect(navigator.epubReadingSystem.name).toBe("epub.js");
+			expect(navigator.epubReadingSystem.hasFeature("dom-manipulation")).toBe(true);
+			expect(navigator.epubReadingSystem.hasFeature("spine-scripting")).toBe(false);
+
+			contents._verticalRlMetricsCache = { key: "old", width: 10 };
+			contents._verticalRlPageMetricsCache = { key: "old", metrics: {} };
+			expect(contents.css("color", "red")).toMatch(/red|rgb\(255, 0, 0\)/);
+			expect(contents._verticalRlMetricsCache).toBeNull();
+			expect(contents._verticalRlPageMetricsCache).toBeNull();
+		} finally {
+			contents.destroy();
+		}
+	});
+
+	it("keeps viewport, stylesheet, class, and link helpers stable", () => {
+		let frame = appendFixture(document.createElement("iframe"));
+		let doc = frame.contentDocument;
+		let content = doc.body;
+		content.innerHTML = "<a href=\"chapter-2.xhtml#frag\">Next</a>";
+		let contents = new Contents(doc, content, "", 0, "OPS/chapter.xhtml");
+		let clickedHref;
+
+		contents.on(EVENTS.CONTENTS.LINK_CLICKED, (href) => {
+			clickedHref = href;
+		});
+
+		try {
+			expect(contents.viewport({ width: 320, height: 480, scale: 1, scalable: "no" })).toMatchObject({
+				width: 320,
+				height: 480,
+				scale: 1,
+				scalable: "no"
+			});
+			expect(doc.querySelector("meta[name='viewport']").getAttribute("content")).toContain("width=320");
+
+			expect(contents.addStylesheetCss("body { color: red; }", "reader")).toBe(true);
+			expect(doc.getElementById("epubjs-inserted-css-reader")).toBeTruthy();
+
+			contents.addClass("reader-content");
+			expect(content.classList.contains("reader-content")).toBe(true);
+			contents.removeClass("reader-content");
+			expect(content.classList.contains("reader-content")).toBe(false);
+
+			content.querySelector("a").dispatchEvent(new MouseEvent("click", {
+				bubbles: true,
+				cancelable: true
+			}));
+			expect(clickedHref).toBe("/chapter-2.xhtml#frag");
+		} finally {
+			contents.destroy();
+		}
+	});
 
 	it("ignores off-screen absolute title text when measuring horizontal width", () => {
 		let content = appendFixture(document.createElement("div"));
@@ -292,5 +366,51 @@ describe("Contents textWidth", () => {
 		} finally {
 			restoreDescriptors(descriptors);
 		}
+	});
+
+	it("applies vertical-rl columns while clearing multicolumn body styles", () => {
+		let doc = document.implementation.createHTMLDocument("contents");
+		let body = doc.body;
+		let contents = Object.create(Contents.prototype);
+		let viewportSettings;
+
+		body.style.setProperty("column-width", "320px");
+		body.style.setProperty("column-gap", "20px");
+		body.style.setProperty("column-fill", "auto");
+		body.style.setProperty("column-axis", "horizontal");
+
+		contents.document = doc;
+		contents.documentElement = doc.documentElement;
+		contents.content = body;
+		contents.invalidateVerticalRlMetricsCache = () => {};
+		contents.writingMode = () => "vertical-rl";
+		contents.layoutStyle = () => {};
+		contents.css = (property, value, important) => {
+			body.style.setProperty(property, value, important ? "important" : "");
+			return body.style.getPropertyValue(property);
+		};
+		contents.height = (height) => {
+			body.style.height = height + "px";
+			return height;
+		};
+		contents.viewport = (settings) => {
+			viewportSettings = settings;
+			return settings;
+		};
+
+		contents.columns(640, 480, 320, 24, "ltr");
+
+		expect(body.style.getPropertyValue("column-width")).toBe("");
+		expect(body.style.getPropertyValue("column-gap")).toBe("");
+		expect(body.style.getPropertyValue("column-fill")).toBe("");
+		expect(body.style.getPropertyValue("column-axis")).toBe("");
+		expect(body.style.height).toBe("480px");
+		expect(body.style.overflow).toBe("visible");
+		expect(viewportSettings).toEqual({
+			width: 640,
+			height: 480,
+			scale: 1,
+			scalable: "no"
+		});
 	});
 });

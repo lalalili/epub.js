@@ -10,7 +10,7 @@
 
 ### Constructor
 
-> **new Rendition**(`book`, `options`): `Rendition`
+> **new Rendition**(`book`, `options?`): `Rendition`
 
 #### Parameters
 
@@ -18,7 +18,7 @@
 
 [`Book`](Book.md)
 
-##### options
+##### options?
 
 `RenditionOptions`
 
@@ -80,9 +80,9 @@
 
 ***
 
-### location
+### location?
 
-> **location**: [`Location`](../interfaces/Location.md)
+> `optional` **location?**: [`Location`](../interfaces/Location.md)
 
 ***
 
@@ -258,11 +258,11 @@
 
 ### flow()
 
-> **flow**(`flow`): `void`
+> **flow**(`flow?`): `void`
 
 #### Parameters
 
-##### flow
+##### flow?
 
 `string`
 
@@ -274,11 +274,11 @@
 
 ### getContents()
 
-> **getContents**(): [`Contents`](Contents.md)
+> **getContents**(): [`Contents`](Contents.md)[]
 
 #### Returns
 
-[`Contents`](Contents.md)
+[`Contents`](Contents.md)[]
 
 ***
 
@@ -396,17 +396,17 @@
 
 ### located()
 
-> **located**(`location`): `DisplayedLocation`
+> **located**(`location`): \{ \} \| [`Location`](../interfaces/Location.md)
 
 #### Parameters
 
 ##### location
 
-[`Location`](../interfaces/Location.md)
+`any`[]
 
 #### Returns
 
-`DisplayedLocation`
+\{ \} \| [`Location`](../interfaces/Location.md)
 
 ***
 
@@ -418,7 +418,7 @@
 
 ##### offset
 
-`number`
+`object`
 
 #### Returns
 
@@ -632,7 +632,7 @@
 
 ##### spread
 
-`string`
+`string` \| `boolean`
 
 ##### min?
 

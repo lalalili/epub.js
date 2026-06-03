@@ -2,7 +2,19 @@ export function uuid(): string;
 
 export function documentHeight(): number;
 
-export function isElement(obj: object): boolean;
+export interface Deferred<T = unknown> {
+  resolve: ((value: T | PromiseLike<T>) => void) | null;
+  reject: ((reason?: unknown) => void) | null;
+  id: string;
+  promise: Promise<T>;
+}
+
+export const defer: {
+  new<T = unknown>(): Deferred<T>;
+  prototype: Deferred<unknown>;
+};
+
+export function isElement(obj: unknown): obj is Element;
 
 export function isNumber(n: any): boolean;
 
@@ -10,25 +22,25 @@ export function isFloat(n: any): boolean;
 
 export function prefixed(unprefixed: string): string;
 
-export function defaults(obj: object): object;
+export function defaults<T extends Record<string, unknown>>(obj: T, ...sources: Array<Record<string, unknown>>): T;
 
-export function extend(target: object): object;
+export function extend<T extends object>(target: T, ...sources: Array<object | null | undefined>): T;
 
-export function insert(item: any, array: Array<any>, compareFunction: Function): number;
+export function insert<T>(item: T, array: Array<T>, compareFunction?: (a: T, b: T) => number | undefined): number;
 
-export function locationOf(item: any, array: Array<any>, compareFunction: Function, _start: Function, _end: Function): number;
+export function locationOf<T>(item: T, array: Array<T>, compareFunction?: (a: T, b: T) => number | undefined, _start?: number, _end?: number): number;
 
-export function indexOfSorted(item: any, array: Array<any>, compareFunction: Function, _start: Function, _end: Function): number;
+export function indexOfSorted<T>(item: T, array: Array<T>, compareFunction?: (a: T, b: T) => number | undefined, _start?: number, _end?: number): number;
 
 export function bounds(el: Element): { width: Number, height: Number};
 
 export function borders(el: Element): { width: Number, height: Number};
 
-export function nodeBounds(node: Node): object;
+export function nodeBounds(node: Node): DOMRect;
 
 export function windowBounds(): { width: Number, height: Number, top: Number, left: Number, right: Number, bottom: Number };
 
-export function indexOfNode(node: Node, typeId: string): number;
+export function indexOfNode(node: Node, typeId: number): number;
 
 export function indexOfTextNode(textNode: Node): number;
 
@@ -44,35 +56,34 @@ export function revokeBlobUrl(url: string): void;
 
 export function createBase64Url(content: any, mime: string): string
 
-export function type(obj: object): string;
+export function type(obj: unknown): string;
 
-export function parse(markup: string, mime: string, forceXMLDom: boolean): Document;
+export function parse(markup: string, mime: string, forceXMLDom?: boolean): Document;
 
-export function qs(el: Element, sel: string): Element;
+export function qs(el: Element | Document | null | undefined, sel: string): Element | null | undefined;
 
-export function qsa(el: Element, sel: string): ArrayLike<Element>;
+export function qsa(el: Element | Document, sel: string): ArrayLike<Element>;
 
-export function qsp(el: Element, sel: string, props: Array<object>): ArrayLike<Element>;
+export function qsp(el: Element | Document, sel: string, props: Record<string, string>): Element | null | undefined;
 
-export function sprint(root: Node, func: Function): void;
+export function sprint(root: Element | Document, func: (node: Text) => void): void;
 
-export function treeWalker(root: Node, func: Function, filter: object | Function): void;
+export function treeWalker(root: Element | Document, func: (node: Node) => boolean | void, filter: number | NodeFilter): void;
 
-export function walk(node: Node, callback: Function): void;
+export function walk(node: Node, callback: (node: Node) => boolean | void): boolean | undefined;
 
-export function blob2base64(blob: Blob): string;
+export function blob2base64(blob: Blob): Promise<string | ArrayBuffer | null>;
 
-export function defer(): Promise<any>;
-
-export function querySelectorByType(html: Element, element: string, type: string): Array<Element>;
+export function querySelectorByType(html: Element | Document, element: string, type: string): Element | undefined;
 
 export function findChildren(el: Element): Array<Element>;
 
 export function parents(node: Element): Array<Element>;
 
-export function filterChildren(el: Element, nodeName: string, single: boolean): Array<Element>;
+export function filterChildren(el: Element, nodeName: string, single: true): Element | undefined;
+export function filterChildren(el: Element, nodeName: string, single?: false): Array<Element>;
 
-export function getParentByTagName(node: Element, tagname: string): Array<Element>;
+export function getParentByTagName(node: Element | null, tagname: string): Element | undefined;
 
 export class RangeObject extends Range {
 
