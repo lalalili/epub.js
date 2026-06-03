@@ -74,7 +74,7 @@
 
 ##### archive?
 
-`Archive` \| [`ResourceArchive`](ResourceArchive.md)
+[`Archive`](Archive.md) \| [`ResourceArchive`](ResourceArchive.md)
 
 ##### resolver?
 
@@ -172,7 +172,7 @@
 
 ##### archive?
 
-`Archive` \| [`ResourceArchive`](ResourceArchive.md)
+[`Archive`](Archive.md) \| [`ResourceArchive`](ResourceArchive.md)
 
 ##### resolver?
 

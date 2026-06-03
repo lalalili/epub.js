@@ -44,7 +44,7 @@
 
 ### archive?
 
-> `optional` **archive?**: `Archive`
+> `optional` **archive?**: [`Archive`](../interfaces/Archive.md)
 
 ***
 
@@ -646,7 +646,7 @@
 
 ### unarchive()
 
-> **unarchive**(`input`, `encoding?`): `Promise`\<`ArchiveZip`\>
+> **unarchive**(`input`, `encoding?`): `Promise`\<[`ArchiveZip`](../interfaces/ArchiveZip.md)\>
 
 #### Parameters
 
@@ -660,7 +660,7 @@
 
 #### Returns
 
-`Promise`\<`ArchiveZip`\>
+`Promise`\<[`ArchiveZip`](../interfaces/ArchiveZip.md)\>
 
 ***
 

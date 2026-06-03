@@ -5,19 +5,19 @@ import mime, { isXml } from "./utils/mime";
 import Path from "./utils/path";
 import JSZip from "jszip/dist/jszip";
 
-type ArchiveInput = ArrayBuffer | Uint8Array | string;
-type ArchiveRequestType = string | undefined;
-type ArchiveUrlOptions = {
+export type ArchiveInput = ArrayBuffer | Uint8Array | string;
+export type ArchiveRequestType = string | undefined;
+export type ArchiveUrlOptions = {
 	base64?: boolean;
 };
-type ArchiveEntry = {
+export type ArchiveEntry = {
 	name: string;
 	async(type: "uint8array"): Promise<Uint8Array>;
 	async(type: "string"): Promise<string>;
 	async(type: "base64"): Promise<string>;
 };
-type ArchiveZip = {
-	loadAsync(input: ArchiveInput, options?: { base64?: boolean }): Promise<any>;
+export type ArchiveZip = {
+	loadAsync(input: ArchiveInput, options?: { base64?: boolean }): Promise<ArchiveZip>;
 	file(path: string): ArchiveEntry | null;
 };
 type UrlFactory = typeof URL & {
@@ -65,7 +65,7 @@ class Archive {
 	 * @param  {boolean} [isBase64] tells JSZip if the input data is base64 encoded
 	 * @return {Promise} zipfile
 	 */
-	open(input: ArchiveInput, isBase64?: boolean): Promise<any> {
+	open(input: ArchiveInput, isBase64?: boolean): Promise<ArchiveZip> {
 		return this.zip!.loadAsync(input, {"base64": isBase64});
 	}
 
@@ -75,7 +75,7 @@ class Archive {
 	 * @param  {boolean} [isBase64] tells JSZip if the input data is base64 encoded
 	 * @return {Promise} zipfile
 	 */
-	openUrl(zipUrl: string, isBase64?: boolean): Promise<any> {
+	openUrl(zipUrl: string, isBase64?: boolean): Promise<ArchiveZip> {
 		return request(zipUrl, "binary")
 			.then((data: ArchiveInput) => {
 				return this.zip!.loadAsync(data, {"base64": isBase64});

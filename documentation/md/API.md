@@ -18,6 +18,10 @@
 
 ## Interfaces
 
+- [Archive](interfaces/Archive.md)
+- [ArchiveEntry](interfaces/ArchiveEntry.md)
+- [ArchiveUrlOptions](interfaces/ArchiveUrlOptions.md)
+- [ArchiveZip](interfaces/ArchiveZip.md)
 - [BookLoaded](interfaces/BookLoaded.md)
 - [BookLoading](interfaces/BookLoading.md)
 - [BookOptions](interfaces/BookOptions.md)
@@ -45,6 +49,8 @@
 
 ## Type Aliases
 
+- [ArchiveInput](type-aliases/ArchiveInput.md)
+- [ArchiveRequestType](type-aliases/ArchiveRequestType.md)
 - [BookInput](type-aliases/BookInput.md)
 - [NavigationDocument](type-aliases/NavigationDocument.md)
 - [NavigationInput](type-aliases/NavigationInput.md)

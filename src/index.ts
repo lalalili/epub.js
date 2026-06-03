@@ -17,6 +17,15 @@ export {
 };
 
 export type {
+	ArchiveEntry,
+	ArchiveInput,
+	ArchiveRequestType,
+	ArchiveUrlOptions,
+	ArchiveZip,
+	default as Archive
+} from "./archive";
+
+export type {
 	BookInput,
 	BookLoaded,
 	BookLoading,

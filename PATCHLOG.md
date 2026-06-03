@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0297
+- Why:
+  - P-0296 aligned the `Store` root type exports, leaving `Archive` input/request/url/zip types as the next source/declaration parity gap.
+  - The declaration surface already exposes `ArchiveInput`, request type, URL options, entry, and zip shapes, but `src/archive.ts` kept those shapes private and the package root did not expose them consistently.
+  - Aligning these exports lets consumers type-check archive open/load inputs, zip entries, object URL options, and root package archive helpers before any release tag or host gate, without changing archive loading behavior.
+- Diff Scope:
+  - `src/archive.ts`: export existing `Archive` public input, request, URL option, entry, and zip type shapes, and align `open()` / `openUrl()` with the declared `ArchiveZip` return type.
+  - `src/index.ts`, `types/index.d.ts`: export root `Archive`, `ArchiveEntry`, `ArchiveInput`, `ArchiveRequestType`, `ArchiveUrlOptions`, and `ArchiveZip` types.
+  - `types/epubjs-tests.ts`: extend public root assertions for the `Archive` public type exports.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `Archive` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public archive type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `Archive` helper aliases to remain module-private instead of part of the root typed public API contract.
+
 ### P-0296
 - Why:
   - P-0295 aligned the `Resources` root type exports, leaving `Store` request/storage/url option types as the next source/declaration parity gap.

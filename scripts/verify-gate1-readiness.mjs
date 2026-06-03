@@ -101,6 +101,11 @@ assert(
 	sourceRoot.includes("StoreRequest") && sourceRoot.includes("StoreResources") && sourceRoot.includes("StoreUrlOptions"),
 	"source root must export Store public types"
 );
+assert(typeTests.includes("RootArchiveInput"), "type tests must assert root Archive type exports");
+assert(
+	sourceRoot.includes("ArchiveInput") && sourceRoot.includes("ArchiveZip") && sourceRoot.includes("ArchiveUrlOptions"),
+	"source root must export Archive public types"
+);
 assert(typeTests.includes("type CoreClassAssertions"), "type tests must assert the core class surface");
 assert(typeTests.includes("type LayoutAssertions"), "type tests must assert the Layout public surface");
 assert(typeTests.includes("new Layout()"), "type tests must cover Layout construction without settings");
@@ -118,6 +123,7 @@ assert(typeTests.includes("type SpineAssertions"), "type tests must assert the S
 assert(typeTests.includes("spine.unpack(spinePackage"), "type tests must cover Spine unpack package typing");
 assert(typeTests.includes("spine.remove(spineSection)"), "type tests must cover Spine remove result typing");
 assert(typeTests.includes("type ArchiveAssertions"), "type tests must assert the Archive public surface");
+assert(typeTests.includes("RootArchiveZip"), "type tests must assert root Archive zip typing");
 assert(typeTests.includes("archive.createUrl(\"/OPS/images/cover.jpg\")"), "type tests must cover Archive createUrl optional options typing");
 assert(typeTests.includes("archive.handleResponse(\"{\\\"ok\\\":true}\", \"json\")"), "type tests must cover Archive handleResponse typing");
 assert(typeTests.includes("type PackagingAssertions"), "type tests must assert the Packaging public surface");

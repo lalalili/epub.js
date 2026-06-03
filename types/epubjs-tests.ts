@@ -1,5 +1,11 @@
 import ePub, { Book, Contents, EpubCFI, Layout, Rendition, request } from '../';
 import type {
+  Archive as RootArchive,
+  ArchiveEntry as RootArchiveEntry,
+  ArchiveInput as RootArchiveInput,
+  ArchiveRequestType as RootArchiveRequestType,
+  ArchiveUrlOptions as RootArchiveUrlOptions,
+  ArchiveZip as RootArchiveZip,
   BookInput as RootBookInput,
   BookLoaded as RootBookLoaded,
   BookLoading as RootBookLoading,
@@ -48,7 +54,7 @@ import Annotations, {
   AnnotationView,
   SectionAnnotationMap,
 } from './annotations';
-import Archive, { ArchiveInput, ArchiveRequestType, ArchiveUrlOptions, ArchiveZip } from './archive';
+import Archive, { ArchiveEntry, ArchiveInput, ArchiveRequestType, ArchiveUrlOptions, ArchiveZip } from './archive';
 import type { BookInput, BookLoaded, BookLoading, BookOptions } from './book';
 import Container, { ContainerDocument } from './container';
 import type {
@@ -165,6 +171,12 @@ type PublicRootAssertions = [
   Assert<IsExact<RootStoreResources, StoreResources>>,
   Assert<IsExact<RootStoreStorage, StoreStorage>>,
   Assert<IsExact<RootStoreUrlOptions, StoreUrlOptions>>,
+  Assert<IsExact<RootArchive, Archive>>,
+  Assert<IsExact<RootArchiveEntry, ArchiveEntry>>,
+  Assert<IsExact<RootArchiveInput, ArchiveInput>>,
+  Assert<IsExact<RootArchiveRequestType, ArchiveRequestType>>,
+  Assert<IsExact<RootArchiveUrlOptions, ArchiveUrlOptions>>,
+  Assert<IsExact<RootArchiveZip, ArchiveZip>>,
   Assert<IsExact<typeof request, RequestMethod>>,
   Assert<IsExact<ReturnType<typeof ePub.utils.uuid>, string>>,
   Assert<IsExact<InstanceType<typeof ePub.utils.defer<string>>["promise"], Promise<string>>>
