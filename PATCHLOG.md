@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0269
+- Why:
+  - P-0268 aligned the archive/request typed public API surface, leaving `Packaging` as the next core Book structure declaration gap.
+  - `Packaging` is already TypeScript source, but its declaration still required a package document in the constructor, treated JSON manifest loading as a string input, modeled nav/NCX/cover paths as always strings, omitted `uniqueIdentifier` / `toc`, and kept parse helper methods private despite their public runtime shape.
+  - Aligning `Packaging` declarations lets consumers type-check empty construction, OPF parse output, JSON manifest loading, optional path/state fields, destroy-cleared state, and helper method return types before broader release or host gates.
+- Diff Scope:
+  - `types/packaging.d.ts`: align metadata, manifest, spine, TOC, JSON manifest, object output, optional state fields, constructor, load input, helper methods, and path return types with the TypeScript source behavior.
+  - `types/epubjs-tests.ts`: add `PackagingAssertions` plus concrete empty construction, OPF parse, JSON manifest loading, manifest item, metadata, and TOC typing checks.
+  - `scripts/verify-gate1-readiness.mjs`: require the Packaging typed public API assertions and empty-constructor/JSON-load coverage in Gate 1 readiness checks.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/packaging.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `Packaging` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0268
 - Why:
   - P-0267 aligned the `Spine` typed public API surface, leaving archive/request declarations as the next core type gap.

@@ -4,6 +4,15 @@ import type { BookOptions } from './book';
 import type { ViewportSettings } from './contents';
 import type EpubRoot from './epub';
 import Navigation, { LandmarkItem, NavItem, NavigationInputItem } from './navigation';
+import Packaging, {
+  PackagingJsonManifest,
+  PackagingManifestItem,
+  PackagingManifestObject,
+  PackagingMetadataObject,
+  PackagingObject,
+  PackagingSpineItem,
+  PackagingTocItem,
+} from './packaging';
 import type { Location, RenditionOptions } from './rendition';
 import Section, { LayoutSettings, SectionHookSet, SectionSearchResult, SpineItem } from './section';
 import Spine, { SpineLookup, SpineManifestItem, SpinePackage, SpinePackageItem, SpineResolver } from './spine';
@@ -136,6 +145,32 @@ type ArchiveAssertions = [
   Assert<IsExact<ReturnType<Archive["destroy"]>, void>>
 ];
 
+type PackagingAssertions = [
+  Assert<IsExact<ConstructorParameters<typeof Packaging>, [packageDocument?: Document | XMLDocument | undefined]>>,
+  Assert<IsExact<Packaging["manifest"], PackagingManifestObject | undefined>>,
+  Assert<IsExact<Packaging["navPath"], string | false | undefined>>,
+  Assert<IsExact<Packaging["ncxPath"], string | false | undefined>>,
+  Assert<IsExact<Packaging["coverPath"], string | false | undefined>>,
+  Assert<IsExact<Packaging["spineNodeIndex"], number | undefined>>,
+  Assert<IsExact<Packaging["spine"], PackagingSpineItem[] | undefined>>,
+  Assert<IsExact<Packaging["metadata"], PackagingMetadataObject | undefined>>,
+  Assert<IsExact<Packaging["uniqueIdentifier"], string | undefined>>,
+  Assert<IsExact<Packaging["toc"], PackagingTocItem[] | undefined>>,
+  Assert<IsExact<ReturnType<Packaging["parse"]>, PackagingObject>>,
+  Assert<IsExact<Parameters<Packaging["load"]>[0], PackagingJsonManifest>>,
+  Assert<IsExact<ReturnType<Packaging["load"]>, PackagingObject>>,
+  Assert<IsExact<ReturnType<Packaging["parseMetadata"]>, PackagingMetadataObject>>,
+  Assert<IsExact<ReturnType<Packaging["parseManifest"]>, PackagingManifestObject>>,
+  Assert<IsExact<ReturnType<Packaging["parseSpine"]>, PackagingSpineItem[]>>,
+  Assert<IsExact<ReturnType<Packaging["findUniqueIdentifier"]>, string>>,
+  Assert<IsExact<ReturnType<Packaging["findNavPath"]>, string | false>>,
+  Assert<IsExact<ReturnType<Packaging["findNcxPath"]>, string | false>>,
+  Assert<IsExact<ReturnType<Packaging["findCoverPath"]>, string | false>>,
+  Assert<IsExact<ReturnType<Packaging["getElementText"]>, string>>,
+  Assert<IsExact<ReturnType<Packaging["getPropertyText"]>, string>>,
+  Assert<IsExact<ReturnType<Packaging["destroy"]>, void>>
+];
+
 function testEpub() {
   const epub = ePub("https://s3.amazonaws.com/moby-dick/moby-dick.epub");
 
@@ -256,6 +291,18 @@ function testEpub() {
   const archiveBase64Url: Promise<string> = archive.createUrl("/OPS/images/cover.jpg", archiveUrlOptions);
   const archiveParsedJson: JsonValue = archive.handleResponse("{\"ok\":true}", "json");
   const archiveParsedDocument: Document | XMLDocument = archive.handleResponse("<html></html>", "xhtml");
+  const packagingJson: PackagingJsonManifest = {
+    metadata: { title: "JSON Manifest" },
+    readingOrder: [{ href: "Text/chapter1.xhtml" }],
+    resources: [{ href: "cover.jpg", rel: ["cover"] }],
+    toc: [{ href: "Text/chapter1.xhtml", title: "Chapter 1" }],
+  };
+  const packaging = new Packaging();
+  const parsedPackaging: PackagingObject = packaging.parse(parsedDocument);
+  const loadedPackaging: PackagingObject = packaging.load(packagingJson);
+  const packagingManifestItem: PackagingManifestItem | undefined = loadedPackaging.manifest[0];
+  const packagingMetadataTitle: string | undefined = loadedPackaging.metadata.title;
+  const packagingTocItem: PackagingTocItem | undefined = loadedPackaging.toc?.[0];
 
   new StaticBook("https://s3.amazonaws.com/moby-dick/moby-dick.epub", {});
   new StaticRendition(epub, {});
@@ -318,6 +365,10 @@ function testEpub() {
   void archiveBase64Url;
   void archiveParsedJson;
   void archiveParsedDocument;
+  void parsedPackaging;
+  void packagingManifestItem;
+  void packagingMetadataTitle;
+  void packagingTocItem;
   void location;
 }
 
@@ -327,5 +378,6 @@ type _NavigationAssertions = NavigationAssertions;
 type _SectionAssertions = SectionAssertions;
 type _SpineAssertions = SpineAssertions;
 type _ArchiveAssertions = ArchiveAssertions;
+type _PackagingAssertions = PackagingAssertions;
 
 testEpub();

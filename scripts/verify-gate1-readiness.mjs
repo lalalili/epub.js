@@ -88,6 +88,9 @@ assert(typeTests.includes("spine.remove(spineSection)"), "type tests must cover 
 assert(typeTests.includes("type ArchiveAssertions"), "type tests must assert the Archive public surface");
 assert(typeTests.includes("archive.createUrl(\"/OPS/images/cover.jpg\")"), "type tests must cover Archive createUrl optional options typing");
 assert(typeTests.includes("archive.handleResponse(\"{\\\"ok\\\":true}\", \"json\")"), "type tests must cover Archive handleResponse typing");
+assert(typeTests.includes("type PackagingAssertions"), "type tests must assert the Packaging public surface");
+assert(typeTests.includes("new Packaging()"), "type tests must cover Packaging construction without a document");
+assert(typeTests.includes("packaging.load(packagingJson)"), "type tests must cover Packaging JSON manifest loading");
 assert(typeTests.includes("RequestMethod"), "type tests must assert request method typing");
 assert(typeTests.includes("InstanceType<typeof ePub.utils.defer"), "type tests must assert generic defer typing");
 

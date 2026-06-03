@@ -1,83 +1,109 @@
-import { SpineItem } from "./section";
-
-export interface PackagingObject {
-  metadata: PackagingMetadataObject,
-  spine: Array<SpineItem>,
-  manifest: PackagingManifestObject,
-  navPath: string,
-  ncxPath: string,
-  coverPath: string,
-  spineNodeIndex: number
-}
-
 export interface PackagingMetadataObject {
-  title: string,
-  creator: string,
-  description: string,
-  pubdate: string,
-  publisher: string,
-  identifier: string,
-  language: string,
-  rights: string,
-  modified_date: string,
-  layout: string,
-  orientation: string,
-  flow: string,
-  viewport: string,
-  spread: string,
-  direction: string,
+  title?: string,
+  creator?: string,
+  description?: string,
+  pubdate?: string,
+  publisher?: string,
+  identifier?: string,
+  language?: string,
+  rights?: string,
+  modified_date?: string,
+  layout?: string,
+  orientation?: string,
+  flow?: string,
+  viewport?: string,
+  media_active_class?: string,
+  spread?: string,
+  direction?: string | null,
+  [key: string]: unknown
 }
 
 export interface PackagingSpineItem {
-  idref: string,
-  properties: Array<string>,
-  index: number
+  id?: string | null,
+  idref?: string | null,
+  linear?: string,
+  properties?: Array<string>,
+  index?: number,
+  href?: string,
+  [key: string]: unknown
 }
 
 export interface PackagingManifestItem {
   href: string,
-  type: string,
-  overlay: string,
-  mediaOverlay: string,
-  fallback: string,
-  fallbackChain: Array<string>,
-  properties: Array<string>
+  type?: string,
+  overlay?: string,
+  mediaOverlay?: string,
+  fallback?: string,
+  fallbackChain?: Array<string>,
+  properties?: Array<string>,
+  rel?: Array<string>,
+  [key: string]: unknown
 }
 
 export interface PackagingManifestObject {
   [key: string]: PackagingManifestItem
 }
 
+export interface PackagingTocItem {
+  href?: string,
+  title?: string,
+  label?: string,
+  [key: string]: unknown
+}
+
+export interface PackagingJsonManifest {
+  metadata: PackagingMetadataObject,
+  readingOrder?: Array<PackagingSpineItem>,
+  spine?: Array<PackagingSpineItem>,
+  resources: Array<PackagingManifestItem>,
+  toc: Array<PackagingTocItem>
+}
+
+export interface PackagingObject {
+  metadata: PackagingMetadataObject,
+  spine: Array<PackagingSpineItem>,
+  manifest: PackagingManifestObject,
+  navPath?: string | false,
+  ncxPath?: string | false,
+  coverPath?: string | false,
+  spineNodeIndex?: number,
+  toc?: Array<PackagingTocItem>
+}
+
 export default class Packaging {
-  constructor(packageDocument: XMLDocument);
+  constructor(packageDocument?: XMLDocument | Document);
 
-  manifest: PackagingManifestObject;
-  navPath: string;
-  ncxPath: string;
-  coverPath: string;
-  spineNodeIndex: number;
-  spine: Array<PackagingSpineItem>;
-  metadata: PackagingMetadataObject;
+  manifest?: PackagingManifestObject;
+  navPath?: string | false;
+  ncxPath?: string | false;
+  coverPath?: string | false;
+  spineNodeIndex?: number;
+  spine?: Array<PackagingSpineItem>;
+  metadata?: PackagingMetadataObject;
+  uniqueIdentifier?: string;
+  toc?: Array<PackagingTocItem>;
 
-  parse(packageDocument: XMLDocument): PackagingObject;
+  parse(packageDocument: XMLDocument | Document): PackagingObject;
 
-  load(json: string): PackagingObject;
+  load(json: PackagingJsonManifest): PackagingObject;
 
   destroy(): void;
 
-  private parseMetadata(xml: Node): PackagingMetadataObject;
+  parseMetadata(xml: Element): PackagingMetadataObject;
 
-  private parseManifest(xml: Node): PackagingManifestObject;
+  parseManifest(xml: Element): PackagingManifestObject;
 
-  private parseSpine(xml: Node, manifest: PackagingManifestObject): Array<PackagingSpineItem>;
+  parseSpine(xml: Element, manifest: PackagingManifestObject): Array<PackagingSpineItem>;
 
-  private findNavPath(manifestNode: Node): string | false;
+  findUniqueIdentifier(packageXml: XMLDocument | Document): string;
 
-  private findNcxPath(manifestNode: Node, spineNode: Node): string | false;
+  findNavPath(manifestNode: Element): string | false;
 
-  private findCoverPath(packageXml: Node): string;
+  findNcxPath(manifestNode: Element, spineNode: Element): string | false;
 
-  private getElementText(xml: Node, tag: string): string
+  findCoverPath(packageXml: XMLDocument | Document): string | false;
 
-  private getPropertyText(xml: Node, property: string): string
+  getElementText(xml: Element, tag: string): string;
+
+  getPropertyText(xml: Element, property: string): string;
 }
