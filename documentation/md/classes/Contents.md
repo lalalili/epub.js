@@ -20,7 +20,7 @@
 
 ##### content?
 
-`Element`
+`HTMLElement`
 
 ##### cfiBase?
 
@@ -40,6 +40,66 @@
 
 ## Properties
 
+### \_forcedWritingMode
+
+> **\_forcedWritingMode**: `string`
+
+***
+
+### \_layoutStyle?
+
+> `optional` **\_layoutStyle?**: `string`
+
+***
+
+### \_size
+
+> **\_size**: `ContentsSize`
+
+***
+
+### \_verticalRlMetricsCache
+
+> **\_verticalRlMetricsCache**: `VerticalRlMetricsCache`
+
+***
+
+### \_verticalRlPageMetricsCache
+
+> **\_verticalRlPageMetricsCache**: `VerticalRlPageMetricsCache`
+
+***
+
+### \_verticalRlStableSnappedContentWidth?
+
+> `optional` **\_verticalRlStableSnappedContentWidth?**: `object`
+
+#### pageLength
+
+> **pageLength**: `number`
+
+#### totalPages
+
+> **totalPages**: `number`
+
+#### width
+
+> **width**: `number`
+
+***
+
+### active
+
+> **active**: `boolean`
+
+***
+
+### called
+
+> **called**: `number`
+
+***
+
 ### cfiBase
 
 > **cfiBase**: `string`
@@ -48,7 +108,7 @@
 
 ### content
 
-> **content**: `Element`
+> **content**: `HTMLElement`
 
 ***
 
@@ -60,13 +120,19 @@
 
 ### documentElement
 
-> **documentElement**: `Element`
+> **documentElement**: `HTMLElement`
 
 ***
 
 ### epubcfi
 
 > **epubcfi**: [`EpubCFI`](EpubCFI.md)
+
+***
+
+### sectionHref
+
+> **sectionHref**: `string`
 
 ***
 
@@ -78,7 +144,7 @@
 
 ### window
 
-> **window**: `Window`
+> **window**: `Window` & *typeof* `globalThis`
 
 ***
 

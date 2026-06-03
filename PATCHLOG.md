@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-03
 
+### P-0287
+- Why:
+  - P-0286 aligned the legacy `ePub.utils` facade declarations, leaving `Contents` runtime state as the next package-root typed public API gap.
+  - `Contents` is central to the reader surface and already TypeScript source, but its declaration still accepted a generic `Element` for constructor content, hid `sectionHref`, active/called state, size state, forced writing mode, and vertical-rl cache state that Browser Mode tests exercise.
+  - Aligning these state declarations lets consumers type-check `Contents` construction and state inspection without changing rendering, pagination, CFI, or host integration behavior.
+- Diff Scope:
+  - `types/contents.d.ts`: add `ContentsSize`, vertical-rl cache shapes, `HTMLElement` content constructor/state, window type, `sectionHref`, active/called state, forced writing mode, layout style, and cache fields.
+  - `types/epubjs-tests.ts`: extend `Contents` assertions and concrete type smoke coverage for constructor state, size, section href, vertical-rl caches, writing mode, called, and active fields.
+  - `scripts/verify-gate1-readiness.mjs`: require the `Contents` state typed public API checks in Gate 1 readiness.
+  - `documentation/md/classes/Contents.md`: refresh generated TypeDoc markdown for the updated `Contents` state declaration surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/contents-text-width.test.js test/browser/teardown-raf.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if downstream type consumers intentionally require the older narrower `Contents` declaration surface instead of the current runtime-compatible typed public API contract.
+
 ### P-0286
 - Why:
   - P-0285 aligned the high-value `EpubCFI` declarations, leaving the root `ePub.utils` / `utils/core` facade as a small but visible typed public API gap.

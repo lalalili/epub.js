@@ -10,7 +10,12 @@ import Annotations, {
 import Archive, { ArchiveInput, ArchiveRequestType, ArchiveUrlOptions, ArchiveZip } from './archive';
 import type { BookOptions } from './book';
 import Container, { ContainerDocument } from './container';
-import type { ViewportSettings } from './contents';
+import type {
+  ContentsSize,
+  VerticalRlMetricsCache,
+  VerticalRlPageMetricsCache,
+  ViewportSettings,
+} from './contents';
 import type {
   EpubCFIBase,
   EpubCFIComponent,
@@ -118,7 +123,16 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Rendition["getRange"]>, Range | undefined>>,
   Assert<IsExact<ReturnType<Rendition["resize"]>, void>>,
   Assert<IsExact<Contents["document"], Document>>,
-  Assert<IsExact<Contents["window"], Window>>,
+  Assert<IsExact<Contents["documentElement"], HTMLElement>>,
+  Assert<IsExact<Contents["content"], HTMLElement>>,
+  Assert<IsExact<Contents["window"], Window & typeof globalThis>>,
+  Assert<IsExact<Contents["_size"], ContentsSize>>,
+  Assert<IsExact<Contents["sectionHref"], string>>,
+  Assert<IsExact<Contents["_verticalRlMetricsCache"], VerticalRlMetricsCache | null>>,
+  Assert<IsExact<Contents["_verticalRlPageMetricsCache"], VerticalRlPageMetricsCache | null>>,
+  Assert<IsExact<Contents["_forcedWritingMode"], string>>,
+  Assert<IsExact<Contents["called"], number>>,
+  Assert<IsExact<Contents["active"], boolean>>,
   Assert<IsExact<ReturnType<Contents["addScript"]>, Promise<boolean>>>,
   Assert<IsExact<ReturnType<Contents["addStylesheet"]>, Promise<boolean>>>,
   Assert<IsExact<ReturnType<Contents["addStylesheetCss"]>, boolean>>,
@@ -630,6 +644,14 @@ function testEpub() {
   const uuid: string = ePub.utils.uuid();
   const deferred = new ePub.utils.defer<string>();
   const parsedDocument: Document = ePub.utils.parse("<html><body><p>Text</p></body></html>", "text/html");
+  const typedContents = new Contents(parsedDocument, parsedDocument.body, "/6/2[chap]", 1, "OPS/chapter.xhtml");
+  const contentsSize: ContentsSize = typedContents._size;
+  const contentsSectionHref: string = typedContents.sectionHref;
+  const contentsVerticalRlMetricsCache: VerticalRlMetricsCache | null = typedContents._verticalRlMetricsCache;
+  const contentsVerticalRlPageMetricsCache: VerticalRlPageMetricsCache | null = typedContents._verticalRlPageMetricsCache;
+  const contentsForcedWritingMode: string = typedContents._forcedWritingMode;
+  const contentsCalled: number = typedContents.called;
+  const contentsActive: boolean = typedContents.active;
   const animationFrame: AnimationFrameRequest | false = ePub.utils.requestAnimationFrame;
   const coreBounds: SizeBounds = ePub.utils.bounds(parsedDocument.documentElement);
   const coreBorders: SizeBounds = ePub.utils.borders(parsedDocument.documentElement);
@@ -1028,6 +1050,14 @@ function testEpub() {
   void nodeCfiInput;
   void nodeCfi;
   void rangeCfi;
+  void typedContents;
+  void contentsSize;
+  void contentsSectionHref;
+  void contentsVerticalRlMetricsCache;
+  void contentsVerticalRlPageMetricsCache;
+  void contentsForcedWritingMode;
+  void contentsCalled;
+  void contentsActive;
   void animationFrame;
   void coreBounds;
   void coreBorders;

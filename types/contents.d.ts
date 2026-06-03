@@ -10,16 +10,40 @@ export interface ViewportSettings {
   maximum?: string | number
 }
 
+export interface ContentsSize {
+  width: number,
+  height: number
+}
+
+export interface VerticalRlMetricsCache {
+  key: string,
+  width: number
+}
+
+export interface VerticalRlPageMetricsCache {
+  key: string,
+  metrics: Record<string, any>
+}
+
 export default class Contents {
-    constructor(doc: Document, content?: Element, cfiBase?: string, sectionIndex?: number, sectionHref?: string);
+    constructor(doc: Document, content?: HTMLElement, cfiBase?: string, sectionIndex?: number, sectionHref?: string);
 
     epubcfi: EpubCFI;
     document: Document;
-    documentElement: Element;
-    content: Element;
-    window: Window;
+    documentElement: HTMLElement;
+    content: HTMLElement;
+    window: Window & typeof globalThis;
+    _size: ContentsSize;
     sectionIndex: number;
     cfiBase: string;
+    sectionHref: string;
+    _verticalRlMetricsCache: VerticalRlMetricsCache | null;
+    _verticalRlPageMetricsCache: VerticalRlPageMetricsCache | null;
+    _verticalRlStableSnappedContentWidth?: { pageLength: number, totalPages: number, width: number } | null;
+    _forcedWritingMode: string;
+    _layoutStyle?: string;
+    called: number;
+    active: boolean;
 
     static listenedEvents: string[];
 
