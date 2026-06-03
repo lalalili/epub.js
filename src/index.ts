@@ -38,6 +38,10 @@ export type {
 } from "./container";
 
 export type {
+	default as DisplayOptions
+} from "./displayoptions";
+
+export type {
 	LandmarkItem,
 	NavItem,
 	NavigationDocument,

@@ -68,7 +68,7 @@
 
 ### displayOptions?
 
-> `optional` **displayOptions?**: `DisplayOptions`
+> `optional` **displayOptions?**: [`DisplayOptions`](../interfaces/DisplayOptions.md)
 
 ***
 

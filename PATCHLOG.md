@@ -12,6 +12,23 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0300
+- Why:
+  - P-0299 aligned the `Container` root type exports, leaving adjacent parser helper surfaces such as `DisplayOptions` as the next package-root parity gap.
+  - The declaration and source surfaces already expose the `DisplayOptions` parser class, and type smoke covers its constructor, state, parse, and destroy contract, but the package root did not expose the class type consistently.
+  - Aligning the root export lets consumers type-check display options parser instances from the root package API before any release tag or host gate, without changing display-options parsing behavior.
+- Diff Scope:
+  - `src/index.ts`, `types/index.d.ts`: export root `DisplayOptions` type.
+  - `types/epubjs-tests.ts`: extend public root assertions for the `DisplayOptions` public type export.
+  - `scripts/verify-gate1-readiness.mjs`: require root/source `DisplayOptions` type export coverage in Gate 1 readiness.
+  - `documentation/md/*`: refresh generated TypeDoc markdown for the new root/public display-options type surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+- Rollback:
+  - Revert this patch if downstream source consumers intentionally require `DisplayOptions` to remain module-only instead of part of the root typed public API contract.
+
 ### P-0299
 - Why:
   - P-0298 aligned the `Packaging` root type exports, leaving adjacent parser helper surfaces such as `Container` as the next source/declaration parity gap.

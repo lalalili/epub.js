@@ -26,6 +26,7 @@
 - [BookLoading](interfaces/BookLoading.md)
 - [BookOptions](interfaces/BookOptions.md)
 - [Container](interfaces/Container.md)
+- [DisplayOptions](interfaces/DisplayOptions.md)
 - [LandmarkItem](interfaces/LandmarkItem.md)
 - [Location](interfaces/Location.md)
 - [ManagerLocationItem](interfaces/ManagerLocationItem.md)

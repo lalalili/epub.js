@@ -16,7 +16,7 @@
 
 ### displayOptions
 
-> **displayOptions**: `Deferred`\<`DisplayOptions`\>
+> **displayOptions**: `Deferred`\<[`DisplayOptions`](DisplayOptions.md)\>
 
 ***
 

@@ -84,6 +84,8 @@ assert(
 	sourceRoot.includes("ContainerDocument") && sourceRoot.includes("default as Container"),
 	"source root must export Container public types"
 );
+assert(typeTests.includes("RootDisplayOptions"), "type tests must assert root DisplayOptions type export");
+assert(sourceRoot.includes("default as DisplayOptions"), "source root must export DisplayOptions public type");
 assert(typeTests.includes("RootRenditionOptions"), "type tests must assert root Rendition type exports");
 assert(sourceRoot.includes("RenditionOptions") && sourceRoot.includes("RenditionLayoutProperties"), "source root must export Rendition public types");
 assert(typeTests.includes("RootNavigationInputItem"), "type tests must assert root Navigation type exports");
@@ -141,6 +143,7 @@ assert(typeTests.includes("RootPackagingObject"), "type tests must assert root P
 assert(typeTests.includes("new Packaging()"), "type tests must cover Packaging construction without a document");
 assert(typeTests.includes("packaging.load(packagingJson)"), "type tests must cover Packaging JSON manifest loading");
 assert(typeTests.includes("type DisplayOptionsAssertions"), "type tests must assert the DisplayOptions public surface");
+assert(typeTests.includes("RootDisplayOptions"), "type tests must assert root DisplayOptions class typing");
 assert(typeTests.includes("new DisplayOptions()"), "type tests must cover DisplayOptions construction without a document");
 assert(typeTests.includes("displayOptions.parse(parsedDocument)"), "type tests must cover DisplayOptions parse return typing");
 assert(typeTests.includes("type ContainerAssertions"), "type tests must assert the Container public surface");

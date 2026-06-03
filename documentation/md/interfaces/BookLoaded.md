@@ -16,7 +16,7 @@
 
 ### displayOptions
 
-> **displayOptions**: `Promise`\<`DisplayOptions`\>
+> **displayOptions**: `Promise`\<[`DisplayOptions`](DisplayOptions.md)\>
 
 ***
 
