@@ -13,6 +13,8 @@ const contentsSource = readFileSync(path.join(root, "src/contents.ts"), "utf8");
 const contentsTypes = readFileSync(path.join(root, "types/contents.d.ts"), "utf8");
 const renditionSource = readFileSync(path.join(root, "src/rendition.ts"), "utf8");
 const renditionTypes = readFileSync(path.join(root, "types/rendition.d.ts"), "utf8");
+const managerSource = readFileSync(path.join(root, "src/managers/default/index.ts"), "utf8");
+const managerTypes = readFileSync(path.join(root, "types/managers/manager.d.ts"), "utf8");
 const archiveSource = readFileSync(path.join(root, "src/archive.ts"), "utf8");
 const storeSource = readFileSync(path.join(root, "src/store.ts"), "utf8");
 const navigationTypes = readFileSync(path.join(root, "types/navigation.d.ts"), "utf8");
@@ -864,6 +866,27 @@ assert(
 		renditionTypes.includes("off(type: string, listener: (...args: unknown[]) => void): unknown") &&
 		renditionTypes.includes("once(type: string, listener: (...args: unknown[]) => void): unknown"),
 	"Rendition source and declarations must keep EventEmitter method type parity"
+);
+assert(
+	typeTests.includes("Parameters<Manager[\"emit\"]>, [type: string, ...args: unknown[]]") &&
+		typeTests.includes("Parameters<Manager[\"on\"]>, [type: string, listener: (...args: unknown[]) => void]") &&
+		typeTests.includes("Parameters<Manager[\"off\"]>, [type: string, listener: (...args: unknown[]) => void]") &&
+		typeTests.includes("Parameters<Manager[\"once\"]>, [type: string, listener: (...args: unknown[]) => void]") &&
+		typeTests.includes("const managerOn: unknown = manager.on") &&
+		typeTests.includes("const managerOff: unknown = manager.off") &&
+		typeTests.includes("const managerOnce: unknown = manager.once"),
+	"type tests must assert Manager EventEmitter parameter typing and usage"
+);
+assert(
+	managerSource.includes("declare emit: (type: string, ...args: unknown[]) => void") &&
+		managerSource.includes("declare on: (type: string, listener: (...args: unknown[]) => void) => unknown") &&
+		managerSource.includes("declare off: (type: string, listener: (...args: unknown[]) => void) => unknown") &&
+		managerSource.includes("declare once: (type: string, listener: (...args: unknown[]) => void) => unknown") &&
+		managerTypes.includes("emit(type: string, ...args: unknown[]): void") &&
+		managerTypes.includes("on(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		managerTypes.includes("off(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		managerTypes.includes("once(type: string, listener: (...args: unknown[]) => void): unknown"),
+	"Manager source and declarations must keep EventEmitter method type parity"
 );
 assert(
 	typeTests.includes("RootContentsSize") &&

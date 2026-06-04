@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0388
+- Why:
+  - `Manager` is a shipped deep declaration surface with EventEmitter methods, but its source declaration and `.d.ts` still exposed event names, payloads, and listeners as `any`.
+  - Manager event payloads are forwarded opaquely, so consumers should narrow payload values before reading them.
+  - Tightening this surface keeps manager source/.d.ts parity enforceable without changing view creation, scrolling, layout, or event wiring behavior.
+- Diff Scope:
+  - `src/managers/default/index.ts`: type DefaultViewManager EventEmitter variadic arguments and listener arguments as `unknown[]`.
+  - `types/managers/manager.d.ts`: mirror Manager emit, on, off, and once argument typing.
+  - `types/epubjs-tests.ts`: assert Manager EventEmitter parameter typing and keep usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Manager EventEmitter source and declaration parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Manager consumers intentionally rely on event payload arguments being typed as `any`.
+
 ### P-0387
 - Why:
   - `Contents` is a package-root public class with EventEmitter methods, but source and declarations still exposed event payload arguments as `any[]`.

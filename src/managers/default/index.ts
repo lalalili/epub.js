@@ -76,10 +76,10 @@ type TextRect = {
 
 class DefaultViewManager {
 	[key: string]: any;
-	declare emit: (type: string, ...args: any[]) => void;
-	declare on: (type: string, listener: (...args: any[]) => void) => any;
-	declare off: (type: string, listener: (...args: any[]) => void) => any;
-	declare once: (type: string, listener: (...args: any[]) => void) => any;
+	declare emit: (type: string, ...args: unknown[]) => void;
+	declare on: (type: string, listener: (...args: unknown[]) => void) => unknown;
+	declare off: (type: string, listener: (...args: unknown[]) => void) => unknown;
+	declare once: (type: string, listener: (...args: unknown[]) => void) => unknown;
 
 	constructor(options: any) {
 

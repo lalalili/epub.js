@@ -224,6 +224,7 @@ import Packaging, {
 import PageList, { PageListDocument, PageListItem, PageLookup, PageReverseLookup, PageValue } from './pagelist';
 import Locations, { LocationInput, LocationRange, LocationsRequest, WordLocation } from './locations';
 import Mapping, { EpubCFIPair, MappingAxis, MappingContents, MappingDirection, MappingLayout, MappingSection, MappingTextNodeWalker, MappingView, RangePair } from './mapping';
+import Manager from './managers/manager';
 import type { DisplayedLocation, LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionLocationPart, RenditionOptions, RenditionVerticalRlDebugState, RenditionVerticalRlPageDebug } from './rendition';
 import Resources, {
   ReplacementMode,
@@ -514,6 +515,14 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Rendition["off"]>, unknown>>,
   Assert<IsExact<Parameters<Rendition["once"]>, [type: string, listener: (...args: unknown[]) => void]>>,
   Assert<IsExact<ReturnType<Rendition["once"]>, unknown>>,
+  Assert<IsExact<Parameters<Manager["emit"]>, [type: string, ...args: unknown[]]>>,
+  Assert<IsExact<ReturnType<Manager["emit"]>, void>>,
+  Assert<IsExact<Parameters<Manager["on"]>, [type: string, listener: (...args: unknown[]) => void]>>,
+  Assert<IsExact<ReturnType<Manager["on"]>, unknown>>,
+  Assert<IsExact<Parameters<Manager["off"]>, [type: string, listener: (...args: unknown[]) => void]>>,
+  Assert<IsExact<ReturnType<Manager["off"]>, unknown>>,
+  Assert<IsExact<Parameters<Manager["once"]>, [type: string, listener: (...args: unknown[]) => void]>>,
+  Assert<IsExact<ReturnType<Manager["once"]>, unknown>>,
   Assert<IsExact<Contents["document"], Document>>,
   Assert<IsExact<Contents["documentElement"], HTMLElement>>,
   Assert<IsExact<Contents["content"], HTMLElement>>,
@@ -1177,6 +1186,14 @@ function testEpub() {
   const renditionOn: unknown = rendition.on("relocated", renditionListener);
   const renditionOff: unknown = rendition.off("relocated", renditionListener);
   const renditionOnce: unknown = rendition.once("rendered", renditionListener);
+  const manager = {} as Manager;
+  const managerListener = (...args: unknown[]): void => {
+    void args;
+  };
+  const managerEmit: void = manager.emit("resized", { width: 320, height: 480 });
+  const managerOn: unknown = manager.on("resized", managerListener);
+  const managerOff: unknown = manager.off("resized", managerListener);
+  const managerOnce: unknown = manager.once("added", managerListener);
 
   const binaryRequest: Promise<ArrayBuffer> = request("https://s3.amazonaws.com/moby-dick/moby-dick.epub", "binary", true, headers);
   const blobRequest: Promise<Blob> = request("https://s3.amazonaws.com/moby-dick/moby-dick.epub", "blob");
