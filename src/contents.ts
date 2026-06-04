@@ -109,6 +109,10 @@ type StylesheetRuleProperty = [string, string, boolean?];
 type StylesheetArrayRule = [string, ...StylesheetRuleProperty[]] | [string, StylesheetRuleProperty[]];
 type StylesheetObjectRule = Record<string, Record<string, string> | Array<Record<string, string>> | string>;
 type StylesheetRules = StylesheetArrayRule[] | StylesheetObjectRule;
+type LoadableElement = (HTMLLinkElement | HTMLScriptElement) & {
+	onreadystatechange: ((this: LoadableElement, event: Event) => void) | null;
+	readyState?: string;
+};
 interface EpubReadingSystem {
 	name: string;
 	version: string;
@@ -1353,7 +1357,7 @@ class Contents {
 			$stylesheet.type = "text/css";
 			$stylesheet.rel = "stylesheet";
 			$stylesheet.href = src;
-			($stylesheet as any).onload = ($stylesheet as any).onreadystatechange = function(this: any) {
+			($stylesheet as LoadableElement).onload = ($stylesheet as LoadableElement).onreadystatechange = function(this: LoadableElement) {
 				if ( !ready && (!this.readyState || this.readyState == "complete") ) {
 					ready = true;
 					// Let apply
@@ -1485,7 +1489,7 @@ class Contents {
 			$script.type = "text/javascript";
 			$script.async = true;
 			$script.src = src;
-			($script as any).onload = ($script as any).onreadystatechange = function(this: any) {
+			($script as LoadableElement).onload = ($script as LoadableElement).onreadystatechange = function(this: LoadableElement) {
 				if ( !ready && (!this.readyState || this.readyState == "complete") ) {
 					ready = true;
 					setTimeout(function(){

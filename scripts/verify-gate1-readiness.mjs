@@ -1215,6 +1215,17 @@ assert(
 	"Contents source and declarations must keep stylesheet rules typing parity"
 );
 assert(
+	contentsSource.includes("type LoadableElement = (HTMLLinkElement | HTMLScriptElement)") &&
+		contentsSource.includes("onreadystatechange: ((this: LoadableElement, event: Event) => void) | null") &&
+		contentsSource.includes("function(this: LoadableElement)") &&
+		contentsSource.includes("($stylesheet as LoadableElement).onload = ($stylesheet as LoadableElement).onreadystatechange") &&
+		contentsSource.includes("($script as LoadableElement).onload = ($script as LoadableElement).onreadystatechange") &&
+		!contentsSource.includes("($stylesheet as any).onload") &&
+		!contentsSource.includes("($script as any).onload") &&
+		!contentsSource.includes("onreadystatechange = function(this: any)"),
+	"Contents source must keep stylesheet/script load handlers typed"
+);
+assert(
 	contentsSource.includes("map(layout: MappingLayout): EpubCFIPair[]") &&
 		contentsTypes.includes("map(layout: MappingLayout): EpubCFIPair[]") &&
 	contentsSource.includes("mapPage(cfiBase: string, layout: MappingLayout, start: number, end: number, dev?: boolean): EpubCFIPair | undefined") &&

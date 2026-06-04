@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0430
+- Why:
+  - `Contents.addStylesheet()` and `addScript()` share the same legacy load/readyState bridge, but both handlers still used `any` casts for `onreadystatechange` and handler `this`.
+  - Aligning those elements with a `LoadableElement` intersection removes another source-side `any` while preserving the existing `Promise<boolean>` load behavior and old readyState fallback.
+  - Gate 1 now guards the typed load handler bridge before release work.
+- Diff Scope:
+  - `src/contents.ts`: type stylesheet/script loadable elements and handler receivers.
+  - `scripts/verify-gate1-readiness.mjs`: require typed load handlers and prevent the old `any` casts.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/contents-text-width.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if stylesheet/script load handlers must intentionally remain source-untyped for legacy browser shims.
+
 ### P-0429
 - Why:
   - `Contents.addStylesheetRules()` supports fixed stylesheet rule tuple/object inputs, but the source still typed the rules bridge as `any`.
