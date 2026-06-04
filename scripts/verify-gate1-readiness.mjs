@@ -1605,6 +1605,17 @@ assert(
 	"Default manager prev bridge must keep section and promise results typed without any"
 );
 assert(
+	managerSource.includes('import type { ManagerLocationItem } from "../../rendition";') &&
+		managerSource.includes("currentLocation(): Array<ManagerLocationItem | null | undefined>") &&
+		managerSource.includes("scrolledLocation(): ManagerLocationItem[]") &&
+		managerSource.includes("paginatedLocation(): ManagerLocationItem[]") &&
+		managerSource.includes("let pages: number[] = []") &&
+		managerSource.includes("index: index!") &&
+		managerSource.includes("href: href!") &&
+		!managerSource.includes("currentLocation(): any"),
+	"Default manager location helpers must expose typed manager location results without any"
+);
+assert(
 	continuousManagerSource.includes("var promises: Promise<unknown>[] = []") &&
 		continuousManagerSource.includes("check(_offsetLeft?: number, _offsetTop?: number): Promise<unknown>") &&
 		continuousManagerSource.includes(".then((): Promise<unknown> =>") &&

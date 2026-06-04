@@ -9,6 +9,7 @@ import Mapping from "../../mapping";
 import Queue from "../../utils/queue";
 import type Contents from "../../contents";
 import type Layout from "../../layout";
+import type { ManagerLocationItem } from "../../rendition";
 import {
 	cacheVerticalRlLogicalPageOffset as cacheVerticalRlLogicalPageOffsetHelper,
 	countPagesWithFractionalTolerance as countPagesWithFractionalToleranceHelper,
@@ -1989,7 +1990,7 @@ class DefaultViewManager {
 		}
 	}
 
-	currentLocation(): any {
+	currentLocation(): Array<ManagerLocationItem | null | undefined> {
 		if (this.shouldUpdateLayoutForLocation()) {
 			this.updateLayout();
 		}
@@ -2001,7 +2002,7 @@ class DefaultViewManager {
 		return this.location;
 	}
 
-	scrolledLocation() {
+	scrolledLocation(): ManagerLocationItem[] {
 		let visible = this.visible();
 		let container = this.container.getBoundingClientRect();
 		let pageHeight = (container.height < window.innerHeight) ? container.height : window.innerHeight;
@@ -2039,7 +2040,7 @@ class DefaultViewManager {
 			}
 
 			let currPage = Math.ceil(startPos / stopPos);
-			let pages = [];
+			let pages: number[] = [];
 			let endPage = Math.ceil(endPos / stopPos);
 
 			// Reverse page counts for horizontal rtl
@@ -2058,8 +2059,8 @@ class DefaultViewManager {
 			let mapping = this.mapping.page(view.contents, view.section.cfiBase, startPos, endPos);
 
 			return {
-				index,
-				href,
+				index: index!,
+				href: href!,
 				pages,
 				totalPages,
 				mapping
@@ -2069,7 +2070,7 @@ class DefaultViewManager {
 		return sections;
 	}
 
-	paginatedLocation(){
+	paginatedLocation(): ManagerLocationItem[] {
 		let visible = this.visible();
 		let container = this.container.getBoundingClientRect();
 		let isRtlVerticalPaginated = this.isRtlVerticalPaginated();
@@ -2111,7 +2112,7 @@ class DefaultViewManager {
 			let pageAdvance = this.getPageAdvance();
 			let totalPages = this.layout.count(width, pageAdvance).pages;
 			let startPage = Math.floor(start / pageAdvance);
-			let pages = [];
+			let pages: number[] = [];
 			let endPage = Math.floor(end / pageAdvance);
 
 			if (isRtlVerticalPaginated) {
@@ -2131,8 +2132,8 @@ class DefaultViewManager {
 				mapping = this.mapping.page(view.contents, view.section.cfiBase, physicalStart, physicalEnd);
 
 				return {
-					index,
-					href,
+					index: index!,
+					href: href!,
 					pages,
 					totalPages,
 					mapping
@@ -2159,8 +2160,8 @@ class DefaultViewManager {
 			}
 
 			return {
-				index,
-				href,
+				index: index!,
+				href: href!,
 				pages,
 				totalPages,
 				mapping
