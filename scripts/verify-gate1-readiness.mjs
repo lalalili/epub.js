@@ -35,6 +35,7 @@ const locationsSource = readFileSync(path.join(root, "src/locations.ts"), "utf8"
 const locationsTypes = readFileSync(path.join(root, "types/locations.d.ts"), "utf8");
 const mappingSource = readFileSync(path.join(root, "src/mapping.ts"), "utf8");
 const mappingTypes = readFileSync(path.join(root, "types/mapping.d.ts"), "utf8");
+const epubcfiTypes = readFileSync(path.join(root, "types/epubcfi.d.ts"), "utf8");
 const compatRangeSource = readFileSync(path.join(root, "src/compat/range.ts"), "utf8");
 const platformBlobSource = readFileSync(path.join(root, "src/platform/blob.ts"), "utf8");
 const platformDomSource = readFileSync(path.join(root, "src/platform/dom.ts"), "utf8");
@@ -1359,6 +1360,16 @@ assert(typeTests.includes("const cfiFallbackBase: EpubCFIBase = {}"), "type test
 assert(
 	sourceRoot.includes("ParsedEpubCFI") && sourceRoot.includes("EpubCFISegment") && sourceRoot.includes("EpubCFIInput"),
 	"source root must export EpubCFI public types"
+);
+assert(
+	epubcfiTypes.includes("interface MissedBoundary") &&
+		epubcfiTypes.includes("container: Node | null") &&
+		epubcfiTypes.includes("private filteredStep(node: Node, ignoreClass?: string): EpubCFIStep | undefined") &&
+		epubcfiTypes.includes("private findNode(steps: Array<EpubCFIStep>, _doc?: Document, ignoreClass?: string | null): Node | null") &&
+		epubcfiTypes.includes("private fixMiss(steps: Array<EpubCFIStep>, offset: number | null | undefined, _doc?: Document, ignoreClass?: string | null): MissedBoundary") &&
+		!epubcfiTypes.includes("private filteredStep(node: Node, ignoreClass?: string): any") &&
+		!epubcfiTypes.includes("private fixMiss(steps: Array<EpubCFIStep>, offset: number, _doc?: Document, ignoreClass?: string): any"),
+	"EpubCFI declarations must keep private boundary helpers typed"
 );
 
 assert(globalTypeTests.includes("const book = ePub("), "global namespace tests must cover callable ePub");

@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0433
+- Why:
+  - `src/epubcfi.ts` already types `filteredStep()`, `findNode()`, and `fixMiss()` with concrete CFI step and missed-boundary results, but `types/epubcfi.d.ts` still exposed those private helpers as `any` or non-null `Node`.
+  - Aligning the declaration file removes stale `any` from the CFI declaration surface and documents the nullable boundary lookup path used by `toRange()`.
+  - Gate 1 now guards the private CFI boundary helper declarations before release work.
+- Diff Scope:
+  - `types/epubcfi.d.ts`: add `MissedBoundary` and align private helper return/parameter types with source.
+  - `scripts/verify-gate1-readiness.mjs`: require the typed EpubCFI declaration helpers and reject the old `any` signatures.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/epubcfi.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if the declaration file must intentionally keep private CFI boundary helpers untyped.
+
 ### P-0432
 - Why:
   - `Locations.process()` and `processWords()` use the shared `defer` constructor to delay section-location resolution, but both call sites still instantiated it through `as any`.

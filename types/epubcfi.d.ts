@@ -35,6 +35,11 @@ export type EpubCFIBase = string | EpubCFIComponent | Record<string, never>;
 export type EpubCFIInput = string | Range | RangeObject | Node | EpubCFI;
 export type EpubCFIType = "string" | "range" | "node" | "EpubCFI" | false;
 
+interface MissedBoundary {
+    container: Node | null;
+    offset: number;
+}
+
 export default class EpubCFI {
     constructor(cfiFrom?: EpubCFIInput, base?: EpubCFIBase, ignoreClass?: string);
 
@@ -66,11 +71,11 @@ export default class EpubCFI {
 
     toString(): string;
 
-    private filteredStep(node: Node, ignoreClass?: string): any;
+    private filteredStep(node: Node, ignoreClass?: string): EpubCFIStep | undefined;
 
-    private findNode(steps: Array<EpubCFIStep>, _doc?: Document, ignoreClass?: string): Node;
+    private findNode(steps: Array<EpubCFIStep>, _doc?: Document, ignoreClass?: string | null): Node | null;
 
-    private fixMiss(steps: Array<EpubCFIStep>, offset: number, _doc?: Document, ignoreClass?: string): any;
+    private fixMiss(steps: Array<EpubCFIStep>, offset: number | null | undefined, _doc?: Document, ignoreClass?: string | null): MissedBoundary;
 
     checkType(cfi: unknown): EpubCFIType;
 
