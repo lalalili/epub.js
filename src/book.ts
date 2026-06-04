@@ -11,7 +11,7 @@ import Navigation from "./navigation";
 import Resources from "./resources";
 import PageList from "./pagelist";
 import Rendition, { type RenditionOptions } from "./rendition";
-import Archive from "./archive";
+import Archive, { type ArchiveZip } from "./archive";
 import type Section from "./section";
 import request, {
 	type JsonValue,
@@ -692,7 +692,7 @@ class Book {
 	 * @param  {string} [encoding]
 	 * @return {Archive}
 	 */
-	unarchive(input: BookInput | string, encoding?: string): Promise<any> {
+	unarchive(input: BookInput | string, encoding?: string): Promise<ArchiveZip> {
 		this.archive = new Archive();
 		return this.archive.open(input as any, encoding as any);
 	}

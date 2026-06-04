@@ -815,6 +815,7 @@ assert(typeTests.includes("Book[\"loading\"]"), "type tests must assert Book run
 assert(typeTests.includes("book.loaded?.spine"), "type tests must cover Book loaded spine typing");
 assert(typeTests.includes("book.resolve()"), "type tests must cover Book optional resolve path typing");
 assert(typeTests.includes("book.unarchive(bookInput)"), "type tests must cover Book unarchive zip typing");
+assert(typeTests.includes("ReturnType<Book[\"unarchive\"]>, Promise<ArchiveZip>"), "type tests must assert Book unarchive ArchiveZip return typing");
 assert(typeTests.includes("ReturnType<Book[\"load\"]>, Promise<RequestResponse>"), "type tests must cover Book load request response typing");
 assert(typeTests.includes("Parameters<Book[\"renderTo\"]>[1], RenditionOptions | undefined"), "type tests must assert Book renderTo options typing");
 assert(typeTests.includes("const bookRendition: Rendition = book.renderTo"), "type tests must cover Book renderTo RenditionOptions usage");
@@ -852,6 +853,11 @@ assert(
 		bookTypes.includes("renderTo(element: Element, options?: RenditionOptions): Rendition") &&
 		bookTypes.includes("renderTo(element: string, options?: RenditionOptions): Rendition"),
 	"Book source and declarations must keep renderTo options type parity"
+);
+assert(
+	bookSource.includes("unarchive(input: BookInput | string, encoding?: string): Promise<ArchiveZip>") &&
+		bookTypes.includes("unarchive(input: BookInput, encoding?: string): Promise<ArchiveZip>"),
+	"Book source and declarations must keep unarchive ArchiveZip return type parity"
 );
 assert(typeTests.includes("rendition.determineLayoutProperties"), "type tests must cover Rendition layout property typing");
 assert(typeTests.includes("ReturnType<Rendition[\"getContents\"]>, Contents[]"), "type tests must assert Rendition getContents return typing");

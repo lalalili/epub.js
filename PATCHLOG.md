@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0399
+- Why:
+  - `Book.unarchive()` delegates to `Archive.open()`, whose source and declaration already return `Promise<ArchiveZip>`.
+  - The public `Book` declaration and type tests already expose that archive zip result, but the source still returned `Promise<any>`.
+  - Tightening the source return type keeps archive setup parity enforceable without changing input compatibility or JSZip loading behavior.
+- Diff Scope:
+  - `src/book.ts`: type `unarchive()` as returning `Promise<ArchiveZip>`.
+  - `scripts/verify-gate1-readiness.mjs`: require Book unarchive source/declaration/type-test parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `Book.unarchive()` must intentionally erase the underlying archive zip result.
+
 ### P-0398
 - Why:
   - `Book.renderTo()` is a package-root rendering helper, and the public declaration already accepts `RenditionOptions`.
