@@ -46,7 +46,7 @@ type ContinuousView = {
 	onDisplayed?: Function;
 	onResize?: Function;
 	on(type: string, callback: Function): void;
-	display(request: unknown): Promise<ContinuousView>;
+	display(request: unknown): Promise<unknown>;
 	show(): void;
 	hide(): void;
 	bounds(): ViewBounds;

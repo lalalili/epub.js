@@ -171,7 +171,9 @@ type ManagerView = {
 	onDisplayed?: () => void;
 	onResize?: () => void;
 	expanded?: boolean;
+	iframe?: HTMLIFrameElement;
 	_contentWidth?: number;
+	_viewportFillingSingleMediaPage?: boolean;
 	offset(): ManagerOffset;
 	width(): number;
 	height(): number;
@@ -196,6 +198,23 @@ type VisibleManagerView = ManagerView & {
 type PositionedView = {
 	section?: unknown;
 	position?: () => ManagerBounds;
+};
+type ManagerViewsBridge = {
+	length: number;
+	all(): ManagerView[];
+	find(section: ManagerSection): ManagerView | undefined;
+	first(): ManagerView;
+	last(): ManagerView;
+	indexOf(view: ManagerView): number;
+	slice(start?: number, end?: number): ManagerView[];
+	append(view: ManagerView): ManagerView;
+	prepend(view: ManagerView): ManagerView;
+	remove(view: unknown): void;
+	displayed(): VisibleManagerView[];
+	forEach(callback: (view: ManagerView) => void): void;
+	show(): void;
+	hide(): void;
+	clear(): void;
 };
 
 class DefaultViewManager {
@@ -229,6 +248,7 @@ class DefaultViewManager {
 	declare q: Queue;
 	declare stage: Stage;
 	declare container: HTMLDivElement;
+	declare views: ManagerViewsBridge;
 	declare overflow?: string;
 	declare viewSettings: ManagerViewSettings;
 	declare emit: (type: string, ...args: unknown[]) => void;
@@ -315,7 +335,7 @@ class DefaultViewManager {
 		this.container = this.stage.getContainer();
 
 		// Views array methods
-		this.views = new Views(this.container);
+		this.views = new Views(this.container) as unknown as ManagerViewsBridge;
 
 		// Calculate Stage Size
 		this._bounds = this.bounds();

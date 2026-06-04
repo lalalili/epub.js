@@ -1573,7 +1573,9 @@ assert(
 assert(
 	managerSource.includes("type ManagerSection = {") &&
 		managerSource.includes("type ManagerView = {") &&
+		managerSource.includes("iframe?: HTMLIFrameElement") &&
 		managerSource.includes("_contentWidth?: number") &&
+		managerSource.includes("_viewportFillingSingleMediaPage?: boolean") &&
 		managerSource.includes("createView(section: unknown, forceRight?: boolean): ManagerView") &&
 		managerSource.includes("display(section: ManagerSection, target?: string | number): Promise<void>") &&
 		managerSource.includes("var displaying = new Deferred<void>()") &&
@@ -1597,6 +1599,20 @@ assert(
 		!managerSource.includes("append(section: any") &&
 		!managerSource.includes("prepend(section: any"),
 	"Default manager view and section bridge inputs must stay typed without any"
+);
+assert(
+	managerSource.includes("type ManagerViewsBridge = {") &&
+		managerSource.includes("all(): ManagerView[]") &&
+		managerSource.includes("find(section: ManagerSection): ManagerView | undefined") &&
+		managerSource.includes("first(): ManagerView") &&
+		managerSource.includes("last(): ManagerView") &&
+		managerSource.includes("indexOf(view: ManagerView): number") &&
+		managerSource.includes("slice(start?: number, end?: number): ManagerView[]") &&
+		managerSource.includes("remove(view: unknown): void") &&
+		managerSource.includes("declare views: ManagerViewsBridge") &&
+		managerSource.includes("new Views(this.container) as unknown as ManagerViewsBridge") &&
+		!managerSource.includes("declare views: any"),
+	"Default manager views bridge must keep view collection state typed without catch-all any"
 );
 assert(
 	managerSource.includes("getVerticalRlVisualContentWidth(view: ManagerView | undefined): number") &&
@@ -1735,7 +1751,7 @@ assert(
 	continuousManagerSource.includes("type ContinuousSection = {") &&
 		continuousManagerSource.includes("type VisibilityElement = {") &&
 		continuousManagerSource.includes("[key: string]: unknown") &&
-		continuousManagerSource.includes("display(request: unknown): Promise<ContinuousView>") &&
+		continuousManagerSource.includes("display(request: unknown): Promise<unknown>") &&
 		continuousManagerSource.includes("bounds(): ViewBounds") &&
 		!continuousManagerSource.includes("type ContinuousView = {\n\t[key: string]: any"),
 	"Continuous manager view bridge must keep structural unknown typing"
