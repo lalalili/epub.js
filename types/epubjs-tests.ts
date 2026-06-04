@@ -167,6 +167,8 @@ import type {
   RenditionLocationPart as RootRenditionLocationPart,
   RenditionLayoutProperties as RootRenditionLayoutProperties,
   RenditionOptions as RootRenditionOptions,
+  RenditionVerticalRlDebugState as RootRenditionVerticalRlDebugState,
+  RenditionVerticalRlPageDebug as RootRenditionVerticalRlPageDebug,
 } from '../';
 import Annotations, {
   Annotation,
@@ -222,7 +224,7 @@ import Packaging, {
 import PageList, { PageListDocument, PageListItem, PageLookup, PageReverseLookup, PageValue } from './pagelist';
 import Locations, { LocationInput, LocationRange, LocationsRequest, WordLocation } from './locations';
 import Mapping, { EpubCFIPair, MappingAxis, MappingContents, MappingDirection, MappingLayout, MappingSection, MappingTextNodeWalker, MappingView, RangePair } from './mapping';
-import type { DisplayedLocation, LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionLocationPart, RenditionOptions } from './rendition';
+import type { DisplayedLocation, LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionLocationPart, RenditionOptions, RenditionVerticalRlDebugState, RenditionVerticalRlPageDebug } from './rendition';
 import Resources, {
   ReplacementMode,
   ResourceArchive,
@@ -297,6 +299,8 @@ type PublicRootAssertions = [
   Assert<IsExact<RootRenditionOptions, RenditionOptions>>,
   Assert<IsExact<RootRenditionLocationPart, RenditionLocationPart>>,
   Assert<IsExact<RootRenditionLayoutProperties, RenditionLayoutProperties>>,
+  Assert<IsExact<RootRenditionVerticalRlDebugState, RenditionVerticalRlDebugState>>,
+  Assert<IsExact<RootRenditionVerticalRlPageDebug, RenditionVerticalRlPageDebug>>,
   Assert<IsExact<RootLocation, Location>>,
   Assert<IsExact<RootManagerLocationItem, ManagerLocationItem>>,
   Assert<IsExact<RootNavigation, Navigation>>,
@@ -490,7 +494,7 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Rendition["currentLocation"]>, Location | Promise<Location> | undefined>>,
   Assert<IsExact<ReturnType<Rendition["display"]>, Promise<void>>>,
   Assert<IsExact<ReturnType<Rendition["determineLayoutProperties"]>, RenditionLayoutProperties>>,
-  Assert<IsExact<ReturnType<Rendition["debugVerticalRlPage"]>, Record<string, any>>>,
+  Assert<IsExact<ReturnType<Rendition["debugVerticalRlPage"]>, RenditionVerticalRlDebugState>>,
   Assert<IsExact<ReturnType<Rendition["getContents"]>, Contents[]>>,
   Assert<IsExact<ReturnType<Rendition["getRange"]>, Range | undefined>>,
   Assert<IsExact<ReturnType<Rendition["located"]>, Location>>,
@@ -1133,7 +1137,7 @@ function testEpub() {
   };
   const displayedLocation: DisplayedLocation = renditionLocationPart;
   const locatedRenditionLocation: Location = rendition.located([managerLocationItem]);
-  const renditionDebugState: Record<string, any> = rendition.debugVerticalRlPage();
+  const renditionDebugState: RenditionVerticalRlDebugState = rendition.debugVerticalRlPage();
   const renditionRemeasure: Promise<any> = rendition.remeasure({ preserveLocation: true, waitForFonts: false });
   const resolvedRenditionHref: string = rendition.resolveLinkHref("#note", { sectionHref: "Text/chapter.xhtml" });
   const renditionListener = (...args: unknown[]): void => {

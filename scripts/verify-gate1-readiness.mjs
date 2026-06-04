@@ -119,11 +119,18 @@ assert(typeTests.includes("RootDisplayOptions"), "type tests must assert root Di
 assert(sourceRoot.includes("default as DisplayOptions"), "source root must export DisplayOptions public type");
 assert(typeTests.includes("RootRenditionOptions"), "type tests must assert root Rendition type exports");
 assert(typeTests.includes("RootRenditionLocationPart"), "type tests must assert root Rendition location part type export");
+assert(typeTests.includes("RootRenditionVerticalRlDebugState"), "type tests must assert root Rendition vertical-rl debug state type export");
 assert(typeTests.includes("displayedLocation"), "type tests must cover DisplayedLocation compatibility typing");
 assert(
-	sourceRoot.includes("DisplayedLocation") && sourceRoot.includes("RenditionLocationPart") && sourceRoot.includes("RenditionOptions") && sourceRoot.includes("RenditionLayoutProperties"),
+	sourceRoot.includes("DisplayedLocation") &&
+	sourceRoot.includes("RenditionLocationPart") &&
+	sourceRoot.includes("RenditionOptions") &&
+	sourceRoot.includes("RenditionLayoutProperties") &&
+	sourceRoot.includes("RenditionVerticalRlDebugState"),
 	"source root must export Rendition public types"
 );
+assert(typeTests.includes("ReturnType<Rendition[\"debugVerticalRlPage\"]>, RenditionVerticalRlDebugState"), "type tests must assert Rendition vertical-rl debug return typing");
+assert(typeTests.includes("const renditionDebugState: RenditionVerticalRlDebugState = rendition.debugVerticalRlPage()"), "type tests must cover Rendition vertical-rl debug state usage");
 assert(
 	typeTests.includes("RootNavigation") &&
 	typeTests.includes("RootNavItem") &&

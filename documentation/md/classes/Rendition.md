@@ -200,11 +200,11 @@
 
 ### debugVerticalRlPage()
 
-> **debugVerticalRlPage**(): `Record`\<`string`, `any`\>
+> **debugVerticalRlPage**(): [`RenditionVerticalRlDebugState`](../type-aliases/RenditionVerticalRlDebugState.md)
 
 #### Returns
 
-`Record`\<`string`, `any`\>
+[`RenditionVerticalRlDebugState`](../type-aliases/RenditionVerticalRlDebugState.md)
 
 ***
 

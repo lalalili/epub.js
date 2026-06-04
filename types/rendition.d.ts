@@ -9,6 +9,7 @@ import Annotations from "./annotations";
 import Queue from "./utils/queue";
 import { Deferred } from "./utils/core";
 import Layout from "./layout";
+import { VerticalRlDebugMetrics } from "./contents";
 
 export interface RenditionOptions {
   width?: number | string | null,
@@ -77,6 +78,23 @@ export interface ManagerLocationItem {
   totalPages: number
 }
 
+export interface RenditionVerticalRlPageDebug {
+  containerClientWidth: number | null,
+  containerScrollWidth: number | null,
+  containerScrollLeft: number | null,
+  iframeOffsetWidth: number | null,
+  iframeClientWidth: number | null,
+  normalizedLogicalScrollLeft: number | null,
+  physicalStart: number | null,
+  physicalEnd: number | null,
+  pageWidth: number | null,
+  effectivePageAdvance: number | null,
+  totalPages: number | null,
+  currentPageIndex: number | null
+}
+
+export type RenditionVerticalRlDebugState = Partial<VerticalRlDebugMetrics> & RenditionVerticalRlPageDebug;
+
 export default class Rendition {
     constructor(book: Book, options?: RenditionOptions);
 
@@ -114,7 +132,7 @@ export default class Rendition {
 
     destroy(): void;
 
-    debugVerticalRlPage(): Record<string, any>;
+    debugVerticalRlPage(): RenditionVerticalRlDebugState;
 
     determineLayoutProperties(metadata: Record<string, any>): LayoutProperties;
 

@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0377
+- Why:
+  - `Rendition.debugVerticalRlPage()` is a package-root exported diagnostic method, but its return surface still leaked `Record<string, any>`.
+  - The method merges `Contents.debugVerticalRlMetrics()` with a fixed set of manager, container, iframe, and page-index diagnostics.
+  - Naming that payload as `RenditionVerticalRlDebugState` keeps rendition page debugging typed without changing page navigation, remeasure, console debug emission, or runtime diagnostics.
+- Diff Scope:
+  - `src/rendition.ts`: add `RenditionVerticalRlPageDebug` and `RenditionVerticalRlDebugState`, and use them for `debugVerticalRlPage()`.
+  - `src/index.ts`, `types/index.d.ts`, `types/rendition.d.ts`: export and mirror the Rendition vertical-rl debug public types.
+  - `types/epubjs-tests.ts`: assert root export parity, method return typing, and usage.
+  - `scripts/verify-gate1-readiness.mjs`: require Rendition vertical-rl debug parity across source and type smoke.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if consumers intentionally rely on Rendition vertical-rl debug page state being typed as arbitrary `Record<string, any>`.
+
 ### P-0376
 - Why:
   - `Contents.debugVerticalRlMetrics()` is a package-root exported diagnostic method, but its return surface still leaked `Record<string, any>`.

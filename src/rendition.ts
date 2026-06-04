@@ -10,6 +10,7 @@ import Layout from "./layout";
 import Themes from "./themes";
 import Annotations from "./annotations";
 import { EVENTS, DOM_EVENTS } from "./utils/constants";
+import type { VerticalRlDebugMetrics } from "./contents";
 
 // Default Views
 import IframeView from "./managers/views/iframe";
@@ -82,6 +83,21 @@ export interface ManagerLocationItem {
 	pages: number[];
 	totalPages: number;
 }
+export interface RenditionVerticalRlPageDebug {
+	containerClientWidth: number | null;
+	containerScrollWidth: number | null;
+	containerScrollLeft: number | null;
+	iframeOffsetWidth: number | null;
+	iframeClientWidth: number | null;
+	normalizedLogicalScrollLeft: number | null;
+	physicalStart: number | null;
+	physicalEnd: number | null;
+	pageWidth: number | null;
+	effectivePageAdvance: number | null;
+	totalPages: number | null;
+	currentPageIndex: number | null;
+}
+export type RenditionVerticalRlDebugState = Partial<VerticalRlDebugMetrics> & RenditionVerticalRlPageDebug;
 type DeferConstructor = new <T = unknown>() => CoreDeferred<T>;
 
 const Defer = defer as unknown as DeferConstructor;
@@ -632,7 +648,7 @@ class Rendition {
 			.then(this.reportLocation.bind(this));
 	}
 
-	debugVerticalRlPage(): Record<string, any> {
+	debugVerticalRlPage(): RenditionVerticalRlDebugState {
 		const manager = this.manager;
 		const view = manager && manager.views && (manager.views.first() || manager.views.last());
 		const contents = view && view.contents;
@@ -672,7 +688,7 @@ class Rendition {
 		)
 			? Math.min(contentWidth, physicalStart + visiblePageWidth)
 			: null;
-		const result = Object.assign({}, metrics, {
+		const result: RenditionVerticalRlDebugState = Object.assign({}, metrics, {
 			containerClientWidth: container ? container.clientWidth : null,
 			containerScrollWidth: container ? container.scrollWidth : null,
 			containerScrollLeft: container ? container.scrollLeft : null,
