@@ -1559,6 +1559,14 @@ assert(
 	"Default manager layout helpers must keep layout and view callbacks typed without any"
 );
 assert(
+	managerSource.includes("contents?: Contents") &&
+		managerSource.includes("getContents(): Contents[]") &&
+		managerSource.includes("var contents: Contents[] = []") &&
+		managerSource.includes("this.views.forEach(function(view: ManagerView | undefined){") &&
+		!managerSource.includes("this.views.forEach(function(view: any){"),
+	"Default manager contents bridge must keep view and contents values typed without any"
+);
+assert(
 	continuousManagerSource.includes("var promises: Promise<unknown>[] = []") &&
 		continuousManagerSource.includes("check(_offsetLeft?: number, _offsetTop?: number): Promise<unknown>") &&
 		continuousManagerSource.includes(".then((): Promise<unknown> =>") &&

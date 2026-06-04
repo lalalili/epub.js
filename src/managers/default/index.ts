@@ -117,6 +117,7 @@ type ManagerSection = {
 };
 type ManagerView = {
 	section: ManagerSection;
+	contents?: Contents;
 	onDisplayed?: () => void;
 	onResize?: () => void;
 	expanded?: boolean;
@@ -2436,7 +2437,7 @@ class DefaultViewManager {
 		if (!this.views) {
 			return contents;
 		}
-		this.views.forEach(function(view: any){
+		this.views.forEach(function(view: ManagerView | undefined){
 			const viewContents = view && view.contents;
 			if (viewContents) {
 				contents.push(viewContents);
