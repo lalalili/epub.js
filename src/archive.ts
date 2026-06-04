@@ -29,10 +29,10 @@ type UrlFactory = typeof URL & {
 	webkitURL?: typeof URL;
 	mozURL?: typeof URL;
 };
-type DeferConstructor = new () => {
-	promise: Promise<any>;
-	resolve(value?: any): void;
-	reject(error?: any): void;
+type DeferConstructor = new <T = unknown>() => {
+	promise: Promise<T>;
+	resolve(value?: T): void;
+	reject(error?: unknown): void;
 };
 
 /**
@@ -98,8 +98,8 @@ class Archive {
 	request(url: string, type: ArchiveMarkupRequestType): Promise<Document | XMLDocument>;
 	request(url: string, type?: ArchiveRequestType): Promise<RequestResponse>;
 	request(url: string, type?: ArchiveRequestType): Promise<RequestResponse> {
-		var deferred = new (defer as unknown as DeferConstructor)();
-		var response: Promise<any> | undefined;
+		var deferred = new (defer as unknown as DeferConstructor)<RequestResponse>();
+		var response: Promise<Blob | string> | undefined;
 		var path = new Path(url);
 
 		// If type isn't set, determine it from the file extension
@@ -215,10 +215,10 @@ class Archive {
 	 * @return {Promise} url promise with Url string
 	 */
 	createUrl(url: string, options?: ArchiveUrlOptions): Promise<string> {
-		var deferred = new (defer as unknown as DeferConstructor)();
+		var deferred = new (defer as unknown as DeferConstructor)<string>();
 		var _URL = (window.URL || (window as unknown as UrlFactory).webkitURL || (window as unknown as UrlFactory).mozURL) as typeof URL;
-		var tempUrl;
-		var response: Promise<any> | undefined;
+		var tempUrl: string;
+		var response: Promise<Blob | string> | undefined;
 		var useBase64 = options && options.base64;
 
 		if(url in this.urlCache) {
@@ -227,10 +227,11 @@ class Archive {
 		}
 
 		if (useBase64) {
-			response = this.getBase64(url);
+			var base64Response = this.getBase64(url);
+			response = base64Response;
 
-			if (response) {
-					response.then((tempUrl) => {
+			if (base64Response) {
+					base64Response.then((tempUrl) => {
 
 						this.urlCache[url] = tempUrl;
 						deferred.resolve(tempUrl);
@@ -241,10 +242,11 @@ class Archive {
 
 		} else {
 
-			response = this.getBlob(url);
+			var blobResponse = this.getBlob(url);
+			response = blobResponse;
 
-			if (response) {
-					response.then((blob) => {
+			if (blobResponse) {
+					blobResponse.then((blob) => {
 
 						tempUrl = _URL.createObjectURL(blob);
 						this.urlCache[url] = tempUrl;

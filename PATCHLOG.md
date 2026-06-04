@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0420
+- Why:
+  - `Archive` already exposes typed request and object URL APIs, but its source-side deferred and archive response bridge still used `Promise<any>`.
+  - Aligning the internal deferred constructor with generic result values keeps Archive source typing in sync with declaration and root export coverage before Gate 1 release work.
+  - This removes another source-side `any` leak without changing archive request overloads, object URL caching, response parsing, or missing-file rejection payloads.
+- Diff Scope:
+  - `src/archive.ts`: type the deferred constructor generically and use concrete `RequestResponse`, `string`, and `Blob | string` bridge values in `request()` and `createUrl()`.
+  - `scripts/verify-gate1-readiness.mjs`: require the Archive deferred and response bridge to remain typed.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Archive deferred and response bridge values must intentionally remain source-untyped.
+
 ### P-0419
 - Why:
   - The root `request` helper already exposes typed overloads and `RequestResponse` declarations, but the implementation fallback still returned `Promise<any>`.

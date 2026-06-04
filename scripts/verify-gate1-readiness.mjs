@@ -521,6 +521,16 @@ assert(
 	archiveSource.includes("handleResponse(response: string, type: ArchiveMarkupRequestType"),
 	"source Archive must expose request and handleResponse overloads"
 );
+assert(
+	archiveSource.includes("type DeferConstructor = new <T = unknown>()") &&
+	archiveSource.includes("var deferred = new (defer as unknown as DeferConstructor)<RequestResponse>()") &&
+	archiveSource.includes("var deferred = new (defer as unknown as DeferConstructor)<string>()") &&
+	archiveSource.includes("var response: Promise<Blob | string> | undefined") &&
+	archiveSource.includes("var tempUrl: string") &&
+	!archiveSource.includes("promise: Promise<any>") &&
+	!archiveSource.includes("var response: Promise<any> | undefined"),
+	"source Archive must keep typed deferred and response bridge handling"
+);
 assert(typeTests.includes("type PackagingAssertions"), "type tests must assert the Packaging public surface");
 assert(typeTests.includes("RootPackagingObject"), "type tests must assert root Packaging object typing");
 assert(typeTests.includes("PackagingJsonManifestBase, { metadata: PackagingMetadataObject; resources: PackagingManifestItem[]; toc: PackagingTocItem[] }"), "type tests must assert Packaging JSON manifest base typing");
