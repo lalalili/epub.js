@@ -1965,7 +1965,7 @@ class DefaultViewManager {
 		}
 	}
 
-	current(): any {
+	current(): VisibleManagerView | null {
 		var visible = this.visible();
 		if(visible.length){
 			// Current is the last visible view

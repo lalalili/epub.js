@@ -1567,6 +1567,12 @@ assert(
 	"Default manager contents bridge must keep view and contents values typed without any"
 );
 assert(
+	managerSource.includes("current(): VisibleManagerView | null") &&
+		managerSource.includes("var visible = this.visible()") &&
+		!managerSource.includes("current(): any"),
+	"Default manager current bridge must return the typed visible view or null without any"
+);
+assert(
 	continuousManagerSource.includes("var promises: Promise<unknown>[] = []") &&
 		continuousManagerSource.includes("check(_offsetLeft?: number, _offsetTop?: number): Promise<unknown>") &&
 		continuousManagerSource.includes(".then((): Promise<unknown> =>") &&
