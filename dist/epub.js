@@ -1429,6 +1429,7 @@
 		}
 		segmentString(segment) {
 			var segmentString = "/";
+			if (!("steps" in segment)) return segmentString;
 			segmentString += this.joinSteps(segment.steps);
 			if (segment.terminal && segment.terminal.offset != null) segmentString += ":" + segment.terminal.offset;
 			if (segment.terminal && segment.terminal.assertion != null) segmentString += "[" + segment.terminal.assertion + "]";

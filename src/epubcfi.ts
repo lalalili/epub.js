@@ -337,8 +337,12 @@ class EpubCFI {
 
 	}
 
-	segmentString(segment: EpubCFIComponent | Record<string, any>): string {
+	segmentString(segment: EpubCFIComponent | Record<string, never>): string {
 		var segmentString = "/";
+
+		if (!("steps" in segment)) {
+			return segmentString;
+		}
 
 		segmentString += this.joinSteps(segment.steps);
 

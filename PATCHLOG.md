@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0435
+- Why:
+  - `EpubCFI.segmentString()` only needs a parsed CFI component or the existing empty fallback object, but the source still accepted `Record<string, any>`.
+  - Typing the fallback as `Record<string, never>` matches the public CFI fallback contract and keeps empty CFI segments returning `/` without broad `any`.
+  - Gate 1 now rejects the old `Record<string, any>` segment bridge.
+- Diff Scope:
+  - `src/epubcfi.ts`: type `segmentString()` with the empty fallback object and short-circuit empty segments.
+  - `scripts/verify-gate1-readiness.mjs`: guard the typed segment fallback and declaration parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/epubcfi.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `segmentString()` must intentionally accept arbitrary segment-like objects.
+
 ### P-0434
 - Why:
   - Annotation payloads already use `AnnotationData = Record<string, unknown>`, but iframe marks and the `marks-pane` declaration shim still accepted `Record<string, any>`.

@@ -37,6 +37,7 @@ const locationsSource = readFileSync(path.join(root, "src/locations.ts"), "utf8"
 const locationsTypes = readFileSync(path.join(root, "types/locations.d.ts"), "utf8");
 const mappingSource = readFileSync(path.join(root, "src/mapping.ts"), "utf8");
 const mappingTypes = readFileSync(path.join(root, "types/mapping.d.ts"), "utf8");
+const epubcfiSource = readFileSync(path.join(root, "src/epubcfi.ts"), "utf8");
 const epubcfiTypes = readFileSync(path.join(root, "types/epubcfi.d.ts"), "utf8");
 const compatRangeSource = readFileSync(path.join(root, "src/compat/range.ts"), "utf8");
 const platformBlobSource = readFileSync(path.join(root, "src/platform/blob.ts"), "utf8");
@@ -1374,6 +1375,13 @@ assert(typeTests.includes("const cfiFallbackBase: EpubCFIBase = {}"), "type test
 assert(
 	sourceRoot.includes("ParsedEpubCFI") && sourceRoot.includes("EpubCFISegment") && sourceRoot.includes("EpubCFIInput"),
 	"source root must export EpubCFI public types"
+);
+assert(
+	epubcfiSource.includes("segmentString(segment: EpubCFIComponent | Record<string, never>): string") &&
+		epubcfiSource.includes('if (!("steps" in segment))') &&
+		epubcfiTypes.includes("private segmentString(segment: EpubCFISegment): string") &&
+		!epubcfiSource.includes("segmentString(segment: EpubCFIComponent | Record<string, any>): string"),
+	"EpubCFI source must keep segmentString fallback typed without any"
 );
 assert(
 	epubcfiTypes.includes("interface MissedBoundary") &&

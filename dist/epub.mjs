@@ -711,7 +711,7 @@ var q = 1, he = 3, J = 8, Y = 9, X = class e {
 	}
 	segmentString(e) {
 		var t = "/";
-		return t += this.joinSteps(e.steps), e.terminal && e.terminal.offset != null && (t += ":" + e.terminal.offset), e.terminal && e.terminal.assertion != null && (t += "[" + e.terminal.assertion + "]"), t;
+		return "steps" in e ? (t += this.joinSteps(e.steps), e.terminal && e.terminal.offset != null && (t += ":" + e.terminal.offset), e.terminal && e.terminal.assertion != null && (t += "[" + e.terminal.assertion + "]"), t) : t;
 	}
 	toString() {
 		var e = "epubcfi(";
