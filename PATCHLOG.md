@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0405
+- Why:
+  - `QueueTask`, `QueuedItem`, and `Queue` already use `unknown` for queued task arguments and results, but the exported `Task` wrapper still exposed its constructor args, context, wrapper args, and promise result as `any`.
+  - `Task` is part of the shipped queue declaration surface, so keeping it untyped left a gap in the package-root utility modernization lane.
+  - Tightening the wrapper to `QueueTask` and `unknown` preserves callback wrapper behavior while keeping the queue surface consistently typed.
+- Diff Scope:
+  - `src/utils/queue.ts`: type `Task` constructor args/context and callback bridge values as `unknown`.
+  - `types/utils/queue.d.ts`: mirror the `Task` constructor and returned wrapper as unknown-typed.
+  - `types/epubjs-tests.ts`: assert and exercise `Task` constructor and wrapper typing.
+  - `scripts/verify-gate1-readiness.mjs`: require Queue Task source/declaration/type-test parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `Task` must intentionally expose untyped callback arguments or results.
+
 ### P-0404
 - Why:
   - `Rendition.determineLayoutProperties()` consumes EPUB package metadata, but its source and declaration still accepted `Record<string, any>`.

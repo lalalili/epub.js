@@ -553,12 +553,16 @@ assert(typeTests.includes("ReturnType<Queue[\"enqueue\"]>, Promise<unknown>"), "
 assert(typeTests.includes("ReturnType<Queue[\"flush\"]>, Promise<unknown> | boolean | undefined"), "type tests must assert Queue flush unknown result typing");
 assert(typeTests.includes("QueueTask, (...args: unknown[]) => unknown"), "type tests must assert QueueTask unknown parameter and return typing");
 assert(typeTests.includes("Parameters<Queue[\"enqueue\"]>, unknown[]"), "type tests must assert Queue enqueue unknown variadic typing");
+assert(typeTests.includes("ConstructorParameters<typeof Task>, [task: QueueTask, args?: unknown[] | undefined, context?: unknown]"), "type tests must assert Queue Task constructor unknown typing");
+assert(typeTests.includes("const taskWrapper: (...args: unknown[]) => Promise<unknown> = new Task"), "type tests must cover Queue Task wrapper unknown return typing");
 assert(
 	queueSource.includes("QueueTask = (...args: unknown[]) => unknown") &&
 		queueSource.includes("enqueue(...items: unknown[]): Promise<unknown>") &&
+		queueSource.includes("constructor(task: QueueTask, args?: unknown[], context?: unknown)") &&
 		queueTypes.includes("QueueTask = (...args: unknown[]) => unknown") &&
-		queueTypes.includes("enqueue(...items: unknown[]): Promise<unknown>"),
-	"Queue source and declarations must keep unknown variadic typing"
+		queueTypes.includes("enqueue(...items: unknown[]): Promise<unknown>") &&
+		queueTypes.includes("new(task: QueueTask, args?: unknown[], context?: unknown): (...args: unknown[]) => Promise<unknown>"),
+	"Queue source and declarations must keep unknown variadic and Task wrapper typing"
 );
 assert(
 	sourceRoot.includes("QueuedItem") && sourceRoot.includes("QueueTask") && sourceRoot.includes("default as Queue"),

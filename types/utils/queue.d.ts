@@ -41,5 +41,5 @@ export default class Queue {
 }
 
 export const Task: {
-  new(task: Function, args?: any[], context?: any): (...args: any[]) => Promise<any>;
+  new(task: QueueTask, args?: unknown[], context?: unknown): (...args: unknown[]) => Promise<unknown>;
 };

@@ -238,13 +238,13 @@ class Queue {
  * @return {function} task
  */
 class Task {
-	constructor(task: Function, args?: any[], context?: any){
+	constructor(task: QueueTask, args?: unknown[], context?: unknown){
 
 		return function(){
-			var toApply: any[] = Array.prototype.slice.call(arguments || []);
+			var toApply: unknown[] = Array.prototype.slice.call(arguments || []);
 
 			return new Promise( (resolve, reject) => {
-				var callback = function(value: any, err: any){
+				var callback = function(value: unknown, err: unknown){
 					if (!value && err) {
 						reject(err);
 					} else {

@@ -854,7 +854,7 @@ type QueueAssertions = [
   Assert<IsExact<ReturnType<Queue["pause"]>, void>>,
   Assert<IsExact<ReturnType<Queue["stop"]>, void>>,
   Assert<IsExact<QueueTask, (...args: unknown[]) => unknown>>,
-  Assert<IsExact<ConstructorParameters<typeof Task>, [task: Function, args?: any[] | undefined, context?: any]>>
+  Assert<IsExact<ConstructorParameters<typeof Task>, [task: QueueTask, args?: unknown[] | undefined, context?: unknown]>>
 ];
 
 type HookAssertions = [
@@ -1369,7 +1369,7 @@ function testEpub() {
   const queueRun: Promise<unknown> = queue.run();
   const queueFlush: Promise<unknown> | boolean | undefined = queue.flush();
   const queueLength: number = queue.length();
-  const taskWrapper: (...args: any[]) => Promise<any> = new Task((): void => undefined);
+  const taskWrapper: (...args: unknown[]) => Promise<unknown> = new Task((): void => undefined);
   const hookTask: HookTask = (value: unknown) => Promise.resolve(value);
   const hookRegistration: HookRegistration = [hookTask];
   const hook = new Hook({ prefix: "ctx" });
