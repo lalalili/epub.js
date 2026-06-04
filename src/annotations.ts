@@ -14,6 +14,12 @@ export type AnnotationMap = Record<string, Annotation>;
 
 export type SectionAnnotationMap = Record<number, string[]>;
 
+type AnnotationCollectionBridge = AnnotationMap & {
+	forEach: {
+		apply(collection: AnnotationMap, args: unknown[]): void;
+	};
+};
+
 export interface AnnotationsRendition {
 	hooks: {
 		render: {
@@ -196,7 +202,7 @@ class Annotations {
 	 * iterate over annotations in the store
 	 */
 	each (...args: unknown[]): void {
-		return (this._annotations as any).forEach.apply(this._annotations, args) as void;
+		return (this._annotations as AnnotationCollectionBridge).forEach.apply(this._annotations, args);
 	}
 
 	/**

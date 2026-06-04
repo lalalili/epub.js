@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0439
+- Why:
+  - `Annotations.each()` exposes an `unknown[]` variadic surface, but the legacy `_annotations.forEach.apply()` bridge still cast the collection to `any`.
+  - Typing the bridge as `AnnotationCollectionBridge` keeps the legacy collection call explicit without widening the source.
+  - Gate 1 now rejects the old `_annotations as any` bridge.
+- Diff Scope:
+  - `src/annotations.ts`: type the legacy annotation collection `forEach.apply()` bridge.
+  - `scripts/verify-gate1-readiness.mjs`: guard Annotations collection bridge typing.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/annotations.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if annotation collection iteration needs a different legacy bridge shape.
+
 ### P-0438
 - Why:
   - `Contents.addStylesheet()` and `Contents.addScript()` already return `Promise<boolean>`, but their internal reject callbacks still typed rejection reasons as `any`.

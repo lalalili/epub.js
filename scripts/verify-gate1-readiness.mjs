@@ -778,16 +778,19 @@ assert(typeTests.includes("const annotationOnce: unknown = markAnnotation.once")
 assert(
 	annotationsSource.includes("export type AnnotationCallback = (...args: unknown[]) => void") &&
 	annotationsSource.includes("export type AnnotationData = Record<string, unknown>") &&
+	annotationsSource.includes("type AnnotationCollectionBridge = AnnotationMap") &&
 	annotationsSource.includes("highlight(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): unknown") &&
 	annotationsSource.includes("unhighlight(cfiRange: string): unknown") &&
 	annotationsSource.includes("mark: unknown") &&
 	annotationsSource.includes("attach (view: AnnotationView): unknown") &&
 	annotationsSource.includes("detach (view?: AnnotationView): unknown") &&
 	annotationsSource.includes("each (...args: unknown[]): void") &&
+	annotationsSource.includes("(this._annotations as AnnotationCollectionBridge).forEach.apply(this._annotations, args)") &&
 	annotationsSource.includes("emit(type: string, ...args: unknown[]): void") &&
 	annotationsSource.includes("on(type: string, listener: (...args: unknown[]) => void): unknown") &&
 	annotationsSource.includes("off(type: string, listener: (...args: unknown[]) => void): unknown") &&
 	annotationsSource.includes("once(type: string, listener: (...args: unknown[]) => void): unknown") &&
+	!annotationsSource.includes("(this._annotations as any).forEach.apply") &&
 	annotationsTypes.includes("export type AnnotationCallback = (...args: unknown[]) => void") &&
 	annotationsTypes.includes("export type AnnotationData = Record<string, unknown>") &&
 	annotationsTypes.includes("highlight(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): unknown") &&
