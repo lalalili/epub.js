@@ -30,8 +30,4 @@
 
 ### section
 
-> **section**: `object`
-
-#### cfiBase
-
-> **cfiBase**: `string`
+> **section**: [`MappingSection`](MappingSection.md)

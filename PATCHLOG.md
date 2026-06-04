@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0358
+- Why:
+  - `MappingView.section` is part of the public mapping view input shape, but its `cfiBase` contract was represented by an internal source-only `MappingSection` interface and an inline declaration object.
+  - That made root public API and Gate 1 readiness unable to assert the named section shape even though `Mapping.section()` and `rangeListToCfiList()` rely on it to build CFI pairs.
+  - Exporting `MappingSection` keeps Mapping source/.d.ts/root parity enforceable before future release tags, without changing page mapping, range walking, CFI conversion, axis handling, or text range splitting behavior.
+- Diff Scope:
+  - `src/mapping.ts`, `types/mapping.d.ts`: export `MappingSection` and use it in `MappingView.section`.
+  - `src/index.ts`, `types/index.d.ts`: export `MappingSection` from the package root.
+  - `types/epubjs-tests.ts`: add root export assertions and MappingView section usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require MappingSection source/declaration/root/type-smoke parity guards.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/mapping.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `MappingView.section` should intentionally remain an inline object shape rather than a named root-exported public type.
+
 ### P-0357
 - Why:
   - `Locations` is wired with `EventEmitter(Locations.prototype)` and the public declaration file exposes `emit`, `on`, `off`, and `once`.

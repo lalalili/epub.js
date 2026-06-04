@@ -55,6 +55,7 @@
 - [Mapping](interfaces/Mapping.md)
 - [MappingContents](interfaces/MappingContents.md)
 - [MappingLayout](interfaces/MappingLayout.md)
+- [MappingSection](interfaces/MappingSection.md)
 - [MappingView](interfaces/MappingView.md)
 - [Navigation](interfaces/Navigation.md)
 - [NavigationInputItem](interfaces/NavigationInputItem.md)

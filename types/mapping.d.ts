@@ -18,13 +18,15 @@ export interface MappingLayout {
 }
 
 export interface MappingView {
-  section: {
-    cfiBase: string;
-  };
+  section: MappingSection;
   contents: {
     scrollWidth(): number;
   };
   document: Document;
+}
+
+export interface MappingSection {
+  cfiBase: string;
 }
 
 export interface MappingContents {

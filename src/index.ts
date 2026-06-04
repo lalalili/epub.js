@@ -181,6 +181,7 @@ export type {
 	MappingContents,
 	MappingDirection,
 	MappingLayout,
+	MappingSection,
 	MappingTextNodeWalker,
 	MappingView,
 	RangePair,

@@ -13,7 +13,7 @@ export interface MappingContents {
 	document?: Document;
 }
 
-interface MappingSection {
+export interface MappingSection {
 	cfiBase: string;
 }
 

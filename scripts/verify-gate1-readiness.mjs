@@ -17,6 +17,8 @@ const resourcesSource = readFileSync(path.join(root, "src/resources.ts"), "utf8"
 const resourcesTypes = readFileSync(path.join(root, "types/resources.d.ts"), "utf8");
 const storeTypes = readFileSync(path.join(root, "types/store.d.ts"), "utf8");
 const locationsSource = readFileSync(path.join(root, "src/locations.ts"), "utf8");
+const mappingSource = readFileSync(path.join(root, "src/mapping.ts"), "utf8");
+const mappingTypes = readFileSync(path.join(root, "types/mapping.d.ts"), "utf8");
 const globalTypeTests = readFileSync(path.join(root, "types/global-namespace-tests.ts"), "utf8");
 const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.test.js"), "utf8");
 const umdGlobalTests = readFileSync(path.join(root, "test/browser/umd-global.test.js"), "utf8");
@@ -221,6 +223,7 @@ assert(
 	typeTests.includes("RootMappingContents") &&
 	typeTests.includes("RootMappingDirection") &&
 	typeTests.includes("RootMappingLayout") &&
+	typeTests.includes("RootMappingSection") &&
 	typeTests.includes("RootMappingTextNodeWalker") &&
 	typeTests.includes("RootMappingView") &&
 	typeTests.includes("RootRangePair"),
@@ -233,6 +236,7 @@ assert(
 	sourceRoot.includes("MappingContents") &&
 	sourceRoot.includes("MappingDirection") &&
 	sourceRoot.includes("MappingLayout") &&
+	sourceRoot.includes("MappingSection") &&
 	sourceRoot.includes("MappingTextNodeWalker") &&
 	sourceRoot.includes("MappingView") &&
 	sourceRoot.includes("RangePair"),
@@ -537,8 +541,17 @@ assert(
 assert(typeTests.includes("type MappingAssertions"), "type tests must assert the Mapping public surface");
 assert(typeTests.includes("new Mapping(mappingLayout"), "type tests must cover Mapping construction typing");
 assert(typeTests.includes("mapping.page(mappingContents"), "type tests must cover Mapping page typing");
+assert(typeTests.includes("MappingView[\"section\"], MappingSection"), "type tests must assert MappingView section typing");
 assert(typeTests.includes("ReturnType<Mapping[\"walk\"]>"), "type tests must cover Mapping walk callback return typing");
 assert(typeTests.includes("mapping.rangePairToCfiPair"), "type tests must cover Mapping range-to-CFI typing");
+assert(typeTests.includes("const mappingSectionShape: MappingSection"), "type tests must cover MappingSection usage");
+assert(
+	mappingSource.includes("export interface MappingSection") &&
+	mappingSource.includes("section: MappingSection") &&
+	mappingTypes.includes("export interface MappingSection") &&
+	mappingTypes.includes("section: MappingSection"),
+	"Mapping source and declarations must keep MappingSection parity"
+);
 assert(typeTests.includes("type ThemesAssertions"), "type tests must assert the Themes public surface");
 assert(typeTests.includes("new Themes(themesRendition)"), "type tests must cover Themes construction typing");
 assert(typeTests.includes("ReturnType<ThemesContent[\"addStylesheet\"]>"), "type tests must cover Themes content bridge method return typing");

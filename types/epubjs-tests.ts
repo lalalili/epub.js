@@ -58,6 +58,7 @@ import type {
   MappingContents as RootMappingContents,
   MappingDirection as RootMappingDirection,
   MappingLayout as RootMappingLayout,
+  MappingSection as RootMappingSection,
   MappingTextNodeWalker as RootMappingTextNodeWalker,
   MappingView as RootMappingView,
   EpubCFISegment as RootEpubCFISegment,
@@ -215,7 +216,7 @@ import Packaging, {
 } from './packaging';
 import PageList, { PageListDocument, PageListItem, PageLookup, PageReverseLookup, PageValue } from './pagelist';
 import Locations, { LocationInput, LocationRange, LocationsRequest, WordLocation } from './locations';
-import Mapping, { EpubCFIPair, MappingContents, MappingLayout, MappingTextNodeWalker, MappingView, RangePair } from './mapping';
+import Mapping, { EpubCFIPair, MappingContents, MappingLayout, MappingSection, MappingTextNodeWalker, MappingView, RangePair } from './mapping';
 import type { DisplayedLocation, LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionLocationPart, RenditionOptions } from './rendition';
 import Resources, {
   ReplacementMode,
@@ -383,6 +384,7 @@ type PublicRootAssertions = [
   Assert<IsExact<RootMappingContents, MappingContents>>,
   Assert<IsExact<RootMappingDirection, string>>,
   Assert<IsExact<RootMappingLayout, MappingLayout>>,
+  Assert<IsExact<RootMappingSection, MappingSection>>,
   Assert<IsExact<RootMappingTextNodeWalker, MappingTextNodeWalker>>,
   Assert<IsExact<RootMappingView, MappingView>>,
   Assert<IsExact<RootRangePair, RangePair>>,
@@ -879,6 +881,7 @@ type MappingAssertions = [
   Assert<IsExact<Mapping["horizontal"], boolean>>,
   Assert<IsExact<Mapping["direction"], string>>,
   Assert<IsExact<Mapping["_dev"], boolean>>,
+  Assert<IsExact<MappingView["section"], MappingSection>>,
   Assert<IsExact<ReturnType<Mapping["section"]>, EpubCFIPair[]>>,
   Assert<IsExact<ReturnType<Mapping["page"]>, EpubCFIPair | undefined>>,
   Assert<IsExact<ReturnType<Mapping["walk"]>, ReturnType<MappingTextNodeWalker>>>,
@@ -1375,8 +1378,9 @@ function testEpub() {
     : undefined;
   const mappingCfiPair: EpubCFIPair | undefined = mappingRangePair ? mapping.rangePairToCfiPair("/6/2[chap]", mappingRangePair) : undefined;
   const mappingCfiList: EpubCFIPair[] = mappingRangePair ? mapping.rangeListToCfiList("/6/2[chap]", [mappingRangePair]) : [];
+  const mappingSectionShape: MappingSection = { cfiBase: "/6/2[chap]" };
   const mappingView: MappingView = {
-    section: { cfiBase: "/6/2[chap]" },
+    section: mappingSectionShape,
     contents: { scrollWidth: () => 200 },
     document: parsedDocument,
   };
@@ -1740,6 +1744,7 @@ function testEpub() {
   void mappingPage;
   void mappingCfiPair;
   void mappingCfiList;
+  void mappingSectionShape;
   void mappingSection;
   void mappingAxis;
   void themes;
