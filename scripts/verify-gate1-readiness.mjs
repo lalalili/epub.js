@@ -329,6 +329,13 @@ assert(
 	"Locations source must keep EpubCFIStart CFI steps typed"
 );
 assert(
+	locationsSource.includes("type DeferConstructor = new <T = unknown>()") &&
+		locationsSource.includes("new (defer as unknown as DeferConstructor)<string[]>()") &&
+		locationsSource.includes("new (defer as unknown as DeferConstructor)<WordLocation[]>()") &&
+		!locationsSource.includes("new (defer as any)()"),
+	"Locations source must keep deferred bridge typed"
+);
+assert(
 	typeTests.includes("RootThemes") &&
 	typeTests.includes("RootInjectedThemes") &&
 	typeTests.includes("RootTheme") &&

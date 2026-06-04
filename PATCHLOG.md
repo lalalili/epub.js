@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0432
+- Why:
+  - `Locations.process()` and `processWords()` use the shared `defer` constructor to delay section-location resolution, but both call sites still instantiated it through `as any`.
+  - Adding a local `DeferConstructor` keeps the deferred result typed as `string[]` or `WordLocation[]` while preserving the existing pause-based resolve timing.
+  - Gate 1 now rejects the old untyped deferred bridge in `Locations`.
+- Diff Scope:
+  - `src/locations.ts`: type the local deferred constructor and both location-processing deferred values.
+  - `scripts/verify-gate1-readiness.mjs`: require typed `Locations` deferred construction and reject `new (defer as any)()`.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/locations.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if the locations deferred bridge must intentionally stay constructor-untyped.
+
 ### P-0431
 - Why:
   - `Locations.parseWords()` uses parsed `EpubCFI` path/start steps to resume word-location generation from a requested CFI, but the private `EpubCFIStart` bridge still typed those steps as `any[]`.

@@ -36,6 +36,11 @@ type EpubCFIStart = EpubCFI & {
 		steps: EpubCFIStep[];
 	};
 };
+type DeferConstructor = new <T = unknown>() => {
+	promise: Promise<T>;
+	resolve(value?: T): void;
+	reject(error?: unknown): void;
+};
 
 export type LocationInput = string | EpubCFI;
 type LocationIndex = number;
@@ -129,7 +134,7 @@ class Locations {
 
 		return section.load(this.request as SectionRequest | undefined)
 			.then(function(contents: Element) {
-				var completed = new (defer as any)();
+				var completed = new (defer as unknown as DeferConstructor)<string[]>();
 				var locations = this.parse(contents, section.cfiBase!);
 				this._locations = this._locations!.concat(locations);
 
@@ -350,7 +355,7 @@ class Locations {
 
 		return section.load(this.request as SectionRequest | undefined)
 			.then(function(contents: Element) {
-				var completed = new (defer as any)();
+				var completed = new (defer as unknown as DeferConstructor)<WordLocation[]>();
 				var locations = this.parseWords(contents, section, wordCount, startCfi);
 				var remainingCount = count ? count - this._locationsWords!.length : locations.length;
 				this._locationsWords = this._locationsWords!.concat(count && locations.length >= count ? locations.slice(0, remainingCount) : locations);
