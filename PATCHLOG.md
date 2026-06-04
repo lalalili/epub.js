@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0436
+- Why:
+  - `Mapping.walk()` still used `as any` for the legacy IE-compatible `TreeWalker` filter bridge even though the runtime shape is a function with an `acceptNode` property.
+  - Typing the legacy filter and four-argument `createTreeWalker` bridge keeps the compatibility path explicit without widening the source to `any`.
+  - Gate 1 now rejects the old Mapping TreeWalker `as any` bridge.
+- Diff Scope:
+  - `src/mapping.ts`: type the legacy TreeWalker filter and createTreeWalker bridge.
+  - `scripts/verify-gate1-readiness.mjs`: guard Mapping TreeWalker bridge typing.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/mapping.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if legacy TreeWalker compatibility requires a different bridge shape.
+
 ### P-0435
 - Why:
   - `EpubCFI.segmentString()` only needs a parsed CFI component or the existing empty fallback object, but the source still accepted `Record<string, any>`.

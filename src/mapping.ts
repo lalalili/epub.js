@@ -39,6 +39,19 @@ export type MappingTextNodeWalker = (node: Text) => Text | Node | Range | undefi
 export type MappingDirection = string;
 export type MappingAxis = string;
 
+type TreeWalkerAcceptNode = (node: Node) => number;
+
+type LegacyTreeWalkerFilter = TreeWalkerAcceptNode & {
+	acceptNode: TreeWalkerAcceptNode;
+};
+
+type LegacyCreateTreeWalker = (
+	root: Node,
+	whatToShow: number,
+	filter: TreeWalkerAcceptNode | LegacyTreeWalkerFilter | null,
+	entityReferenceExpansion?: boolean
+) => TreeWalker;
+
 /**
  * Map text locations to CFI ranges
  * @class
@@ -131,13 +144,13 @@ class Mapping {
 				}
 			}
 		};
-		var safeFilter = filter.acceptNode as any;
+		var safeFilter = filter.acceptNode as TreeWalkerAcceptNode as LegacyTreeWalkerFilter;
 		safeFilter.acceptNode = filter.acceptNode;
 
-		var treeWalker = (document.createTreeWalker as any)(root, NodeFilter.SHOW_TEXT, safeFilter, false);
-		var node: Text;
+		var treeWalker = (document.createTreeWalker as unknown as LegacyCreateTreeWalker)(root, NodeFilter.SHOW_TEXT, safeFilter, false);
+		var node: Text | null;
 		var result;
-		while ((node = treeWalker.nextNode())) {
+		while ((node = treeWalker.nextNode() as unknown as Text | null)) {
 			result = func(node);
 			if(result) break;
 		}

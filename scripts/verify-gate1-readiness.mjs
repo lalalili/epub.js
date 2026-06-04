@@ -720,6 +720,15 @@ assert(
 	!mappingSource.includes("(count as any).pages"),
 	"Mapping source and declarations must keep MappingSection parity"
 );
+assert(
+	mappingSource.includes("type TreeWalkerAcceptNode = (node: Node) => number") &&
+		mappingSource.includes("type LegacyTreeWalkerFilter = TreeWalkerAcceptNode") &&
+		mappingSource.includes("type LegacyCreateTreeWalker = (") &&
+		mappingSource.includes("var treeWalker = (document.createTreeWalker as unknown as LegacyCreateTreeWalker)") &&
+		!mappingSource.includes("var safeFilter = filter.acceptNode as any") &&
+		!mappingSource.includes("(document.createTreeWalker as any)"),
+	"Mapping source must keep legacy TreeWalker bridge typed without any"
+);
 assert(typeTests.includes("type ThemesAssertions"), "type tests must assert the Themes public surface");
 assert(typeTests.includes("new Themes(themesRendition)"), "type tests must cover Themes construction typing");
 assert(typeTests.includes("ReturnType<ThemesContent[\"addStylesheet\"]>"), "type tests must cover Themes content bridge method return typing");
