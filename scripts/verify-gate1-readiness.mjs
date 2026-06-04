@@ -19,6 +19,7 @@ const snapSource = readFileSync(path.join(root, "src/managers/helpers/snap.ts"),
 const iframeViewSource = readFileSync(path.join(root, "src/managers/views/iframe.ts"), "utf8");
 const inlineViewSource = readFileSync(path.join(root, "src/managers/views/inline.ts"), "utf8");
 const managerSource = readFileSync(path.join(root, "src/managers/default/index.ts"), "utf8");
+const continuousManagerSource = readFileSync(path.join(root, "src/managers/continuous/index.ts"), "utf8");
 const managerTypes = readFileSync(path.join(root, "types/managers/manager.d.ts"), "utf8");
 const viewTypes = readFileSync(path.join(root, "types/managers/view.d.ts"), "utf8");
 const marksPaneTypes = readFileSync(path.join(root, "types/marks-pane.d.ts"), "utf8");
@@ -1458,6 +1459,15 @@ assert(
 	managerSource.includes("getContents(): Contents[]") &&
 		managerTypes.includes("getContents(): Contents[]"),
 	"Manager source and declarations must keep getContents return type parity"
+);
+assert(
+	continuousManagerSource.includes("var promises: Promise<unknown>[] = []") &&
+		continuousManagerSource.includes("check(_offsetLeft?: number, _offsetTop?: number): Promise<unknown>") &&
+		continuousManagerSource.includes(".then((): Promise<unknown> =>") &&
+		!continuousManagerSource.includes("var promises: Promise<any>[] = []") &&
+		!continuousManagerSource.includes("check(_offsetLeft?: number, _offsetTop?: number): Promise<any>") &&
+		!continuousManagerSource.includes(".then((): Promise<any> =>"),
+	"Continuous manager must keep promise bridge results typed as unknown"
 );
 assert(
 	typeTests.includes("Parameters<View[\"emit\"]>, [type: string, ...args: unknown[]]") &&

@@ -243,7 +243,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		var view: ContinuousView;
 
 		var updating = new Defer<void>();
-		var promises: Promise<any>[] = [];
+		var promises: Promise<unknown>[] = [];
 		for (var i = 0; i < viewsLength; i++) {
 			view = views[i];
 
@@ -310,7 +310,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		}.bind(this), delay);
 	}
 
-	check(_offsetLeft?: number, _offsetTop?: number): Promise<any> {
+	check(_offsetLeft?: number, _offsetTop?: number): Promise<unknown> {
 		var checking = new Defer<boolean>();
 		var newViews: ContinuousView[] = [];
 
@@ -389,7 +389,7 @@ class ContinuousViewManager extends DefaultViewManager {
 
 		if(newViews.length){
 			return Promise.all(promises)
-				.then((): Promise<any> => {
+				.then((): Promise<unknown> => {
 					return this.check();
 				})
 				.then(() => {
