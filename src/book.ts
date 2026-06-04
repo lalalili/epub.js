@@ -12,6 +12,7 @@ import Resources from "./resources";
 import PageList from "./pagelist";
 import Rendition from "./rendition";
 import Archive from "./archive";
+import type Section from "./section";
 import request, {
 	type JsonValue,
 	type RequestHeaders,
@@ -651,7 +652,7 @@ class Book {
 	 * @param {string} target
 	 * @return {Section}
 	 */
-	section(target: string | number): any {
+	section(target: string | number): Section | undefined {
 		return this.spine!.get(target);
 	}
 

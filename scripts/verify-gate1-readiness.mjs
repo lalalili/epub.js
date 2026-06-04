@@ -837,6 +837,14 @@ assert(
 		bookTypes.includes("once(type: string, listener: (...args: unknown[]) => void): unknown"),
 	"Book source and declarations must keep EventEmitter method type parity"
 );
+assert(typeTests.includes("ReturnType<Book[\"section\"]>, Section | undefined"), "type tests must assert Book section return typing");
+assert(typeTests.includes("const bookSection: Section | undefined = book.section"), "type tests must cover Book section usage");
+assert(
+	bookSource.includes("section(target: string | number): Section | undefined") &&
+		bookTypes.includes("section(target: string): Section | undefined") &&
+		bookTypes.includes("section(target: number): Section | undefined"),
+	"Book source and declarations must keep section return type parity"
+);
 assert(typeTests.includes("rendition.determineLayoutProperties"), "type tests must cover Rendition layout property typing");
 assert(typeTests.includes("ReturnType<Rendition[\"getContents\"]>, Contents[]"), "type tests must assert Rendition getContents return typing");
 assert(

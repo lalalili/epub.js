@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0397
+- Why:
+  - `Book.section()` is the package-root alias for `book.spine.get()`, and the public declaration already exposes `Section | undefined`.
+  - The source still returned `any`, weakening source/.d.ts parity for a core book navigation helper.
+  - Tightening the source signature preserves the existing missing-section behavior while making the public return contract enforceable.
+- Diff Scope:
+  - `src/book.ts`: type `section()` as returning `Section | undefined`.
+  - `scripts/verify-gate1-readiness.mjs`: require Book section source/declaration/type-test parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `Book.section()` must intentionally erase `Spine.get()` section lookup results.
+
 ### P-0396
 - Why:
   - `Contents.mapPage()` delegates directly to `Mapping.page()`, whose public surface already exposes `MappingLayout` input and `EpubCFIPair | undefined` output.
