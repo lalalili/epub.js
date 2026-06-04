@@ -171,9 +171,22 @@ assert(
 	sourceRoot.includes("SpineItem"),
 	"source root must export Section public types"
 );
-assert(typeTests.includes("RootSpinePackage"), "type tests must assert root Spine type exports");
 assert(
-	sourceRoot.includes("SpinePackage") && sourceRoot.includes("SpineResolver") && sourceRoot.includes("default as Spine"),
+	typeTests.includes("RootSpine") &&
+	typeTests.includes("RootSpineLookup") &&
+	typeTests.includes("RootSpineManifestItem") &&
+	typeTests.includes("RootSpinePackage") &&
+	typeTests.includes("RootSpinePackageItem") &&
+	typeTests.includes("RootSpineResolver"),
+	"type tests must assert root Spine type exports"
+);
+assert(
+	sourceRoot.includes("default as Spine") &&
+	sourceRoot.includes("SpineLookup") &&
+	sourceRoot.includes("SpineManifestItem") &&
+	sourceRoot.includes("SpinePackage") &&
+	sourceRoot.includes("SpinePackageItem") &&
+	sourceRoot.includes("SpineResolver"),
 	"source root must export Spine public types"
 );
 assert(typeTests.includes("RootMappingLayout"), "type tests must assert root Mapping type exports");

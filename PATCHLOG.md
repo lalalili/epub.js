@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0338
+- Why:
+  - P-0337 tightened the `Section` root export readiness guard, leaving `Spine` with the same guard-completeness gap.
+  - Source root exports, declaration root exports, and type smoke already cover `Spine`, `SpineLookup`, `SpineManifestItem`, `SpinePackage`, `SpinePackageItem`, and `SpineResolver`, but the readiness script only required a subset of that public root surface.
+  - Tightening the guard keeps Spine root/source/type-smoke parity enforceable before any release tag or host gate, without changing spine unpacking, lookup maps, resolver behavior, fallback handling, or section ordering.
+- Diff Scope:
+  - `scripts/verify-gate1-readiness.mjs`: require the complete Spine root type-smoke aliases and source root exports.
+  - `documentation/md/*`: rerun TypeDoc to confirm the guard-only update does not change the rendered public markdown surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/spine.test.js test/browser/section.test.js test/browser/book.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Gate 1 readiness should intentionally allow partial Spine root export coverage.
+
 ### P-0337
 - Why:
   - P-0336 tightened the `Layout` root export readiness guard, leaving `Section` with the same guard-completeness gap.
