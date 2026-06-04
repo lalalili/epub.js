@@ -13,9 +13,11 @@ const contentsSource = readFileSync(path.join(root, "src/contents.ts"), "utf8");
 const contentsTypes = readFileSync(path.join(root, "types/contents.d.ts"), "utf8");
 const renditionSource = readFileSync(path.join(root, "src/rendition.ts"), "utf8");
 const renditionTypes = readFileSync(path.join(root, "types/rendition.d.ts"), "utf8");
+const iframeViewSource = readFileSync(path.join(root, "src/managers/views/iframe.ts"), "utf8");
 const managerSource = readFileSync(path.join(root, "src/managers/default/index.ts"), "utf8");
 const managerTypes = readFileSync(path.join(root, "types/managers/manager.d.ts"), "utf8");
 const viewTypes = readFileSync(path.join(root, "types/managers/view.d.ts"), "utf8");
+const marksPaneTypes = readFileSync(path.join(root, "types/marks-pane.d.ts"), "utf8");
 const archiveSource = readFileSync(path.join(root, "src/archive.ts"), "utf8");
 const storeSource = readFileSync(path.join(root, "src/store.ts"), "utf8");
 const sectionSource = readFileSync(path.join(root, "src/section.ts"), "utf8");
@@ -789,6 +791,18 @@ assert(
 	annotationsTypes.includes("off(type: string, listener: (...args: unknown[]) => void): unknown") &&
 	annotationsTypes.includes("once(type: string, listener: (...args: unknown[]) => void): unknown"),
 	"source Annotation must keep EventEmitter method type parity"
+);
+assert(
+	iframeViewSource.includes('import type { AnnotationData, AnnotationStyles } from "../../annotations"') &&
+		iframeViewSource.includes('highlight(cfiRange: string, data: AnnotationData = {}, cb?: MarkListener, className = "epubjs-hl", styles: AnnotationStyles = {})') &&
+		iframeViewSource.includes('underline(cfiRange: string, data: AnnotationData = {}, cb?: MarkListener, className = "epubjs-ul", styles: AnnotationStyles = {})') &&
+		iframeViewSource.includes("mark(cfiRange: string, data: AnnotationData = {}, cb?: MarkListener)") &&
+		marksPaneTypes.includes("type MarkData = Record<string, unknown>") &&
+		marksPaneTypes.includes("type MarkAttributes = Record<string, string>") &&
+		!iframeViewSource.includes("data: Record<string, any> = {}") &&
+		!iframeViewSource.includes("styles: Record<string, any> = {}") &&
+		!marksPaneTypes.includes("Record<string, any>"),
+	"iframe marks and marks-pane declarations must keep annotation payload typing"
 );
 assert(
 	sourceRoot.includes("default as Annotations") &&

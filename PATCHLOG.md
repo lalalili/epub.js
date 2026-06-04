@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0434
+- Why:
+  - Annotation payloads already use `AnnotationData = Record<string, unknown>`, but iframe marks and the `marks-pane` declaration shim still accepted `Record<string, any>`.
+  - Aligning the iframe mark methods and shim declaration keeps highlight/underline/mark data typed through the same annotation payload contract without changing runtime behavior.
+  - Gate 1 now prevents the iframe mark bridge and `marks-pane` shim from regressing to `any`.
+- Diff Scope:
+  - `src/managers/views/iframe.ts`: type mark payload/style parameters with `AnnotationData` and `AnnotationStyles`.
+  - `types/marks-pane.d.ts`: type mark data as `Record<string, unknown>` and attributes as `Record<string, string>`.
+  - `scripts/verify-gate1-readiness.mjs`: guard the iframe mark and `marks-pane` annotation payload bridge.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/views.test.js test/browser/annotations.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `marks-pane` consumers require arbitrary untyped mark payloads or non-string SVG attributes.
+
 ### P-0433
 - Why:
   - `src/epubcfi.ts` already types `filteredStep()`, `findNode()`, and `fixMiss()` with concrete CFI step and missed-boundary results, but `types/epubcfi.d.ts` still exposed those private helpers as `any` or non-null `Node`.

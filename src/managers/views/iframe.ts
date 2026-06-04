@@ -8,6 +8,7 @@ import { createBlobUrl, revokeBlobUrl } from "../../platform/blob";
 import { borders, bounds } from "../../platform/layout";
 import { EVENTS } from "../../utils/constants";
 import { Pane, Highlight, Underline } from "marks-pane";
+import type { AnnotationData, AnnotationStyles } from "../../annotations";
 
 type Bounds = {
 	width: number;
@@ -810,7 +811,7 @@ class IframeView {
 		return this.elementBounds;
 	}
 
-	highlight(cfiRange: string, data: Record<string, any> = {}, cb?: MarkListener, className = "epubjs-hl", styles: Record<string, any> = {}) {
+	highlight(cfiRange: string, data: AnnotationData = {}, cb?: MarkListener, className = "epubjs-hl", styles: AnnotationStyles = {}) {
 		if (!this.contents) {
 			return;
 		}
@@ -843,7 +844,7 @@ class IframeView {
 		return h;
 	}
 
-	underline(cfiRange: string, data: Record<string, any> = {}, cb?: MarkListener, className = "epubjs-ul", styles: Record<string, any> = {}) {
+	underline(cfiRange: string, data: AnnotationData = {}, cb?: MarkListener, className = "epubjs-ul", styles: AnnotationStyles = {}) {
 		if (!this.contents) {
 			return;
 		}
@@ -875,7 +876,7 @@ class IframeView {
 		return h;
 	}
 
-	mark(cfiRange: string, data: Record<string, any> = {}, cb?: MarkListener) {
+	mark(cfiRange: string, data: AnnotationData = {}, cb?: MarkListener) {
 		if (!this.contents) {
 			return;
 		}

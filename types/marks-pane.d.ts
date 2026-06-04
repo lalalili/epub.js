@@ -1,6 +1,6 @@
 declare module "marks-pane" {
-	type MarkData = Record<string, any>;
-	type MarkAttributes = Record<string, any>;
+	type MarkData = Record<string, unknown>;
+	type MarkAttributes = Record<string, string>;
 
 	export class Pane {
 		element: HTMLElement;
