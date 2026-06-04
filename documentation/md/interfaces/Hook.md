@@ -10,7 +10,7 @@
 
 ### context
 
-> **context**: `any`
+> **context**: `unknown`
 
 ***
 
@@ -74,7 +74,7 @@
 
 ### trigger()
 
-> **trigger**(...`args`): `Promise`\<`any`[]\>
+> **trigger**(...`args`): `Promise`\<`unknown`[]\>
 
 #### Parameters
 
@@ -84,4 +84,4 @@
 
 #### Returns
 
-`Promise`\<`any`[]\>
+`Promise`\<`unknown`[]\>

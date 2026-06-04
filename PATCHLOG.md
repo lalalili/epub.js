@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0370
+- Why:
+  - `HookTask`, `Hook.context`, and `Hook.trigger()` are package-root exported surfaces, but they still exposed task results and context values as `any`.
+  - Hook callbacks may receive legacy variadic arguments, but their returned values are only collected and forwarded through `Promise.all`, so the public result surface can use `unknown`.
+  - Tightening this surface keeps Hook source/.d.ts/TypeDoc parity enforceable without changing hook registration, deregistration, execution order, or runtime callback invocation.
+- Diff Scope:
+  - `src/utils/hook.ts`: type `HookTask` return values, `Hook.context`, constructor context, and `trigger()` results as `unknown`.
+  - `types/utils/hook.d.ts`: mirror the Hook unknown return/context public surface.
+  - `types/epubjs-tests.ts`: assert Hook context, trigger, and HookTask return typing and update usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Hook unknown result/context parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/hook.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Hook consumers intentionally rely on task results or context being typed as `any`.
+
 ### P-0369
 - Why:
   - Annotation view mark handles are opaque values returned by host view implementations, but source, declarations, and TypeDoc still exposed those handles as `any`.

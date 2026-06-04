@@ -518,6 +518,9 @@ assert(
 assert(typeTests.includes("new Hook({ prefix: \"ctx\" })"), "type tests must cover Hook optional context construction");
 assert(typeTests.includes("hook.register(hookTask, hookRegistration)"), "type tests must cover Hook variadic registration typing");
 assert(typeTests.includes("hook.trigger(\"ready\")"), "type tests must cover Hook trigger result typing");
+assert(typeTests.includes("ConstructorParameters<typeof Hook>, [context?: unknown]"), "type tests must assert Hook context typing");
+assert(typeTests.includes("ReturnType<Hook[\"trigger\"]>, Promise<unknown[]>"), "type tests must assert Hook trigger unknown result typing");
+assert(typeTests.includes("HookTask, (...args: any[]) => unknown"), "type tests must assert HookTask unknown return typing");
 assert(
 	sourceRoot.includes("HookRegistration") &&
 	sourceRoot.includes("HookTask") &&

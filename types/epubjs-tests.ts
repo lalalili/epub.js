@@ -796,15 +796,16 @@ type QueueAssertions = [
 ];
 
 type HookAssertions = [
-  Assert<IsExact<ConstructorParameters<typeof Hook>, [context?: any]>>,
-  Assert<IsExact<Hook["context"], any>>,
+  Assert<IsExact<ConstructorParameters<typeof Hook>, [context?: unknown]>>,
+  Assert<IsExact<Hook["context"], unknown>>,
   Assert<IsExact<Hook["hooks"], HookTask[]>>,
   Assert<IsExact<Parameters<Hook["register"]>, HookRegistration[]>>,
   Assert<IsExact<ReturnType<Hook["register"]>, void>>,
   Assert<IsExact<Parameters<Hook["deregister"]>, [func: HookTask]>>,
-  Assert<IsExact<ReturnType<Hook["trigger"]>, Promise<any[]>>>,
+  Assert<IsExact<ReturnType<Hook["trigger"]>, Promise<unknown[]>>>,
   Assert<IsExact<ReturnType<Hook["list"]>, HookTask[]>>,
   Assert<IsExact<ReturnType<Hook["clear"]>, HookTask[]>>,
+  Assert<IsExact<HookTask, (...args: any[]) => unknown>>,
   Assert<IsExact<HooksObject, Record<string, Hook>>>
 ];
 
@@ -1256,7 +1257,7 @@ function testEpub() {
   const hook = new Hook({ prefix: "ctx" });
   const hooksObject: HooksObject = { content: hook };
   const hookRegister: void = hook.register(hookTask, hookRegistration);
-  const hookTrigger: Promise<any[]> = hook.trigger("ready");
+  const hookTrigger: Promise<unknown[]> = hook.trigger("ready");
   const hookList: HookTask[] = hook.list();
   const hookClear: HookTask[] = hook.clear();
   const legacyNavItems: NavigationInputItem[] = [{

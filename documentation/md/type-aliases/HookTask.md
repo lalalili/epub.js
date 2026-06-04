@@ -6,7 +6,7 @@
 
 # Type Alias: HookTask
 
-> **HookTask** = (...`args`) => `any`
+> **HookTask** = (...`args`) => `unknown`
 
 ## Parameters
 
@@ -16,4 +16,4 @@
 
 ## Returns
 
-`any`
+`unknown`

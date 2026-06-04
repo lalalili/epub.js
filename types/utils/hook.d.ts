@@ -1,4 +1,4 @@
-export type HookTask = (...args: any[]) => any;
+export type HookTask = (...args: any[]) => unknown;
 export type HookRegistration = HookTask | HookTask[];
 
 export interface HooksObject {
@@ -6,16 +6,16 @@ export interface HooksObject {
 }
 
 export default class Hook {
-  constructor(context?: any);
+  constructor(context?: unknown);
 
-  context: any;
+  context: unknown;
   hooks: HookTask[];
 
   register(...items: HookRegistration[]): void;
 
   deregister(func: HookTask): void;
 
-  trigger(...args: any[]): Promise<any[]>;
+  trigger(...args: any[]): Promise<unknown[]>;
 
   list(): HookTask[];
 

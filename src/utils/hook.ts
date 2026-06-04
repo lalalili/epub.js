@@ -5,17 +5,17 @@
  * @param {any} context scope of this
  * @example this.content = new EPUBJS.Hook(this);
  */
-export type HookTask = (...args: any[]) => any;
+export type HookTask = (...args: any[]) => unknown;
 export type HookRegistration = HookTask | HookTask[];
 export interface HooksObject {
 	[key: string]: Hook;
 }
 
 class Hook {
-	context: any;
+	context: unknown;
 	hooks: HookTask[];
 
-	constructor(context?: any){
+	constructor(context?: unknown){
 		this.context = context || this;
 		this.hooks = [];
 	}
@@ -56,22 +56,22 @@ class Hook {
 	 * Triggers a hook to run all functions
 	 * @example this.content.trigger(args).then(function(){...});
 	 */
-	trigger(...items: any[]): Promise<any[]> {
+	trigger(...items: any[]): Promise<unknown[]> {
 		var args = arguments;
 		var context = this.context;
-		var promises: Promise<any>[] = [];
+		var promises: Promise<unknown>[] = [];
 
 		this.hooks.forEach(function(task) {
-			var executing;
+			var executing: unknown;
 			try {
 				executing = task.apply(context, args);
 			} catch (err) {
 				console.log(err);
 			}
 
-			if(executing && typeof executing["then"] === "function") {
+			if(executing && typeof (executing as PromiseLike<unknown>)["then"] === "function") {
 				// Task is a function that returns a promise
-				promises.push(executing);
+				promises.push(executing as Promise<unknown>);
 			}
 			// Otherwise Task resolves immediately, continue
 		});
