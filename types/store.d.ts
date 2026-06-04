@@ -48,6 +48,9 @@ export default class Store {
   online: boolean;
   _status?: (event?: Event) => void;
   emit(eventName: string, ...args: any[]): void;
+  on(eventName: string, listener: (...args: any[]) => void): unknown;
+  off(eventName: string, listener: (...args: any[]) => void): unknown;
+  once(eventName: string, listener: (...args: any[]) => void): unknown;
 
   add(resources: StoreResources, force?: boolean): Promise<Array<StoreData>>;
 

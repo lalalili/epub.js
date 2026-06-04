@@ -994,6 +994,10 @@ type StoreAssertions = [
   Assert<IsExact<Store["resolver"], StoreResolver | undefined>>,
   Assert<IsExact<Store["online"], boolean>>,
   Assert<IsExact<Store["_status"], ((event?: Event) => void) | undefined>>,
+  Assert<IsExact<ReturnType<Store["emit"]>, void>>,
+  Assert<IsExact<ReturnType<Store["on"]>, unknown>>,
+  Assert<IsExact<ReturnType<Store["off"]>, unknown>>,
+  Assert<IsExact<ReturnType<Store["once"]>, unknown>>,
   Assert<IsExact<Parameters<Store["add"]>, [resources: StoreResources, force?: boolean | undefined]>>,
   Assert<IsExact<ReturnType<Store["add"]>, Promise<StoreData[]>>>,
   Assert<IsExact<ReturnType<Store["put"]>, Promise<StoreData>>>,
@@ -1540,6 +1544,13 @@ function testEpub() {
     resources: [{ href: "Text/chapter.xhtml" }],
   };
   const store = new Store("epubjs-type-store", storeRequest, storeResolver);
+  const storeListener = (...args: unknown[]): void => {
+    void args;
+  };
+  const storeEmit: void = store.emit("online", store);
+  const storeOn: unknown = store.on("online", storeListener);
+  const storeOff: unknown = store.off("online", storeListener);
+  const storeOnce: unknown = store.once("offline", storeListener);
   const storedResources: Promise<StoreData[]> = store.add(storeResources);
   const storedData: Promise<StoreData> = store.put("/OPS/data.json", true, storeHeaders);
   const storedRequest: Promise<JsonValue> = store.request("/OPS/data.json", "json", true, storeHeaders);
@@ -1771,6 +1782,10 @@ function testEpub() {
   void storeJsonRequest;
   void storeMarkupRequest;
   void storedResources;
+  void storeEmit;
+  void storeOn;
+  void storeOff;
+  void storeOnce;
   void storedData;
   void storedRequest;
   void storedFallbackRequest;

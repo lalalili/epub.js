@@ -625,6 +625,10 @@ assert(typeTests.includes("function storeRequest(url: string, type: StoreMarkupR
 assert(typeTests.includes("ReturnType<Store[\"request\"]>"), "type tests must assert Store request fallback typing");
 assert(typeTests.includes("ReturnType<Store[\"retrieve\"]>"), "type tests must assert Store retrieve fallback typing");
 assert(typeTests.includes("ReturnType<Store[\"handleResponse\"]>"), "type tests must assert Store response handling fallback typing");
+assert(typeTests.includes("ReturnType<Store[\"on\"]>, unknown"), "type tests must assert Store EventEmitter listener typing");
+assert(typeTests.includes("const storeOn: unknown = store.on"), "type tests must cover Store on listener usage");
+assert(typeTests.includes("const storeOff: unknown = store.off"), "type tests must cover Store off listener usage");
+assert(typeTests.includes("const storeOnce: unknown = store.once"), "type tests must cover Store once listener usage");
 assert(typeTests.includes("new Store(\"epubjs-type-store\", storeRequest, storeResolver)"), "type tests must cover Store constructor typing");
 assert(typeTests.includes("store.createUrl(\"/OPS/images/cover.jpg\", storeUrlOptions)"), "type tests must cover Store createUrl optional options typing");
 assert(
@@ -632,6 +636,13 @@ assert(
 	storeSource.includes("retrieve(url: string, type: \"blob\"") &&
 	storeSource.includes("handleResponse(response: string, type: \"json\")"),
 	"source Store must expose request, retrieve, and handleResponse overloads"
+);
+assert(
+	storeSource.includes("emit(eventName: string, ...args: any[]): void") &&
+	storeSource.includes("on(eventName: string, listener: (...args: any[]) => void): unknown") &&
+	storeSource.includes("off(eventName: string, listener: (...args: any[]) => void): unknown") &&
+	storeSource.includes("once(eventName: string, listener: (...args: any[]) => void): unknown"),
+	"source Store must keep EventEmitter method type parity"
 );
 assert(
 	storeSource.includes("export interface StoreRequest") &&

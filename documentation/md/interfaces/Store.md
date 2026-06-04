@@ -268,6 +268,66 @@
 
 ***
 
+### off()
+
+> **off**(`eventName`, `listener`): `unknown`
+
+#### Parameters
+
+##### eventName
+
+`string`
+
+##### listener
+
+(...`args`) => `void`
+
+#### Returns
+
+`unknown`
+
+***
+
+### on()
+
+> **on**(`eventName`, `listener`): `unknown`
+
+#### Parameters
+
+##### eventName
+
+`string`
+
+##### listener
+
+(...`args`) => `void`
+
+#### Returns
+
+`unknown`
+
+***
+
+### once()
+
+> **once**(`eventName`, `listener`): `unknown`
+
+#### Parameters
+
+##### eventName
+
+`string`
+
+##### listener
+
+(...`args`) => `void`
+
+#### Returns
+
+`unknown`
+
+***
+
 ### put()
 
 > **put**(`url`, `withCredentials?`, `headers?`): `Promise`\<[`StoreData`](../type-aliases/StoreData.md)\>

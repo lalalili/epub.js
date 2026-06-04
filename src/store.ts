@@ -57,7 +57,6 @@ class Store {
 	resolver?: StoreResolver;
 	online: boolean;
 	_status?: (event?: Event) => void;
-	declare emit: (eventName: string, ...args: any[]) => void;
 
 	constructor(name: string, requester?: StoreRequest, resolver?: StoreResolver) {
 		this.urlCache = {};
@@ -426,6 +425,13 @@ class Store {
 		this.urlCache = {};
 		this.removeListeners();
 	}
+}
+
+interface Store {
+	emit(eventName: string, ...args: any[]): void;
+	on(eventName: string, listener: (...args: any[]) => void): unknown;
+	off(eventName: string, listener: (...args: any[]) => void): unknown;
+	once(eventName: string, listener: (...args: any[]) => void): unknown;
 }
 
 EventEmitter(Store.prototype);

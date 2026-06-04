@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0361
+- Why:
+  - `Store` is wired with `EventEmitter(Store.prototype)` and already calls `emit()` for online/offline status transitions, but source and declarations only exposed `emit`.
+  - The runtime listener methods `on`, `off`, and `once` were therefore missing from the source/.d.ts public contract even though they are available through the same EventEmitter augmentation.
+  - Adding the listener method declarations keeps Store source/.d.ts/EventEmitter parity enforceable before future release tags, without changing storage writes, offline retrieval, URL creation, status events, or EventEmitter runtime wiring.
+- Diff Scope:
+  - `src/store.ts`: declare `emit`, `on`, `off`, and `once` on the merged `Store` interface after the class.
+  - `types/store.d.ts`: expose Store EventEmitter listener methods.
+  - `types/epubjs-tests.ts`: assert Store EventEmitter method return types and add `emit` / `on` / `off` / `once` usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Store EventEmitter method parity and type-smoke assertions.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/store.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Store stops using EventEmitter prototype augmentation or intentionally hides listener methods from the source public type surface.
+
 ### P-0360
 - Why:
   - `MappingDirection` is already part of the public Mapping export surface and is used by the `Mapping` constructor, but the `Mapping.direction` instance property still surfaced as a raw `string` in both source and declarations.
