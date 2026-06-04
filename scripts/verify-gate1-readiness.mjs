@@ -95,11 +95,21 @@ assert(typeTests.includes("type PublicRootAssertions"), "type tests must assert 
 assert(typeTests.includes("RootBookInput"), "type tests must assert root BookInput type export");
 assert(typeTests.includes("ePub(rootBlobInput"), "type tests must cover root Blob input overload");
 assert(typeTests.includes("ePub(rootOptions)"), "type tests must cover root options-only overload");
-assert(sourceRoot.includes("BookLoaded") && sourceRoot.includes("BookLoading"), "source root must export Book loaded/loading types");
+assert(
+	sourceRoot.includes("BookLoaded") && sourceRoot.includes("BookLoading") && sourceRoot.includes("BookReady"),
+	"source root must export Book loaded/loading/ready types"
+);
+assert(typeTests.includes("RootBookReady"), "type tests must assert root BookReady type export");
 assert(typeTests.includes("BookLoading[\"metadata\"]"), "type tests must assert Book loading metadata typing");
 assert(typeTests.includes("BookLoaded[\"metadata\"]"), "type tests must assert Book loaded metadata typing");
 assert(typeTests.includes("BookLoading[\"manifest\"]"), "type tests must assert Book loading manifest typing");
 assert(typeTests.includes("BookLoaded[\"manifest\"]"), "type tests must assert Book loaded manifest typing");
+assert(
+	bookSource.includes("export type BookReady = [") &&
+	typeTests.includes("Book[\"ready\"], Promise<BookReady> | undefined") &&
+	typeTests.includes("const bookReady: Promise<BookReady> | undefined = book.ready"),
+	"BookReady tuple and ready promise typing must stay covered"
+);
 assert(typeTests.includes("RootContainerDocument"), "type tests must assert root Container type exports");
 assert(
 	sourceRoot.includes("ContainerDocument") && sourceRoot.includes("default as Container"),

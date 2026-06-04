@@ -34,6 +34,7 @@ import type {
   BookLoaded as RootBookLoaded,
   BookLoading as RootBookLoading,
   BookOptions as RootBookOptions,
+  BookReady as RootBookReady,
   AnimationFrameRequest as RootAnimationFrameRequest,
   BlobContent as RootBlobContent,
   Container as RootContainer,
@@ -178,7 +179,7 @@ import Annotations, {
   SectionAnnotationMap,
 } from './annotations';
 import Archive, { ArchiveEntry, ArchiveInput, ArchiveMarkupRequestType, ArchiveRequestType, ArchiveUrlOptions, ArchiveZip, ArchiveZipOptions } from './archive';
-import type { BookInput, BookLoaded, BookLoading, BookOptions } from './book';
+import type { BookInput, BookLoaded, BookLoading, BookOptions, BookReady } from './book';
 import Container, { ContainerDocument } from './container';
 import type {
   ContentsSize,
@@ -264,6 +265,7 @@ type PublicRootAssertions = [
   Assert<IsExact<RootBookOptions, BookOptions>>,
   Assert<IsExact<RootBookLoading, BookLoading>>,
   Assert<IsExact<RootBookLoaded, BookLoaded>>,
+  Assert<IsExact<RootBookReady, BookReady>>,
   Assert<IsExact<RootAnimationFrameRequest, AnimationFrameRequest>>,
   Assert<IsExact<RootBlobContent, BlobContent>>,
   Assert<IsExact<RootContainer, Container>>,
@@ -444,7 +446,7 @@ type CoreClassAssertions = [
   Assert<IsExact<BookLoaded["metadata"], Promise<PackagingMetadata>>>,
   Assert<IsExact<BookLoading["manifest"], Deferred<PackagingManifest>>>,
   Assert<IsExact<BookLoaded["manifest"], Promise<PackagingManifest>>>,
-  Assert<IsExact<Book["ready"], Promise<any[]> | undefined>>,
+  Assert<IsExact<Book["ready"], Promise<BookReady> | undefined>>,
   Assert<IsExact<Book["isRendered"], boolean>>,
   Assert<IsExact<Book["request"], RequestMethod>>,
   Assert<IsExact<Book["spine"], Spine | undefined>>,
@@ -1069,7 +1071,7 @@ function testEpub() {
   const bookOpening: Deferred<Book> | undefined = book.opening;
   const bookLoaded: BookLoaded | undefined = book.loaded;
   const bookLoading: BookLoading | undefined = book.loading;
-  const bookReady: Promise<any[]> | undefined = book.ready;
+  const bookReady: Promise<BookReady> | undefined = book.ready;
   const bookIsRendered: boolean = book.isRendered;
   const bookSpine: Spine | undefined = book.spine;
   const bookLocations: Locations | undefined = book.locations;

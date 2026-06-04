@@ -56,6 +56,15 @@ export interface BookLoaded {
 	resources: Promise<Resources>;
 	displayOptions: Promise<DisplayOptions>;
 }
+export type BookReady = [
+	PackagingManifest,
+	Spine,
+	PackagingMetadata,
+	string | undefined,
+	Navigation,
+	Resources,
+	DisplayOptions
+];
 type SectionLike = {
 	url: string;
 	output?: string;
@@ -106,7 +115,7 @@ class Book {
 	isOpen: boolean;
 	loading?: BookLoading;
 	loaded?: BookLoaded;
-	ready?: Promise<any[]>;
+	ready?: Promise<BookReady>;
 	isRendered: boolean;
 	request: RequestMethod;
 	spine?: Spine;

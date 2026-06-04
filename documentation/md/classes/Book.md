@@ -146,7 +146,7 @@
 
 ### ready?
 
-> `optional` **ready?**: `Promise`\<`any`[]\>
+> `optional` **ready?**: `Promise`\<[`BookReady`](../type-aliases/BookReady.md)\>
 
 ***
 

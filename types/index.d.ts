@@ -13,7 +13,7 @@ export default Epub;
 export type { default as Annotations, Annotation, AnnotationCallback, AnnotationData, AnnotationMap, AnnotationOptions, AnnotationStyles, AnnotationType, AnnotationView, AnnotationsRendition, SectionAnnotationMap } from './annotations';
 export type { default as Archive, ArchiveEntry, ArchiveInput, ArchiveMarkupRequestType, ArchiveRequestType, ArchiveUrlOptions, ArchiveZip, ArchiveZipOptions } from './archive';
 export { default as Book } from './book';
-export type { BookInput, BookLoaded, BookLoading, BookOptions } from './book';
+export type { BookInput, BookLoaded, BookLoading, BookOptions, BookReady } from './book';
 export { default as EpubCFI } from './epubcfi';
 export type { EpubCFIBase, EpubCFIComponent, EpubCFIInput, EpubCFISegment, EpubCFIStep, EpubCFITerminal, EpubCFIType, ParsedEpubCFI } from './epubcfi';
 export { default as Rendition } from './rendition';

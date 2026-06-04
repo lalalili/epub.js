@@ -54,6 +54,16 @@ export interface BookLoaded {
   displayOptions: Promise<DisplayOptions>;
 }
 
+export type BookReady = [
+  PackagingManifest,
+  Spine,
+  PackagingMetadata,
+  string | undefined,
+  Navigation,
+  Resources,
+  DisplayOptions
+];
+
 export default class Book {
     constructor(url?: BookInput, options?: BookOptions);
     constructor(options?: BookOptions);
@@ -64,7 +74,7 @@ export default class Book {
     isOpen: boolean;
     loading?: BookLoading;
     loaded?: BookLoaded;
-    ready?: Promise<any[]>;
+    ready?: Promise<BookReady>;
     isRendered: boolean;
     request: RequestMethod;
     spine?: Spine;

@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0374
+- Why:
+  - `Book.ready` is a package-root exported surface, but it still exposed the loaded promise tuple as `Promise<any[]>`.
+  - The runtime value is created from a fixed `Promise.all` list of manifest, spine, metadata, cover, navigation, resources, and display options.
+  - Naming that tuple as `BookReady` keeps the public ready surface precise and root-exported without changing book opening, loading, unpacking, or rendering behavior.
+- Diff Scope:
+  - `src/book.ts`: add the `BookReady` tuple type and type `Book.ready` as `Promise<BookReady>`.
+  - `src/index.ts`, `types/index.d.ts`, `types/book.d.ts`: export and mirror the `BookReady` public type.
+  - `types/epubjs-tests.ts`: assert root `BookReady` export parity and `Book.ready` usage.
+  - `scripts/verify-gate1-readiness.mjs`: require BookReady tuple and ready promise coverage.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/epub.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Book consumers intentionally rely on `ready` being typed as an arbitrary `any[]` result.
+
 ### P-0373
 - Why:
   - `Annotations.each()` is a package-root exported method, but its return type still leaked `any`.

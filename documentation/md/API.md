@@ -129,6 +129,7 @@
 - [ArchiveRequestType](type-aliases/ArchiveRequestType.md)
 - [BlobContent](type-aliases/BlobContent.md)
 - [BookInput](type-aliases/BookInput.md)
+- [BookReady](type-aliases/BookReady.md)
 - [ContainerDocument](type-aliases/ContainerDocument.md)
 - [DisplayedLocation](type-aliases/DisplayedLocation.md)
 - [EpubCFIBase](type-aliases/EpubCFIBase.md)
