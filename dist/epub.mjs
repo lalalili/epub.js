@@ -9614,7 +9614,7 @@ var Jr = /* @__PURE__ */ l(Rr()), Yr = N, Xr = class extends Ur {
 		}.bind(this));
 	}
 	determineLayoutProperties(e) {
-		var t, n = this.settings.layout || e.layout || "reflowable", r = this.settings.spread || e.spread || "auto", i = this.settings.orientation || e.orientation || "auto", a = this.settings.flow || e.flow || "auto", o = e.viewport || "", s = this.settings.minSpreadWidth || e.minSpreadWidth || 800, c = this.settings.direction || e.direction || "ltr";
+		var t, n = this.settings.layout || e.layout || "reflowable", r = this.settings.spread || e.spread || "auto", i = this.settings.orientation || e.orientation || "auto", a = this.settings.flow || e.flow || "auto", o = e.viewport || "", s = this.settings.minSpreadWidth || (typeof e.minSpreadWidth == "number" ? e.minSpreadWidth : 800), c = this.settings.direction || e.direction || "ltr";
 		return (Number(this.settings.width) === 0 || Number(this.settings.width) > 0) && (Number(this.settings.height) === 0 || Number(this.settings.height)), t = {
 			layout: n,
 			spread: r,

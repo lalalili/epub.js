@@ -12,6 +12,7 @@ import Annotations from "./annotations";
 import { EVENTS, DOM_EVENTS } from "./utils/constants";
 import type Contents from "./contents";
 import type { VerticalRlDebugMetrics } from "./contents";
+import type { PackagingMetadata } from "./packaging";
 
 // Default Views
 import IframeView from "./managers/views/iframe";
@@ -744,14 +745,14 @@ class Rendition {
 	 * @param  {object} metadata
 	 * @return {object} properties
 	 */
-	determineLayoutProperties(metadata: Record<string, any>): LayoutProperties {
+	determineLayoutProperties(metadata: PackagingMetadata): LayoutProperties {
 		var properties;
 		var layout = this.settings.layout || metadata.layout || "reflowable";
 		var spread = this.settings.spread || metadata.spread || "auto";
 		var orientation = this.settings.orientation || metadata.orientation || "auto";
 		var flow = this.settings.flow || metadata.flow || "auto";
 		var viewport = metadata.viewport || "";
-		var minSpreadWidth = this.settings.minSpreadWidth || metadata.minSpreadWidth || 800;
+		var minSpreadWidth = this.settings.minSpreadWidth || (typeof metadata.minSpreadWidth === "number" ? metadata.minSpreadWidth : 800);
 		var direction = this.settings.direction || metadata.direction || "ltr";
 
 		if ((Number(this.settings.width) === 0 || Number(this.settings.width) > 0) &&

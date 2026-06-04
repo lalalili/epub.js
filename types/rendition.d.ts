@@ -10,6 +10,7 @@ import Queue from "./utils/queue";
 import { Deferred } from "./utils/core";
 import Layout from "./layout";
 import { VerticalRlDebugMetrics } from "./contents";
+import { PackagingMetadata } from "./packaging";
 
 export interface RenditionOptions {
   width?: number | string | null,
@@ -134,7 +135,7 @@ export default class Rendition {
 
     debugVerticalRlPage(): RenditionVerticalRlDebugState;
 
-    determineLayoutProperties(metadata: Record<string, any>): LayoutProperties;
+    determineLayoutProperties(metadata: PackagingMetadata): LayoutProperties;
 
     direction(dir: string): void;
 

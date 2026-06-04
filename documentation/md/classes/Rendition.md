@@ -226,7 +226,7 @@
 
 ##### metadata
 
-`Record`\<`string`, `any`\>
+[`PackagingMetadataObject`](../interfaces/PackagingMetadataObject.md)
 
 #### Returns
 

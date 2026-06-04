@@ -16959,7 +16959,7 @@
 			var orientation = this.settings.orientation || metadata.orientation || "auto";
 			var flow = this.settings.flow || metadata.flow || "auto";
 			var viewport = metadata.viewport || "";
-			var minSpreadWidth = this.settings.minSpreadWidth || metadata.minSpreadWidth || 800;
+			var minSpreadWidth = this.settings.minSpreadWidth || (typeof metadata.minSpreadWidth === "number" ? metadata.minSpreadWidth : 800);
 			var direction = this.settings.direction || metadata.direction || "ltr";
 			if ((Number(this.settings.width) === 0 || Number(this.settings.width) > 0) && (Number(this.settings.height) === 0 || Number(this.settings.height) > 0)) {}
 			properties = {

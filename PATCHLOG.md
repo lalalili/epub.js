@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0404
+- Why:
+  - `Rendition.determineLayoutProperties()` consumes EPUB package metadata, but its source and declaration still accepted `Record<string, any>`.
+  - `PackagingMetadata` is already a package-root public type with known rendition metadata fields and unknown-valued extension support, so the layout derivation can use that contract directly.
+  - Tightening the metadata parameter also makes the legacy `minSpreadWidth` fallback explicit by accepting only numeric metadata values.
+- Diff Scope:
+  - `src/rendition.ts`: type `determineLayoutProperties()` metadata as `PackagingMetadata` and guard metadata `minSpreadWidth`.
+  - `types/rendition.d.ts`: mirror the same `PackagingMetadata` parameter.
+  - `types/epubjs-tests.ts`: assert and exercise `Rendition.determineLayoutProperties()` metadata typing.
+  - `scripts/verify-gate1-readiness.mjs`: require Rendition metadata source/declaration/type-test parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `determineLayoutProperties()` must intentionally accept arbitrary untyped metadata.
+
 ### P-0403
 - Why:
   - `Contents.map()` is a package-root public method that delegates to `Mapping.section()`, but its source and declaration still exposed both the layout input and CFI pair list output as `any`.

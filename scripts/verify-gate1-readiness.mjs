@@ -876,13 +876,16 @@ assert(
 	"Book source and declarations must keep openContainer package path type parity"
 );
 assert(typeTests.includes("rendition.determineLayoutProperties"), "type tests must cover Rendition layout property typing");
+assert(typeTests.includes("Parameters<Rendition[\"determineLayoutProperties\"]>, [metadata: PackagingMetadata]"), "type tests must assert Rendition metadata parameter typing");
 assert(typeTests.includes("Parameters<Rendition[\"layout\"]>, [settings?: RenditionLayoutProperties | Record<string, unknown> | undefined]"), "type tests must assert Rendition layout parameter typing");
 assert(typeTests.includes("ReturnType<Rendition[\"layout\"]>, Layout | undefined"), "type tests must assert Rendition layout return typing");
 assert(typeTests.includes("const renditionLayout: Layout | undefined = rendition.layout"), "type tests must cover Rendition layout usage");
 assert(
+	renditionSource.includes("determineLayoutProperties(metadata: PackagingMetadata): LayoutProperties") &&
+		renditionTypes.includes("determineLayoutProperties(metadata: PackagingMetadata): LayoutProperties") &&
 	renditionSource.includes("layout(settings?: LayoutProperties | Record<string, unknown>): Layout | undefined") &&
 		renditionTypes.includes("layout(settings?: LayoutProperties | Record<string, unknown>): Layout | undefined"),
-	"Rendition source and declarations must keep layout settings and return type parity"
+	"Rendition source and declarations must keep metadata/layout settings and return type parity"
 );
 assert(typeTests.includes("ReturnType<Rendition[\"getContents\"]>, Contents[]"), "type tests must assert Rendition getContents return typing");
 assert(

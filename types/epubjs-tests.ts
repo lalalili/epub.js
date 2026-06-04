@@ -501,6 +501,7 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Rendition["attachTo"]>, Promise<void>>>,
   Assert<IsExact<ReturnType<Rendition["currentLocation"]>, Location | Promise<Location> | undefined>>,
   Assert<IsExact<ReturnType<Rendition["display"]>, Promise<void>>>,
+  Assert<IsExact<Parameters<Rendition["determineLayoutProperties"]>, [metadata: PackagingMetadata]>>,
   Assert<IsExact<ReturnType<Rendition["determineLayoutProperties"]>, RenditionLayoutProperties>>,
   Assert<IsExact<Parameters<Rendition["layout"]>, [settings?: RenditionLayoutProperties | Record<string, unknown> | undefined]>>,
   Assert<IsExact<ReturnType<Rendition["layout"]>, Layout | undefined>>,
@@ -1175,14 +1176,15 @@ function testEpub() {
   const bookOnce: unknown = book.once("openFailed", bookListener);
 
   const rendition = new Rendition(book, {});
-  const renditionLayoutProperties: RenditionLayoutProperties = rendition.determineLayoutProperties({
+  const renditionMetadata: PackagingMetadata = {
     layout: "reflowable",
     spread: "none",
     orientation: "auto",
     flow: "paginated",
     viewport: "",
     direction: "ltr",
-  });
+  };
+  const renditionLayoutProperties: RenditionLayoutProperties = rendition.determineLayoutProperties(renditionMetadata);
   const renditionLayout: Layout | undefined = rendition.layout(renditionLayoutProperties);
   const renditionLayoutWithCustomSettings: Layout | undefined = rendition.layout({
     layout: "reflowable",
@@ -1774,6 +1776,7 @@ function testEpub() {
   void rendition;
   void rootBlobBook;
   void rootOptionsOnlyBook;
+  void renditionMetadata;
   void renditionLayoutProperties;
   void renditionLayout;
   void renditionLayoutWithCustomSettings;
