@@ -917,6 +917,9 @@ assert(typeTests.includes("ReturnType<Rendition[\"prev\"]>, Promise<void>"), "ty
 assert(typeTests.includes("Parameters<Rendition[\"setManager\"]>, [manager: Function]"), "type tests must assert Rendition setManager function typing");
 assert(
 	renditionSource.includes("located(location: Array<ManagerLocationItem | null | undefined>): Location") &&
+		renditionSource.includes("type ManagerLocationResult = Array<ManagerLocationItem | null | undefined>") &&
+		renditionSource.includes("function isManagerLocationPromise(location: ManagerLocationResult | Promise<ManagerLocationResult>): location is Promise<ManagerLocationResult>") &&
+		renditionSource.includes("location.then(function(result: ManagerLocationResult)") &&
 		renditionTypes.includes("located(location: Array<ManagerLocationItem | null | undefined>): Location"),
 	"Rendition source and declarations must keep located parameter type parity"
 );

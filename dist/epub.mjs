@@ -9470,7 +9470,11 @@ var Jr = /* @__PURE__ */ l(Rr()), Yr = N, Xr = class extends Ur {
 	destroy() {
 		clearTimeout(this.trimTimeout), clearTimeout(this.scrollTimeout), super.destroy(), this.snapper && this.snapper.destroy();
 	}
-}, Zr = N, Qr = class {
+}, Zr = N;
+function Qr(e) {
+	return typeof e.then == "function";
+}
+var $r = class {
 	settings;
 	book;
 	hooks;
@@ -9654,7 +9658,7 @@ var Jr = /* @__PURE__ */ l(Rr()), Yr = N, Xr = class extends Ur {
 					} catch {
 						return;
 					}
-					if (e && e.then && typeof e.then == "function") e.then(function(e) {
+					if (e && Qr(e)) e.then(function(e) {
 						let t = this.located(e);
 						!t || !t.start || !t.end || (this.location = t, this.emit($.RENDITION.LOCATION_CHANGED, {
 							index: this.location.start.index,
@@ -9664,7 +9668,7 @@ var Jr = /* @__PURE__ */ l(Rr()), Yr = N, Xr = class extends Ur {
 							percentage: this.location.start.percentage
 						}), this.emit($.RENDITION.RELOCATED, this.location));
 					}.bind(this));
-					else if (e) {
+					else if (e && !Qr(e)) {
 						let t = this.located(e);
 						if (!t || !t.start || !t.end) return;
 						this.location = t, this.emit($.RENDITION.LOCATION_CHANGED, {
@@ -9681,10 +9685,10 @@ var Jr = /* @__PURE__ */ l(Rr()), Yr = N, Xr = class extends Ur {
 	}
 	currentLocation() {
 		var e = this.manager.currentLocation();
-		if (e && e.then && typeof e.then == "function") return e.then(function(e) {
+		if (e && Qr(e)) return e.then(function(e) {
 			return this.located(e);
 		}.bind(this));
-		if (e) return this.located(e);
+		if (e && !Qr(e)) return this.located(e);
 	}
 	located(e) {
 		if (!e || !e.length) return {};
@@ -9793,10 +9797,10 @@ var Jr = /* @__PURE__ */ l(Rr()), Yr = N, Xr = class extends Ur {
 		r.setAttribute("name", "dc.relation.ispartof"), n && r.setAttribute("content", n), e.getElementsByTagName("head")[0].appendChild(r);
 	}
 };
-(0, j.default)(Qr.prototype);
+(0, j.default)($r.prototype);
 //#endregion
 //#region src/archive.ts
-var $r = /* @__PURE__ */ l((/* @__PURE__ */ o(((e, t) => {
+var ei = /* @__PURE__ */ l((/* @__PURE__ */ o(((e, t) => {
 	(function(n) {
 		if (typeof e == "object" && t !== void 0) t.exports = n();
 		else if (typeof define == "function" && define.amd) define([], n);
@@ -13016,7 +13020,7 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 			}, {}]
 		}, {}, [10])(10);
 	});
-})))()), ei = class {
+})))()), ti = class {
 	zip;
 	urlCache;
 	constructor() {
@@ -13024,7 +13028,7 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 	}
 	checkRequirements() {
 		try {
-			this.zip = new $r.default();
+			this.zip = new ei.default();
 		} catch {
 			throw Error("JSZip lib not loaded");
 		}
@@ -13086,7 +13090,7 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 		for (let t in this.urlCache) e.revokeObjectURL(t);
 		this.zip = void 0, this.urlCache = {};
 	}
-}, ti = /* @__PURE__ */ l((/* @__PURE__ */ o(((e, t) => {
+}, ni = /* @__PURE__ */ l((/* @__PURE__ */ o(((e, t) => {
 	(function(n) {
 		if (typeof e == "object" && t !== void 0) t.exports = n();
 		else if (typeof define == "function" && define.amd) define([], n);
@@ -14432,7 +14436,7 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 			}, { 3: 3 }]
 		}, {}, [4])(4);
 	});
-})))()), ni = class {
+})))()), ri = class {
 	urlCache;
 	storage;
 	name;
@@ -14445,8 +14449,8 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 	}
 	checkRequirements() {
 		try {
-			let e = ti.default;
-			ti.default === void 0 && (e = ti.default), this.storage = e.createInstance({ name: this.name });
+			let e = ni.default;
+			ni.default === void 0 && (e = ni.default), this.storage = e.createInstance({ name: this.name });
 		} catch {
 			throw Error("localForage lib not loaded");
 		}
@@ -14533,10 +14537,10 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 		this.urlCache = {}, this.removeListeners();
 	}
 };
-(0, j.default)(ni.prototype);
+(0, j.default)(ri.prototype);
 //#endregion
 //#region src/displayoptions.ts
-var ri = class {
+var ii = class {
 	interactive;
 	fixedLayout;
 	openToSpread;
@@ -14570,14 +14574,14 @@ var ri = class {
 	destroy() {
 		this.interactive = void 0, this.fixedLayout = void 0, this.openToSpread = void 0, this.orientationLock = void 0;
 	}
-}, ii = N, ai = "META-INF/container.xml", oi = "META-INF/com.apple.ibooks.display-options.xml", si = {
+}, ai = N, oi = "META-INF/container.xml", si = "META-INF/com.apple.ibooks.display-options.xml", ci = {
 	BINARY: "binary",
 	BASE64: "base64",
 	EPUB: "epub",
 	OPF: "opf",
 	MANIFEST: "json",
 	DIRECTORY: "directory"
-}, ci = class {
+}, li = class {
 	settings;
 	opening;
 	opened;
@@ -14613,15 +14617,15 @@ var ri = class {
 			canonical: void 0,
 			openAs: void 0,
 			store: void 0
-		}), I(this.settings, t), this.opening = new ii(), this.opened = this.opening.promise, this.isOpen = !1, this.loading = {
-			manifest: new ii(),
-			spine: new ii(),
-			metadata: new ii(),
-			cover: new ii(),
-			navigation: new ii(),
-			pageList: new ii(),
-			resources: new ii(),
-			displayOptions: new ii()
+		}), I(this.settings, t), this.opening = new ai(), this.opened = this.opening.promise, this.isOpen = !1, this.loading = {
+			manifest: new ai(),
+			spine: new ai(),
+			metadata: new ai(),
+			cover: new ai(),
+			navigation: new ai(),
+			pageList: new ai(),
+			resources: new ai(),
+			displayOptions: new ai()
 		}, this.loaded = {
 			manifest: this.loading.manifest.promise,
 			spine: this.loading.spine.promise,
@@ -14646,10 +14650,10 @@ var ri = class {
 	}
 	open(e, t) {
 		var n, r = t || this.determineType(e);
-		return r === si.BINARY ? (this.archived = !0, this.url = new ie("/", ""), n = this.openEpub(e)) : r === si.BASE64 ? (this.archived = !0, this.url = new ie("/", ""), n = this.openEpub(e, r)) : r === si.EPUB ? (this.archived = !0, this.url = new ie("/", ""), n = this.request(e, "binary", this.settings.requestCredentials, this.settings.requestHeaders).then(this.openEpub.bind(this))) : r == si.OPF ? (this.url = new ie(e), n = this.openPackaging(this.url.Path.toString())) : r == si.MANIFEST ? (this.url = new ie(e), n = this.openManifest(this.url.Path.toString())) : (this.url = new ie(e), n = this.openContainer(ai).then(this.openPackaging.bind(this))), n;
+		return r === ci.BINARY ? (this.archived = !0, this.url = new ie("/", ""), n = this.openEpub(e)) : r === ci.BASE64 ? (this.archived = !0, this.url = new ie("/", ""), n = this.openEpub(e, r)) : r === ci.EPUB ? (this.archived = !0, this.url = new ie("/", ""), n = this.request(e, "binary", this.settings.requestCredentials, this.settings.requestHeaders).then(this.openEpub.bind(this))) : r == ci.OPF ? (this.url = new ie(e), n = this.openPackaging(this.url.Path.toString())) : r == ci.MANIFEST ? (this.url = new ie(e), n = this.openManifest(this.url.Path.toString())) : (this.url = new ie(e), n = this.openContainer(oi).then(this.openPackaging.bind(this))), n;
 	}
 	openEpub(e, t) {
-		return this.unarchive(e, t || this.settings.encoding).then(() => this.openContainer(ai)).then((e) => this.openPackaging(e));
+		return this.unarchive(e, t || this.settings.encoding).then(() => this.openContainer(oi)).then((e) => this.openPackaging(e));
 	}
 	openContainer(e) {
 		return this.load(e, "xml").then((e) => (this.container = new Xe(e), this.resolve(this.container.packagePath)));
@@ -14676,19 +14680,19 @@ var ri = class {
 	}
 	determineType(e) {
 		var t, n, r;
-		if (this.settings.encoding === "base64") return si.BASE64;
-		if (typeof e != "string") return si.BINARY;
-		if (t = new ie(e), n = t.path(), r = n.extension, r &&= r.replace(/\?.*$/, ""), !r) return si.DIRECTORY;
-		if (r === "epub") return si.EPUB;
-		if (r === "opf") return si.OPF;
-		if (r === "json") return si.MANIFEST;
+		if (this.settings.encoding === "base64") return ci.BASE64;
+		if (typeof e != "string") return ci.BINARY;
+		if (t = new ie(e), n = t.path(), r = n.extension, r &&= r.replace(/\?.*$/, ""), !r) return ci.DIRECTORY;
+		if (r === "epub") return ci.EPUB;
+		if (r === "opf") return ci.OPF;
+		if (r === "json") return ci.MANIFEST;
 	}
 	unpack(e) {
-		this.package = e, this.packaging.metadata.layout === "" ? this.load(this.url.resolve(oi), "xml").then((e) => {
-			this.displayOptions = new ri(e), this.loading.displayOptions.resolve(this.displayOptions);
+		this.package = e, this.packaging.metadata.layout === "" ? this.load(this.url.resolve(si), "xml").then((e) => {
+			this.displayOptions = new ii(e), this.loading.displayOptions.resolve(this.displayOptions);
 		}).catch((e) => {
-			this.displayOptions = new ri(), this.loading.displayOptions.resolve(this.displayOptions);
-		}) : (this.displayOptions = new ri(), this.loading.displayOptions.resolve(this.displayOptions)), this.spine.unpack(this.packaging, this.resolve.bind(this), this.canonical.bind(this)), this.resources = new it(this.packaging.manifest, {
+			this.displayOptions = new ii(), this.loading.displayOptions.resolve(this.displayOptions);
+		}) : (this.displayOptions = new ii(), this.loading.displayOptions.resolve(this.displayOptions)), this.spine.unpack(this.packaging, this.resolve.bind(this), this.canonical.bind(this)), this.resources = new it(this.packaging.manifest, {
 			archive: this.archive,
 			resolver: this.resolve.bind(this),
 			request: this.request.bind(this),
@@ -14717,7 +14721,7 @@ var ri = class {
 		return this.spine.get(e);
 	}
 	renderTo(e, t) {
-		return this.rendition = new Qr(this, t), this.rendition.attachTo(e), this.rendition;
+		return this.rendition = new $r(this, t), this.rendition.attachTo(e), this.rendition;
 	}
 	setRequestCredentials(e) {
 		this.settings.requestCredentials = e;
@@ -14726,11 +14730,11 @@ var ri = class {
 		this.settings.requestHeaders = e;
 	}
 	unarchive(e, t) {
-		return this.archive = new ei(), this.archive.open(e, t);
+		return this.archive = new ti(), this.archive.open(e, t);
 	}
 	store(e) {
 		let t = this.settings.replacements && this.settings.replacements !== "none", n = this.url, r = this.settings.requestMethod || Ue.bind(this);
-		return this.storage = new ni(e, r, this.resolve.bind(this)), this.request = this.storage.request.bind(this.storage), this.opened.then(() => {
+		return this.storage = new ri(e, r, this.resolve.bind(this)), this.request = this.storage.request.bind(this.storage), this.opened.then(() => {
 			this.archived && (this.storage.requester = this.archive.request.bind(this.archive));
 			let e = (e, t) => {
 				t.output = this.resources.substitute(e, t.url);
@@ -14765,173 +14769,173 @@ var ri = class {
 		this.opened = void 0, this.loading = void 0, this.loaded = void 0, this.ready = void 0, this.isOpen = !1, this.isRendered = !1, this.spine && this.spine.destroy(), this.locations && this.locations.destroy(), this.pageList && this.pageList.destroy(), this.archive && this.archive.destroy(), this.resources && this.resources.destroy(), this.container && this.container.destroy(), this.packaging && this.packaging.destroy(), this.rendition && this.rendition.destroy(), this.displayOptions && this.displayOptions.destroy(), this.spine = void 0, this.locations = void 0, this.pageList = void 0, this.archive = void 0, this.resources = void 0, this.container = void 0, this.packaging = void 0, this.rendition = void 0, this.navigation = void 0, this.url = void 0, this.path = void 0, this.archived = !1;
 	}
 };
-(0, j.default)(ci.prototype);
+(0, j.default)(li.prototype);
 //#endregion
 //#region src/utils/core.ts
-var li = /* @__PURE__ */ s({
-	RangeObject: () => Yi,
-	blob2base64: () => Hi,
-	borders: () => Ci,
-	bounds: () => Si,
-	createBase64Url: () => Ni,
-	createBlob: () => Ai,
-	createBlobUrl: () => ji,
-	defaults: () => _i,
-	defer: () => Ui,
-	documentHeight: () => fi,
-	extend: () => vi,
-	filterChildren: () => qi,
-	findChildren: () => Gi,
-	getParentByTagName: () => Ji,
-	indexOfElementNode: () => Oi,
-	indexOfNode: () => Ei,
-	indexOfSorted: () => xi,
-	indexOfTextNode: () => Di,
-	insert: () => yi,
-	isElement: () => pi,
-	isFloat: () => hi,
-	isNumber: () => mi,
-	isXml: () => ki,
-	locationOf: () => bi,
-	nodeBounds: () => wi,
-	parents: () => Ki,
-	parse: () => Fi,
-	prefixed: () => gi,
-	qs: () => Ii,
-	qsa: () => Li,
-	qsp: () => Ri,
-	querySelectorByType: () => Wi,
-	requestAnimationFrame: () => ui,
-	revokeBlobUrl: () => Mi,
-	sprint: () => zi,
-	treeWalker: () => Bi,
-	type: () => Pi,
-	uuid: () => di,
-	walk: () => Vi,
-	windowBounds: () => Ti
-}), ui = Ne;
-function di() {
+var ui = /* @__PURE__ */ s({
+	RangeObject: () => Xi,
+	blob2base64: () => Ui,
+	borders: () => wi,
+	bounds: () => Ci,
+	createBase64Url: () => Pi,
+	createBlob: () => ji,
+	createBlobUrl: () => Mi,
+	defaults: () => vi,
+	defer: () => Wi,
+	documentHeight: () => pi,
+	extend: () => yi,
+	filterChildren: () => Ji,
+	findChildren: () => Ki,
+	getParentByTagName: () => Yi,
+	indexOfElementNode: () => ki,
+	indexOfNode: () => Di,
+	indexOfSorted: () => Si,
+	indexOfTextNode: () => Oi,
+	insert: () => bi,
+	isElement: () => mi,
+	isFloat: () => gi,
+	isNumber: () => hi,
+	isXml: () => Ai,
+	locationOf: () => xi,
+	nodeBounds: () => Ti,
+	parents: () => qi,
+	parse: () => Ii,
+	prefixed: () => _i,
+	qs: () => Li,
+	qsa: () => Ri,
+	qsp: () => zi,
+	querySelectorByType: () => Gi,
+	requestAnimationFrame: () => di,
+	revokeBlobUrl: () => Ni,
+	sprint: () => Bi,
+	treeWalker: () => Vi,
+	type: () => Fi,
+	uuid: () => fi,
+	walk: () => Hi,
+	windowBounds: () => Ei
+}), di = Ne;
+function fi() {
 	return M();
 }
-function fi() {
+function pi() {
 	return ft();
 }
-function pi(e) {
+function mi(e) {
 	return pe(e);
 }
-function mi(e) {
+function hi(e) {
 	return G(e);
 }
-function hi(e) {
+function gi(e) {
 	return me(e);
 }
-function gi(e) {
+function _i(e) {
 	return ut(e);
 }
-function _i(e, ...t) {
+function vi(e, ...t) {
 	return F.apply(null, arguments);
 }
-function vi(e, ...t) {
+function yi(e, ...t) {
 	return I.apply(null, arguments);
 }
-function yi(e, t, n) {
+function bi(e, t, n) {
 	return ee(e, t, n);
 }
-function bi(e, t, n, r, i) {
+function xi(e, t, n, r, i) {
 	return te(e, t, n, r, i);
 }
-function xi(e, t, n, r, i) {
+function Si(e, t, n, r, i) {
 	return ne(e, t, n, r, i);
 }
-function Si(e) {
+function Ci(e) {
 	return pt(e);
 }
-function Ci(e) {
+function wi(e) {
 	return mt(e);
 }
-function wi(e) {
+function Ti(e) {
 	return ht(e);
 }
-function Ti() {
+function Ei() {
 	return gt();
 }
-function Ei(e, t) {
+function Di(e, t) {
 	return H(e, t);
 }
-function Di(e) {
+function Oi(e) {
 	return U(e);
 }
-function Oi(e) {
+function ki(e) {
 	return W(e);
 }
-function ki(e) {
+function Ai(e) {
 	return Ve(e);
 }
-function Ai(e, t) {
+function ji(e, t) {
 	return $e(e, t);
 }
-function ji(e, t) {
+function Mi(e, t) {
 	return et(e, t);
 }
-function Mi(e) {
+function Ni(e) {
 	return tt(e);
 }
-function Ni(e, t) {
+function Pi(e, t) {
 	return nt(e, t);
 }
-function Pi(e) {
+function Fi(e) {
 	return K(e);
 }
-function Fi(e, t, n) {
+function Ii(e, t, n) {
 	return Ie(e, t, n);
 }
-function Ii(e, t) {
+function Li(e, t) {
 	return Z(e, t);
 }
-function Li(e, t) {
+function Ri(e, t) {
 	return _e(e, t);
 }
-function Ri(e, t, n) {
+function zi(e, t, n) {
 	return ve(e, t, n);
 }
-function zi(e, t) {
+function Bi(e, t) {
 	return z(e, t);
 }
-function Bi(e, t, n) {
+function Vi(e, t, n) {
 	return oe(e, t, n);
 }
-function Vi(e, t) {
+function Hi(e, t) {
 	return le(e, t);
 }
-function Hi(e) {
+function Ui(e) {
 	return rt(e);
 }
-function Ui() {
+function Wi() {
 	N.call(this);
 }
-function Wi(e, t, n) {
+function Gi(e, t, n) {
 	return Q(e, t, n);
 }
-function Gi(e) {
+function Ki(e) {
 	return ue(e);
 }
-function Ki(e) {
+function qi(e) {
 	return B(e);
 }
-function qi(e, t, n) {
+function Ji(e, t, n) {
 	return V(e, t, n);
 }
-function Ji(e, t) {
+function Yi(e, t) {
 	return de(e, t);
 }
-var Yi = class extends fe {}, Xi = function(e, t) {
-	return t === void 0 && typeof e != "string" && !(e instanceof Blob) && !(e instanceof ArrayBuffer) ? new ci(e) : new ci(e, t);
+var Xi = class extends fe {}, Zi = function(e, t) {
+	return t === void 0 && typeof e != "string" && !(e instanceof Blob) && !(e instanceof ArrayBuffer) ? new li(e) : new li(e, t);
 };
-Xi.VERSION = "0.3", globalThis.EPUBJS_VERSION = "0.3", Xi.Book = ci, Xi.Rendition = Qr, Xi.Contents = It, Xi.CFI = X, Xi.utils = li;
+Zi.VERSION = "0.3", globalThis.EPUBJS_VERSION = "0.3", Zi.Book = li, Zi.Rendition = $r, Zi.Contents = It, Zi.CFI = X, Zi.utils = ui;
 //#endregion
 //#region src/index.ts
-var Zi = Xi;
+var Qi = Zi;
 //#endregion
-export { ci as Book, It as Contents, X as EpubCFI, ot as Layout, Qr as Rendition, Zi as default, ye as replaceBase, be as replaceCanonical, Se as replaceLinks, xe as replaceMeta, Ue as request, Ce as substitute };
+export { li as Book, It as Contents, X as EpubCFI, ot as Layout, $r as Rendition, Qi as default, ye as replaceBase, be as replaceCanonical, Se as replaceLinks, xe as replaceMeta, Ue as request, Ce as substitute };
 
 //# sourceMappingURL=epub.mjs.map

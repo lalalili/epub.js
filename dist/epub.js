@@ -16516,6 +16516,9 @@
 	//#endregion
 	//#region src/rendition.ts
 	var Defer$1 = defer$1;
+	function isManagerLocationPromise(location) {
+		return typeof location.then === "function";
+	}
 	/**
 	* Displays an Epub as a series of Views for each Section.
 	* Requires Manager and View class to handle specifics of rendering
@@ -17045,7 +17048,7 @@
 					} catch (err) {
 						return;
 					}
-					if (location && location.then && typeof location.then === "function") location.then(function(result) {
+					if (location && isManagerLocationPromise(location)) location.then(function(result) {
 						let located = this.located(result);
 						if (!located || !located.start || !located.end) return;
 						this.location = located;
@@ -17058,7 +17061,7 @@
 						});
 						this.emit(EVENTS.RENDITION.RELOCATED, this.location);
 					}.bind(this));
-					else if (location) {
+					else if (location && !isManagerLocationPromise(location)) {
 						let located = this.located(location);
 						if (!located || !located.start || !located.end) return;
 						this.location = located;
@@ -17096,10 +17099,10 @@
 		*/
 		currentLocation() {
 			var location = this.manager.currentLocation();
-			if (location && location.then && typeof location.then === "function") return location.then(function(result) {
+			if (location && isManagerLocationPromise(location)) return location.then(function(result) {
 				return this.located(result);
 			}.bind(this));
-			else if (location) return this.located(location);
+			else if (location && !isManagerLocationPromise(location)) return this.located(location);
 		}
 		/**
 		* Creates a Rendition#locationRange from location

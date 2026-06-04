@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0418
+- Why:
+  - `Rendition.reportLocation()` and `currentLocation()` already normalize manager locations through `located()`, but their promise callbacks still accepted manager location results as `any`.
+  - Aligning the manager location promise bridge with `ManagerLocationItem` keeps relocation state typed before Gate 1 release work.
+  - This removes two source-side `Rendition` `any` leaks without changing manager location lookup, promise handling, or emitted relocation payloads.
+- Diff Scope:
+  - `src/rendition.ts`: add a source-only `ManagerLocationResult` type and promise type guard, then use them in `reportLocation()` and `currentLocation()`.
+  - `scripts/verify-gate1-readiness.mjs`: require the manager location promise bridge to remain typed.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if manager location promise results must intentionally remain source-untyped.
+
 ### P-0417
 - Why:
   - `Rendition._display()` resolves the internal displaying deferred with `Section | undefined`, but source still advertised `Promise<any>`.

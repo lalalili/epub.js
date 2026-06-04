@@ -88,6 +88,7 @@ export interface ManagerLocationItem {
 	pages: number[];
 	totalPages: number;
 }
+type ManagerLocationResult = Array<ManagerLocationItem | null | undefined>;
 export interface RenditionVerticalRlPageDebug {
 	containerClientWidth: number | null;
 	containerScrollWidth: number | null;
@@ -106,6 +107,10 @@ export type RenditionVerticalRlDebugState = Partial<VerticalRlDebugMetrics> & Re
 type DeferConstructor = new <T = unknown>() => CoreDeferred<T>;
 
 const Defer = defer as unknown as DeferConstructor;
+
+function isManagerLocationPromise(location: ManagerLocationResult | Promise<ManagerLocationResult>): location is Promise<ManagerLocationResult> {
+	return typeof (location as Promise<ManagerLocationResult>).then === "function";
+}
 
 /**
  * Displays an Epub as a series of Views for each Section.
@@ -887,14 +892,14 @@ class Rendition {
 			requestAnimationFrame(function reportedLocationAfterRAF() {
 				// P-AITEHUB-0008: Guard against destroyed manager (rendition torn down before rAF fires)
 				if (!this.manager) return;
-				var location;
+				var location: ManagerLocationResult | Promise<ManagerLocationResult> | undefined;
 				try {
 					location = this.manager.currentLocation();
 				} catch (err) {
 					return; // manager may have been destroyed; silently ignore
 				}
-				if (location && location.then && typeof location.then === "function") {
-					location.then(function(result: any) {
+				if (location && isManagerLocationPromise(location)) {
+					location.then(function(result: ManagerLocationResult) {
 						let located = this.located(result);
 
 						if (!located || !located.start || !located.end) {
@@ -913,7 +918,7 @@ class Rendition {
 
 						this.emit(EVENTS.RENDITION.RELOCATED, this.location);
 					}.bind(this));
-				} else if (location) {
+				} else if (location && !isManagerLocationPromise(location)) {
 					let located = this.located(location);
 
 					if (!located || !located.start || !located.end) {
@@ -959,13 +964,13 @@ class Rendition {
 	 * @return {displayedLocation | promise} location (may be a promise)
 	 */
 	currentLocation(): Location | Promise<Location> | undefined {
-		var location = this.manager.currentLocation();
-		if (location && location.then && typeof location.then === "function") {
-			return location.then(function(result: any) {
+		var location: ManagerLocationResult | Promise<ManagerLocationResult> | undefined = this.manager.currentLocation();
+		if (location && isManagerLocationPromise(location)) {
+			return location.then(function(result: ManagerLocationResult) {
 				let located = this.located(result);
 				return located;
 			}.bind(this));
-		} else if (location) {
+		} else if (location && !isManagerLocationPromise(location)) {
 			let located = this.located(location);
 			return located;
 		}
