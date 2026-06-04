@@ -12,6 +12,28 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0412
+- Why:
+  - `Rendition.book` and the constructor parameter already expose `Book` in declarations and type smoke tests, but source still accepted `book: any`.
+  - Aligning source with the package-root `Book` class keeps the core Rendition/Book relationship explicit before Gate 1 release work.
+  - Typing the source `Book` relationship exposes that page list lookups return `PageValue`, so `RenditionLocationPart.page` must share that public value contract instead of staying number-only.
+  - This removes another package-root `Rendition` `any` leak and keeps location page typing aligned without changing how `Book.renderTo()` creates a rendition.
+- Diff Scope:
+  - `src/rendition.ts`: import `Book` and `PageValue` as types, then use them for the `book` property, constructor parameter, and `RenditionLocationPart.page`.
+  - `types/rendition.d.ts`: mirror `RenditionLocationPart.page` as `PageValue`.
+  - `types/epubjs-tests.ts`: assert the matching location page value contract.
+  - `documentation/md/interfaces/RenditionLocationPart.md`: regenerate TypeDoc markdown for the `PageValue` page type.
+  - `scripts/verify-gate1-readiness.mjs`: require source/declaration/type-test parity for the Rendition book and location page contracts.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if the source constructor must intentionally accept non-Book host doubles or location pages must remain number-only.
+
 ### P-0411
 - Why:
   - `Rendition.setManager()`, `moveTo()`, `next()`, and `prev()` already had concrete declaration types, but source still exposed `any` in their parameters or promise returns.

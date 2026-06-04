@@ -960,6 +960,7 @@ assert(typeTests.includes("ReturnType<Rendition[\"requireManager\"]>, string | F
 assert(typeTests.includes("ReturnType<Rendition[\"requireView\"]>, string | Function | object"), "type tests must assert Rendition requireView return typing");
 assert(typeTests.includes("Rendition[\"displaying\"], Deferred<Section | undefined> | undefined"), "type tests must assert Rendition displaying section promise typing");
 assert(typeTests.includes("const renditionDisplaying: Deferred<Section | undefined> | undefined = rendition.displaying"), "type tests must cover Rendition displaying usage");
+assert(typeTests.includes("RenditionLocationPart[\"page\"], PageValue | undefined"), "type tests must assert Rendition location page PageValue typing");
 assert(typeTests.includes("const renditionMove: void = rendition.moveTo"), "type tests must cover Rendition moveTo usage");
 assert(typeTests.includes("const renditionNext: Promise<void> = rendition.next"), "type tests must cover Rendition next usage");
 assert(typeTests.includes("const renditionPrev: Promise<void> = rendition.prev"), "type tests must cover Rendition prev usage");
@@ -967,6 +968,15 @@ assert(typeTests.includes("const renditionRemeasure: Promise<void> = rendition.r
 assert(typeTests.includes("const requiredManager: string | Function | object = rendition.requireManager"), "type tests must cover Rendition requireManager usage");
 assert(typeTests.includes("const requiredView: string | Function | object = rendition.requireView"), "type tests must cover Rendition requireView usage");
 assert(typeTests.includes("const setRenditionManager: void = rendition.setManager"), "type tests must cover Rendition setManager usage");
+assert(
+	renditionSource.includes("book: Book") &&
+		renditionSource.includes("page?: PageValue") &&
+		renditionSource.includes("constructor(book: Book, options?: RenditionOptions)") &&
+		renditionTypes.includes("constructor(book: Book, options?: RenditionOptions)") &&
+		renditionTypes.includes("page?: PageValue") &&
+		typeTests.includes("Rendition[\"book\"], Book"),
+	"Rendition source and declarations must keep book constructor/property type parity"
+);
 assert(
 	renditionSource.includes("requireManager(manager: string | Function | object): string | Function | object") &&
 		renditionSource.includes("requireView(view: string | Function | object): string | Function | object") &&

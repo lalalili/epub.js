@@ -10,6 +10,7 @@ import Queue from "./utils/queue";
 import { Deferred } from "./utils/core";
 import Layout from "./layout";
 import { VerticalRlDebugMetrics } from "./contents";
+import { PageValue } from "./pagelist";
 import { PackagingMetadata } from "./packaging";
 
 export interface RenditionOptions {
@@ -52,7 +53,7 @@ export interface RenditionLocationPart {
   cfi: string,
   location?: number,
   percentage?: number,
-  page?: number,
+  page?: PageValue,
   displayed: {
     page: number,
     total: number

@@ -10,8 +10,10 @@ import Layout from "./layout";
 import Themes from "./themes";
 import Annotations, { type AnnotationData } from "./annotations";
 import { EVENTS, DOM_EVENTS } from "./utils/constants";
+import type Book from "./book";
 import type Contents from "./contents";
 import type { VerticalRlDebugMetrics } from "./contents";
+import type { PageValue } from "./pagelist";
 import type { PackagingMetadata } from "./packaging";
 import type Section from "./section";
 
@@ -64,7 +66,7 @@ export interface RenditionLocationPart {
 	};
 	location?: number;
 	percentage?: number;
-	page?: number;
+	page?: PageValue;
 }
 
 export type DisplayedLocation = RenditionLocationPart;
@@ -131,7 +133,7 @@ const Defer = defer as unknown as DeferConstructor;
 class Rendition {
 	[key: string]: any;
 	settings: RenditionOptions;
-	book: any;
+	book: Book;
 	hooks: Record<string, Hook>;
 	manager?: any;
 	ViewManager?: any;
@@ -146,7 +148,7 @@ class Rendition {
 	started?: Promise<void>;
 	displaying?: CoreDeferred<Section | undefined>;
 
-	constructor(book: any, options?: RenditionOptions) {
+	constructor(book: Book, options?: RenditionOptions) {
 
 		this.settings = extend(this.settings || {}, {
 			width: null,

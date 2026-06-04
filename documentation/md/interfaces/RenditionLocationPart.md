@@ -48,7 +48,7 @@
 
 ### page?
 
-> `optional` **page?**: `number`
+> `optional` **page?**: [`PageValue`](../type-aliases/PageValue.md)
 
 ***
 

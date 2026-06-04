@@ -496,6 +496,7 @@ type CoreClassAssertions = [
   Assert<IsExact<Rendition["started"], Promise<void> | undefined>>,
   Assert<IsExact<Rendition["displaying"], Deferred<Section | undefined> | undefined>>,
   Assert<IsExact<DisplayedLocation, RenditionLocationPart>>,
+  Assert<IsExact<RenditionLocationPart["page"], PageValue | undefined>>,
   Assert<IsExact<Location["start"], RenditionLocationPart | undefined>>,
   Assert<IsExact<Location["end"], RenditionLocationPart | undefined>>,
   Assert<IsExact<ReturnType<Rendition["attachTo"]>, Promise<void>>>,
