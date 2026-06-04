@@ -25,9 +25,11 @@ import type {
   Archive as RootArchive,
   ArchiveEntry as RootArchiveEntry,
   ArchiveInput as RootArchiveInput,
+  ArchiveMarkupRequestType as RootArchiveMarkupRequestType,
   ArchiveRequestType as RootArchiveRequestType,
   ArchiveUrlOptions as RootArchiveUrlOptions,
   ArchiveZip as RootArchiveZip,
+  ArchiveZipOptions as RootArchiveZipOptions,
   BookInput as RootBookInput,
   BookLoaded as RootBookLoaded,
   BookLoading as RootBookLoading,
@@ -173,7 +175,7 @@ import Annotations, {
   AnnotationView,
   SectionAnnotationMap,
 } from './annotations';
-import Archive, { ArchiveEntry, ArchiveInput, ArchiveRequestType, ArchiveUrlOptions, ArchiveZip } from './archive';
+import Archive, { ArchiveEntry, ArchiveInput, ArchiveMarkupRequestType, ArchiveRequestType, ArchiveUrlOptions, ArchiveZip, ArchiveZipOptions } from './archive';
 import type { BookInput, BookLoaded, BookLoading, BookOptions } from './book';
 import Container, { ContainerDocument } from './container';
 import type {
@@ -325,9 +327,11 @@ type PublicRootAssertions = [
   Assert<IsExact<RootArchive, Archive>>,
   Assert<IsExact<RootArchiveEntry, ArchiveEntry>>,
   Assert<IsExact<RootArchiveInput, ArchiveInput>>,
+  Assert<IsExact<RootArchiveMarkupRequestType, ArchiveMarkupRequestType>>,
   Assert<IsExact<RootArchiveRequestType, ArchiveRequestType>>,
   Assert<IsExact<RootArchiveUrlOptions, ArchiveUrlOptions>>,
   Assert<IsExact<RootArchiveZip, ArchiveZip>>,
+  Assert<IsExact<RootArchiveZipOptions, ArchiveZipOptions>>,
   Assert<IsExact<RootPackaging, Packaging>>,
   Assert<IsExact<RootPackagingJsonManifest, PackagingJsonManifest>>,
   Assert<IsExact<RootPackagingManifest, PackagingManifest>>,
@@ -638,6 +642,8 @@ type SpineAssertions = [
 
 type ArchiveAssertions = [
   Assert<IsExact<Archive["zip"], ArchiveZip | undefined>>,
+  Assert<IsExact<ArchiveMarkupRequestType, "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm">>,
+  Assert<IsExact<ArchiveZipOptions, { base64?: boolean | undefined }>>,
   Assert<IsExact<Archive["urlCache"], Record<string, string>>>,
   Assert<IsExact<Parameters<Archive["open"]>, [input: ArchiveInput, isBase64?: boolean | undefined]>>,
   Assert<IsExact<ReturnType<Archive["open"]>, Promise<ArchiveZip>>>,
@@ -1246,12 +1252,26 @@ function testEpub() {
   const archive = new Archive();
   const archiveInput: ArchiveInput = new ArrayBuffer(0);
   const archiveRequestType: ArchiveRequestType = "xhtml";
+  const archiveMarkupRequestType: ArchiveMarkupRequestType = "opf";
+  const archiveZipOptions: ArchiveZipOptions = { base64: false };
   const archiveUrlOptions: ArchiveUrlOptions = { base64: true };
+  const archiveZip: ArchiveZip = {
+    loadAsync(input: ArchiveInput, options?: ArchiveZipOptions): Promise<ArchiveZip> {
+      void input;
+      void options;
+      return Promise.resolve(archiveZip);
+    },
+    file(path: string): ArchiveEntry | null {
+      void path;
+      return null;
+    },
+  };
+  const archiveZipLoad: Promise<ArchiveZip> = archiveZip.loadAsync(archiveInput, archiveZipOptions);
   const openedArchive: Promise<ArchiveZip> = archive.open(archiveInput);
   const openedArchiveUrl: Promise<ArchiveZip> = archive.openUrl("https://example.com/book.epub");
   const archiveBlob: Promise<Blob> = archive.request("/OPS/images/cover.jpg", "blob");
   const archiveJson: Promise<JsonValue> = archive.request("/OPS/package.json", "json");
-  const archiveDocument: Promise<Document | XMLDocument> = archive.request("/OPS/package.opf", "opf");
+  const archiveDocument: Promise<Document | XMLDocument> = archive.request("/OPS/package.opf", archiveMarkupRequestType);
   const archiveFallback: Promise<RequestResponse> = archive.request("/OPS/chapter.xhtml", archiveRequestType);
   const archiveBlobEntry: Promise<Blob> | undefined = archive.getBlob("/OPS/images/cover.jpg");
   const archiveTextEntry: Promise<string> | undefined = archive.getText("/OPS/chapter.xhtml");
@@ -1645,6 +1665,7 @@ function testEpub() {
   void firstSpineSection;
   void lastSpineSection;
   void removedSpineSections;
+  void archiveZipLoad;
   void openedArchive;
   void openedArchiveUrl;
   void archiveBlob;

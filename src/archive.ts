@@ -8,7 +8,10 @@ import type { JsonValue, RequestResponse } from "./utils/request";
 
 export type ArchiveInput = ArrayBuffer | Uint8Array | string;
 export type ArchiveRequestType = string | undefined;
-type ArchiveMarkupRequestType = "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm";
+export type ArchiveMarkupRequestType = "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm";
+export type ArchiveZipOptions = {
+	base64?: boolean;
+};
 export type ArchiveUrlOptions = {
 	base64?: boolean;
 };
@@ -19,7 +22,7 @@ export type ArchiveEntry = {
 	async(type: "base64"): Promise<string>;
 };
 export type ArchiveZip = {
-	loadAsync(input: ArchiveInput, options?: { base64?: boolean }): Promise<ArchiveZip>;
+	loadAsync(input: ArchiveInput, options?: ArchiveZipOptions): Promise<ArchiveZip>;
 	file(path: string): ArchiveEntry | null;
 };
 type UrlFactory = typeof URL & {

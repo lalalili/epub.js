@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0355
+- Why:
+  - `Archive.request()` and `Archive.handleResponse()` already expose markup-specific overloads in source, but the markup request union remained an internal source-only alias while declarations repeated the literal union inline.
+  - `ArchiveZip.loadAsync()` also accepted an inline `{ base64?: boolean }` options shape, making the public zip/load option contract harder to assert from the package root.
+  - Exporting `ArchiveMarkupRequestType` and `ArchiveZipOptions` keeps Archive source/.d.ts/root parity enforceable before future release tags, without changing zip loading, archive resource requests, URL caching, object URL revocation, or response parsing behavior.
+- Diff Scope:
+  - `src/archive.ts`, `types/archive.d.ts`: export `ArchiveMarkupRequestType` and `ArchiveZipOptions`, and reuse them in request/response and zip load signatures.
+  - `src/index.ts`, `types/index.d.ts`: export the new Archive public helper types from the package root.
+  - `types/epubjs-tests.ts`: add root export assertions and Archive zip/markup request type smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Archive markup request and zip options parity guards.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/archive.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Archive markup request and zip load options should intentionally remain declaration-local helper shapes instead of root-exported public types.
+
 ### P-0354
 - Why:
   - `Store.request()`, `Store.retrieve()`, and `Store.handleResponse()` already expose mode-specific overloads, but the public `StoreRequest` requester type still used one broad `Promise<RequestResponse | StoreData>` function signature.

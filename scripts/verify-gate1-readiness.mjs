@@ -334,18 +334,22 @@ assert(
 	typeTests.includes("RootArchive") &&
 	typeTests.includes("RootArchiveEntry") &&
 	typeTests.includes("RootArchiveInput") &&
+	typeTests.includes("RootArchiveMarkupRequestType") &&
 	typeTests.includes("RootArchiveRequestType") &&
 	typeTests.includes("RootArchiveUrlOptions") &&
-	typeTests.includes("RootArchiveZip"),
+	typeTests.includes("RootArchiveZip") &&
+	typeTests.includes("RootArchiveZipOptions"),
 	"type tests must assert root Archive type exports"
 );
 assert(
 	sourceRoot.includes("default as Archive") &&
 	sourceRoot.includes("ArchiveEntry") &&
 	sourceRoot.includes("ArchiveInput") &&
+	sourceRoot.includes("ArchiveMarkupRequestType") &&
 	sourceRoot.includes("ArchiveRequestType") &&
 	sourceRoot.includes("ArchiveUrlOptions") &&
-	sourceRoot.includes("ArchiveZip"),
+	sourceRoot.includes("ArchiveZip") &&
+	sourceRoot.includes("ArchiveZipOptions"),
 	"source root must export Archive public types"
 );
 assert(
@@ -420,13 +424,18 @@ assert(typeTests.includes("spine.unpack(spinePackage"), "type tests must cover S
 assert(typeTests.includes("spine.remove(spineSection)"), "type tests must cover Spine remove result typing");
 assert(typeTests.includes("type ArchiveAssertions"), "type tests must assert the Archive public surface");
 assert(typeTests.includes("RootArchiveZip"), "type tests must assert root Archive zip typing");
+assert(typeTests.includes("ArchiveMarkupRequestType, \"xml\" | \"opf\" | \"ncx\" | \"xhtml\" | \"html\" | \"htm\""), "type tests must assert Archive markup request typing");
+assert(typeTests.includes("ArchiveZipOptions, { base64?: boolean | undefined }"), "type tests must assert Archive zip option typing");
 assert(typeTests.includes("ReturnType<Archive[\"request\"]>"), "type tests must assert Archive request fallback typing");
 assert(typeTests.includes("ReturnType<Archive[\"handleResponse\"]>"), "type tests must assert Archive response handling fallback typing");
+assert(typeTests.includes("archiveZip.loadAsync(archiveInput, archiveZipOptions)"), "type tests must cover ArchiveZip loadAsync option typing");
 assert(typeTests.includes("archive.createUrl(\"/OPS/images/cover.jpg\")"), "type tests must cover Archive createUrl optional options typing");
 assert(typeTests.includes("archive.handleResponse(\"{\\\"ok\\\":true}\", \"json\")"), "type tests must cover Archive handleResponse typing");
 assert(
 	archiveSource.includes("request(url: string, type: \"blob\"") &&
-	archiveSource.includes("handleResponse(response: string, type: \"json\")"),
+	archiveSource.includes("request(url: string, type: ArchiveMarkupRequestType") &&
+	archiveSource.includes("handleResponse(response: string, type: \"json\")") &&
+	archiveSource.includes("handleResponse(response: string, type: ArchiveMarkupRequestType"),
 	"source Archive must expose request and handleResponse overloads"
 );
 assert(typeTests.includes("type PackagingAssertions"), "type tests must assert the Packaging public surface");

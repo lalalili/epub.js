@@ -36,9 +36,7 @@
 
 ##### options?
 
-###### base64?
-
-`boolean`
+[`ArchiveZipOptions`](ArchiveZipOptions.md)
 
 #### Returns
 

@@ -4,6 +4,12 @@ export type ArchiveInput = ArrayBuffer | Uint8Array | string;
 
 export type ArchiveRequestType = string | undefined;
 
+export type ArchiveMarkupRequestType = "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm";
+
+export interface ArchiveZipOptions {
+  base64?: boolean
+}
+
 export interface ArchiveUrlOptions {
   base64?: boolean
 }
@@ -16,7 +22,7 @@ export interface ArchiveEntry {
 }
 
 export interface ArchiveZip {
-  loadAsync(input: ArchiveInput, options?: { base64?: boolean }): Promise<ArchiveZip>;
+  loadAsync(input: ArchiveInput, options?: ArchiveZipOptions): Promise<ArchiveZip>;
   file(path: string): ArchiveEntry | null;
 }
 
@@ -32,7 +38,7 @@ export default class Archive {
 
   request(url: string, type: "blob"): Promise<Blob>;
   request(url: string, type: "json"): Promise<JsonValue>;
-  request(url: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm"): Promise<Document | XMLDocument>;
+  request(url: string, type: ArchiveMarkupRequestType): Promise<Document | XMLDocument>;
   request(url: string, type?: ArchiveRequestType): Promise<RequestResponse>;
 
   getBlob(url: string, mimeType?: string): Promise<Blob> | undefined;
@@ -50,6 +56,6 @@ export default class Archive {
   checkRequirements(): void;
 
   handleResponse(response: string, type: "json"): JsonValue;
-  handleResponse(response: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm"): Document | XMLDocument;
+  handleResponse(response: string, type: ArchiveMarkupRequestType): Document | XMLDocument;
   handleResponse(response: RequestResponse, type?: ArchiveRequestType): RequestResponse;
 }

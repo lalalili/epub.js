@@ -152,7 +152,7 @@
 
 ###### type
 
-`"xml"` \| `"opf"` \| `"ncx"` \| `"xhtml"` \| `"html"` \| `"htm"`
+[`ArchiveMarkupRequestType`](../type-aliases/ArchiveMarkupRequestType.md)
 
 ##### Returns
 
@@ -268,7 +268,7 @@
 
 ###### type
 
-`"xml"` \| `"opf"` \| `"ncx"` \| `"xhtml"` \| `"html"` \| `"htm"`
+[`ArchiveMarkupRequestType`](../type-aliases/ArchiveMarkupRequestType.md)
 
 ##### Returns
 

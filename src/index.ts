@@ -45,9 +45,11 @@ export type {
 export type {
 	ArchiveEntry,
 	ArchiveInput,
+	ArchiveMarkupRequestType,
 	ArchiveRequestType,
 	ArchiveUrlOptions,
 	ArchiveZip,
+	ArchiveZipOptions,
 	default as Archive
 } from "./archive";
 
