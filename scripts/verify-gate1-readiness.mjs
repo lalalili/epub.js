@@ -718,9 +718,11 @@ assert(typeTests.includes("Parameters<Hook[\"trigger\"]>, unknown[]"), "type tes
 assert(
 	hookSource.includes("HookTask = (...args: unknown[]) => unknown") &&
 		hookSource.includes("trigger(...items: unknown[]): Promise<unknown[]>") &&
+		hookSource.includes("@param {unknown} context scope of this") &&
+		!hookSource.includes("@param {any} context scope of this") &&
 		hookTypes.includes("HookTask = (...args: unknown[]) => unknown") &&
 		hookTypes.includes("trigger(...args: unknown[]): Promise<unknown[]>"),
-	"Hook source and declarations must keep unknown variadic typing"
+	"Hook source and declarations must keep unknown context and variadic typing"
 );
 assert(
 	sourceRoot.includes("HookRegistration") &&
