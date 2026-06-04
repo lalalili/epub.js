@@ -157,6 +157,26 @@ describe("Book", () => {
 		}
 	});
 
+	it("resolves a DOM range for a section CFI", async () => {
+		var book = new Book(fixtureUrl("alice/OPS/package.opf"));
+
+		try {
+			await book.opened;
+			await book.ready;
+
+			var section = book.section(3);
+			await section.load(book.load.bind(book));
+			var result = section.search("Alice")[0];
+			expect(result).toBeTruthy();
+			var range = await book.getRange(result.cfi);
+
+			expect(range).toBeTruthy();
+			expect(range.toString()).toContain("Alice");
+		} finally {
+			book.destroy();
+		}
+	});
+
 	it("opens an archived EPUB without a cover", async () => {
 		var book = new Book(fixtureUrl("alice_without_cover.epub"));
 

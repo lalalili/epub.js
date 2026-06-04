@@ -20218,9 +20218,7 @@
 			var cfi = new EpubCFI(cfiRange);
 			var item = this.spine.get(cfi.spinePos);
 			var _request = this.load.bind(this);
-			if (!item) return new Promise((resolve, reject) => {
-				reject("CFI could not be found");
-			});
+			if (!item) return Promise.reject("CFI could not be found");
 			return item.load(_request).then(function(_contents) {
 				return cfi.toRange(item.document);
 			});

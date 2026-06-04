@@ -14851,9 +14851,7 @@ var ai = class {
 		var t = new X(e), n = this.spine.get(t.spinePos), r = this.load.bind(this);
 		return n ? n.load(r).then(function(e) {
 			return t.toRange(n.document);
-		}) : new Promise((e, t) => {
-			t("CFI could not be found");
-		});
+		}) : Promise.reject("CFI could not be found");
 	}
 	key(e) {
 		return `epubjs:0.3:${e || this.packaging.metadata.identifier || this.url.filename}`;

@@ -12,6 +12,7 @@ import Resources, { type ResourceResolver } from "./resources";
 import PageList from "./pagelist";
 import Rendition, { type RenditionOptions } from "./rendition";
 import Archive, { type ArchiveZip } from "./archive";
+import type { RangeObject } from "./compat/range";
 import type Section from "./section";
 import request, {
 	type JsonValue,
@@ -70,7 +71,7 @@ type SectionLike = {
 	url: string;
 	output?: string;
 	document?: Document;
-	load(requester: RequestMethod): Promise<any>;
+	load(requester: RequestMethod): Promise<Element>;
 };
 type StoreWithEvents = Store & {
 	on(type: string, listener: (...args: unknown[]) => void): void;
@@ -810,16 +811,14 @@ class Book {
 	 * @param  {EpubCFI} cfiRange a epub cfi range
 	 * @return {Promise}
 	 */
-	getRange(cfiRange: string | EpubCFI): Promise<any> {
+	getRange(cfiRange: string | EpubCFI): Promise<Range | RangeObject | null> {
 		var cfi = new EpubCFI(cfiRange);
 		var item = this.spine!.get(cfi.spinePos) as SectionLike | undefined;
 		var _request = this.load.bind(this);
 		if (!item) {
-			return new Promise((resolve, reject) => {
-				reject("CFI could not be found");
-			});
+			return Promise.reject("CFI could not be found");
 		}
-		return item.load(_request).then(function (_contents: any) {
+		return item.load(_request).then(function (_contents: Element) {
 			var range = cfi.toRange(item.document);
 			return range;
 		});

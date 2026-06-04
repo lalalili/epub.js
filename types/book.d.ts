@@ -16,8 +16,10 @@ import Container from "./container";
 import Packaging from "./packaging";
 import Store from "./store";
 import DisplayOptions from "./displayoptions";
+import EpubCFI from "./epubcfi";
 import { Deferred } from "./utils/core";
 import { JsonValue, RequestHeaders, RequestMethod, RequestResponse, RequestType } from "./utils/request";
+import { RangeObject } from "./compat/range";
 
 export type BookInput = string | ArrayBuffer | Blob;
 
@@ -103,7 +105,7 @@ export default class Book {
 
     determineType(input: BookInput): string | undefined;
 
-    getRange(cfiRange: string): Promise<Range>;
+    getRange(cfiRange: string | EpubCFI): Promise<Range | RangeObject | null>;
 
     key(identifier?: string): string;
 

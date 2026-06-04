@@ -512,6 +512,8 @@ type CoreClassAssertions = [
   Assert<IsExact<Parameters<Book["renderTo"]>[1], RenditionOptions | undefined>>,
   Assert<IsExact<ReturnType<Book["resolve"]>, string | undefined>>,
   Assert<IsExact<ReturnType<Book["section"]>, Section | undefined>>,
+  Assert<IsExact<Parameters<Book["getRange"]>, [string | EpubCFI]>>,
+  Assert<IsExact<ReturnType<Book["getRange"]>, Promise<Range | import('./compat/range').RangeObject | null>>>,
   Assert<IsExact<ReturnType<Book["unarchive"]>, Promise<ArchiveZip>>>,
   Assert<IsExact<ReturnType<Book["setRequestHeaders"]>, void>>,
   Assert<IsExact<Parameters<Book["emit"]>, [type: string, ...args: unknown[]]>>,

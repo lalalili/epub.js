@@ -1129,6 +1129,23 @@ assert(
 	"Book source and declarations must keep openContainer package path type parity"
 );
 assert(
+	bookSource.includes("import type { RangeObject } from \"./compat/range\"") &&
+		bookSource.includes("load(requester: RequestMethod): Promise<Element>") &&
+		bookSource.includes("getRange(cfiRange: string | EpubCFI): Promise<Range | RangeObject | null>") &&
+		bookSource.includes("return Promise.reject(\"CFI could not be found\")") &&
+		bookSource.includes("function (_contents: Element)") &&
+		bookTypes.includes("import EpubCFI from \"./epubcfi\"") &&
+		bookTypes.includes("import { RangeObject } from \"./compat/range\"") &&
+		bookTypes.includes("getRange(cfiRange: string | EpubCFI): Promise<Range | RangeObject | null>") &&
+		typeTests.includes("Parameters<Book[\"getRange\"]>, [string | EpubCFI]") &&
+		typeTests.includes("ReturnType<Book[\"getRange\"]>, Promise<Range | import('./compat/range').RangeObject | null>") &&
+		bookTests.includes("resolves a DOM range for a section CFI") &&
+		!bookSource.includes("getRange(cfiRange: string | EpubCFI): Promise<any>") &&
+		!bookSource.includes("function (_contents: any)") &&
+		!bookSource.includes("load(requester: RequestMethod): Promise<any>"),
+	"Book source and declarations must keep getRange return and section bridge typed"
+);
+assert(
 	bookSource.includes("open(input: BookInput, what?: string): Promise<Book>") &&
 		bookSource.includes("var opening: Promise<Book>") &&
 		bookSource.includes("openEpub(data: BookInput | string, encoding?: string): Promise<Book>") &&

@@ -266,17 +266,17 @@
 
 ### getRange()
 
-> **getRange**(`cfiRange`): `Promise`\<`Range`\>
+> **getRange**(`cfiRange`): `Promise`\<`Range` \| `RangeObject`\>
 
 #### Parameters
 
 ##### cfiRange
 
-`string`
+`string` \| [`EpubCFI`](EpubCFI.md)
 
 #### Returns
 
-`Promise`\<`Range`\>
+`Promise`\<`Range` \| `RangeObject`\>
 
 ***
 
