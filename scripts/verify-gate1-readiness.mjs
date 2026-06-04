@@ -900,10 +900,25 @@ assert(
 assert(typeTests.includes("rendition.located([managerLocationItem])"), "type tests must cover Rendition manager location typing");
 assert(typeTests.includes("Parameters<Rendition[\"located\"]>, [location: Array<ManagerLocationItem | null | undefined>]"), "type tests must assert Rendition located nullable manager location parameter typing");
 assert(typeTests.includes("rendition.located([managerLocationItem, null, undefined])"), "type tests must cover Rendition located nullable manager location usage");
+assert(typeTests.includes("Parameters<Rendition[\"moveTo\"]>, [offset: object]"), "type tests must assert Rendition moveTo offset typing");
+assert(typeTests.includes("ReturnType<Rendition[\"next\"]>, Promise<void>"), "type tests must assert Rendition next void promise typing");
+assert(typeTests.includes("ReturnType<Rendition[\"prev\"]>, Promise<void>"), "type tests must assert Rendition prev void promise typing");
+assert(typeTests.includes("Parameters<Rendition[\"setManager\"]>, [manager: Function]"), "type tests must assert Rendition setManager function typing");
 assert(
 	renditionSource.includes("located(location: Array<ManagerLocationItem | null | undefined>): Location") &&
 		renditionTypes.includes("located(location: Array<ManagerLocationItem | null | undefined>): Location"),
 	"Rendition source and declarations must keep located parameter type parity"
+);
+assert(
+	renditionSource.includes("setManager(manager: Function): void") &&
+		renditionSource.includes("moveTo(offset: object): void") &&
+		renditionSource.includes("next(): Promise<void>") &&
+		renditionSource.includes("prev(): Promise<void>") &&
+		renditionTypes.includes("setManager(manager: Function): void") &&
+		renditionTypes.includes("moveTo(offset: object): void") &&
+		renditionTypes.includes("next(): Promise<void>") &&
+		renditionTypes.includes("prev(): Promise<void>"),
+	"Rendition source and declarations must keep navigation helper type parity"
 );
 assert(typeTests.includes("rendition.resolveLinkHref(\"#note\""), "type tests must cover Rendition link resolution typing");
 assert(typeTests.includes("Parameters<Rendition[\"adjustImages\"]>, [contents: Contents]"), "type tests must assert Rendition adjustImages Contents parameter typing");
@@ -945,9 +960,13 @@ assert(typeTests.includes("ReturnType<Rendition[\"requireManager\"]>, string | F
 assert(typeTests.includes("ReturnType<Rendition[\"requireView\"]>, string | Function | object"), "type tests must assert Rendition requireView return typing");
 assert(typeTests.includes("Rendition[\"displaying\"], Deferred<Section | undefined> | undefined"), "type tests must assert Rendition displaying section promise typing");
 assert(typeTests.includes("const renditionDisplaying: Deferred<Section | undefined> | undefined = rendition.displaying"), "type tests must cover Rendition displaying usage");
+assert(typeTests.includes("const renditionMove: void = rendition.moveTo"), "type tests must cover Rendition moveTo usage");
+assert(typeTests.includes("const renditionNext: Promise<void> = rendition.next"), "type tests must cover Rendition next usage");
+assert(typeTests.includes("const renditionPrev: Promise<void> = rendition.prev"), "type tests must cover Rendition prev usage");
 assert(typeTests.includes("const renditionRemeasure: Promise<void> = rendition.remeasure"), "type tests must cover Rendition remeasure void promise usage");
 assert(typeTests.includes("const requiredManager: string | Function | object = rendition.requireManager"), "type tests must cover Rendition requireManager usage");
 assert(typeTests.includes("const requiredView: string | Function | object = rendition.requireView"), "type tests must cover Rendition requireView usage");
+assert(typeTests.includes("const setRenditionManager: void = rendition.setManager"), "type tests must cover Rendition setManager usage");
 assert(
 	renditionSource.includes("requireManager(manager: string | Function | object): string | Function | object") &&
 		renditionSource.includes("requireView(view: string | Function | object): string | Function | object") &&

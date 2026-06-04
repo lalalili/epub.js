@@ -516,12 +516,16 @@ type CoreClassAssertions = [
   Assert<IsExact<Parameters<Rendition["passEvents"]>, [contents: Contents]>>,
   Assert<IsExact<Parameters<Rendition["located"]>, [location: Array<ManagerLocationItem | null | undefined>]>>,
   Assert<IsExact<ReturnType<Rendition["located"]>, Location>>,
+  Assert<IsExact<Parameters<Rendition["moveTo"]>, [offset: object]>>,
+  Assert<IsExact<ReturnType<Rendition["next"]>, Promise<void>>>,
+  Assert<IsExact<ReturnType<Rendition["prev"]>, Promise<void>>>,
   Assert<IsExact<ReturnType<Rendition["reportLocation"]>, Promise<void>>>,
   Assert<IsExact<ReturnType<Rendition["remeasure"]>, Promise<void>>>,
   Assert<IsExact<ReturnType<Rendition["requireManager"]>, string | Function | object>>,
   Assert<IsExact<ReturnType<Rendition["requireView"]>, string | Function | object>>,
   Assert<IsExact<Parameters<Rendition["resolveLinkHref"]>, [href: string, contents?: { sectionHref?: string } | undefined]>>,
   Assert<IsExact<ReturnType<Rendition["resolveLinkHref"]>, string>>,
+  Assert<IsExact<Parameters<Rendition["setManager"]>, [manager: Function]>>,
   Assert<IsExact<ReturnType<Rendition["resize"]>, void>>,
   Assert<IsExact<Parameters<Rendition["emit"]>, [type: string, ...args: unknown[]]>>,
   Assert<IsExact<ReturnType<Rendition["emit"]>, void>>,
@@ -1221,12 +1225,17 @@ function testEpub() {
   const locatedRenditionLocation: Location = rendition.located([managerLocationItem]);
   const locatedRenditionFallbackLocation: Location = rendition.located([managerLocationItem, null, undefined]);
   const renditionDebugState: RenditionVerticalRlDebugState = rendition.debugVerticalRlPage();
+  const renditionMove: void = rendition.moveTo({ top: 0, left: 0 });
+  const renditionNext: Promise<void> = rendition.next();
+  const renditionPrev: Promise<void> = rendition.prev();
   const renditionReportLocation: Promise<void> = rendition.reportLocation();
   const renditionRemeasure: Promise<void> = rendition.remeasure({ preserveLocation: true, waitForFonts: false });
   const renditionDisplaying: Deferred<Section | undefined> | undefined = rendition.displaying;
   const requiredManager: string | Function | object = rendition.requireManager("default");
   const requiredView: string | Function | object = rendition.requireView("iframe");
   const resolvedRenditionHref: string = rendition.resolveLinkHref("#note", { sectionHref: "Text/chapter.xhtml" });
+  const customManager = function CustomManager(): void {};
+  const setRenditionManager: void = rendition.setManager(customManager);
   const renditionListener = (...args: unknown[]): void => {
     void args;
   };
@@ -1795,12 +1804,16 @@ function testEpub() {
   void locatedRenditionLocation;
   void locatedRenditionFallbackLocation;
   void renditionDebugState;
+  void renditionMove;
+  void renditionNext;
+  void renditionPrev;
   void renditionReportLocation;
   void renditionRemeasure;
   void renditionDisplaying;
   void requiredManager;
   void requiredView;
   void resolvedRenditionHref;
+  void setRenditionManager;
   void renditionEmit;
   void renditionOn;
   void renditionOff;

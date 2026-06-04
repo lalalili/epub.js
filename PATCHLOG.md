@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0411
+- Why:
+  - `Rendition.setManager()`, `moveTo()`, `next()`, and `prev()` already had concrete declaration types, but source still exposed `any` in their parameters or promise returns.
+  - `next()` and `prev()` chain through `reportLocation()`, so the observable promise contract is `Promise<void>`.
+  - Aligning these helpers removes another set of source-side `Rendition` `any` leaks without changing manager assignment, offset movement, or page navigation behavior.
+- Diff Scope:
+  - `src/rendition.ts`: type `setManager()` as `Function`, `moveTo()` as `object`, and `next()` / `prev()` as `Promise<void>`.
+  - `types/epubjs-tests.ts`: assert and exercise the matching helper contracts.
+  - `scripts/verify-gate1-readiness.mjs`: require source/declaration/type-test parity for navigation helper contracts.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if navigation helpers must intentionally remain source-untyped.
+
 ### P-0410
 - Why:
   - `Rendition.getRange()`, `adjustImages()`, and the serialization inject hooks already had concrete declaration types, but source still used `any` for their return or hook parameters.

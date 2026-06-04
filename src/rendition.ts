@@ -266,7 +266,7 @@ class Rendition {
 	 * Set the manager function
 	 * @param {function} manager
 	 */
-	setManager(manager: any): void {
+	setManager(manager: Function): void {
 		this.manager = manager;
 	}
 
@@ -606,7 +606,7 @@ class Rendition {
 	 * Usually you would be better off calling display()
 	 * @param {object} offset
 	 */
-	moveTo(offset: any): void {
+	moveTo(offset: object): void {
 		this.manager.moveTo(offset);
 	}
 
@@ -637,7 +637,7 @@ class Rendition {
 	 * Go to the next "page" in the rendition
 	 * @return {Promise}
 	 */
-	next(): Promise<any> {
+	next(): Promise<void> {
 		return this.q.enqueue(this.manager.next.bind(this.manager))
 			.then(this.reportLocation.bind(this));
 	}
@@ -646,7 +646,7 @@ class Rendition {
 	 * Go to the previous "page" in the rendition
 	 * @return {Promise}
 	 */
-	prev(): Promise<any> {
+	prev(): Promise<void> {
 		return this.q.enqueue(this.manager.prev.bind(this.manager))
 			.then(this.reportLocation.bind(this));
 	}
