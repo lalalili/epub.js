@@ -1590,6 +1590,14 @@ assert(
 	"Default manager end-display helper must keep section and rejection bridge typed without any"
 );
 assert(
+	managerSource.includes("next(): Promise<unknown> | void") &&
+		managerSource.includes("var next: ManagerSection | undefined") &&
+		managerSource.includes('next.properties!.includes("page-spread-right")') &&
+		!managerSource.includes("next(): Promise<any> | void") &&
+		!managerSource.includes("var next: any"),
+	"Default manager next bridge must keep section and promise results typed without any"
+);
+assert(
 	continuousManagerSource.includes("var promises: Promise<unknown>[] = []") &&
 		continuousManagerSource.includes("check(_offsetLeft?: number, _offsetTop?: number): Promise<unknown>") &&
 		continuousManagerSource.includes(".then((): Promise<unknown> =>") &&

@@ -1770,8 +1770,8 @@ class DefaultViewManager {
 			}.bind(this));
 	}
 
-	next(): Promise<any> | void {
-		var next: any;
+	next(): Promise<unknown> | void {
+		var next: ManagerSection | undefined;
 		var left;
 
 		let dir = this.settings.direction;
@@ -1850,7 +1850,7 @@ class DefaultViewManager {
 			this.updateLayout();
 
 			let forceRight = false;
-			if (this.layout.name === "pre-paginated" && this.layout.divisor === 2 && next.properties.includes("page-spread-right")) {
+			if (this.layout.name === "pre-paginated" && this.layout.divisor === 2 && next.properties!.includes("page-spread-right")) {
 				forceRight = true;
 			}
 
