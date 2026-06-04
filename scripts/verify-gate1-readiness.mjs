@@ -16,6 +16,7 @@ const pageListTypes = readFileSync(path.join(root, "types/pagelist.d.ts"), "utf8
 const resourcesSource = readFileSync(path.join(root, "src/resources.ts"), "utf8");
 const resourcesTypes = readFileSync(path.join(root, "types/resources.d.ts"), "utf8");
 const storeTypes = readFileSync(path.join(root, "types/store.d.ts"), "utf8");
+const locationsSource = readFileSync(path.join(root, "src/locations.ts"), "utf8");
 const globalTypeTests = readFileSync(path.join(root, "types/global-namespace-tests.ts"), "utf8");
 const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.test.js"), "utf8");
 const umdGlobalTests = readFileSync(path.join(root, "test/browser/umd-global.test.js"), "utf8");
@@ -520,8 +521,19 @@ assert(
 );
 assert(typeTests.includes("type LocationsAssertions"), "type tests must assert the Locations public surface");
 assert(typeTests.includes("new Locations(spine"), "type tests must cover Locations construction with spine/request typing");
+assert(typeTests.includes("ReturnType<Locations[\"emit\"]>, void"), "type tests must assert Locations emit typing");
+assert(typeTests.includes("ReturnType<Locations[\"on\"]>, unknown"), "type tests must assert Locations on typing");
+assert(typeTests.includes("ReturnType<Locations[\"off\"]>, unknown"), "type tests must assert Locations off typing");
+assert(typeTests.includes("ReturnType<Locations[\"once\"]>, unknown"), "type tests must assert Locations once typing");
 assert(typeTests.includes("locations.generateForSection"), "type tests must cover Locations section refinement typing");
 assert(typeTests.includes("locations.parseWords"), "type tests must cover Locations word-location typing");
+assert(
+	locationsSource.includes("emit(eventName: string, data?: unknown): void") &&
+	locationsSource.includes("on(eventName: string, listener: (...args: any[]) => void): unknown") &&
+	locationsSource.includes("off(eventName: string, listener: (...args: any[]) => void): unknown") &&
+	locationsSource.includes("once(eventName: string, listener: (...args: any[]) => void): unknown"),
+	"source Locations must keep EventEmitter method type parity"
+);
 assert(typeTests.includes("type MappingAssertions"), "type tests must assert the Mapping public surface");
 assert(typeTests.includes("new Mapping(mappingLayout"), "type tests must cover Mapping construction typing");
 assert(typeTests.includes("mapping.page(mappingContents"), "type tests must cover Mapping page typing");

@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0357
+- Why:
+  - `Locations` is wired with `EventEmitter(Locations.prototype)` and the public declaration file exposes `emit`, `on`, `off`, and `once`.
+  - The TypeScript source merged interface only declared `emit`, leaving source consumers and Gate 1 readiness without an enforceable source-level contract for the listener methods already present at runtime and in `.d.ts`.
+  - Adding the missing source interface method declarations keeps Locations source/.d.ts/EventEmitter parity enforceable before future release tags, without changing location generation, word location parsing, current-location events, queue processing, or EventEmitter runtime wiring.
+- Diff Scope:
+  - `src/locations.ts`: declare `on`, `off`, and `once` on the merged `Locations` interface alongside `emit`.
+  - `types/epubjs-tests.ts`: assert Locations EventEmitter method return types and add `emit` / `on` / `off` / `once` usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Locations source EventEmitter method parity and type-smoke assertions.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/locations.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Locations stops using EventEmitter prototype augmentation or intentionally hides listener methods from the source public type surface.
+
 ### P-0356
 - Why:
   - `Packaging.load()` accepts JSON manifests and builds spine items from `json.readingOrder || json.spine`, but `PackagingJsonManifest` allowed both fields to be omitted.

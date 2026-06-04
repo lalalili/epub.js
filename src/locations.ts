@@ -626,6 +626,9 @@ class Locations {
 
 interface Locations {
 	emit(eventName: string, data?: unknown): void;
+	on(eventName: string, listener: (...args: any[]) => void): unknown;
+	off(eventName: string, listener: (...args: any[]) => void): unknown;
+	once(eventName: string, listener: (...args: any[]) => void): unknown;
 }
 
 EventEmitter(Locations.prototype);

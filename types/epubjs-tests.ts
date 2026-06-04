@@ -845,6 +845,10 @@ type LocationsAssertions = [
   Assert<IsExact<Locations["_wordCounter"], number | undefined>>,
   Assert<IsExact<Locations["_currentCfi"], string | undefined>>,
   Assert<IsExact<Locations["processingTimeout"], ReturnType<typeof setTimeout> | undefined>>,
+  Assert<IsExact<ReturnType<Locations["emit"]>, void>>,
+  Assert<IsExact<ReturnType<Locations["on"]>, unknown>>,
+  Assert<IsExact<ReturnType<Locations["off"]>, unknown>>,
+  Assert<IsExact<ReturnType<Locations["once"]>, unknown>>,
   Assert<IsExact<ReturnType<Locations["generate"]>, Promise<string[]>>>,
   Assert<IsExact<ReturnType<Locations["createRange"]>, LocationRange>>,
   Assert<IsExact<ReturnType<Locations["process"]>, Promise<string[]>>>,
@@ -1346,9 +1350,15 @@ function testEpub() {
   const generatedSectionLocations: Promise<string[]> = spineSection ? locations.generateForSection(spineSection, 400) : Promise.resolve([]);
   const wordLocations: WordLocation[] = spineSection ? locations.parseWords(parsedDocument.documentElement, spineSection, 10, new EpubCFI(loadedLocations[0])) : [];
   const generatedWordLocations: Promise<WordLocation[]> = locations.generateFromWords(loadedLocations[0], 10, 3);
+  const locationListener = (...args: unknown[]): void => {
+    void args;
+  };
   locations.currentLocation = loadedLocations[0];
   locations.setCurrent(0);
-  locations.on("changed", () => undefined);
+  const locationEmit: void = locations.emit("changed", { percentage: 0 });
+  const locationOn: unknown = locations.on("changed", locationListener);
+  const locationOff: unknown = locations.off("changed", locationListener);
+  const locationOnce: unknown = locations.once("changed", locationListener);
   const mappingLayout: MappingLayout = {
     spreadWidth: 200,
     columnWidth: 100,
@@ -1723,6 +1733,10 @@ function testEpub() {
   void generatedSectionLocations;
   void wordLocations;
   void generatedWordLocations;
+  void locationEmit;
+  void locationOn;
+  void locationOff;
+  void locationOnce;
   void mappingPage;
   void mappingCfiPair;
   void mappingCfiList;
