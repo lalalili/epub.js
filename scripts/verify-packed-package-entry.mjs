@@ -23,6 +23,23 @@ function copyPackedFile(filePath) {
 	copyFileSync(source, target);
 }
 
+function parseNpmPackJson(stdout) {
+	const output = stdout.trim();
+
+	try {
+		return JSON.parse(output);
+	} catch {
+		const jsonStart = output.indexOf("[");
+		const jsonEnd = output.lastIndexOf("]");
+
+		if (jsonStart === -1 || jsonEnd <= jsonStart) {
+			throw new Error("npm pack JSON payload was not found.");
+		}
+
+		return JSON.parse(output.slice(jsonStart, jsonEnd + 1));
+	}
+}
+
 const result = spawnSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], {
 	cwd: root,
 	encoding: "utf8",
@@ -40,7 +57,7 @@ if (result.status !== 0) {
 }
 
 try {
-	const packEntries = JSON.parse(result.stdout);
+	const packEntries = parseNpmPackJson(result.stdout);
 	const packedFiles = packEntries[0]?.files || [];
 
 	assert(packedFiles.length > 0, "npm pack dry-run must report files for package entry smoke");

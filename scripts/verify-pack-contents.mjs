@@ -66,6 +66,23 @@ function normalizePackagePath(packagePath) {
 	return packagePath.replace(/^\.\//, "");
 }
 
+function parseNpmPackJson(stdout) {
+	const output = stdout.trim();
+
+	try {
+		return JSON.parse(output);
+	} catch {
+		const jsonStart = output.indexOf("[");
+		const jsonEnd = output.lastIndexOf("]");
+
+		if (jsonStart === -1 || jsonEnd <= jsonStart) {
+			throw new Error("npm pack JSON payload was not found.");
+		}
+
+		return JSON.parse(output.slice(jsonStart, jsonEnd + 1));
+	}
+}
+
 const result = spawnSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], {
 	cwd: root,
 	encoding: "utf8",
@@ -85,7 +102,7 @@ if (result.status !== 0) {
 let packEntries;
 
 try {
-	packEntries = JSON.parse(result.stdout);
+	packEntries = parseNpmPackJson(result.stdout);
 } catch (error) {
 	console.error("Failed to parse npm pack JSON output.");
 	console.error(error.message);

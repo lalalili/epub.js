@@ -12,6 +12,22 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0393
+- Why:
+  - The release contract verifiers parse `npm pack --dry-run --json --ignore-scripts` output, but some npm versions can prepend non-JSON diagnostics before the JSON payload.
+  - A strict `JSON.parse(stdout)` would make `verify:contracts` and `verify:release` fail even when the packed package contents are valid.
+  - Recovering the JSON array payload keeps the release gate focused on package contents and package entry correctness.
+- Diff Scope:
+  - `scripts/verify-pack-contents.mjs`: parse the npm pack JSON payload after trimming optional leading diagnostics.
+  - `scripts/verify-packed-package-entry.mjs`: use the same guarded npm pack JSON parsing for packed entry smoke verification.
+- Test:
+  - `npm run verify:pack-contents`
+  - `npm run verify:packed-package-entry`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if npm pack JSON output must be treated as strictly diagnostics-free.
+
 ### P-0392
 - Why:
   - `DefaultViewManager.getContents()` feeds the package-root `Rendition.getContents()` public method, but its source signature still returned `any[]` while the shipped manager declaration already describes `Contents[]`.
