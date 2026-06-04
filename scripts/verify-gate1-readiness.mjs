@@ -1602,6 +1602,10 @@ assert(
 assert(
 	coreCollectionsSource.includes("export function defaults<T extends MutableRecord>(obj: T, ..._sources: MutableRecord[]): T;") &&
 		coreCollectionsSource.includes("export function defaults<T extends MutableRecord>(obj: T): T") &&
+		coreCollectionsSource.includes("@param {T} item Item to insert.") &&
+		coreCollectionsSource.includes("@param {T} item Item to locate.") &&
+		!coreCollectionsSource.includes("@param {any} item Item to insert.") &&
+		!coreCollectionsSource.includes("@param {any} item Item to locate.") &&
 	contentsSource.includes("type ViewportSettingsRecord = ViewportSettings & Record<string, unknown>") &&
 		contentsSource.includes("settings = defaults<ViewportSettingsRecord>((options || {}) as ViewportSettingsRecord, parsed as ViewportSettingsRecord)") &&
 		!contentsSource.includes("settings = (defaults as any)(options || {}, parsed)"),

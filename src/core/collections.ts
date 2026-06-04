@@ -60,7 +60,7 @@ export function extend<T extends object>(target: T, ..._sources: Array<object | 
 
 /**
  * Fast quicksort insert for sorted array.
- * @param {any} item Item to insert.
+ * @param {T} item Item to insert.
  * @param {array} array Sorted array.
  * @param {function} [compareFunction] Optional compare function.
  * @returns {number} Inserted index.
@@ -74,7 +74,7 @@ export function insert<T>(item: T, array: T[], compareFunction?: CompareFunction
 
 /**
  * Finds where something would fit into a sorted array.
- * @param {any} item Item to locate.
+ * @param {T} item Item to locate.
  * @param {array} array Sorted array.
  * @param {function} [compareFunction] Optional compare function.
  * @param {function} [_start] Start index.
@@ -117,7 +117,7 @@ export function locationOf<T>(
 
 /**
  * Finds index of something in a sorted array.
- * @param {any} item Item to locate.
+ * @param {T} item Item to locate.
  * @param {array} array Sorted array.
  * @param {function} [compareFunction] Optional compare function.
  * @param {function} [_start] Start index.
