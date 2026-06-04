@@ -35,6 +35,7 @@ const locationsSource = readFileSync(path.join(root, "src/locations.ts"), "utf8"
 const locationsTypes = readFileSync(path.join(root, "types/locations.d.ts"), "utf8");
 const mappingSource = readFileSync(path.join(root, "src/mapping.ts"), "utf8");
 const mappingTypes = readFileSync(path.join(root, "types/mapping.d.ts"), "utf8");
+const compatRangeSource = readFileSync(path.join(root, "src/compat/range.ts"), "utf8");
 const platformBlobSource = readFileSync(path.join(root, "src/platform/blob.ts"), "utf8");
 const platformDomSource = readFileSync(path.join(root, "src/platform/dom.ts"), "utf8");
 const requestSource = readFileSync(path.join(root, "src/utils/request.ts"), "utf8");
@@ -1268,6 +1269,28 @@ assert(
 	"source platform DOM querySelectorByType must keep typed query fallback handling"
 );
 assert(typeTests.includes("new ePub.utils.RangeObject()"), "type tests must cover utils/core RangeObject typing");
+assert(
+	typeTests.includes("coreRangeStartContainer: Node | undefined") &&
+		typeTests.includes("coreRangeStartOffset: number | undefined") &&
+		typeTests.includes("coreRangeEndContainer: Node | undefined") &&
+		typeTests.includes("coreRangeEndOffset: number | undefined") &&
+		typeTests.includes("coreRangeCommonAncestorContainer: Node | undefined"),
+	"type tests must cover utils/core RangeObject boundary property typing"
+);
+assert(
+	compatRangeSource.includes("commonAncestorContainer: Node | undefined") &&
+		compatRangeSource.includes("endContainer: Node | undefined") &&
+		compatRangeSource.includes("endOffset: number | undefined") &&
+		compatRangeSource.includes("startContainer: Node | undefined") &&
+		compatRangeSource.includes("startOffset: number | undefined") &&
+		compatRangeSource.includes("this.commonAncestorContainer = this.endContainer ? this.endContainer.parentNode : undefined") &&
+		!compatRangeSource.includes("commonAncestorContainer: any") &&
+		!compatRangeSource.includes("endContainer: any") &&
+		!compatRangeSource.includes("endOffset: any") &&
+		!compatRangeSource.includes("startContainer: any") &&
+		!compatRangeSource.includes("startOffset: any"),
+	"source RangeObject must keep typed boundary property parity"
+);
 assert(typeTests.includes("type EpubCFIAssertions"), "type tests must assert the EpubCFI public surface");
 assert(typeTests.includes("RootParsedEpubCFI"), "type tests must assert root EpubCFI type exports");
 assert(typeTests.includes("cfi.parse(\"epubcfi(/6/2[cover]!/6)\")"), "type tests must cover EpubCFI parse typing");

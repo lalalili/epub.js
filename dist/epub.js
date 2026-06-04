@@ -1192,7 +1192,7 @@
 			} else {
 				this.startContainer = this.endContainer;
 				this.startOffset = this.endOffset;
-				this.commonAncestorContainer = this.endOffset.parentNode;
+				this.commonAncestorContainer = this.endContainer ? this.endContainer.parentNode : void 0;
 			}
 		}
 		selectNode(referenceNode) {

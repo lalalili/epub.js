@@ -1349,6 +1349,11 @@ function testEpub() {
   const coreBlobUrl: string = ePub.utils.createBlobUrl(coreBlobContent, "text/plain");
   const coreBase64Url: string = ePub.utils.createBase64Url("Text", "text/plain");
   const coreRangeObject: CoreRangeObject = new ePub.utils.RangeObject();
+  const coreRangeStartContainer: Node | undefined = coreRangeObject.startContainer;
+  const coreRangeStartOffset: number | undefined = coreRangeObject.startOffset;
+  const coreRangeEndContainer: Node | undefined = coreRangeObject.endContainer;
+  const coreRangeEndOffset: number | undefined = coreRangeObject.endOffset;
+  const coreRangeCommonAncestorContainer: Node | undefined = coreRangeObject.commonAncestorContainer;
   const coreQueryAll: NodeListOf<Element> | HTMLCollectionOf<Element> = ePub.utils.qsa(parsedDocument, "p");
   const nodeCfiInput: EpubCFIInput = parsedDocument.documentElement;
   const nodeCfi: ParsedEpubCFI = cfi.fromNode(nodeCfiInput as Node, cfiBase);
@@ -1895,6 +1900,11 @@ function testEpub() {
   void coreBlobUrl;
   void coreBase64Url;
   void coreRangeObject;
+  void coreRangeStartContainer;
+  void coreRangeStartOffset;
+  void coreRangeEndContainer;
+  void coreRangeEndOffset;
+  void coreRangeCommonAncestorContainer;
   void coreQueryAll;
   void layout;
   void defaultLayout;

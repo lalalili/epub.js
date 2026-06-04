@@ -5,11 +5,11 @@ import { parents } from "../platform/traversal";
  */
 export class RangeObject {
 	collapsed: boolean;
-	commonAncestorContainer: any;
-	endContainer: any;
-	endOffset: any;
-	startContainer: any;
-	startOffset: any;
+	commonAncestorContainer: Node | undefined;
+	endContainer: Node | undefined;
+	endOffset: number | undefined;
+	startContainer: Node | undefined;
+	startOffset: number | undefined;
 
 	constructor() {
 		this.collapsed = false;
@@ -56,7 +56,7 @@ export class RangeObject {
 		} else {
 			this.startContainer = this.endContainer;
 			this.startOffset = this.endOffset;
-			this.commonAncestorContainer = this.endOffset.parentNode;
+			this.commonAncestorContainer = this.endContainer ? this.endContainer.parentNode : undefined;
 		}
 	}
 

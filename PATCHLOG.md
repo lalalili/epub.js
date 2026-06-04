@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0425
+- Why:
+  - `RangeObject` declarations already expose boundary containers as `Node | undefined` and offsets as `number | undefined`, but the source polyfill still stored those fields as `any`.
+  - Aligning the source fields with the declaration keeps the legacy `ePub.utils.RangeObject` facade and EpubCFI fallback range typing enforceable before Gate 1 release work.
+  - The end-first collapse path also assigned `parentNode` from the numeric end offset; routing it through the end container preserves the intended collapsed boundary state.
+- Diff Scope:
+  - `src/compat/range.ts`: type RangeObject boundary fields and use the end container for `collapse(false)` common ancestor resolution.
+  - `src/contents.ts`: narrow the element boundary branch before reading `getBoundingClientRect()`.
+  - `types/epubjs-tests.ts`: assert RangeObject boundary property types through the legacy utils facade.
+  - `test/browser/compat-range.test.js`: cover the end-first collapse boundary path.
+  - `scripts/verify-gate1-readiness.mjs`: require RangeObject source/type-smoke parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/compat-range.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if the compat range polyfill must intentionally keep boundary fields source-untyped.
+
 ### P-0424
 - Why:
   - `querySelectorByType()` already has a public `Element | undefined` utility declaration, but the platform DOM source still stored its query result as `any`.

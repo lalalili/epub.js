@@ -26,6 +26,21 @@ describe("RangeObject compatibility boundary", function() {
 		expect(range.commonAncestorContainer).toBe(doc.documentElement);
 	});
 
+	it("collapses to the end boundary when end is set first", function() {
+		var doc = parseXhtml("<root><p>One</p></root>");
+		var text = doc.getElementsByTagName("p")[0].childNodes[0];
+		var range = new RangeObject();
+
+		range.setEnd(text, 2);
+
+		expect(range.collapsed).toBe(true);
+		expect(range.startContainer).toBe(text);
+		expect(range.startOffset).toBe(2);
+		expect(range.endContainer).toBe(text);
+		expect(range.endOffset).toBe(2);
+		expect(range.commonAncestorContainer).toBe(text.parentNode);
+	});
+
 	it("selects nodes and node contents", function() {
 		var doc = parseXhtml("<root><p>One</p><p>Two</p></root>");
 		var paragraph = doc.getElementsByTagName("p")[0];

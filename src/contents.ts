@@ -1238,7 +1238,7 @@ class Contents {
 				}
 
 				if (range.startContainer.nodeType === Node.ELEMENT_NODE) {
-					position = range.startContainer.getBoundingClientRect();
+					position = (range.startContainer as Element).getBoundingClientRect();
 					targetPos.left = position.left;
 					targetPos.top = position.top;
 				} else {
