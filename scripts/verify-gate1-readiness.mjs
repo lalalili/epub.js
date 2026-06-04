@@ -47,6 +47,7 @@ const epubcfiSource = readFileSync(path.join(root, "src/epubcfi.ts"), "utf8");
 const epubcfiTypes = readFileSync(path.join(root, "types/epubcfi.d.ts"), "utf8");
 const compatRangeSource = readFileSync(path.join(root, "src/compat/range.ts"), "utf8");
 const coreCollectionsSource = readFileSync(path.join(root, "src/core/collections.ts"), "utf8");
+const coreUtilsSource = readFileSync(path.join(root, "src/utils/core.ts"), "utf8");
 const platformBlobSource = readFileSync(path.join(root, "src/platform/blob.ts"), "utf8");
 const platformDomSource = readFileSync(path.join(root, "src/platform/dom.ts"), "utf8");
 const platformLayoutSource = readFileSync(path.join(root, "src/platform/layout.ts"), "utf8");
@@ -1669,12 +1670,19 @@ assert(
 		platformBlobSource.includes("createBlob(content: BlobContent, mime: string): Blob") &&
 		platformBlobSource.includes("createBlobUrl(content: BlobContent, mime: string): string") &&
 		platformBlobSource.includes("createBase64Url(content: string, mime: string): string") &&
+		platformBlobSource.includes("@param {BlobContent} content Blob content.") &&
+		platformBlobSource.includes("@param {string} content Source content.") &&
+		coreUtilsSource.includes("@param {BlobContent} content") &&
+		coreUtilsSource.includes("@param {string} content") &&
 		platformBlobSource.includes("typeof(content as unknown) !== \"string\"") &&
 		!platformBlobSource.includes("from \"../utils/core\"") &&
 		!platformBlobSource.includes("createBlob(content: any") &&
 		!platformBlobSource.includes("createBlobUrl(content: any") &&
-		!platformBlobSource.includes("createBase64Url(content: any"),
-	"source platform blob helpers must keep BlobContent and string input type parity"
+		!platformBlobSource.includes("createBase64Url(content: any") &&
+		!platformBlobSource.includes("@param {any} content Blob content.") &&
+		!platformBlobSource.includes("@param {any} content Source content.") &&
+		!coreUtilsSource.includes("@param {any} content"),
+	"source platform and core blob helpers must keep BlobContent and string input type parity"
 );
 assert(
 	platformDomSource.includes("querySelectorByType(html: Element | Document, element: string, type: string): Element | undefined") &&

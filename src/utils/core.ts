@@ -314,7 +314,7 @@ export function isXml(ext: string): boolean {
 
 /**
  * Create a new blob
- * @param {any} content
+ * @param {BlobContent} content
  * @param {string} mime
  * @returns {Blob}
  * @memberof Core
@@ -325,7 +325,7 @@ export function createBlob(content: BlobContent, mime: string): Blob{
 
 /**
  * Create a new blob url
- * @param {any} content
+ * @param {BlobContent} content
  * @param {string} mime
  * @returns {string} url
  * @memberof Core
@@ -345,7 +345,7 @@ export function revokeBlobUrl(url: string): void{
 
 /**
  * Create a new base64 encoded url
- * @param {any} content
+ * @param {string} content
  * @param {string} mime
  * @returns {string} url
  * @memberof Core

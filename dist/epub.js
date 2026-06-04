@@ -8895,7 +8895,7 @@
 	//#region src/platform/blob.ts
 	/**
 	* Create a Blob using the browser platform implementation.
-	* @param {any} content Blob content.
+	* @param {BlobContent} content Blob content.
 	* @param {string} mime Blob MIME type.
 	* @returns {Blob} Browser Blob instance.
 	*/
@@ -8904,7 +8904,7 @@
 	}
 	/**
 	* Create an object URL for browser-rendered content.
-	* @param {any} content Blob content.
+	* @param {BlobContent} content Blob content.
 	* @param {string} mime Blob MIME type.
 	* @returns {string} Browser object URL.
 	*/
@@ -8922,7 +8922,7 @@
 	}
 	/**
 	* Create a base64 data URL for string content.
-	* @param {any} content Source content.
+	* @param {string} content Source content.
 	* @param {string} mime Data URL MIME type.
 	* @returns {string | undefined} Base64 data URL.
 	*/
@@ -20504,7 +20504,7 @@
 	}
 	/**
 	* Create a new blob
-	* @param {any} content
+	* @param {BlobContent} content
 	* @param {string} mime
 	* @returns {Blob}
 	* @memberof Core
@@ -20514,7 +20514,7 @@
 	}
 	/**
 	* Create a new blob url
-	* @param {any} content
+	* @param {BlobContent} content
 	* @param {string} mime
 	* @returns {string} url
 	* @memberof Core
@@ -20532,7 +20532,7 @@
 	}
 	/**
 	* Create a new base64 encoded url
-	* @param {any} content
+	* @param {string} content
 	* @param {string} mime
 	* @returns {string} url
 	* @memberof Core
