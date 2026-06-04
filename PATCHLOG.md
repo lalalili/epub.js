@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0363
+- Why:
+  - `Contents` is wired with `EventEmitter(Contents.prototype)`, but the declaration file still exposed listener methods with `any` event names and listener signatures.
+  - The source already treats Contents event names as strings, and the source/.d.ts/TypeDoc public contract should expose the same listener method surface.
+  - Tightening the type surface keeps Contents EventEmitter parity enforceable without changing iframe lifecycle, content measurement, selection, link, resize, or runtime event wiring.
+- Diff Scope:
+  - `src/contents.ts`: declare `emit`, `on`, `off`, and `once` on the merged `Contents` interface after the class.
+  - `types/contents.d.ts`: expose string event names and listener function signatures for Contents EventEmitter methods.
+  - `types/epubjs-tests.ts`: assert Contents EventEmitter method return types and add `emit` / `on` / `off` / `once` usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Contents EventEmitter method parity and type-smoke assertions.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/contents-text-width.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Contents stops using EventEmitter prototype augmentation or intentionally keeps untyped listener methods in declarations.
+
 ### P-0362
 - Why:
   - `Book` is wired with `EventEmitter(Book.prototype)`, but the declaration file still exposed its listener methods with `any` event names and listener signatures.

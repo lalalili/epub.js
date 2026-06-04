@@ -8,6 +8,7 @@ const tsconfig = JSON.parse(readFileSync(path.join(root, "tsconfig.json"), "utf8
 const typeTests = readFileSync(path.join(root, "types/epubjs-tests.ts"), "utf8");
 const sourceRoot = readFileSync(path.join(root, "src/index.ts"), "utf8");
 const bookSource = readFileSync(path.join(root, "src/book.ts"), "utf8");
+const contentsSource = readFileSync(path.join(root, "src/contents.ts"), "utf8");
 const archiveSource = readFileSync(path.join(root, "src/archive.ts"), "utf8");
 const storeSource = readFileSync(path.join(root, "src/store.ts"), "utf8");
 const navigationTypes = readFileSync(path.join(root, "types/navigation.d.ts"), "utf8");
@@ -699,6 +700,17 @@ assert(
 assert(typeTests.includes("typedContents._size"), "type tests must cover Contents runtime size state typing");
 assert(typeTests.includes("typedContents.sectionHref"), "type tests must cover Contents sectionHref state typing");
 assert(typeTests.includes("typedContents._verticalRlMetricsCache"), "type tests must cover Contents vertical-rl metrics cache typing");
+assert(typeTests.includes("ReturnType<Contents[\"on\"]>, unknown"), "type tests must assert Contents EventEmitter listener typing");
+assert(typeTests.includes("const contentsOn: unknown = typedContents.on"), "type tests must cover Contents on listener usage");
+assert(typeTests.includes("const contentsOff: unknown = typedContents.off"), "type tests must cover Contents off listener usage");
+assert(typeTests.includes("const contentsOnce: unknown = typedContents.once"), "type tests must cover Contents once listener usage");
+assert(
+	contentsSource.includes("emit(type: string, ...args: any[]): void") &&
+		contentsSource.includes("on(type: string, listener: (...args: any[]) => void): unknown") &&
+		contentsSource.includes("off(type: string, listener: (...args: any[]) => void): unknown") &&
+		contentsSource.includes("once(type: string, listener: (...args: any[]) => void): unknown"),
+	"source Contents must keep EventEmitter method type parity"
+);
 assert(
 	sourceRoot.includes("\tContents,") &&
 	sourceRoot.includes("ContentsSize") &&

@@ -401,10 +401,6 @@ class Contents {
 	declare _onSelectionChange?: EventListener;
 	declare selectionEndTimeout?: ReturnType<typeof setTimeout>;
 	declare onResize?: (size: { width: number; height: number }) => void;
-	declare emit: (type: string, ...args: any[]) => void;
-	declare on: (type: string, listener: (...args: any[]) => void) => any;
-	declare off: (type: string, listener: (...args: any[]) => void) => any;
-	declare once: (type: string, listener: (...args: any[]) => void) => any;
 
 	constructor(doc: Document, content?: HTMLElement, cfiBase?: string, sectionIndex?: number, sectionHref?: string) {
 		// Blank Cfi for Parsing
@@ -2306,6 +2302,13 @@ class Contents {
 		this.removeListeners();
 
 	}
+}
+
+interface Contents {
+	emit(type: string, ...args: any[]): void;
+	on(type: string, listener: (...args: any[]) => void): unknown;
+	off(type: string, listener: (...args: any[]) => void): unknown;
+	once(type: string, listener: (...args: any[]) => void): unknown;
 }
 
 EventEmitter(Contents.prototype);

@@ -500,6 +500,10 @@ type CoreClassAssertions = [
   Assert<IsExact<Contents["_forcedWritingMode"], string>>,
   Assert<IsExact<Contents["called"], number>>,
   Assert<IsExact<Contents["active"], boolean>>,
+  Assert<IsExact<ReturnType<Contents["emit"]>, void>>,
+  Assert<IsExact<ReturnType<Contents["on"]>, unknown>>,
+  Assert<IsExact<ReturnType<Contents["off"]>, unknown>>,
+  Assert<IsExact<ReturnType<Contents["once"]>, unknown>>,
   Assert<IsExact<ReturnType<Contents["addScript"]>, Promise<boolean>>>,
   Assert<IsExact<ReturnType<Contents["addStylesheet"]>, Promise<boolean>>>,
   Assert<IsExact<ReturnType<Contents["addStylesheetCss"]>, boolean>>,
@@ -1152,6 +1156,13 @@ function testEpub() {
   const contentsForcedWritingMode: string = typedContents._forcedWritingMode;
   const contentsCalled: number = typedContents.called;
   const contentsActive: boolean = typedContents.active;
+  const contentsListener = (...args: unknown[]): void => {
+    void args;
+  };
+  const contentsEmit: void = typedContents.emit("resize", contentsSize);
+  const contentsOn: unknown = typedContents.on("resize", contentsListener);
+  const contentsOff: unknown = typedContents.off("resize", contentsListener);
+  const contentsOnce: unknown = typedContents.once("selected", contentsListener);
   const animationFrame: AnimationFrameRequest | false = ePub.utils.requestAnimationFrame;
   const coreBounds: SizeBounds = ePub.utils.bounds(parsedDocument.documentElement);
   const coreBorders: SizeBounds = ePub.utils.borders(parsedDocument.documentElement);
@@ -1658,6 +1669,10 @@ function testEpub() {
   void contentsForcedWritingMode;
   void contentsCalled;
   void contentsActive;
+  void contentsEmit;
+  void contentsOn;
+  void contentsOff;
+  void contentsOnce;
   void animationFrame;
   void coreBounds;
   void coreBorders;
