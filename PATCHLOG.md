@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0392
+- Why:
+  - `DefaultViewManager.getContents()` feeds the package-root `Rendition.getContents()` public method, but its source signature still returned `any[]` while the shipped manager declaration already describes `Contents[]`.
+  - The implementation only collects existing view `contents` objects, so the source can preserve that collection type directly.
+  - Tightening this surface keeps manager source/.d.ts parity enforceable without changing view iteration or manager delegation behavior.
+- Diff Scope:
+  - `src/managers/default/index.ts`: type `getContents()` and its accumulator as `Contents[]`.
+  - `scripts/verify-gate1-readiness.mjs`: require manager `getContents()` source and declaration return type parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if manager `getContents()` must intentionally expose untyped contents.
+
 ### P-0391
 - Why:
   - `Rendition.getContents()` is a package-root public method whose JSDoc and `.d.ts` already describe `Contents[]`, but the source signature still returned `any[]`.

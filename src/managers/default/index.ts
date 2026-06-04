@@ -7,6 +7,7 @@ import { collectVisibleTextClientRects } from "../../platform/traversal";
 import scrollType from "../../utils/scrolltype";
 import Mapping from "../../mapping";
 import Queue from "../../utils/queue";
+import type Contents from "../../contents";
 import {
 	cacheVerticalRlLogicalPageOffset as cacheVerticalRlLogicalPageOffsetHelper,
 	countPagesWithFractionalTolerance as countPagesWithFractionalToleranceHelper,
@@ -2362,8 +2363,8 @@ class DefaultViewManager {
 
 	}
 
-	getContents(): any[] {
-		var contents: any[] = [];
+	getContents(): Contents[] {
+		var contents: Contents[] = [];
 		if (!this.views) {
 			return contents;
 		}

@@ -903,6 +903,11 @@ assert(
 	"Manager source and declarations must keep EventEmitter method type parity"
 );
 assert(
+	managerSource.includes("getContents(): Contents[]") &&
+		managerTypes.includes("getContents(): Contents[]"),
+	"Manager source and declarations must keep getContents return type parity"
+);
+assert(
 	typeTests.includes("Parameters<View[\"emit\"]>, [type: string, ...args: unknown[]]") &&
 		typeTests.includes("Parameters<View[\"on\"]>, [type: string, listener: (...args: unknown[]) => void]") &&
 		typeTests.includes("Parameters<View[\"off\"]>, [type: string, listener: (...args: unknown[]) => void]") &&
