@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0438
+- Why:
+  - `Contents.addStylesheet()` and `Contents.addScript()` already return `Promise<boolean>`, but their internal reject callbacks still typed rejection reasons as `any`.
+  - Typing rejection reasons as `unknown` keeps the Promise bridge explicit without widening load-handler source typing.
+  - Gate 1 now rejects the old `reason?: any` callback bridge.
+- Diff Scope:
+  - `src/contents.ts`: type stylesheet/script Promise reject reasons as `unknown`.
+  - `scripts/verify-gate1-readiness.mjs`: guard Contents load-handler reject typing.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/contents-text-width.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if stylesheet/script load handlers need a more specific rejection reason contract.
+
 ### P-0437
 - Why:
   - `Contents` selection listeners still used `{ passive: true } as any` even though DOM listener options are available as a typed `AddEventListenerOptions` value.

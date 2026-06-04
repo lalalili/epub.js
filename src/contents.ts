@@ -1337,7 +1337,7 @@ class Contents {
 	 * @param {string} src url
 	 */
 	addStylesheet(src: string): Promise<boolean> {
-		return new Promise(function(this: Contents, resolve: (value: boolean) => void, reject: (reason?: any) => void){
+		return new Promise(function(this: Contents, resolve: (value: boolean) => void, reject: (reason?: unknown) => void){
 			var $stylesheet: HTMLLinkElement | null;
 			var ready = false;
 
@@ -1476,7 +1476,7 @@ class Contents {
 	 */
 	addScript(src: string): Promise<boolean> {
 
-		return new Promise(function(this: Contents, resolve: (value: boolean) => void, reject: (reason?: any) => void){
+		return new Promise(function(this: Contents, resolve: (value: boolean) => void, reject: (reason?: unknown) => void){
 			var $script: HTMLScriptElement;
 			var ready = false;
 

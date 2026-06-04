@@ -1257,9 +1257,13 @@ assert(
 assert(
 	contentsSource.includes("type LoadableElement = (HTMLLinkElement | HTMLScriptElement)") &&
 		contentsSource.includes("onreadystatechange: ((this: LoadableElement, event: Event) => void) | null") &&
+		contentsSource.includes("addStylesheet(src: string): Promise<boolean>") &&
+		contentsSource.includes("addScript(src: string): Promise<boolean>") &&
+		contentsSource.includes("reject: (reason?: unknown) => void") &&
 		contentsSource.includes("function(this: LoadableElement)") &&
 		contentsSource.includes("($stylesheet as LoadableElement).onload = ($stylesheet as LoadableElement).onreadystatechange") &&
 		contentsSource.includes("($script as LoadableElement).onload = ($script as LoadableElement).onreadystatechange") &&
+		!contentsSource.includes("reject: (reason?: any) => void") &&
 		!contentsSource.includes("($stylesheet as any).onload") &&
 		!contentsSource.includes("($script as any).onload") &&
 		!contentsSource.includes("onreadystatechange = function(this: any)"),
