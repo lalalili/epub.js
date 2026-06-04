@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0395
+- Why:
+  - `Contents.removeClass()` mutates the rendered content container by class name, and the source signature already requires a `string`.
+  - The shipped declaration still accepted `any`, which made the package-root `Contents` API less precise than both the source and generated TypeDoc.
+  - Tightening this parameter keeps class mutation helpers aligned without changing DOM classList behavior.
+- Diff Scope:
+  - `types/contents.d.ts`: type `removeClass(className)` as `string`.
+  - `types/epubjs-tests.ts`: assert `Contents.addClass()` and `Contents.removeClass()` string parameter typing.
+  - `scripts/verify-gate1-readiness.mjs`: require Contents class mutation source and declaration parameter parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `Contents.removeClass()` must intentionally accept non-string class tokens.
+
 ### P-0394
 - Why:
   - Rendition content hook methods receive rendered `Contents` instances, but several source signatures still accepted `any` while the shipped declaration already describes `Contents`.

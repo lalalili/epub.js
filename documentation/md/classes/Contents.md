@@ -760,7 +760,7 @@
 
 ##### className
 
-`any`
+`string`
 
 #### Returns
 

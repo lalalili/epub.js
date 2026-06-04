@@ -154,7 +154,7 @@ export default class Contents {
 
     range(cfi: string | EpubCFI, ignoreClass?: string): Range | RangeObject | null;
 
-    removeClass(className: any): void;
+    removeClass(className: string): void;
 
     root(): Element | null;
 

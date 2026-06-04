@@ -958,6 +958,8 @@ assert(typeTests.includes("VerticalRlPageMetricsCache[\"metrics\"], VerticalRlPa
 assert(typeTests.includes("ReturnType<Contents[\"verticalRlPageMetrics\"]>, VerticalRlPageMetrics"), "type tests must assert Contents vertical-rl page metrics return typing");
 assert(typeTests.includes("ReturnType<Contents[\"debugVerticalRlMetrics\"]>, VerticalRlDebugMetrics"), "type tests must assert Contents vertical-rl debug metrics return typing");
 assert(typeTests.includes("Parameters<Contents[\"fit\"]>, [width: number, height: number, section?: unknown]"), "type tests must assert Contents fit optional section typing");
+assert(typeTests.includes("Parameters<Contents[\"addClass\"]>, [className: string]"), "type tests must assert Contents addClass string parameter typing");
+assert(typeTests.includes("Parameters<Contents[\"removeClass\"]>, [className: string]"), "type tests must assert Contents removeClass string parameter typing");
 assert(typeTests.includes("typedContents.fit(320, 480"), "type tests must cover Contents fit optional section usage");
 assert(typeTests.includes("ReturnType<Contents[\"on\"]>, unknown"), "type tests must assert Contents EventEmitter listener typing");
 assert(typeTests.includes("const contentsOn: unknown = typedContents.on"), "type tests must cover Contents on listener usage");
@@ -980,6 +982,13 @@ assert(
 		contentsTypes.includes("off(type: string, listener: (...args: unknown[]) => void): unknown") &&
 		contentsTypes.includes("once(type: string, listener: (...args: unknown[]) => void): unknown"),
 	"Contents source and declarations must keep EventEmitter method type parity"
+);
+assert(
+	contentsSource.includes("addClass(className: string): void") &&
+		contentsSource.includes("removeClass(className: string): void") &&
+		contentsTypes.includes("addClass(className: string): void") &&
+		contentsTypes.includes("removeClass(className: string): void"),
+	"Contents source and declarations must keep class mutation parameter type parity"
 );
 assert(contentsSource.includes("fit(width: number, height: number, section?: unknown): void"), "source Contents must keep fit optional section typed as unknown");
 assert(

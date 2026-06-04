@@ -559,6 +559,8 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Contents["addScript"]>, Promise<boolean>>>,
   Assert<IsExact<ReturnType<Contents["addStylesheet"]>, Promise<boolean>>>,
   Assert<IsExact<ReturnType<Contents["addStylesheetCss"]>, boolean>>,
+  Assert<IsExact<Parameters<Contents["addClass"]>, [className: string]>>,
+  Assert<IsExact<Parameters<Contents["removeClass"]>, [className: string]>>,
   Assert<IsExact<ReturnType<Contents["contentWidth"]>, number>>,
   Assert<IsExact<ReturnType<Contents["css"]>, string>>,
   Assert<IsExact<Parameters<Contents["fit"]>, [width: number, height: number, section?: unknown]>>,
