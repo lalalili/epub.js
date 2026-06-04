@@ -1550,6 +1550,15 @@ assert(
 	"Default manager visible helpers must keep view and bounds inputs typed without any"
 );
 assert(
+	managerSource.includes('import type Layout from "../../layout";') &&
+		managerSource.includes("setLayout(layout: Layout): void") &&
+		managerSource.includes("applyLayout(layout: Layout): void") &&
+		managerSource.includes("this.views.forEach(function(view: ManagerView){") &&
+		!managerSource.includes("applyLayout(layout: any): void") &&
+		!managerSource.includes("setLayout(layout: any): void"),
+	"Default manager layout helpers must keep layout and view callbacks typed without any"
+);
+assert(
 	continuousManagerSource.includes("var promises: Promise<unknown>[] = []") &&
 		continuousManagerSource.includes("check(_offsetLeft?: number, _offsetTop?: number): Promise<unknown>") &&
 		continuousManagerSource.includes(".then((): Promise<unknown> =>") &&

@@ -8,6 +8,7 @@ import scrollType from "../../utils/scrolltype";
 import Mapping from "../../mapping";
 import Queue from "../../utils/queue";
 import type Contents from "../../contents";
+import type Layout from "../../layout";
 import {
 	cacheVerticalRlLogicalPageOffset as cacheVerticalRlLogicalPageOffsetHelper,
 	countPagesWithFractionalTolerance as countPagesWithFractionalToleranceHelper,
@@ -127,6 +128,7 @@ type ManagerView = {
 	show(): void;
 	hide(): void;
 	bounds(): ViewResizeBounds;
+	setLayout(layout: Layout): void;
 	on(type: string, listener: (...args: unknown[]) => void): unknown;
 };
 type VisibleManagerView = ManagerView & {
@@ -2289,7 +2291,7 @@ class DefaultViewManager {
 		return bounds;
 	}
 
-	applyLayout(layout: any): void {
+	applyLayout(layout: Layout): void {
 
 		this.layout = layout;
 		this._layoutDirty = true;
@@ -2353,7 +2355,7 @@ class DefaultViewManager {
 		this.syncVerticalRlViewportClip();
 	}
 
-	setLayout(layout: any): void {
+	setLayout(layout: Layout): void {
 
 		this.viewSettings.layout = layout;
 
@@ -2361,7 +2363,7 @@ class DefaultViewManager {
 
 		if(this.views) {
 
-			this.views.forEach(function(view: any){
+			this.views.forEach(function(view: ManagerView){
 				if (view) {
 					view.setLayout(layout);
 				}
