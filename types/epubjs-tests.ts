@@ -503,6 +503,7 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Rendition["debugVerticalRlPage"]>, RenditionVerticalRlDebugState>>,
   Assert<IsExact<ReturnType<Rendition["getContents"]>, Contents[]>>,
   Assert<IsExact<ReturnType<Rendition["getRange"]>, Range | undefined>>,
+  Assert<IsExact<Parameters<Rendition["located"]>, [location: Array<ManagerLocationItem | null | undefined>]>>,
   Assert<IsExact<ReturnType<Rendition["located"]>, Location>>,
   Assert<IsExact<ReturnType<Rendition["reportLocation"]>, Promise<void>>>,
   Assert<IsExact<ReturnType<Rendition["remeasure"]>, Promise<void>>>,
@@ -1184,6 +1185,7 @@ function testEpub() {
   };
   const displayedLocation: DisplayedLocation = renditionLocationPart;
   const locatedRenditionLocation: Location = rendition.located([managerLocationItem]);
+  const locatedRenditionFallbackLocation: Location = rendition.located([managerLocationItem, null, undefined]);
   const renditionDebugState: RenditionVerticalRlDebugState = rendition.debugVerticalRlPage();
   const renditionReportLocation: Promise<void> = rendition.reportLocation();
   const renditionRemeasure: Promise<void> = rendition.remeasure({ preserveLocation: true, waitForFonts: false });
@@ -1734,6 +1736,7 @@ function testEpub() {
   void renditionLocationPart;
   void displayedLocation;
   void locatedRenditionLocation;
+  void locatedRenditionFallbackLocation;
   void renditionDebugState;
   void renditionRemeasure;
   void resolvedRenditionHref;

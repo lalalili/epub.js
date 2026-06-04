@@ -448,7 +448,7 @@
 
 ##### location
 
-`any`[] \| [`ManagerLocationItem`](../interfaces/ManagerLocationItem.md)[]
+[`ManagerLocationItem`](../interfaces/ManagerLocationItem.md)[]
 
 #### Returns
 

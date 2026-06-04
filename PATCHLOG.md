@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0390
+- Why:
+  - `Rendition.located()` is a package-root public method, but its source declaration still accepted `any[]` and its `.d.ts` kept an `any[]` fallback.
+  - The implementation already skips nullish or incomplete manager location items, so the public contract can describe that nullable input explicitly.
+  - Tightening this surface keeps Rendition source/.d.ts/TypeDoc parity enforceable without changing current location resolution or manager location filtering behavior.
+- Diff Scope:
+  - `src/rendition.ts`: type `located()` as accepting `Array<ManagerLocationItem | null | undefined>` and narrow filtered items with a type predicate.
+  - `types/rendition.d.ts`: mirror the nullable manager location item array parameter.
+  - `types/epubjs-tests.ts`: assert `located()` parameter typing and cover nullable manager location usage.
+  - `scripts/verify-gate1-readiness.mjs`: require `located()` source and declaration parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `Rendition.located()` must intentionally accept arbitrary non-manager location array entries.
+
 ### P-0389
 - Why:
   - `View` is a shipped deep declaration surface with EventEmitter methods, but its `.d.ts` still exposed event names, payloads, and listeners as `any`.

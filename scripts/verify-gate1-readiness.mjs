@@ -839,6 +839,13 @@ assert(
 );
 assert(typeTests.includes("rendition.determineLayoutProperties"), "type tests must cover Rendition layout property typing");
 assert(typeTests.includes("rendition.located([managerLocationItem])"), "type tests must cover Rendition manager location typing");
+assert(typeTests.includes("Parameters<Rendition[\"located\"]>, [location: Array<ManagerLocationItem | null | undefined>]"), "type tests must assert Rendition located nullable manager location parameter typing");
+assert(typeTests.includes("rendition.located([managerLocationItem, null, undefined])"), "type tests must cover Rendition located nullable manager location usage");
+assert(
+	renditionSource.includes("located(location: Array<ManagerLocationItem | null | undefined>): Location") &&
+		renditionTypes.includes("located(location: Array<ManagerLocationItem | null | undefined>): Location"),
+	"Rendition source and declarations must keep located parameter type parity"
+);
 assert(typeTests.includes("rendition.resolveLinkHref(\"#note\""), "type tests must cover Rendition link resolution typing");
 assert(typeTests.includes("ReturnType<Rendition[\"reportLocation\"]>, Promise<void>"), "type tests must assert Rendition reportLocation void promise typing");
 assert(typeTests.includes("ReturnType<Rendition[\"remeasure\"]>, Promise<void>"), "type tests must assert Rendition remeasure void promise typing");

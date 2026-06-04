@@ -157,7 +157,7 @@ export default class Rendition {
 
     layout(settings: any): any;
 
-    located(location: Array<ManagerLocationItem | null | undefined> | any[]): Location;
+    located(location: Array<ManagerLocationItem | null | undefined>): Location;
 
     moveTo(offset: object): void;
 

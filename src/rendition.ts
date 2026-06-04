@@ -971,11 +971,11 @@ class Rendition {
 	 * @returns {displayedLocation}
 	 * @private
 	 */
-	located(location: ManagerLocationItem[] | any[]): Location {
+	located(location: Array<ManagerLocationItem | null | undefined>): Location {
 		if (!location || !location.length) {
 			return {};
 		}
-		let validLocations = location.filter(function(item: any) {
+		let validLocations = location.filter(function(item): item is ManagerLocationItem {
 			return item &&
 				item.mapping &&
 				item.mapping.start &&
