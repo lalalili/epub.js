@@ -229,9 +229,25 @@ assert(
 	sourceRoot.includes("WordLocation"),
 	"source root must export Locations public types"
 );
-assert(typeTests.includes("RootThemesRendition"), "type tests must assert root Themes type exports");
 assert(
-	sourceRoot.includes("ThemeRules") && sourceRoot.includes("ThemesRendition") && sourceRoot.includes("default as Themes"),
+	typeTests.includes("RootThemes") &&
+	typeTests.includes("RootInjectedThemes") &&
+	typeTests.includes("RootTheme") &&
+	typeTests.includes("RootThemeInput") &&
+	typeTests.includes("RootThemeOverride") &&
+	typeTests.includes("RootThemeRules") &&
+	typeTests.includes("RootThemesContent") &&
+	typeTests.includes("RootThemesRendition"),
+	"type tests must assert root Themes type exports"
+);
+assert(
+	sourceRoot.includes("default as Themes") &&
+	sourceRoot.includes("InjectedThemes") &&
+	sourceRoot.includes("ThemeInput") &&
+	sourceRoot.includes("ThemeOverride") &&
+	sourceRoot.includes("ThemeRules") &&
+	sourceRoot.includes("ThemesContent") &&
+	sourceRoot.includes("ThemesRendition"),
 	"source root must export Themes public types"
 );
 assert(
