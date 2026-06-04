@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0413
+- Why:
+  - `Rendition.attachTo()` and `Rendition.display()` already expose `Promise<void>` in declarations and type smoke tests, but source still advertised `Promise<any>`.
+  - Aligning source return annotations keeps package-root `Rendition` public API parity enforceable before Gate 1 release work.
+  - This removes another source-side `Rendition` `any` leak without changing queue execution or display resolution behavior.
+- Diff Scope:
+  - `src/rendition.ts`: type `attachTo()` and `display()` as `Promise<void>`.
+  - `scripts/verify-gate1-readiness.mjs`: require source/declaration/type-test parity for attach/display void promise contracts.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if the source public API must intentionally advertise attach/display as `Promise<any>`.
+
 ### P-0412
 - Why:
   - `Rendition.book` and the constructor parameter already expose `Book` in declarations and type smoke tests, but source still accepted `book: any`.

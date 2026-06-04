@@ -380,7 +380,7 @@ class Rendition {
 	 * @param  {element} element to attach to
 	 * @return {Promise}
 	 */
-	attachTo(element: Element | string): Promise<any> {
+	attachTo(element: Element | string): Promise<void> {
 
 		return this.q.enqueue(function () {
 
@@ -397,7 +397,7 @@ class Rendition {
 			 */
 			this.emit(EVENTS.RENDITION.ATTACHED);
 
-		}.bind(this));
+		}.bind(this)) as Promise<void>;
 
 	}
 
@@ -409,11 +409,11 @@ class Rendition {
 	 * @param  {string} target Url or EpubCFI
 	 * @return {Promise}
 	 */
-	display(target?: string | number): Promise<any> {
+	display(target?: string | number): Promise<void> {
 		if (this.displaying) {
 			this.displaying.resolve!(undefined);
 		}
-		return this.q.enqueue(this._display, target);
+		return this.q.enqueue(this._display, target) as Promise<void>;
 	}
 
 	/**

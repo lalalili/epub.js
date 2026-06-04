@@ -961,6 +961,8 @@ assert(typeTests.includes("ReturnType<Rendition[\"requireView\"]>, string | Func
 assert(typeTests.includes("Rendition[\"displaying\"], Deferred<Section | undefined> | undefined"), "type tests must assert Rendition displaying section promise typing");
 assert(typeTests.includes("const renditionDisplaying: Deferred<Section | undefined> | undefined = rendition.displaying"), "type tests must cover Rendition displaying usage");
 assert(typeTests.includes("RenditionLocationPart[\"page\"], PageValue | undefined"), "type tests must assert Rendition location page PageValue typing");
+assert(typeTests.includes("ReturnType<Rendition[\"attachTo\"]>, Promise<void>"), "type tests must assert Rendition attachTo void promise typing");
+assert(typeTests.includes("ReturnType<Rendition[\"display\"]>, Promise<void>"), "type tests must assert Rendition display void promise typing");
 assert(typeTests.includes("const renditionMove: void = rendition.moveTo"), "type tests must cover Rendition moveTo usage");
 assert(typeTests.includes("const renditionNext: Promise<void> = rendition.next"), "type tests must cover Rendition next usage");
 assert(typeTests.includes("const renditionPrev: Promise<void> = rendition.prev"), "type tests must cover Rendition prev usage");
@@ -976,6 +978,14 @@ assert(
 		renditionTypes.includes("page?: PageValue") &&
 		typeTests.includes("Rendition[\"book\"], Book"),
 	"Rendition source and declarations must keep book constructor/property type parity"
+);
+assert(
+	renditionSource.includes("attachTo(element: Element | string): Promise<void>") &&
+		renditionSource.includes("display(target?: string | number): Promise<void>") &&
+		renditionTypes.includes("attachTo(element: Element | string): Promise<void>") &&
+		renditionTypes.includes("display(target?: string): Promise<void>") &&
+		renditionTypes.includes("display(target?: number): Promise<void>"),
+	"Rendition source and declarations must keep attach/display return type parity"
 );
 assert(
 	renditionSource.includes("requireManager(manager: string | Function | object): string | Function | object") &&
