@@ -11417,7 +11417,13 @@
 			return new EpubCFI(node, this.cfiBase, ignoreClass).toString();
 		}
 		map(layout) {
-			return new Mapping(layout).section(void 0);
+			var map = new Mapping(layout);
+			const view = {
+				section: { cfiBase: this.cfiBase },
+				contents: { scrollWidth: () => this.scrollWidth() },
+				document: this.document
+			};
+			return map.section(view);
 		}
 		/**
 		* Size the contents to a given width and height
@@ -11762,7 +11768,7 @@
 				stable: pageMetrics.stable,
 				totalPages
 			};
-			if (this.window.console && this.window.console.debug) this.window.console.debug("[epubjs:vertical-rl]", result);
+			if (this.window.console && typeof this.window.console.debug === "function") this.window.console.debug("[epubjs:vertical-rl]", result);
 			return result;
 		}
 		/**
@@ -11810,7 +11816,9 @@
 			if (this.documentElement) this.documentElement.style["direction"] = dir || "";
 		}
 		mapPage(cfiBase, layout, start, end, dev) {
-			return new Mapping(layout, void 0, void 0, dev).page(this, cfiBase, start, end);
+			var mapping = new Mapping(layout, void 0, void 0, dev);
+			const contents = { document: this.document };
+			return mapping.page(contents, cfiBase, start, end);
 		}
 		/**
 		* Emit event when link in content is clicked

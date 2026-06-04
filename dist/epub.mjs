@@ -6517,7 +6517,13 @@ var _t = class {
 		return new X(e, this.cfiBase, t).toString();
 	}
 	map(e) {
-		return new _t(e).section(void 0);
+		var t = new _t(e);
+		let n = {
+			section: { cfiBase: this.cfiBase },
+			contents: { scrollWidth: () => this.scrollWidth() },
+			document: this.document
+		};
+		return t.section(n);
 	}
 	size(e, t) {
 		var n = {
@@ -6740,7 +6746,7 @@ var _t = class {
 			stable: o.stable,
 			totalPages: l
 		};
-		return this.window.console && this.window.console.debug && this.window.console.debug("[epubjs:vertical-rl]", u), u;
+		return this.window.console && typeof this.window.console.debug == "function" && this.window.console.debug("[epubjs:vertical-rl]", u), u;
 	}
 	scaler(e, t, n) {
 		var r = "scale(" + e + ")", i = "";
@@ -6757,7 +6763,9 @@ var _t = class {
 		this.documentElement && (this.documentElement.style.direction = e || "");
 	}
 	mapPage(e, t, n, r, i) {
-		return new _t(t, void 0, void 0, i).page(this, e, n, r);
+		var a = new _t(t, void 0, void 0, i);
+		let o = { document: this.document };
+		return a.page(o, e, n, r);
 	}
 	linksHandler() {
 		Se(this.content, (e) => {

@@ -56,6 +56,7 @@ const globalTypeTests = readFileSync(path.join(root, "types/global-namespace-tes
 const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.test.js"), "utf8");
 const umdGlobalTests = readFileSync(path.join(root, "test/browser/umd-global.test.js"), "utf8");
 const viewsTests = readFileSync(path.join(root, "test/browser/views.test.js"), "utf8");
+const contentsTextWidthTests = readFileSync(path.join(root, "test/browser/contents-text-width.test.js"), "utf8");
 const debounceTypes = readFileSync(path.join(root, "types/lodash-debounce.d.ts"), "utf8");
 const throttleTypes = readFileSync(path.join(root, "types/lodash-throttle.d.ts"), "utf8");
 
@@ -1387,6 +1388,24 @@ assert(
 	contentsSource.includes("mapPage(cfiBase: string, layout: MappingLayout, start: number, end: number, dev?: boolean): EpubCFIPair | undefined") &&
 		contentsTypes.includes("mapPage(cfiBase: string, layout: MappingLayout, start: number, end: number, dev?: boolean): EpubCFIPair | undefined"),
 	"Contents source and declarations must keep map and mapPage MappingLayout return type parity"
+);
+assert(
+	contentsSource.includes("type MappingContents") &&
+		contentsSource.includes("type MappingView") &&
+		contentsSource.includes("const view: MappingView =") &&
+		contentsSource.includes("scrollWidth: () => this.scrollWidth()") &&
+		contentsSource.includes("const contents: MappingContents =") &&
+		contentsSource.includes("return mapping.page(contents, cfiBase, start, end)") &&
+		contentsSource.includes('this.window.console.debug("[epubjs:vertical-rl]", result)') &&
+		!contentsSource.includes("map.section(undefined as any)") &&
+		!contentsSource.includes("mapping.page(this as any") &&
+		!contentsSource.includes("(this.window as any).console"),
+	"Contents source must keep debug console and mapping bridges typed"
+);
+assert(
+	contentsTextWidthTests.includes("maps section and page CFI ranges through typed mapping bridges") &&
+		contentsTextWidthTests.includes("writes vertical-rl debug metrics through the typed console bridge"),
+	"contents focused browser tests must cover debug console and mapping bridges"
 );
 assert(
 	coreCollectionsSource.includes("export function defaults<T extends MutableRecord>(obj: T, ..._sources: MutableRecord[]): T;") &&

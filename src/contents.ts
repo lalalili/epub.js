@@ -4,7 +4,7 @@ import { defaults } from "./core/collections";
 import { isNumber } from "./core/types";
 import { borders } from "./platform/layout";
 import EpubCFI from "./epubcfi";
-import Mapping, { type EpubCFIPair, type MappingLayout } from "./mapping";
+import Mapping, { type EpubCFIPair, type MappingContents, type MappingLayout, type MappingView } from "./mapping";
 import { RangeObject } from "./compat/range";
 import {replaceLinks} from "./utils/replacements";
 import { EPUBJS_VERSION, EVENTS, DOM_EVENTS } from "./utils/constants";
@@ -1667,7 +1667,17 @@ class Contents {
 	// TODO: find where this is used - remove?
 	map(layout: MappingLayout): EpubCFIPair[] {
 		var map = new Mapping(layout);
-		return map.section(undefined as any);
+		const view: MappingView = {
+			section: {
+				cfiBase: this.cfiBase
+			},
+			contents: {
+				scrollWidth: () => this.scrollWidth()
+			},
+			document: this.document
+		};
+
+		return map.section(view);
 	}
 
 	/**
@@ -2160,8 +2170,8 @@ class Contents {
 			totalPages
 		};
 
-		if ((this.window as any).console && (this.window as any).console.debug) {
-			(this.window as any).console.debug("[epubjs:vertical-rl]", result);
+		if (this.window.console && typeof this.window.console.debug === "function") {
+			this.window.console.debug("[epubjs:vertical-rl]", result);
 		}
 
 		return result;
@@ -2240,8 +2250,11 @@ class Contents {
 
 	mapPage(cfiBase: string, layout: MappingLayout, start: number, end: number, dev?: boolean): EpubCFIPair | undefined {
 		var mapping = new Mapping(layout, undefined, undefined, dev);
+		const contents: MappingContents = {
+			document: this.document
+		};
 
-		return mapping.page(this as any, cfiBase, start, end);
+		return mapping.page(contents, cfiBase, start, end);
 	}
 
 	/**

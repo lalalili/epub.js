@@ -378,6 +378,50 @@ describe("Contents textWidth", () => {
 		}
 	});
 
+	it("maps section and page CFI ranges through typed mapping bridges", () => {
+		let content = appendFixture(document.createElement("div"));
+		content.textContent = "Readable text for mapping";
+		let contents = new Contents(document, content, "/6/2[chap]", 3, "OPS/chapter.xhtml");
+		let layout = {
+			spreadWidth: 320,
+			columnWidth: 320,
+			gap: 0,
+			divisor: 1
+		};
+
+		contents.scrollWidth = () => 320;
+
+		let sectionMap = contents.map(layout);
+		let pageMap = contents.mapPage("/6/2[chap]", layout, 0, 320);
+
+		expect(sectionMap.length).toBe(1);
+		expect(sectionMap[0].start).toContain("epubcfi(");
+		expect(sectionMap[0].end).toContain("epubcfi(");
+		expect(pageMap.start).toContain("epubcfi(");
+		expect(pageMap.end).toContain("epubcfi(");
+	});
+
+	it("writes vertical-rl debug metrics through the typed console bridge", () => {
+		let content = appendFixture(document.createElement("div"));
+		content.textContent = "Debuggable text";
+		let contents = new Contents(document, content);
+		let originalDebug = window.console.debug;
+		let debugArgs;
+
+		window.console.debug = (...args) => {
+			debugArgs = args;
+		};
+
+		try {
+			let result = contents.debugVerticalRlMetrics(320);
+
+			expect(debugArgs[0]).toBe("[epubjs:vertical-rl]");
+			expect(debugArgs[1]).toBe(result);
+		} finally {
+			window.console.debug = originalDebug;
+		}
+	});
+
 	it("applies vertical-rl columns while clearing multicolumn body styles", () => {
 		let doc = document.implementation.createHTMLDocument("contents");
 		let body = doc.body;
