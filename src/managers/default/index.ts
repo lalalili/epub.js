@@ -164,6 +164,12 @@ class DefaultViewManager {
 	declare rendered: boolean;
 	declare _layoutDirty: boolean;
 	declare _lastLayoutStageSize: ManagerStageSize | null;
+	declare ignore: boolean;
+	declare scrollTop: number;
+	declare scrollLeft: number;
+	declare target?: string | number;
+	declare writingMode?: string;
+	declare isPaginated: boolean;
 	declare name: string;
 	declare optsSettings: Record<string, unknown>;
 	declare View: ManagerViewConstructor;

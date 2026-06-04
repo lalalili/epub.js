@@ -1476,6 +1476,15 @@ assert(
 	"Default manager layout lifecycle flags must keep class state typed without catch-all any"
 );
 assert(
+	managerSource.includes("declare ignore: boolean") &&
+		managerSource.includes("declare scrollTop: number") &&
+		managerSource.includes("declare scrollLeft: number") &&
+		managerSource.includes("declare target?: string | number") &&
+		managerSource.includes("declare writingMode?: string") &&
+		managerSource.includes("declare isPaginated: boolean"),
+	"Default manager scroll and runtime flags must keep class state typed without catch-all any"
+);
+assert(
 	managerTypes.includes("[key: string]: unknown") &&
 		!managerTypes.includes("[key: string]: any") &&
 		typeTests.includes("ManagerOptions[\"custom\"], unknown"),
