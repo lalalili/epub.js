@@ -1451,6 +1451,13 @@ assert(
 	"Manager source and declarations must keep EventEmitter method type parity"
 );
 assert(
+	managerSource.includes("declare orientationTimeout?: ReturnType<typeof setTimeout>") &&
+		managerSource.includes("declare resizeTimeout?: ReturnType<typeof setTimeout>") &&
+		managerSource.includes("declare afterScrolled?: ReturnType<typeof setTimeout>") &&
+		managerSource.includes("declare _verticalRlBoundarySnapAfterScroll?: ReturnType<typeof setTimeout>"),
+	"Default manager timeout handles must keep class state typed without catch-all any"
+);
+assert(
 	managerTypes.includes("[key: string]: unknown") &&
 		!managerTypes.includes("[key: string]: any") &&
 		typeTests.includes("ManagerOptions[\"custom\"], unknown"),

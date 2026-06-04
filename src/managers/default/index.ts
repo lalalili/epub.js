@@ -147,6 +147,10 @@ type PositionedView = {
 
 class DefaultViewManager {
 	[key: string]: any;
+	declare orientationTimeout?: ReturnType<typeof setTimeout>;
+	declare resizeTimeout?: ReturnType<typeof setTimeout>;
+	declare afterScrolled?: ReturnType<typeof setTimeout>;
+	declare _verticalRlBoundarySnapAfterScroll?: ReturnType<typeof setTimeout>;
 	declare emit: (type: string, ...args: unknown[]) => void;
 	declare on: (type: string, listener: (...args: unknown[]) => void) => unknown;
 	declare off: (type: string, listener: (...args: unknown[]) => void) => unknown;
