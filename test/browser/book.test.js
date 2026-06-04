@@ -72,6 +72,20 @@ describe("Book", () => {
 		}
 	});
 
+	it("resolves open with the book instance", async () => {
+		var book = new Book();
+
+		try {
+			var opened = await book.open(fixtureUrl("alice/OPS/package.opf"));
+			await book.ready;
+
+			expect(opened).toBe(book);
+			expect(book.isOpen).toBe(true);
+		} finally {
+			book.destroy();
+		}
+	});
+
 	it("resolves the local cover URL for an unpacked EPUB", async () => {
 		var book = new Book(fixtureUrl("alice/OPS/package.opf"));
 

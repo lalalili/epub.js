@@ -14747,10 +14747,10 @@ var ai = class {
 		return this.load(e, "xml").then((e) => (this.container = new Xe(e), this.resolve(this.container.packagePath)));
 	}
 	openPackaging(e) {
-		return this.path = new re(e), this.load(e, "xml").then((e) => (this.packaging = new Ze(e), this.unpack(this.packaging)));
+		return this.path = new re(e), this.load(e, "xml").then((e) => (this.packaging = new Ze(e), this.unpack(this.packaging), this));
 	}
 	openManifest(e) {
-		return this.path = new re(e), this.load(e, "json").then((e) => (this.packaging = new Ze(), this.packaging.load(e), this.unpack(this.packaging)));
+		return this.path = new re(e), this.load(e, "json").then((e) => (this.packaging = new Ze(), this.packaging.load(e), this.unpack(this.packaging), this));
 	}
 	load(e, t) {
 		var n = this.resolve(e);
@@ -14845,7 +14845,7 @@ var ai = class {
 	replacements() {
 		return this.spine.hooks.serialize.register((e, t) => {
 			t.output = this.resources.substitute(e, t.url);
-		}), this.resources.replacements().then(() => this.resources.replaceCss());
+		}), this.resources.replacements().then(() => this.resources.replaceCss()).then(() => {});
 	}
 	getRange(e) {
 		var t = new X(e), n = this.spine.get(t.spinePos), r = this.load.bind(this);

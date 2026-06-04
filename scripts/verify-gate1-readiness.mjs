@@ -56,6 +56,7 @@ const queueTypes = readFileSync(path.join(root, "types/utils/queue.d.ts"), "utf8
 const hookSource = readFileSync(path.join(root, "src/utils/hook.ts"), "utf8");
 const hookTypes = readFileSync(path.join(root, "types/utils/hook.d.ts"), "utf8");
 const globalTypeTests = readFileSync(path.join(root, "types/global-namespace-tests.ts"), "utf8");
+const bookTests = readFileSync(path.join(root, "test/browser/book.test.js"), "utf8");
 const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.test.js"), "utf8");
 const umdGlobalTests = readFileSync(path.join(root, "test/browser/umd-global.test.js"), "utf8");
 const viewsTests = readFileSync(path.join(root, "test/browser/views.test.js"), "utf8");
@@ -1056,6 +1057,8 @@ assert(typeTests.includes("book.unarchive(bookInput)"), "type tests must cover B
 assert(typeTests.includes("ReturnType<Book[\"unarchive\"]>, Promise<ArchiveZip>"), "type tests must assert Book unarchive ArchiveZip return typing");
 assert(typeTests.includes("ReturnType<Book[\"load\"]>, Promise<RequestResponse>"), "type tests must cover Book load request response typing");
 assert(typeTests.includes("ReturnType<Book[\"openContainer\"]>, Promise<string>"), "type tests must assert Book openContainer package path typing");
+assert(typeTests.includes("ReturnType<Book[\"openManifest\"]>, Promise<Book>"), "type tests must assert Book openManifest return typing");
+assert(typeTests.includes("ReturnType<Book[\"openPackaging\"]>, Promise<Book>"), "type tests must assert Book openPackaging return typing");
 assert(typeTests.includes("const bookContainerPath: Promise<string> = book.openContainer"), "type tests must cover Book openContainer usage");
 assert(typeTests.includes("Parameters<Book[\"renderTo\"]>[1], RenditionOptions | undefined"), "type tests must assert Book renderTo options typing");
 assert(typeTests.includes("const bookRendition: Rendition = book.renderTo"), "type tests must cover Book renderTo RenditionOptions usage");
@@ -1124,6 +1127,28 @@ assert(
 	bookSource.includes("openContainer(url: string): Promise<string>") &&
 		bookTypes.includes("openContainer(url: string): Promise<string>"),
 	"Book source and declarations must keep openContainer package path type parity"
+);
+assert(
+	bookSource.includes("open(input: BookInput, what?: string): Promise<Book>") &&
+		bookSource.includes("var opening: Promise<Book>") &&
+		bookSource.includes("openEpub(data: BookInput | string, encoding?: string): Promise<Book>") &&
+		bookSource.includes("openPackaging(url: string): Promise<Book>") &&
+		bookSource.includes("openManifest(url: string): Promise<Book>") &&
+		bookSource.includes("replacements(): Promise<void>") &&
+		bookSource.includes("this.unpack(this.packaging);") &&
+		bookSource.includes("return this;") &&
+		bookTypes.includes("open(input: string, what?: string): Promise<Book>") &&
+		bookTypes.includes("openEpub(data: BookInput, encoding?: string): Promise<Book>") &&
+		bookTypes.includes("openManifest(url: string): Promise<Book>") &&
+		bookTypes.includes("openPackaging(url: string): Promise<Book>") &&
+		bookTypes.includes("private replacements(): Promise<void>") &&
+		bookTests.includes("resolves open with the book instance") &&
+		!bookSource.includes("open(input: BookInput, what?: string): Promise<any>") &&
+		!bookSource.includes("openEpub(data: BookInput | string, encoding?: string): Promise<any>") &&
+		!bookSource.includes("openPackaging(url: string): Promise<any>") &&
+		!bookSource.includes("openManifest(url: string): Promise<any>") &&
+		!bookSource.includes("replacements(): Promise<any>"),
+	"Book source and declarations must keep open and replacement return type parity"
 );
 assert(typeTests.includes("rendition.determineLayoutProperties"), "type tests must cover Rendition layout property typing");
 assert(typeTests.includes("Parameters<Rendition[\"determineLayoutProperties\"]>, [metadata: PackagingMetadata]"), "type tests must assert Rendition metadata parameter typing");

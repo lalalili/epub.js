@@ -506,6 +506,8 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Book["open"]>, Promise<Book>>>,
   Assert<IsExact<ReturnType<Book["openContainer"]>, Promise<string>>>,
   Assert<IsExact<ReturnType<Book["openEpub"]>, Promise<Book>>>,
+  Assert<IsExact<ReturnType<Book["openManifest"]>, Promise<Book>>>,
+  Assert<IsExact<ReturnType<Book["openPackaging"]>, Promise<Book>>>,
   Assert<IsExact<ReturnType<Book["renderTo"]>, Rendition>>,
   Assert<IsExact<Parameters<Book["renderTo"]>[1], RenditionOptions | undefined>>,
   Assert<IsExact<ReturnType<Book["resolve"]>, string | undefined>>,

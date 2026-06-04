@@ -332,8 +332,8 @@ class Book {
 	 * @returns {Promise} of when the book has been loaded
 	 * @example book.open("/path/to/book.epub")
 	 */
-	open(input: BookInput, what?: string): Promise<any> {
-		var opening;
+	open(input: BookInput, what?: string): Promise<Book> {
+		var opening: Promise<Book>;
 		var type = what || this.determineType(input);
 
 		if (type === INPUT_TYPE.BINARY) {
@@ -371,7 +371,7 @@ class Book {
 	 * @param  {string} [encoding]
 	 * @return {Promise}
 	 */
-	openEpub(data: BookInput | string, encoding?: string): Promise<any> {
+	openEpub(data: BookInput | string, encoding?: string): Promise<Book> {
 		return this.unarchive(data, encoding || this.settings.encoding)
 			.then(() => {
 				return this.openContainer(CONTAINER_PATH);
@@ -401,12 +401,13 @@ class Book {
 	 * @param  {string} url
 	 * @return {Promise}
 	 */
-	openPackaging(url: string): Promise<any> {
+	openPackaging(url: string): Promise<Book> {
 		this.path = new Path(url);
 		return this.load(url, "xml")
 			.then((xml) => {
 				this.packaging = new Packaging(xml);
-				return this.unpack(this.packaging);
+				this.unpack(this.packaging);
+				return this;
 			});
 	}
 
@@ -416,13 +417,14 @@ class Book {
 	 * @param  {string} url
 	 * @return {Promise}
 	 */
-	openManifest(url: string): Promise<any> {
+	openManifest(url: string): Promise<Book> {
 		this.path = new Path(url);
 		return this.load(url, "json")
 			.then((json) => {
 				this.packaging = new Packaging();
 				this.packaging.load(json as unknown as PackagingJsonManifest);
-				return this.unpack(this.packaging);
+				this.unpack(this.packaging);
+				return this;
 			});
 	}
 
@@ -789,7 +791,7 @@ class Book {
 	 * @private
 	 * @return {Promise} completed loading urls
 	 */
-	replacements(): Promise<any> {
+	replacements(): Promise<void> {
 		this.spine!.hooks!.serialize.register((output: string, section: SectionLike) => {
 			section.output = this.resources!.substitute(output, section.url);
 		});
@@ -797,6 +799,9 @@ class Book {
 		return this.resources!.replacements().
 			then(() => {
 				return this.resources!.replaceCss();
+			})
+			.then(() => {
+				return;
 			});
 	}
 

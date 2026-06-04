@@ -19958,7 +19958,8 @@
 			this.path = new Path(url);
 			return this.load(url, "xml").then((xml) => {
 				this.packaging = new Packaging(xml);
-				return this.unpack(this.packaging);
+				this.unpack(this.packaging);
+				return this;
 			});
 		}
 		/**
@@ -19972,7 +19973,8 @@
 			return this.load(url, "json").then((json) => {
 				this.packaging = new Packaging();
 				this.packaging.load(json);
-				return this.unpack(this.packaging);
+				this.unpack(this.packaging);
+				return this;
 			});
 		}
 		load(path, _type) {
@@ -20205,7 +20207,7 @@
 			});
 			return this.resources.replacements().then(() => {
 				return this.resources.replaceCss();
-			});
+			}).then(() => {});
 		}
 		/**
 		* Find a DOM Range for a given CFI Range
