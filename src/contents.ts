@@ -45,6 +45,33 @@ export interface VerticalRlPageMetrics {
 	totalPages: number;
 	snappedContentWidth: number;
 }
+export interface VerticalRlDebugMetrics {
+	userAgent: string;
+	htmlWritingMode: string | null;
+	bodyWritingMode: string | null;
+	htmlDirection: string | null;
+	bodyDirection: string | null;
+	htmlOverflow: string | null;
+	bodyOverflow: string | null;
+	bodyRectLeft: number | null;
+	bodyRectRight: number | null;
+	bodyRectWidth: number | null;
+	rangeRectLeft: number | null;
+	rangeRectRight: number | null;
+	rangeRectWidth: number | null;
+	rawContentWidth: number;
+	rawContentHeight: number;
+	snappedContentWidth: number;
+	pageWidth: number;
+	effectivePageAdvance: number | null;
+	linePitch: number | null;
+	lineWidth: number | null;
+	edgeGuardPx: number;
+	sampleCount: number;
+	gapMad: number | null;
+	stable: boolean;
+	totalPages: number;
+}
 type VerticalRlLineMetrics = {
 	linePitch: number | null;
 	lineWidth: number | null;
@@ -2068,7 +2095,7 @@ class Contents {
 		return result;
 	}
 
-	debugVerticalRlMetrics(pageWidth?: number): Record<string, any> {
+	debugVerticalRlMetrics(pageWidth?: number): VerticalRlDebugMetrics {
 		const content = this.content || this.document.body;
 		const htmlStyle = this.documentElement ? this.window.getComputedStyle(this.documentElement) : null;
 		const bodyStyle = content ? this.window.getComputedStyle(content) : null;
@@ -2088,7 +2115,7 @@ class Contents {
 		const snappedContentWidth = pageMetrics.snappedContentWidth;
 		const totalPages = pageMetrics.totalPages;
 
-		const result = {
+		const result: VerticalRlDebugMetrics = {
 			userAgent: this.window.navigator.userAgent,
 			htmlWritingMode: htmlStyle ? htmlStyle.writingMode : null,
 			bodyWritingMode: bodyStyle ? bodyStyle.writingMode : null,

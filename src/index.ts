@@ -79,6 +79,7 @@ export type {
 
 export type {
 	ContentsSize,
+	VerticalRlDebugMetrics,
 	VerticalRlPageMetrics,
 	VerticalRlMetricsCache,
 	VerticalRlPageMetricsCache,

@@ -775,6 +775,7 @@ assert(
 );
 assert(
 	typeTests.includes("RootContentsSize") &&
+	typeTests.includes("RootVerticalRlDebugMetrics") &&
 	typeTests.includes("RootVerticalRlPageMetrics") &&
 	typeTests.includes("RootVerticalRlMetricsCache") &&
 	typeTests.includes("RootVerticalRlPageMetricsCache") &&
@@ -786,6 +787,7 @@ assert(typeTests.includes("typedContents.sectionHref"), "type tests must cover C
 assert(typeTests.includes("typedContents._verticalRlMetricsCache"), "type tests must cover Contents vertical-rl metrics cache typing");
 assert(typeTests.includes("VerticalRlPageMetricsCache[\"metrics\"], VerticalRlPageMetrics"), "type tests must assert Contents vertical-rl page metrics cache payload typing");
 assert(typeTests.includes("ReturnType<Contents[\"verticalRlPageMetrics\"]>, VerticalRlPageMetrics"), "type tests must assert Contents vertical-rl page metrics return typing");
+assert(typeTests.includes("ReturnType<Contents[\"debugVerticalRlMetrics\"]>, VerticalRlDebugMetrics"), "type tests must assert Contents vertical-rl debug metrics return typing");
 assert(typeTests.includes("Parameters<Contents[\"fit\"]>, [width: number, height: number, section?: unknown]"), "type tests must assert Contents fit optional section typing");
 assert(typeTests.includes("typedContents.fit(320, 480"), "type tests must cover Contents fit optional section usage");
 assert(typeTests.includes("ReturnType<Contents[\"on\"]>, unknown"), "type tests must assert Contents EventEmitter listener typing");
@@ -803,6 +805,7 @@ assert(contentsSource.includes("fit(width: number, height: number, section?: unk
 assert(
 	sourceRoot.includes("\tContents,") &&
 	sourceRoot.includes("ContentsSize") &&
+	sourceRoot.includes("VerticalRlDebugMetrics") &&
 	sourceRoot.includes("VerticalRlPageMetrics") &&
 	sourceRoot.includes("VerticalRlMetricsCache") &&
 	sourceRoot.includes("VerticalRlPageMetricsCache") &&
@@ -814,6 +817,11 @@ assert(
 	contentsSource.includes("metrics: VerticalRlPageMetrics;") &&
 	contentsSource.includes("verticalRlPageMetrics(pageWidth?: number, pageHeight?: number): VerticalRlPageMetrics"),
 	"source Contents must expose typed vertical-rl page metrics"
+);
+assert(
+	contentsSource.includes("export interface VerticalRlDebugMetrics") &&
+	contentsSource.includes("debugVerticalRlMetrics(pageWidth?: number): VerticalRlDebugMetrics"),
+	"source Contents must expose typed vertical-rl debug metrics"
 );
 assert(typeTests.includes("type CoreUtilsAssertions"), "type tests must assert the utils/core public surface");
 assert(

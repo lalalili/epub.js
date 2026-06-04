@@ -23,7 +23,7 @@ export type { default as Container, ContainerDocument } from './container';
 export type { default as DisplayOptions } from './displayoptions';
 export { default as Layout } from './layout';
 export type { LayoutContent, LayoutCount, LayoutProps, LayoutSettings } from './layout';
-export type { ContentsSize, VerticalRlPageMetrics, VerticalRlMetricsCache, VerticalRlPageMetricsCache, ViewportSettings } from './contents';
+export type { ContentsSize, VerticalRlDebugMetrics, VerticalRlPageMetrics, VerticalRlMetricsCache, VerticalRlPageMetricsCache, ViewportSettings } from './contents';
 export type { AnimationFrameRequest, BlobContent, Deferred, RectBounds, SizeBounds } from './utils/core';
 export type { default as Navigation, LandmarkItem, NavItem, NavigationDocument, NavigationInput, NavigationInputItem } from './navigation';
 export type { default as Packaging, PackagingJsonManifest, PackagingJsonManifestBase, PackagingManifest, PackagingManifestItem, PackagingManifestObject, PackagingMetadata, PackagingMetadataObject, PackagingObject, PackagingSpineItem, PackagingTocItem } from './packaging';

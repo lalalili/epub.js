@@ -372,7 +372,7 @@
 
 ### debugVerticalRlMetrics()
 
-> **debugVerticalRlMetrics**(`pageWidth?`): `Record`\<`string`, `any`\>
+> **debugVerticalRlMetrics**(`pageWidth?`): [`VerticalRlDebugMetrics`](../interfaces/VerticalRlDebugMetrics.md)
 
 #### Parameters
 
@@ -382,7 +382,7 @@
 
 #### Returns
 
-`Record`\<`string`, `any`\>
+[`VerticalRlDebugMetrics`](../interfaces/VerticalRlDebugMetrics.md)
 
 ***
 

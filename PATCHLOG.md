@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0376
+- Why:
+  - `Contents.debugVerticalRlMetrics()` is a package-root exported diagnostic method, but its return surface still leaked `Record<string, any>`.
+  - The method builds a fixed debug payload from writing-mode styles, body/range rects, and vertical-rl page metrics.
+  - Naming that payload as `VerticalRlDebugMetrics` keeps debug output typed without changing vertical writing measurement, console debug emission, or runtime diagnostics.
+- Diff Scope:
+  - `src/contents.ts`: add `VerticalRlDebugMetrics` and use it for `debugVerticalRlMetrics()`.
+  - `src/index.ts`, `types/index.d.ts`, `types/contents.d.ts`: export and mirror the `VerticalRlDebugMetrics` public type.
+  - `types/epubjs-tests.ts`: assert root export parity and method return typing.
+  - `scripts/verify-gate1-readiness.mjs`: require Contents vertical-rl debug metrics parity across source and type smoke.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if consumers intentionally rely on debug vertical-rl metrics being typed as arbitrary `Record<string, any>`.
+
 ### P-0375
 - Why:
   - `Contents.verticalRlPageMetrics()` and `VerticalRlPageMetricsCache.metrics` are package-root exported surfaces, but they still exposed the page metrics payload as `Record<string, any>`.

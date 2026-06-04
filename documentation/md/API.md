@@ -111,6 +111,7 @@
 - [ThemesContent](interfaces/ThemesContent.md)
 - [ThemesRendition](interfaces/ThemesRendition.md)
 - [Url](interfaces/Url.md)
+- [VerticalRlDebugMetrics](interfaces/VerticalRlDebugMetrics.md)
 - [VerticalRlMetricsCache](interfaces/VerticalRlMetricsCache.md)
 - [VerticalRlPageMetrics](interfaces/VerticalRlPageMetrics.md)
 - [VerticalRlPageMetricsCache](interfaces/VerticalRlPageMetricsCache.md)

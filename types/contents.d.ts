@@ -40,6 +40,34 @@ export interface VerticalRlPageMetrics {
   snappedContentWidth: number
 }
 
+export interface VerticalRlDebugMetrics {
+  userAgent: string,
+  htmlWritingMode: string | null,
+  bodyWritingMode: string | null,
+  htmlDirection: string | null,
+  bodyDirection: string | null,
+  htmlOverflow: string | null,
+  bodyOverflow: string | null,
+  bodyRectLeft: number | null,
+  bodyRectRight: number | null,
+  bodyRectWidth: number | null,
+  rangeRectLeft: number | null,
+  rangeRectRight: number | null,
+  rangeRectWidth: number | null,
+  rawContentWidth: number,
+  rawContentHeight: number,
+  snappedContentWidth: number,
+  pageWidth: number,
+  effectivePageAdvance: number | null,
+  linePitch: number | null,
+  lineWidth: number | null,
+  edgeGuardPx: number,
+  sampleCount: number,
+  gapMad: number | null,
+  stable: boolean,
+  totalPages: number
+}
+
 export interface VerticalRlPageMetricsCache {
   key: string,
   metrics: VerticalRlPageMetrics
@@ -144,7 +172,7 @@ export default class Contents {
 
     verticalRlPageMetrics(pageWidth?: number, pageHeight?: number): VerticalRlPageMetrics;
 
-    debugVerticalRlMetrics(pageWidth?: number): Record<string, any>;
+    debugVerticalRlMetrics(pageWidth?: number): VerticalRlDebugMetrics;
 
     viewport(options?: ViewportSettings): ViewportSettings;
 
