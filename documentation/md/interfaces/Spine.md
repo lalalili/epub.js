@@ -112,7 +112,7 @@
 
 ##### thisArg?
 
-`any`
+`unknown`
 
 #### Returns
 

@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0401
+- Why:
+  - `Spine.each()` forwards directly to `Array.prototype.forEach`, and the optional `thisArg` does not need to leak `any` through the package-root public API.
+  - The callback already receives typed `Section` items, indexes, and section arrays; tightening `thisArg` keeps the iterator surface typed end to end.
+  - This preserves iteration behavior while making Gate 1 enforce the remaining `each()` callback contract.
+- Diff Scope:
+  - `src/spine.ts`: type `each()` `thisArg` as `unknown`.
+  - `types/spine.d.ts`: mirror the same `each()` `thisArg` type.
+  - `types/epubjs-tests.ts`: assert and exercise `Spine.each()` callback and `thisArg` typing.
+  - `scripts/verify-gate1-readiness.mjs`: require Spine each source/declaration/type-test parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `Spine.each()` must intentionally expose an untyped `thisArg`.
+
 ### P-0400
 - Why:
   - `Book.openContainer()` loads `META-INF/container.xml` and resolves the rootfile package path, which the public declaration already exposes as `Promise<string>`.

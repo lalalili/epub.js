@@ -74,7 +74,7 @@ export default class Spine {
 
   remove(section: Section): Array<Section> | undefined;
 
-  each(callback: (section: Section, index: number, sections: Array<Section>) => void, thisArg?: any): void;
+  each(callback: (section: Section, index: number, sections: Array<Section>) => void, thisArg?: unknown): void;
 
   first(): Section | undefined;
 

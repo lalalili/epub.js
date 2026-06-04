@@ -18,6 +18,8 @@ const managerTypes = readFileSync(path.join(root, "types/managers/manager.d.ts")
 const viewTypes = readFileSync(path.join(root, "types/managers/view.d.ts"), "utf8");
 const archiveSource = readFileSync(path.join(root, "src/archive.ts"), "utf8");
 const storeSource = readFileSync(path.join(root, "src/store.ts"), "utf8");
+const spineSource = readFileSync(path.join(root, "src/spine.ts"), "utf8");
+const spineTypes = readFileSync(path.join(root, "types/spine.d.ts"), "utf8");
 const navigationTypes = readFileSync(path.join(root, "types/navigation.d.ts"), "utf8");
 const pageListSource = readFileSync(path.join(root, "src/pagelist.ts"), "utf8");
 const pageListTypes = readFileSync(path.join(root, "types/pagelist.d.ts"), "utf8");
@@ -484,6 +486,13 @@ assert(typeTests.includes("section.search(\"Text\")"), "type tests must cover Se
 assert(typeTests.includes("type SpineAssertions"), "type tests must assert the Spine public surface");
 assert(typeTests.includes("spine.unpack(spinePackage"), "type tests must cover Spine unpack package typing");
 assert(typeTests.includes("spine.remove(spineSection)"), "type tests must cover Spine remove result typing");
+assert(typeTests.includes("Parameters<Spine[\"each\"]>, [callback: (section: Section, index: number, sections: Section[]) => void, thisArg?: unknown]"), "type tests must assert Spine each thisArg unknown typing");
+assert(typeTests.includes("const spineEach: void = spine.each"), "type tests must cover Spine each usage");
+assert(
+	spineSource.includes("each(callback: (section: Section, index: number, sections: Section[]) => void, thisArg?: unknown): void") &&
+		spineTypes.includes("each(callback: (section: Section, index: number, sections: Array<Section>) => void, thisArg?: unknown): void"),
+	"Spine source and declarations must keep each callback and thisArg type parity"
+);
 assert(typeTests.includes("type ArchiveAssertions"), "type tests must assert the Archive public surface");
 assert(typeTests.includes("RootArchiveZip"), "type tests must assert root Archive zip typing");
 assert(typeTests.includes("ArchiveMarkupRequestType, \"xml\" | \"opf\" | \"ncx\" | \"xhtml\" | \"html\" | \"htm\""), "type tests must assert Archive markup request typing");

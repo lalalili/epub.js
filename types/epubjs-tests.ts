@@ -712,6 +712,7 @@ type SpineAssertions = [
   Assert<IsExact<ReturnType<Spine["append"]>, number>>,
   Assert<IsExact<ReturnType<Spine["prepend"]>, number>>,
   Assert<IsExact<ReturnType<Spine["remove"]>, Section[] | undefined>>,
+  Assert<IsExact<Parameters<Spine["each"]>, [callback: (section: Section, index: number, sections: Section[]) => void, thisArg?: unknown]>>,
   Assert<IsExact<ReturnType<Spine["each"]>, void>>,
   Assert<IsExact<ReturnType<Spine["first"]>, Section | undefined>>,
   Assert<IsExact<ReturnType<Spine["last"]>, Section | undefined>>,
@@ -1429,6 +1430,15 @@ function testEpub() {
   const firstSpineSection: Section | undefined = spine.first();
   const lastSpineSection: Section | undefined = spine.last();
   const removedSpineSections: Section[] | undefined = spineSection ? spine.remove(spineSection) : undefined;
+  const spineEachThisArg: unknown = { scope: "spine" };
+  const spineEach: void = spine.each((section, index, sections) => {
+    const sectionItem: Section = section;
+    const sectionIndex: number = index;
+    const sectionItems: Section[] = sections;
+    void sectionItem;
+    void sectionIndex;
+    void sectionItems;
+  }, spineEachThisArg);
   const archive = new Archive();
   const archiveInput: ArchiveInput = new ArrayBuffer(0);
   const archiveRequestType: ArchiveRequestType = "xhtml";
@@ -1892,6 +1902,7 @@ function testEpub() {
   void firstSpineSection;
   void lastSpineSection;
   void removedSpineSections;
+  void spineEach;
   void archiveZipLoad;
   void openedArchive;
   void openedArchiveUrl;
