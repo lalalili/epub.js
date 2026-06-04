@@ -69,5 +69,5 @@ export default class Mapping {
 
   rangeListToCfiList(cfiBase: string, columns: Array<RangePair>): Array<EpubCFIPair>;
 
-  axis(axis?: string): boolean;
+  axis(axis?: MappingAxis): boolean;
 }

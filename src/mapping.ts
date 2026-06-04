@@ -541,7 +541,7 @@ class Mapping {
 	 * @param {string} axis horizontal | vertical
 	 * @return {boolean} is it horizontal?
 	 */
-	axis(axis?: string): boolean {
+	axis(axis?: MappingAxis): boolean {
 		if (axis) {
 			this.horizontal = (axis === "horizontal") ? true : false;
 		}

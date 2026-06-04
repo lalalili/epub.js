@@ -542,6 +542,8 @@ assert(typeTests.includes("type MappingAssertions"), "type tests must assert the
 assert(typeTests.includes("new Mapping(mappingLayout"), "type tests must cover Mapping construction typing");
 assert(typeTests.includes("mapping.page(mappingContents"), "type tests must cover Mapping page typing");
 assert(typeTests.includes("MappingView[\"section\"], MappingSection"), "type tests must assert MappingView section typing");
+assert(typeTests.includes("Parameters<Mapping[\"axis\"]>, [axis?: MappingAxis | undefined]"), "type tests must assert Mapping axis alias typing");
+assert(typeTests.includes("const mappingAxisInput: MappingAxis"), "type tests must cover MappingAxis usage");
 assert(typeTests.includes("ReturnType<Mapping[\"walk\"]>"), "type tests must cover Mapping walk callback return typing");
 assert(typeTests.includes("mapping.rangePairToCfiPair"), "type tests must cover Mapping range-to-CFI typing");
 assert(typeTests.includes("const mappingSectionShape: MappingSection"), "type tests must cover MappingSection usage");
@@ -549,7 +551,9 @@ assert(
 	mappingSource.includes("export interface MappingSection") &&
 	mappingSource.includes("section: MappingSection") &&
 	mappingTypes.includes("export interface MappingSection") &&
-	mappingTypes.includes("section: MappingSection"),
+	mappingTypes.includes("section: MappingSection") &&
+	mappingSource.includes("axis(axis?: MappingAxis): boolean") &&
+	mappingTypes.includes("axis(axis?: MappingAxis): boolean"),
 	"Mapping source and declarations must keep MappingSection parity"
 );
 assert(typeTests.includes("type ThemesAssertions"), "type tests must assert the Themes public surface");

@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0359
+- Why:
+  - `MappingAxis` is already part of the public Mapping export surface and is used by the `Mapping` constructor, but `Mapping.axis()` still accepted a raw `string` in both source and declarations.
+  - That left the axis setter outside the named public alias parity guards even though it mutates the same horizontal/vertical state as the constructor axis input.
+  - Reusing `MappingAxis` keeps source/.d.ts/type-smoke/Gate 1 parity enforceable, without narrowing legacy accepted values or changing the existing non-`"horizontal"`-means-vertical runtime behavior.
+- Diff Scope:
+  - `src/mapping.ts`, `types/mapping.d.ts`: type `Mapping.axis()` with `MappingAxis`.
+  - `types/epubjs-tests.ts`: add `MappingAxis` method parameter and usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require `Mapping.axis()` source/declaration/type-smoke parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/mapping.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `Mapping.axis()` should intentionally remain typed as a raw string instead of the root-exported axis alias.
+
 ### P-0358
 - Why:
   - `MappingView.section` is part of the public mapping view input shape, but its `cfiBase` contract was represented by an internal source-only `MappingSection` interface and an inline declaration object.

@@ -216,7 +216,7 @@ import Packaging, {
 } from './packaging';
 import PageList, { PageListDocument, PageListItem, PageLookup, PageReverseLookup, PageValue } from './pagelist';
 import Locations, { LocationInput, LocationRange, LocationsRequest, WordLocation } from './locations';
-import Mapping, { EpubCFIPair, MappingContents, MappingLayout, MappingSection, MappingTextNodeWalker, MappingView, RangePair } from './mapping';
+import Mapping, { EpubCFIPair, MappingAxis, MappingContents, MappingLayout, MappingSection, MappingTextNodeWalker, MappingView, RangePair } from './mapping';
 import type { DisplayedLocation, LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionLocationPart, RenditionOptions } from './rendition';
 import Resources, {
   ReplacementMode,
@@ -877,6 +877,7 @@ type LocationsAssertions = [
 
 type MappingAssertions = [
   Assert<IsExact<ConstructorParameters<typeof Mapping>, [layout: MappingLayout, direction?: string | undefined, axis?: string | undefined, dev?: boolean | undefined]>>,
+  Assert<IsExact<MappingAxis, string>>,
   Assert<IsExact<Mapping["layout"], MappingLayout>>,
   Assert<IsExact<Mapping["horizontal"], boolean>>,
   Assert<IsExact<Mapping["direction"], string>>,
@@ -893,6 +894,7 @@ type MappingAssertions = [
   Assert<IsExact<ReturnType<Mapping["splitTextNodeIntoRanges"]>, Range[]>>,
   Assert<IsExact<ReturnType<Mapping["rangePairToCfiPair"]>, EpubCFIPair>>,
   Assert<IsExact<ReturnType<Mapping["rangeListToCfiList"]>, EpubCFIPair[]>>,
+  Assert<IsExact<Parameters<Mapping["axis"]>, [axis?: MappingAxis | undefined]>>,
   Assert<IsExact<ReturnType<Mapping["axis"]>, boolean>>
 ];
 
@@ -1385,7 +1387,8 @@ function testEpub() {
     document: parsedDocument,
   };
   const mappingSection: EpubCFIPair[] = mapping.section(mappingView);
-  const mappingAxis: boolean = mapping.axis("vertical");
+  const mappingAxisInput: MappingAxis = "vertical";
+  const mappingAxis: boolean = mapping.axis(mappingAxisInput);
   const themeRules: ThemeRules = {
     body: {
       color: "purple",
