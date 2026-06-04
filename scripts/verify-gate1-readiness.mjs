@@ -355,6 +355,7 @@ assert(
 assert(
 	typeTests.includes("RootPackaging") &&
 	typeTests.includes("RootPackagingJsonManifest") &&
+	typeTests.includes("RootPackagingJsonManifestBase") &&
 	typeTests.includes("RootPackagingManifest") &&
 	typeTests.includes("RootPackagingManifestItem") &&
 	typeTests.includes("RootPackagingManifestObject") &&
@@ -368,6 +369,7 @@ assert(
 assert(
 	sourceRoot.includes("default as Packaging") &&
 	sourceRoot.includes("PackagingJsonManifest") &&
+	sourceRoot.includes("PackagingJsonManifestBase") &&
 	sourceRoot.includes("PackagingManifest") &&
 	sourceRoot.includes("PackagingManifestItem") &&
 	sourceRoot.includes("PackagingManifestObject") &&
@@ -440,8 +442,10 @@ assert(
 );
 assert(typeTests.includes("type PackagingAssertions"), "type tests must assert the Packaging public surface");
 assert(typeTests.includes("RootPackagingObject"), "type tests must assert root Packaging object typing");
+assert(typeTests.includes("PackagingJsonManifestBase, { metadata: PackagingMetadataObject; resources: PackagingManifestItem[]; toc: PackagingTocItem[] }"), "type tests must assert Packaging JSON manifest base typing");
 assert(typeTests.includes("new Packaging()"), "type tests must cover Packaging construction without a document");
 assert(typeTests.includes("packaging.load(packagingJson)"), "type tests must cover Packaging JSON manifest loading");
+assert(typeTests.includes("packaging.load(packagingSpineJson)"), "type tests must cover Packaging JSON manifest spine fallback loading");
 assert(typeTests.includes("ReturnType<Packaging[\"destroy\"]>"), "type tests must cover Packaging destroy return typing");
 assert(typeTests.includes("type DisplayOptionsAssertions"), "type tests must assert the DisplayOptions public surface");
 assert(typeTests.includes("RootDisplayOptions"), "type tests must assert root DisplayOptions class typing");

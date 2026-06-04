@@ -58,13 +58,22 @@ export interface PackagingTocItem {
 	[key: string]: unknown;
 }
 
-export interface PackagingJsonManifest {
+export interface PackagingJsonManifestBase {
 	metadata: PackagingMetadataObject;
-	readingOrder?: PackagingSpineItem[];
-	spine?: PackagingSpineItem[];
 	resources: PackagingManifestItem[];
 	toc: PackagingTocItem[];
 }
+
+export type PackagingJsonManifest = PackagingJsonManifestBase & (
+	| {
+		readingOrder: PackagingSpineItem[];
+		spine?: PackagingSpineItem[];
+	}
+	| {
+		readingOrder?: PackagingSpineItem[];
+		spine: PackagingSpineItem[];
+	}
+);
 
 export interface PackagingObject {
 	metadata: PackagingMetadataObject;

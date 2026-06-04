@@ -207,6 +207,7 @@ export type {
 } from "./themes";
 
 export type {
+	PackagingJsonManifestBase,
 	PackagingJsonManifest,
 	PackagingManifest,
 	PackagingManifestItem,

@@ -2,9 +2,9 @@
 
 ***
 
-[epubjs](../API.md) / PackagingJsonManifest
+[epubjs](../API.md) / PackagingJsonManifestBase
 
-# Interface: PackagingJsonManifest
+# Interface: PackagingJsonManifestBase
 
 ## Properties
 
@@ -14,21 +14,9 @@
 
 ***
 
-### readingOrder?
-
-> `optional` **readingOrder?**: [`PackagingSpineItem`](PackagingSpineItem.md)[]
-
-***
-
 ### resources
 
 > **resources**: [`PackagingManifestItem`](PackagingManifestItem.md)[]
-
-***
-
-### spine?
-
-> `optional` **spine?**: [`PackagingSpineItem`](PackagingSpineItem.md)[]
 
 ***
 

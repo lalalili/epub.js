@@ -188,7 +188,7 @@
 
 ##### json
 
-[`PackagingJsonManifest`](PackagingJsonManifest.md)
+[`PackagingJsonManifest`](../type-aliases/PackagingJsonManifest.md)
 
 #### Returns
 

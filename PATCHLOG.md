@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0356
+- Why:
+  - `Packaging.load()` accepts JSON manifests and builds spine items from `json.readingOrder || json.spine`, but `PackagingJsonManifest` allowed both fields to be omitted.
+  - That declaration shape made an invalid JSON manifest look type-safe even though the source immediately calls `.map()` on the resolved spine list.
+  - Splitting out `PackagingJsonManifestBase` and making `PackagingJsonManifest` require either `readingOrder` or `spine` keeps package JSON manifest typing aligned with the runtime contract, without changing OPF parsing, JSON manifest loading, metadata extraction, manifest indexing, cover detection, or TOC labeling behavior.
+- Diff Scope:
+  - `src/packaging.ts`, `types/packaging.d.ts`: define `PackagingJsonManifestBase` and tighten `PackagingJsonManifest` to require `readingOrder` or `spine`.
+  - `src/index.ts`, `types/index.d.ts`: export `PackagingJsonManifestBase` from the package root.
+  - `types/epubjs-tests.ts`: add root export assertions and JSON manifest reading-order/spine type smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Packaging JSON manifest base and spine fallback guards.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/packaging.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `PackagingJsonManifest` must intentionally permit manifests without both `readingOrder` and `spine`.
+
 ### P-0355
 - Why:
   - `Archive.request()` and `Archive.handleResponse()` already expose markup-specific overloads in source, but the markup request union remained an internal source-only alias while declarations repeated the literal union inline.

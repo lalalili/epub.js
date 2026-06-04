@@ -99,6 +99,7 @@ import type {
   PageValue as RootPageValue,
   Packaging as RootPackaging,
   PackagingJsonManifest as RootPackagingJsonManifest,
+  PackagingJsonManifestBase as RootPackagingJsonManifestBase,
   PackagingManifest as RootPackagingManifest,
   PackagingManifestItem as RootPackagingManifestItem,
   PackagingManifestObject as RootPackagingManifestObject,
@@ -202,6 +203,7 @@ import Path, { ParsedPath } from './utils/path';
 import Url, { UrlBase } from './utils/url';
 import Packaging, {
   PackagingJsonManifest,
+  PackagingJsonManifestBase,
   PackagingManifest,
   PackagingManifestItem,
   PackagingManifestObject,
@@ -334,6 +336,7 @@ type PublicRootAssertions = [
   Assert<IsExact<RootArchiveZipOptions, ArchiveZipOptions>>,
   Assert<IsExact<RootPackaging, Packaging>>,
   Assert<IsExact<RootPackagingJsonManifest, PackagingJsonManifest>>,
+  Assert<IsExact<RootPackagingJsonManifestBase, PackagingJsonManifestBase>>,
   Assert<IsExact<RootPackagingManifest, PackagingManifest>>,
   Assert<IsExact<RootPackagingManifestItem, PackagingManifestItem>>,
   Assert<IsExact<RootPackagingManifestObject, PackagingManifestObject>>,
@@ -660,6 +663,7 @@ type ArchiveAssertions = [
 
 type PackagingAssertions = [
   Assert<IsExact<ConstructorParameters<typeof Packaging>, [packageDocument?: Document | XMLDocument | undefined]>>,
+  Assert<IsExact<PackagingJsonManifestBase, { metadata: PackagingMetadataObject; resources: PackagingManifestItem[]; toc: PackagingTocItem[] }>>,
   Assert<IsExact<Packaging["manifest"], PackagingManifest | undefined>>,
   Assert<IsExact<Packaging["navPath"], string | false | undefined>>,
   Assert<IsExact<Packaging["ncxPath"], string | false | undefined>>,
@@ -1286,9 +1290,16 @@ function testEpub() {
     resources: [{ href: "cover.jpg", rel: ["cover"] }],
     toc: [{ href: "Text/chapter1.xhtml", title: "Chapter 1" }],
   };
+  const packagingSpineJson: PackagingJsonManifest = {
+    metadata: { title: "Spine JSON Manifest" },
+    spine: [{ href: "Text/chapter2.xhtml" }],
+    resources: [{ href: "chapter2.xhtml" }],
+    toc: [{ href: "Text/chapter2.xhtml", title: "Chapter 2" }],
+  };
   const packaging = new Packaging();
   const parsedPackaging: PackagingObject = packaging.parse(parsedDocument);
   const loadedPackaging: PackagingObject = packaging.load(packagingJson);
+  const loadedSpinePackaging: PackagingObject = packaging.load(packagingSpineJson);
   const packagingManifestItem: PackagingManifestItem | undefined = loadedPackaging.manifest[0];
   const packagingMetadataTitle: string | undefined = loadedPackaging.metadata.title;
   const packagingTocItem: PackagingTocItem | undefined = loadedPackaging.toc?.[0];
@@ -1680,6 +1691,7 @@ function testEpub() {
   void archiveParsedJson;
   void archiveParsedDocument;
   void parsedPackaging;
+  void loadedSpinePackaging;
   void packagingManifestItem;
   void packagingMetadataTitle;
   void packagingTocItem;
