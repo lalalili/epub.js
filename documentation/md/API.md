@@ -136,6 +136,7 @@
 - [ArchiveRequestType](type-aliases/ArchiveRequestType.md)
 - [BlobContent](type-aliases/BlobContent.md)
 - [BookInput](type-aliases/BookInput.md)
+- [BookNavigationPackaging](type-aliases/BookNavigationPackaging.md)
 - [BookReady](type-aliases/BookReady.md)
 - [ContainerDocument](type-aliases/ContainerDocument.md)
 - [DisplayedLocation](type-aliases/DisplayedLocation.md)

@@ -1,12 +1,14 @@
 import {
   PackagingManifest,
-  PackagingMetadata
+  PackagingMetadata,
+  PackagingTocItem
 } from "./packaging";
 import Rendition, { RenditionOptions } from "./rendition";
 import Section from "./section";
 import Archive, { ArchiveZip } from "./archive";
 import Navigation from "./navigation";
 import PageList from "./pagelist";
+import { PageListDocument } from "./pagelist";
 import Spine from "./spine";
 import Locations from "./locations";
 import Url from "./utils/url";
@@ -22,6 +24,13 @@ import { JsonValue, RequestHeaders, RequestMethod, RequestResponse, RequestType 
 import { RangeObject } from "./compat/range";
 
 export type BookInput = string | ArrayBuffer | Blob;
+
+export type BookNavigationPackaging = Packaging & {
+  pageList?: PageListDocument;
+  toc?: Array<PackagingTocItem>;
+  navPath?: string | false;
+  ncxPath?: string | false;
+};
 
 export interface BookOptions {
   requestMethod?: RequestMethod;
@@ -116,7 +125,7 @@ export default class Book {
     load(path: string, type: "text"): Promise<string>;
     load(path: string, type?: RequestType | null): Promise<RequestResponse>;
 
-    loadNavigation(packaging: Packaging): Promise<Navigation>;
+    loadNavigation(packaging: BookNavigationPackaging): Promise<Navigation>;
 
     open(input: string, what?: string): Promise<Book>;
     open(input: ArrayBuffer | Blob, what?: string): Promise<Book>;

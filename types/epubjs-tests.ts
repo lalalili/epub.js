@@ -35,6 +35,7 @@ import type {
   BookInput as RootBookInput,
   BookLoaded as RootBookLoaded,
   BookLoading as RootBookLoading,
+  BookNavigationPackaging as RootBookNavigationPackaging,
   BookOptions as RootBookOptions,
   BookReady as RootBookReady,
   AnimationFrameRequest as RootAnimationFrameRequest,
@@ -192,7 +193,7 @@ import Annotations, {
   SectionAnnotationMap,
 } from './annotations';
 import Archive, { ArchiveEntry, ArchiveInput, ArchiveMarkupRequestType, ArchiveRequestType, ArchiveUrlOptions, ArchiveZip, ArchiveZipOptions } from './archive';
-import type { BookInput, BookLoaded, BookLoading, BookOptions, BookReady } from './book';
+import type { BookInput, BookLoaded, BookLoading, BookNavigationPackaging, BookOptions, BookReady } from './book';
 import Container, { ContainerDocument } from './container';
 import type {
   ContentsSize,
@@ -283,6 +284,7 @@ type PublicRootAssertions = [
   Assert<IsExact<RootBookOptions, BookOptions>>,
   Assert<IsExact<RootBookLoading, BookLoading>>,
   Assert<IsExact<RootBookLoaded, BookLoaded>>,
+  Assert<IsExact<RootBookNavigationPackaging, BookNavigationPackaging>>,
   Assert<IsExact<RootBookReady, BookReady>>,
   Assert<IsExact<RootAnimationFrameRequest, AnimationFrameRequest>>,
   Assert<IsExact<RootBlobContent, BlobContent>>,
@@ -514,6 +516,9 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Book["section"]>, Section | undefined>>,
   Assert<IsExact<Parameters<Book["getRange"]>, [string | EpubCFI]>>,
   Assert<IsExact<ReturnType<Book["getRange"]>, Promise<Range | import('./compat/range').RangeObject | null>>>,
+  Assert<IsExact<Parameters<Book["loadNavigation"]>[0], BookNavigationPackaging>>,
+  Assert<IsExact<BookNavigationPackaging["toc"], PackagingTocItem[] | undefined>>,
+  Assert<IsExact<BookNavigationPackaging["pageList"], PageListDocument | undefined>>,
   Assert<IsExact<ReturnType<Book["unarchive"]>, Promise<ArchiveZip>>>,
   Assert<IsExact<ReturnType<Book["setRequestHeaders"]>, void>>,
   Assert<IsExact<Parameters<Book["emit"]>, [type: string, ...args: unknown[]]>>,
@@ -1471,6 +1476,10 @@ function testEpub() {
       title: "Part 1",
     }],
   }];
+  const packagingTocNavigationItems: NavigationInputItem[] = [{
+    href: "Text/chapter1.xhtml",
+    title: "Chapter 1",
+  }];
   const emptyNavigation = new Navigation();
   const documentNavigation = new Navigation(parsedDocument);
   const legacyNavigation = new Navigation(legacyNavItems);
@@ -1479,6 +1488,7 @@ function testEpub() {
   const navigationLandmarks: LandmarkItem[] = legacyNavigation.landmark();
   const navigationLandmark: LandmarkItem | undefined = legacyNavigation.landmark("cover");
   const loadedNavigationItems: NavItem[] = legacyNavigation.load(legacyNavItems);
+  const loadedPackagingTocNavigationItems: NavItem[] = legacyNavigation.load(packagingTocNavigationItems);
   const spineItem: SpineItem = {
     idref: "chapter-one",
     linear: "yes",

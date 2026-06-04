@@ -416,7 +416,7 @@
 
 ##### packaging
 
-[`Packaging`](../interfaces/Packaging.md)
+[`BookNavigationPackaging`](../type-aliases/BookNavigationPackaging.md)
 
 #### Returns
 

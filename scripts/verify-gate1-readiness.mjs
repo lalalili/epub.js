@@ -1146,6 +1146,28 @@ assert(
 	"Book source and declarations must keep getRange return and section bridge typed"
 );
 assert(
+	bookSource.includes("type PackagingTocItem") &&
+		bookSource.includes("type PageListDocument") &&
+		bookSource.includes("export type BookNavigationPackaging = Packaging &") &&
+		bookSource.includes("pageList?: PageListDocument") &&
+		bookSource.includes("toc?: PackagingTocItem[]") &&
+		bookSource.includes("loadNavigation(packaging: BookNavigationPackaging): Promise<Navigation>") &&
+		bookTypes.includes("BookNavigationPackaging") &&
+		bookTypes.includes("pageList?: PageListDocument") &&
+		bookTypes.includes("toc?: Array<PackagingTocItem>") &&
+		bookTypes.includes("loadNavigation(packaging: BookNavigationPackaging): Promise<Navigation>") &&
+		sourceRoot.includes("BookNavigationPackaging") &&
+		typeIndex.includes("BookNavigationPackaging") &&
+		navigationTypes.includes("id?: string") &&
+		navigationTypes.includes("href?: string") &&
+		typeTests.includes("RootBookNavigationPackaging") &&
+		typeTests.includes("Parameters<Book[\"loadNavigation\"]>[0], BookNavigationPackaging") &&
+		typeTests.includes("const packagingTocNavigationItems: NavigationInputItem[]") &&
+		!bookSource.includes("loadNavigation(packaging: Packaging & { pageList?: any; toc?: any; navPath?: any; ncxPath?: any })") &&
+		!bookTypes.includes("loadNavigation(packaging: Packaging): Promise<Navigation>"),
+	"Book loadNavigation source and declarations must keep manifest navigation bridge typed without any"
+);
+assert(
 	bookSource.includes("open(input: BookInput, what?: string): Promise<Book>") &&
 		bookSource.includes("var opening: Promise<Book>") &&
 		bookSource.includes("openEpub(data: BookInput | string, encoding?: string): Promise<Book>") &&

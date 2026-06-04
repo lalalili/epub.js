@@ -15,8 +15,8 @@ export interface LandmarkItem {
 }
 
 export interface NavigationInputItem {
-  id: string,
-  href: string,
+  id?: string,
+  href?: string,
   label?: string,
   title?: string,
   subitems?: Array<NavigationInputItem>,

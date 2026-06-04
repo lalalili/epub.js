@@ -57,6 +57,7 @@ export type {
 	BookInput,
 	BookLoaded,
 	BookLoading,
+	BookNavigationPackaging,
 	BookOptions,
 	BookReady
 } from "./book";

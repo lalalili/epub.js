@@ -6,10 +6,10 @@ import Path from "./utils/path";
 import Spine, { type SpinePackage, type SpineResolver } from "./spine";
 import Locations from "./locations";
 import Container from "./container";
-import Packaging, { type PackagingJsonManifest, type PackagingManifest, type PackagingMetadata } from "./packaging";
+import Packaging, { type PackagingJsonManifest, type PackagingManifest, type PackagingMetadata, type PackagingTocItem } from "./packaging";
 import Navigation from "./navigation";
 import Resources, { type ResourceResolver } from "./resources";
-import PageList from "./pagelist";
+import PageList, { type PageListDocument } from "./pagelist";
 import Rendition, { type RenditionOptions } from "./rendition";
 import Archive, { type ArchiveZip } from "./archive";
 import type { RangeObject } from "./compat/range";
@@ -67,6 +67,12 @@ export type BookReady = [
 	Resources,
 	DisplayOptions
 ];
+export type BookNavigationPackaging = Packaging & {
+	pageList?: PageListDocument;
+	toc?: PackagingTocItem[];
+	navPath?: string | false;
+	ncxPath?: string | false;
+};
 type SectionLike = {
 	url: string;
 	output?: string;
@@ -629,7 +635,7 @@ class Book {
 	 * @private
 	 * @param {Packaging} packaging
 	 */
-	loadNavigation(packaging: Packaging & { pageList?: any; toc?: any; navPath?: any; ncxPath?: any }): Promise<Navigation> {
+	loadNavigation(packaging: BookNavigationPackaging): Promise<Navigation> {
 		let navPath = packaging.navPath || packaging.ncxPath;
 		let toc = packaging.toc;
 
