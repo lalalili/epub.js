@@ -29,6 +29,7 @@ import {
 	createBlobUrl as platformCreateBlobUrl,
 	revokeBlobUrl as platformRevokeBlobUrl
 } from "../platform/blob";
+import type { BlobContent as PlatformBlobContent } from "../platform/blob";
 import {
 	borders as platformBorders,
 	bounds as platformBounds,
@@ -68,7 +69,7 @@ type NodeCallback = (node: Node) => boolean | void;
 type TextNodeCallback = (node: Text) => void;
 type TreeWalkerFilter = number | NodeFilter;
 export type AnimationFrameRequest = (callback: FrameRequestCallback) => number;
-export type BlobContent = BlobPart[] | BlobPart | string | ArrayBuffer | ArrayBufferView;
+export type BlobContent = PlatformBlobContent;
 
 export interface SizeBounds {
 	width: number;

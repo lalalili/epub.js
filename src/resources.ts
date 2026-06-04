@@ -169,7 +169,7 @@ class Resources {
 						return blob2base64(blob);
 					})
 					.then((blob) => {
-						return createBase64Url(blob, mimeType);
+						return createBase64Url(blob as string, mimeType);
 					});
 			} else {
 				return this.settings!.request!(url, "blob").then((blob) => {

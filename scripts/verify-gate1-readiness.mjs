@@ -35,6 +35,7 @@ const locationsSource = readFileSync(path.join(root, "src/locations.ts"), "utf8"
 const locationsTypes = readFileSync(path.join(root, "types/locations.d.ts"), "utf8");
 const mappingSource = readFileSync(path.join(root, "src/mapping.ts"), "utf8");
 const mappingTypes = readFileSync(path.join(root, "types/mapping.d.ts"), "utf8");
+const platformBlobSource = readFileSync(path.join(root, "src/platform/blob.ts"), "utf8");
 const requestSource = readFileSync(path.join(root, "src/utils/request.ts"), "utf8");
 const queueSource = readFileSync(path.join(root, "src/utils/queue.ts"), "utf8");
 const queueTypes = readFileSync(path.join(root, "types/utils/queue.d.ts"), "utf8");
@@ -794,6 +795,7 @@ assert(typeTests.includes("ResourceSettings[\"request\"], ResourceRequest | unde
 assert(
 	resourcesSource.includes("(url: string, type: \"blob\"): Promise<Blob>") &&
 	resourcesSource.includes("(url: string, type: \"text\"): Promise<string>") &&
+	resourcesSource.includes("return createBase64Url(blob as string, mimeType)") &&
 	resourcesTypes.includes("(url: string, type: \"blob\"): Promise<Blob>") &&
 	resourcesTypes.includes("(url: string, type: \"text\"): Promise<string>"),
 	"Resources source and declarations must keep ResourceRequest overload parity"
@@ -1245,6 +1247,18 @@ assert(
 );
 assert(typeTests.includes("ePub.utils.requestAnimationFrame"), "type tests must cover utils/core requestAnimationFrame typing");
 assert(typeTests.includes("ePub.utils.createBlob(coreBlobContent, \"text/plain\")"), "type tests must cover utils/core blob content typing");
+assert(
+	platformBlobSource.includes("export type BlobContent = BlobPart[] | BlobPart | string | ArrayBuffer | ArrayBufferView") &&
+		platformBlobSource.includes("createBlob(content: BlobContent, mime: string): Blob") &&
+		platformBlobSource.includes("createBlobUrl(content: BlobContent, mime: string): string") &&
+		platformBlobSource.includes("createBase64Url(content: string, mime: string): string") &&
+		platformBlobSource.includes("typeof(content as unknown) !== \"string\"") &&
+		!platformBlobSource.includes("from \"../utils/core\"") &&
+		!platformBlobSource.includes("createBlob(content: any") &&
+		!platformBlobSource.includes("createBlobUrl(content: any") &&
+		!platformBlobSource.includes("createBase64Url(content: any"),
+	"source platform blob helpers must keep BlobContent and string input type parity"
+);
 assert(typeTests.includes("new ePub.utils.RangeObject()"), "type tests must cover utils/core RangeObject typing");
 assert(typeTests.includes("type EpubCFIAssertions"), "type tests must assert the EpubCFI public surface");
 assert(typeTests.includes("RootParsedEpubCFI"), "type tests must assert root EpubCFI type exports");

@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0423
+- Why:
+  - The root `utils/core` declarations and type smoke tests already expose `BlobContent` for `createBlob()` and `createBlobUrl()`, but the platform blob source still accepted `any`.
+  - Aligning the platform helper source with `BlobContent` and the string-only base64 helper keeps source typing in sync with the public utility declarations before Gate 1 release work.
+  - This removes another source-side `any` leak without changing blob creation, object URL creation, non-string base64 runtime fallback, or public utility names.
+- Diff Scope:
+  - `src/platform/blob.ts`: define `BlobContent`, use it for blob helper inputs, and use `string` for `createBase64Url()`.
+  - `src/utils/core.ts`: re-export the platform `BlobContent` type through the existing public utility surface.
+  - `src/resources.ts`: cast the existing `blob2base64()` bridge value to the string-only base64 helper contract.
+  - `scripts/verify-gate1-readiness.mjs`: require platform blob helper source typing to stay aligned with public utility tests.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if platform blob helper inputs must intentionally remain source-untyped.
+
 ### P-0422
 - Why:
   - `Store` already exposes typed request/retrieve overloads and root public types, but its source-side deferred and response bridge still used `Promise<any>`.

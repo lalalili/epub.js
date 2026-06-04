@@ -1,13 +1,15 @@
 import { getURLConstructor } from "./browser";
 
+export type BlobContent = BlobPart[] | BlobPart | string | ArrayBuffer | ArrayBufferView;
+
 /**
  * Create a Blob using the browser platform implementation.
  * @param {any} content Blob content.
  * @param {string} mime Blob MIME type.
  * @returns {Blob} Browser Blob instance.
  */
-export function createBlob(content: any, mime: string): Blob {
-	return new Blob([content], { type: mime });
+export function createBlob(content: BlobContent, mime: string): Blob {
+	return new Blob([content as BlobPart], { type: mime });
 }
 
 /**
@@ -16,7 +18,7 @@ export function createBlob(content: any, mime: string): Blob {
  * @param {string} mime Blob MIME type.
  * @returns {string} Browser object URL.
  */
-export function createBlobUrl(content: any, mime: string): string {
+export function createBlobUrl(content: BlobContent, mime: string): string {
 	var blob = createBlob(content, mime);
 	var URLConstructor = getURLConstructor() as typeof URL;
 
@@ -40,11 +42,11 @@ export function revokeBlobUrl(url: string): void {
  * @param {string} mime Data URL MIME type.
  * @returns {string | undefined} Base64 data URL.
  */
-export function createBase64Url(content: any, mime: string): string | undefined {
+export function createBase64Url(content: string, mime: string): string {
 	var data;
 
-	if (typeof(content) !== "string") {
-		return;
+	if (typeof(content as unknown) !== "string") {
+		return undefined as unknown as string;
 	}
 
 	data = btoa(content);
