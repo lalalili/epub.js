@@ -5,7 +5,7 @@
  * @param {any} context scope of this
  * @example this.content = new EPUBJS.Hook(this);
  */
-export type HookTask = (...args: any[]) => unknown;
+export type HookTask = (...args: unknown[]) => unknown;
 export type HookRegistration = HookTask | HookTask[];
 export interface HooksObject {
 	[key: string]: Hook;
@@ -56,7 +56,7 @@ class Hook {
 	 * Triggers a hook to run all functions
 	 * @example this.content.trigger(args).then(function(){...});
 	 */
-	trigger(...items: any[]): Promise<unknown[]> {
+	trigger(...items: unknown[]): Promise<unknown[]> {
 		var args = arguments;
 		var context = this.context;
 		var promises: Promise<unknown>[] = [];

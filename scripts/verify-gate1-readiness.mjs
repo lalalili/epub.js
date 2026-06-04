@@ -26,6 +26,8 @@ const mappingSource = readFileSync(path.join(root, "src/mapping.ts"), "utf8");
 const mappingTypes = readFileSync(path.join(root, "types/mapping.d.ts"), "utf8");
 const queueSource = readFileSync(path.join(root, "src/utils/queue.ts"), "utf8");
 const queueTypes = readFileSync(path.join(root, "types/utils/queue.d.ts"), "utf8");
+const hookSource = readFileSync(path.join(root, "src/utils/hook.ts"), "utf8");
+const hookTypes = readFileSync(path.join(root, "types/utils/hook.d.ts"), "utf8");
 const globalTypeTests = readFileSync(path.join(root, "types/global-namespace-tests.ts"), "utf8");
 const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.test.js"), "utf8");
 const umdGlobalTests = readFileSync(path.join(root, "test/browser/umd-global.test.js"), "utf8");
@@ -558,7 +560,15 @@ assert(typeTests.includes("hook.register(hookTask, hookRegistration)"), "type te
 assert(typeTests.includes("hook.trigger(\"ready\")"), "type tests must cover Hook trigger result typing");
 assert(typeTests.includes("ConstructorParameters<typeof Hook>, [context?: unknown]"), "type tests must assert Hook context typing");
 assert(typeTests.includes("ReturnType<Hook[\"trigger\"]>, Promise<unknown[]>"), "type tests must assert Hook trigger unknown result typing");
-assert(typeTests.includes("HookTask, (...args: any[]) => unknown"), "type tests must assert HookTask unknown return typing");
+assert(typeTests.includes("HookTask, (...args: unknown[]) => unknown"), "type tests must assert HookTask unknown parameter and return typing");
+assert(typeTests.includes("Parameters<Hook[\"trigger\"]>, unknown[]"), "type tests must assert Hook trigger unknown variadic typing");
+assert(
+	hookSource.includes("HookTask = (...args: unknown[]) => unknown") &&
+		hookSource.includes("trigger(...items: unknown[]): Promise<unknown[]>") &&
+		hookTypes.includes("HookTask = (...args: unknown[]) => unknown") &&
+		hookTypes.includes("trigger(...args: unknown[]): Promise<unknown[]>"),
+	"Hook source and declarations must keep unknown variadic typing"
+);
 assert(
 	sourceRoot.includes("HookRegistration") &&
 	sourceRoot.includes("HookTask") &&

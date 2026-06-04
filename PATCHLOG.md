@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0381
+- Why:
+  - `HookTask` and `Hook.trigger()` are package-root exported hook surfaces, but their variadic argument typing still leaked `any[]`.
+  - Hook trigger results were already typed as `unknown[]`, so carrying `unknown[]` through hook task arguments keeps the public hook input explicit without changing registration, trigger order, or `Promise.all` behavior.
+- Diff Scope:
+  - `src/utils/hook.ts`: type hook task arguments and trigger inputs as `unknown[]`.
+  - `types/utils/hook.d.ts`: mirror hook argument typing.
+  - `types/epubjs-tests.ts`: assert hook trigger parameters and `HookTask` argument typing.
+  - `scripts/verify-gate1-readiness.mjs`: require Hook unknown variadic parity across source, declarations, and type smoke.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if consumers intentionally rely on Hook task arguments being typed as arbitrary `any[]`.
+
 ### P-0380
 - Why:
   - `QueueTask`, `QueuedItem.args`, and `Queue.enqueue()` are package-root exported queue surfaces, but their variadic argument typing still leaked `any[]`.

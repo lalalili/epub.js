@@ -80,7 +80,7 @@
 
 ##### args
 
-...`any`[]
+...`unknown`[]
 
 #### Returns
 

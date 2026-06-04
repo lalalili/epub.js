@@ -818,10 +818,11 @@ type HookAssertions = [
   Assert<IsExact<Parameters<Hook["register"]>, HookRegistration[]>>,
   Assert<IsExact<ReturnType<Hook["register"]>, void>>,
   Assert<IsExact<Parameters<Hook["deregister"]>, [func: HookTask]>>,
+  Assert<IsExact<Parameters<Hook["trigger"]>, unknown[]>>,
   Assert<IsExact<ReturnType<Hook["trigger"]>, Promise<unknown[]>>>,
   Assert<IsExact<ReturnType<Hook["list"]>, HookTask[]>>,
   Assert<IsExact<ReturnType<Hook["clear"]>, HookTask[]>>,
-  Assert<IsExact<HookTask, (...args: any[]) => unknown>>,
+  Assert<IsExact<HookTask, (...args: unknown[]) => unknown>>,
   Assert<IsExact<HooksObject, Record<string, Hook>>>
 ];
 
@@ -1270,7 +1271,7 @@ function testEpub() {
   const queueFlush: Promise<unknown> | boolean | undefined = queue.flush();
   const queueLength: number = queue.length();
   const taskWrapper: (...args: any[]) => Promise<any> = new Task((): void => undefined);
-  const hookTask: HookTask = (value: string) => Promise.resolve(value);
+  const hookTask: HookTask = (value: unknown) => Promise.resolve(value);
   const hookRegistration: HookRegistration = [hookTask];
   const hook = new Hook({ prefix: "ctx" });
   const hooksObject: HooksObject = { content: hook };

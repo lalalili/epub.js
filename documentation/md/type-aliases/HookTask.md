@@ -12,7 +12,7 @@
 
 ### args
 
-...`any`[]
+...`unknown`[]
 
 ## Returns
 
