@@ -1492,6 +1492,17 @@ assert(
 	"Default manager layout and mapping state must keep class state typed without catch-all any"
 );
 assert(
+	managerSource.includes("type VerticalRlSequentialBoundaryConstraint = {") &&
+		managerSource.includes("type VerticalRlBoundarySnapCacheEntry") &&
+		managerSource.includes("type VerticalRlLogicalPageOffsetCache") &&
+		managerSource.includes("declare _verticalRlLogicalPageOffsetCache?: VerticalRlLogicalPageOffsetCache | null") &&
+		managerSource.includes("declare _verticalRlBoundarySnapCache?: VerticalRlBoundarySnapCacheEntry | null") &&
+		managerSource.includes("declare _verticalRlSequentialBoundaryConstraint?: VerticalRlSequentialBoundaryConstraint | null") &&
+		managerSource.includes("declare _verticalRlBoundarySnapRetryToken?: number") &&
+		managerSource.includes("declare _verticalRlBoundarySnapApplying?: boolean"),
+	"Default manager vertical-rl cache and retry token state must stay typed without catch-all any"
+);
+assert(
 	managerTypes.includes("[key: string]: unknown") &&
 		!managerTypes.includes("[key: string]: any") &&
 		typeTests.includes("ManagerOptions[\"custom\"], unknown"),

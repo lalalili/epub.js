@@ -42,7 +42,9 @@ import {
 	getVerticalRlViewportRects as getVerticalRlViewportRectsHelper,
 	hasVerticalRlStructuralPageGutter as hasVerticalRlStructuralPageGutterHelper,
 	getVerticalRlBoundarySnapPreflight as getVerticalRlBoundarySnapPreflightHelper,
-	runVerticalRlEdgeMaskSnapLoop as runVerticalRlEdgeMaskSnapLoopHelper
+	runVerticalRlEdgeMaskSnapLoop as runVerticalRlEdgeMaskSnapLoopHelper,
+	type VerticalRlBoundarySnapCacheEntry,
+	type VerticalRlLogicalPageOffsetCache
 } from "../../rendering/pagination";
 import Stage from "../helpers/stage";
 import Views from "../helpers/views";
@@ -74,6 +76,11 @@ type SnapLimits = {
 	sequentialRightBoundary?: number;
 	useCurrentOffset?: boolean;
 	pageIndex?: number;
+};
+type VerticalRlSequentialBoundaryConstraint = {
+	pageIndex: number;
+	maxRightBoundary: number;
+	preferredRightBoundary: number;
 };
 type TextRect = {
 	left: number;
@@ -239,6 +246,11 @@ class DefaultViewManager {
 	declare isPaginated: boolean;
 	declare layout: Layout;
 	declare mapping: Mapping;
+	declare _verticalRlLogicalPageOffsetCache?: VerticalRlLogicalPageOffsetCache | null;
+	declare _verticalRlBoundarySnapCache?: VerticalRlBoundarySnapCacheEntry | null;
+	declare _verticalRlSequentialBoundaryConstraint?: VerticalRlSequentialBoundaryConstraint | null;
+	declare _verticalRlBoundarySnapRetryToken?: number;
+	declare _verticalRlBoundarySnapApplying?: boolean;
 	declare name: string;
 	declare optsSettings: ManagerSettings;
 	declare settings: ManagerSettings;
