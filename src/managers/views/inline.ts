@@ -46,7 +46,38 @@ const ContentsCtor = Contents as unknown as {
 };
 
 class InlineView {
-	[key: string]: any;
+	settings: InlineViewSettings;
+	id: string;
+	section: InlineViewSection;
+	index: number;
+	element: HTMLElement;
+	added: boolean;
+	displayed: boolean;
+	rendered: boolean;
+	width: number | null;
+	height: number | null;
+	fixedWidth: number;
+	fixedHeight: number;
+	epubcfi: EpubCFI;
+	layout: InlineViewLayout;
+	frame: HTMLElement | null = null;
+	resizing = false;
+	_width: number | null = null;
+	_height: number | null = null;
+	_textWidth: number | null = null;
+	_textHeight: number | null = null;
+	lockedWidth?: number;
+	lockedHeight?: number;
+	elementBounds?: Bounds;
+	prevBounds?: Bounds;
+	_expanding?: boolean;
+	_needsReframe?: boolean;
+	document?: Document;
+	window?: Window | null;
+	contents?: Contents;
+	rendering?: boolean;
+	stopExpanding?: boolean;
+	createContainer?: () => HTMLElement;
 
 	constructor(section: InlineViewSection, options?: Partial<InlineViewSettings>) {
 		this.settings = extend({
@@ -293,12 +324,12 @@ class InlineView {
 
 		if(isNumber(width)){
 			this.frame.style.width = width + "px";
-			this._width = width;
+			this._width = Number(width);
 		}
 
 		if(isNumber(height)){
 			this.frame.style.height = height + "px";
-			this._height = height;
+			this._height = Number(height);
 		}
 
 		this.prevBounds = this.elementBounds;
@@ -426,7 +457,7 @@ class InlineView {
 		return this.element.getBoundingClientRect();
 	}
 
-	locationOf(target: string | number) {
+	locationOf(target: string | EpubCFI) {
 		var parentPos = this.frame.getBoundingClientRect();
 		var targetPos = this.contents.locationOf(target, this.settings.ignoreClass);
 
@@ -471,6 +502,13 @@ class InlineView {
 		// this.element.style.height = "0px";
 		// this.element.style.width = "0px";
 	}
+}
+
+interface InlineView {
+	emit(type: string, ...args: unknown[]): void;
+	on(type: string, listener: (...args: unknown[]) => void): unknown;
+	off(type: string, listener: (...args: unknown[]) => void): unknown;
+	once(type: string, listener: (...args: unknown[]) => void): unknown;
 }
 
 EventEmitter(InlineView.prototype);

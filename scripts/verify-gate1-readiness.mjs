@@ -905,10 +905,17 @@ assert(
 );
 assert(
 	inlineViewSource.includes("type InlineDisplayReject = (reason?: unknown, view?: InlineView) => void") &&
+		inlineViewSource.includes("settings: InlineViewSettings") &&
+		inlineViewSource.includes("frame: HTMLElement | null = null") &&
+		inlineViewSource.includes("contents?: Contents") &&
+		inlineViewSource.includes("interface InlineView") &&
+		inlineViewSource.includes("emit(type: string, ...args: unknown[]): void") &&
+		inlineViewSource.includes("locationOf(target: string | EpubCFI)") &&
+		!inlineViewSource.includes("[key: string]: any") &&
 		inlineViewSource.includes("const reject = displayed.reject as InlineDisplayReject | null") &&
 		inlineViewSource.includes("function (err: unknown)") &&
 		!inlineViewSource.includes("(displayed.reject as any)"),
-	"InlineView source must keep display rejection bridge typed"
+	"InlineView source must keep state fields, event bridge, and display rejection typed"
 );
 assert(
 	viewsTests.includes("rejects inline display promises when render fails"),
