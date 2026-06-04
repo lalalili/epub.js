@@ -83,12 +83,6 @@ type TextRect = {
 	width?: number;
 	height?: number;
 };
-type DefaultManagerOptions = {
-	settings: Record<string, unknown>;
-	view: unknown;
-	request: unknown;
-	queue: unknown;
-};
 type ManagerRenderSize = {
 	width: number | string | null | false;
 	height: number | string | null | false;
@@ -141,6 +135,13 @@ type ManagerView = {
 	setLayout(layout: Layout): void;
 	on(type: string, listener: (...args: unknown[]) => void): unknown;
 };
+export type ManagerViewConstructor = new (section: unknown, settings: Record<string, unknown>) => ManagerView;
+type DefaultManagerOptions = {
+	settings: Record<string, unknown>;
+	view: ManagerViewConstructor;
+	request: unknown;
+	queue: unknown;
+};
 type VisibleManagerView = ManagerView & {
 	position(): ManagerBounds;
 };
@@ -163,6 +164,12 @@ class DefaultViewManager {
 	declare rendered: boolean;
 	declare _layoutDirty: boolean;
 	declare _lastLayoutStageSize: ManagerStageSize | null;
+	declare name: string;
+	declare optsSettings: Record<string, unknown>;
+	declare View: ManagerViewConstructor;
+	declare request: unknown;
+	declare renditionQueue: unknown;
+	declare q: Queue;
 	declare emit: (type: string, ...args: unknown[]) => void;
 	declare on: (type: string, listener: (...args: unknown[]) => void) => unknown;
 	declare off: (type: string, listener: (...args: unknown[]) => void) => unknown;

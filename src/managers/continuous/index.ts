@@ -1,14 +1,14 @@
 import { defer, type Deferred as CoreDeferred } from "../../core/async";
 import { extend } from "../../core/collections";
 import { requestAnimationFrame } from "../../platform/browser";
-import DefaultViewManager from "../default";
+import DefaultViewManager, { type ManagerViewConstructor } from "../default";
 import Snap, { type ManagerLike as SnapManagerLike } from "../helpers/snap";
 import { EVENTS } from "../../utils/constants";
 import debounce from "lodash/debounce";
 
 type ContinuousManagerOptions = {
 	settings: Record<string, unknown>;
-	view: unknown;
+	view: ManagerViewConstructor;
 	request: unknown;
 	queue: unknown;
 };

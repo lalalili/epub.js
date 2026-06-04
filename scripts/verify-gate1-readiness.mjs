@@ -1497,12 +1497,23 @@ assert(
 assert(
 	managerSource.includes("type DefaultManagerOptions = {") &&
 		managerSource.includes("settings: Record<string, unknown>") &&
+		managerSource.includes("view: ManagerViewConstructor") &&
+		managerSource.includes("export type ManagerViewConstructor = new (section: unknown, settings: Record<string, unknown>) => ManagerView") &&
 		managerSource.includes("type ManagerRenderSize = {") &&
 		managerSource.includes("constructor(options: DefaultManagerOptions)") &&
 		managerSource.includes("render(element: HTMLElement, size: ManagerRenderSize): void") &&
 		!managerSource.includes("constructor(options: any)") &&
 		!managerSource.includes("render(element: HTMLElement, size: any): void"),
 	"Default manager constructor and render size inputs must stay typed without any"
+);
+assert(
+	managerSource.includes("declare name: string") &&
+		managerSource.includes("declare optsSettings: Record<string, unknown>") &&
+		managerSource.includes("declare View: ManagerViewConstructor") &&
+		managerSource.includes("declare request: unknown") &&
+		managerSource.includes("declare renditionQueue: unknown") &&
+		managerSource.includes("declare q: Queue"),
+	"Default manager constructor-injected state must stay typed without catch-all any"
 );
 assert(
 	managerSource.includes("type ManagerOffset = {") &&
@@ -1653,7 +1664,8 @@ assert(
 );
 assert(
 	continuousManagerSource.includes("settings: Record<string, unknown>") &&
-		continuousManagerSource.includes("view: unknown") &&
+		continuousManagerSource.includes("import DefaultViewManager, { type ManagerViewConstructor } from \"../default\"") &&
+		continuousManagerSource.includes("view: ManagerViewConstructor") &&
 		continuousManagerSource.includes("request: unknown") &&
 		continuousManagerSource.includes("queue: unknown") &&
 		!continuousManagerSource.includes("settings: Record<string, any>") &&
