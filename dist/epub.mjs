@@ -4655,7 +4655,7 @@ function Ue(e, t, n, r) {
 					message: "Forbidden",
 					stack: (/* @__PURE__ */ Error()).stack
 				}), o.promise;
-				n = e ? this.responseXML : Ve(t) ? Ie(this.response, "text/xml") : t == "xhtml" ? Ie(this.response, "application/xhtml+xml") : t == "html" || t == "htm" ? Ie(this.response, "text/html") : t == "json" ? JSON.parse(this.response) : t == "blob" ? i ? this.response : new Blob([this.response]) : this.response, o.resolve(n);
+				n = e || (Ve(t) ? Ie(this.response, "text/xml") : t == "xhtml" ? Ie(this.response, "application/xhtml+xml") : t == "html" || t == "htm" ? Ie(this.response, "text/html") : t == "json" ? JSON.parse(this.response) : t == "blob" ? i ? this.response : new Blob([this.response]) : this.response), o.resolve(n);
 			} else o.reject({
 				status: this.status,
 				message: this.response,

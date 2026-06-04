@@ -36,9 +36,9 @@ export interface RequestMethod {
 }
 
 type DeferConstructor = new () => {
-	promise: Promise<any>;
-	resolve(value?: any): void;
-	reject(error?: any): void;
+	promise: Promise<RequestResponse>;
+	resolve(value?: RequestResponse): void;
+	reject(error?: unknown): void;
 };
 
 function request(url: string, type: "binary", withCredentials?: boolean, headers?: RequestHeaders): Promise<ArrayBuffer>;
@@ -46,7 +46,7 @@ function request(url: string, type: "blob", withCredentials?: boolean, headers?:
 function request(url: string, type: "json", withCredentials?: boolean, headers?: RequestHeaders): Promise<JsonValue>;
 function request(url: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm", withCredentials?: boolean, headers?: RequestHeaders): Promise<Document | XMLDocument>;
 function request(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders): Promise<RequestResponse>;
-function request(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders): Promise<any> {
+function request(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders): Promise<RequestResponse> {
 	var supportsURL = (typeof window != "undefined") ? window.URL : false; // TODO: fallback for url if window isn't defined
 	var BLOB_RESPONSE: XMLHttpRequestResponseType = supportsURL ? "blob" : "arraybuffer";
 
@@ -126,7 +126,7 @@ function request(url: string, type?: RequestType | null, withCredentials?: boole
 			}
 
 			if (this.status === 200 || this.status === 0 || responseXML) { //-- Firefox is reporting 0 for blob urls
-				var r: any;
+				var r: RequestResponse;
 
 				if (!this.response && !responseXML) {
 					deferred.reject({
@@ -147,7 +147,7 @@ function request(url: string, type?: RequestType | null, withCredentials?: boole
 					return deferred.promise;
 				}
 				if(responseXML){
-					r = this.responseXML;
+					r = responseXML;
 				} else if(isXml(type)){
 					// xhr.overrideMimeType("text/xml"); // for OPF parsing
 					// If this.responseXML wasn't set, try to parse using a DOMParser from text
@@ -157,18 +157,18 @@ function request(url: string, type?: RequestType | null, withCredentials?: boole
 				} else if(type == "html" || type == "htm"){
 					r = parse(this.response, "text/html");
 				} else if(type == "json"){
-					r = JSON.parse(this.response);
+					r = JSON.parse(this.response) as JsonValue;
 				} else if(type == "blob"){
 
 					if(supportsURL) {
-						r = this.response;
+						r = this.response as Blob;
 					} else {
 						//-- Safari doesn't support responseType blob, so create a blob from arraybuffer
 						r = new Blob([this.response as BlobPart]);
 					}
 
 				} else {
-					r = this.response;
+					r = this.response as ArrayBuffer | string;
 				}
 
 				deferred.resolve(r);

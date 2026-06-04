@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0419
+- Why:
+  - The root `request` helper already exposes typed overloads and `RequestResponse` declarations, but the implementation fallback still returned `Promise<any>`.
+  - Aligning the deferred and parsed response bridge with `RequestResponse` keeps package-root request typing honest before Gate 1 release work.
+  - This removes another source-side `any` leak without changing request overloads, XHR handling, response parsing, or rejected error payloads.
+- Diff Scope:
+  - `src/utils/request.ts`: type the deferred promise, resolver, fallback implementation return, and response accumulator as `RequestResponse`.
+  - `scripts/verify-gate1-readiness.mjs`: require the request implementation fallback to remain typed.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if request fallback implementation results must intentionally remain source-untyped.
+
 ### P-0418
 - Why:
   - `Rendition.reportLocation()` and `currentLocation()` already normalize manager locations through `located()`, but their promise callbacks still accepted manager location results as `any`.

@@ -7174,7 +7174,7 @@
 						});
 						return deferred.promise;
 					}
-					if (responseXML) r = this.responseXML;
+					if (responseXML) r = responseXML;
 					else if (isXml$1(type)) r = parseMarkup(this.response, "text/xml");
 					else if (type == "xhtml") r = parseMarkup(this.response, "application/xhtml+xml");
 					else if (type == "html" || type == "htm") r = parseMarkup(this.response, "text/html");

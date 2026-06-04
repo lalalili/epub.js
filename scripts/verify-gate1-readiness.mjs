@@ -34,6 +34,7 @@ const locationsSource = readFileSync(path.join(root, "src/locations.ts"), "utf8"
 const locationsTypes = readFileSync(path.join(root, "types/locations.d.ts"), "utf8");
 const mappingSource = readFileSync(path.join(root, "src/mapping.ts"), "utf8");
 const mappingTypes = readFileSync(path.join(root, "types/mapping.d.ts"), "utf8");
+const requestSource = readFileSync(path.join(root, "src/utils/request.ts"), "utf8");
 const queueSource = readFileSync(path.join(root, "src/utils/queue.ts"), "utf8");
 const queueTypes = readFileSync(path.join(root, "types/utils/queue.d.ts"), "utf8");
 const hookSource = readFileSync(path.join(root, "src/utils/hook.ts"), "utf8");
@@ -826,6 +827,15 @@ assert(typeTests.includes("RootRequestResponse"), "type tests must assert root r
 assert(
 	sourceRoot.includes("RequestMethod") && sourceRoot.includes("RequestResponse") && sourceRoot.includes("RequestType"),
 	"source root must export request public types"
+);
+assert(
+	requestSource.includes("promise: Promise<RequestResponse>") &&
+		requestSource.includes("resolve(value?: RequestResponse): void") &&
+		requestSource.includes("function request(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders): Promise<RequestResponse>") &&
+		requestSource.includes("var r: RequestResponse") &&
+		requestSource.includes("JSON.parse(this.response) as JsonValue") &&
+		!requestSource.includes("function request(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders): Promise<any>"),
+	"source request implementation must keep typed RequestResponse deferred and fallback result handling"
 );
 assert(
 	bookSource.includes("type RequestMethod") &&
