@@ -13,6 +13,7 @@ const contentsSource = readFileSync(path.join(root, "src/contents.ts"), "utf8");
 const contentsTypes = readFileSync(path.join(root, "types/contents.d.ts"), "utf8");
 const renditionSource = readFileSync(path.join(root, "src/rendition.ts"), "utf8");
 const renditionTypes = readFileSync(path.join(root, "types/rendition.d.ts"), "utf8");
+const stageSource = readFileSync(path.join(root, "src/managers/helpers/stage.ts"), "utf8");
 const iframeViewSource = readFileSync(path.join(root, "src/managers/views/iframe.ts"), "utf8");
 const managerSource = readFileSync(path.join(root, "src/managers/default/index.ts"), "utf8");
 const managerTypes = readFileSync(path.join(root, "types/managers/manager.d.ts"), "utf8");
@@ -243,6 +244,14 @@ assert(
 	sourceRoot.includes("SectionSearchResult") &&
 	sourceRoot.includes("SpineItem"),
 	"source root must export Section public types"
+);
+assert(
+	stageSource.includes("dir?: string") &&
+		stageSource.includes("[key: string]: unknown") &&
+		stageSource.includes("extend(this.settings, options)") &&
+		!stageSource.includes("[key: string]: any") &&
+		!stageSource.includes("(extend as any)(this.settings, options)"),
+	"Stage helper options must keep typed extension bridge"
 );
 assert(
 	sectionSource.includes("type DeferConstructor = new <T = unknown>()") &&

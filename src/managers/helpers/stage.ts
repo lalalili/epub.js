@@ -9,12 +9,13 @@ type StageAxis = "horizontal" | "vertical" | string;
 type StageOptions = {
 	axis?: StageAxis;
 	direction?: string;
+	dir?: string;
 	fullsize?: boolean;
 	height?: number | string | null | false;
 	hidden?: boolean;
 	overflow?: string | false;
 	width?: number | string | null | false;
-	[key: string]: any;
+	[key: string]: unknown;
 };
 
 type Padding = {
@@ -66,7 +67,7 @@ class Stage {
 		let axis = options.axis || "vertical";
 		let direction = options.direction;
 
-		(extend as any)(this.settings, options);
+		extend(this.settings, options);
 
 		if(options.height && isNumber(options.height)) {
 			height = options.height + "px";

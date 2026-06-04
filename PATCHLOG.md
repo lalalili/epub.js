@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0440
+- Why:
+  - `StageOptions` still used a string index signature of `any`, and `Stage.create()` cast the shared `extend()` helper to `any` before merging options.
+  - Typing arbitrary option keys as `unknown` and declaring the existing `dir` field keeps the manager helper bridge explicit without changing stage creation, sizing, overflow, or direction behavior.
+  - Gate 1 now rejects the old Stage options and `extend as any` bridge.
+- Diff Scope:
+  - `src/managers/helpers/stage.ts`: type the Stage options extension bridge.
+  - `scripts/verify-gate1-readiness.mjs`: guard Stage option bridge typing.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/manager-listeners.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Stage options must intentionally accept arbitrary `any` values.
+
 ### P-0439
 - Why:
   - `Annotations.each()` exposes an `unknown[]` variadic surface, but the legacy `_annotations.forEach.apply()` bridge still cast the collection to `any`.
