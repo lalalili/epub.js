@@ -5,7 +5,7 @@ import View from "./managers/view";
 import Hook from "./utils/hook";
 import Themes from "./themes";
 import EpubCFI from "./epubcfi";
-import Annotations from "./annotations";
+import Annotations, { AnnotationData } from "./annotations";
 import Queue from "./utils/queue";
 import { Deferred } from "./utils/core";
 import Layout from "./layout";
@@ -199,7 +199,7 @@ export default class Rendition {
 
     once(type: string, listener: (...args: unknown[]) => void): unknown;
 
-    private triggerMarkEvent(cfiRange: string, data: object, contents: Contents): void;
+    private triggerMarkEvent(cfiRange: string, data: AnnotationData | undefined, contents: Contents): void;
 
     private triggerSelectedEvent(cfirange: string, contents: Contents): void;
 

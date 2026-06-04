@@ -8,7 +8,7 @@ import Queue from "./utils/queue";
 import Layout from "./layout";
 // import Mapping from "./mapping";
 import Themes from "./themes";
-import Annotations from "./annotations";
+import Annotations, { type AnnotationData } from "./annotations";
 import { EVENTS, DOM_EVENTS } from "./utils/constants";
 import type Contents from "./contents";
 import type { VerticalRlDebugMetrics } from "./contents";
@@ -520,7 +520,7 @@ class Rendition {
 	 */
 	afterDisplayed(view: any): void {
 
-		view.on(EVENTS.VIEWS.MARK_CLICKED, (cfiRange: string, data: any) => this.triggerMarkEvent(cfiRange, data, view.contents));
+		view.on(EVENTS.VIEWS.MARK_CLICKED, (cfiRange: string, data: AnnotationData | undefined) => this.triggerMarkEvent(cfiRange, data, view.contents));
 
 		this.hooks.render.trigger(view, this)
 			.then(() => {
@@ -1125,7 +1125,7 @@ class Rendition {
 	 * @private
 	 * @param  {EpubCFI} cfirange
 	 */
-	triggerMarkEvent(cfiRange: string, data: any, contents: Contents): void {
+	triggerMarkEvent(cfiRange: string, data: AnnotationData | undefined, contents: Contents): void {
 		/**
 		 * Emit that a mark was clicked
 		 * @event markClicked

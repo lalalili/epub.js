@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0408
+- Why:
+  - `Rendition.triggerMarkEvent()` bridges annotation mark clicks to the public `markClicked` event, but source still accepted `data: any` while declarations used a broad `object`.
+  - Annotation data already has the package-root `AnnotationData = Record<string, unknown>` contract, and annotation/view APIs allow the payload to be omitted.
+  - Reusing `AnnotationData | undefined` removes another `Rendition` `any` leak while preserving the emitted `markClicked` arguments.
+- Diff Scope:
+  - `src/rendition.ts`: import `AnnotationData` and type the mark-click listener plus `triggerMarkEvent()` payload.
+  - `types/rendition.d.ts`: mirror the private mark-event payload type.
+  - `scripts/verify-gate1-readiness.mjs`: require source/declaration parity for the mark-click payload bridge.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if custom views must intentionally emit untyped mark-click payloads through Rendition.
+
 ### P-0407
 - Why:
   - `Rendition.displaying` is a public state promise used while a display request is active, but it still exposed `Deferred<any>` in source, declarations, docs, and type smoke tests.
