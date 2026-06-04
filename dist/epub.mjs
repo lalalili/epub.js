@@ -9571,7 +9571,15 @@ var ei = class {
 			defaultDirection: "ltr",
 			allowScriptedContent: !1,
 			allowPopups: !1
-		}), I(this.settings, t), typeof this.settings.manager == "object" && (this.manager = this.settings.manager), this.book = e, this.hooks = {}, this.hooks.display = new ge(this), this.hooks.serialize = new ge(this), this.hooks.content = new ge(this), this.hooks.unloaded = new ge(this), this.hooks.layout = new ge(this), this.hooks.render = new ge(this), this.hooks.show = new ge(this), this.hooks.content.register(this.handleLinks.bind(this)), this.hooks.content.register(this.passEvents.bind(this)), this.hooks.content.register(this.adjustImages.bind(this)), this.book.spine.hooks.content.register(this.injectIdentifier.bind(this)), this.settings.stylesheet && this.book.spine.hooks.content.register(this.injectStylesheet.bind(this)), this.settings.script && this.book.spine.hooks.content.register(this.injectScript.bind(this)), this.themes = new st(this), this.annotations = new ct(this), this.epubcfi = new X(), this.q = new qe(this), this.location = void 0, this.q.enqueue(this.book.opened), this.starting = new Zr(), this.started = this.starting.promise, this.q.enqueue(this.start);
+		}), I(this.settings, t), typeof this.settings.manager == "object" && (this.manager = this.settings.manager), this.book = e, this.hooks = {
+			display: new ge(this),
+			serialize: new ge(this),
+			content: new ge(this),
+			unloaded: new ge(this),
+			layout: new ge(this),
+			render: new ge(this),
+			show: new ge(this)
+		}, this.hooks.content.register(this.handleLinks.bind(this)), this.hooks.content.register(this.passEvents.bind(this)), this.hooks.content.register(this.adjustImages.bind(this)), this.book.spine.hooks.content.register(this.injectIdentifier.bind(this)), this.settings.stylesheet && this.book.spine.hooks.content.register(this.injectStylesheet.bind(this)), this.settings.script && this.book.spine.hooks.content.register(this.injectScript.bind(this)), this.themes = new st(this), this.annotations = new ct(this), this.epubcfi = new X(), this.q = new qe(this), this.location = void 0, this.q.enqueue(this.book.opened), this.starting = new Zr(), this.started = this.starting.promise, this.q.enqueue(this.start);
 	}
 	setManager(e) {
 		this.manager = e;

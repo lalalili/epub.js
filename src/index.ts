@@ -257,6 +257,7 @@ export type {
 	LayoutProperties as RenditionLayoutProperties,
 	Location,
 	ManagerLocationItem,
+	RenditionHooks,
 	RenditionLocationPart,
 	RenditionManager,
 	RenditionManagerConstructor,

@@ -122,6 +122,16 @@ export interface RenditionManagerOptions {
   settings: RenditionOptions;
 }
 
+export interface RenditionHooks {
+  display: Hook;
+  serialize: Hook;
+  content: Hook;
+  unloaded: Hook;
+  layout: Hook;
+  render: Hook;
+  show: Hook;
+}
+
 export type RenditionManagerConstructor = new (options: RenditionManagerOptions) => RenditionManager;
 export type RenditionViewConstructor = new (section: unknown, options?: unknown) => View;
 
@@ -147,15 +157,7 @@ export default class Rendition {
 
     settings: RenditionOptions;
     book: Book;
-    hooks: {
-      display: Hook,
-      serialize: Hook,
-      content: Hook,
-      unloaded: Hook,
-      layout: Hook,
-      render: Hook,
-      show: Hook
-    }
+    hooks: RenditionHooks;
     manager?: RenditionManager;
     ViewManager?: RenditionManagerConstructor;
     View?: RenditionViewConstructor;

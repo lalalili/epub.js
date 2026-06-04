@@ -77,6 +77,7 @@
 - [QueuedItem](interfaces/QueuedItem.md)
 - [RangePair](interfaces/RangePair.md)
 - [RectBounds](interfaces/RectBounds.md)
+- [RenditionHooks](interfaces/RenditionHooks.md)
 - [RenditionLayoutProperties](interfaces/RenditionLayoutProperties.md)
 - [RenditionLocationPart](interfaces/RenditionLocationPart.md)
 - [RenditionManager](interfaces/RenditionManager.md)

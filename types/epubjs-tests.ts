@@ -166,6 +166,7 @@ import type {
   ThemesRendition as RootThemesRendition,
   Url as RootUrl,
   UrlBase as RootUrlBase,
+  RenditionHooks as RootRenditionHooks,
   RenditionLocationPart as RootRenditionLocationPart,
   RenditionLayoutProperties as RootRenditionLayoutProperties,
   RenditionManager as RootRenditionManager,
@@ -233,7 +234,7 @@ import Locations, { LocationInput, LocationRange, LocationsRequest, WordLocation
 import Mapping, { EpubCFIPair, MappingAxis, MappingContents, MappingDirection, MappingLayout, MappingSection, MappingTextNodeWalker, MappingView, RangePair } from './mapping';
 import Manager, { ManagerOptions } from './managers/manager';
 import View from './managers/view';
-import type { DisplayedLocation, LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionLocationPart, RenditionManager, RenditionManagerConstructor, RenditionManagerOptions, RenditionOptions, RenditionViewConstructor, RenditionVerticalRlDebugState, RenditionVerticalRlPageDebug, RenditionViewsBridge } from './rendition';
+import type { DisplayedLocation, LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionHooks, RenditionLocationPart, RenditionManager, RenditionManagerConstructor, RenditionManagerOptions, RenditionOptions, RenditionViewConstructor, RenditionVerticalRlDebugState, RenditionVerticalRlPageDebug, RenditionViewsBridge } from './rendition';
 import Resources, {
   ReplacementMode,
   ResourceArchive,
@@ -306,6 +307,7 @@ type PublicRootAssertions = [
   Assert<IsExact<RootParsedEpubCFI, ParsedEpubCFI>>,
   Assert<IsExact<RootDisplayedLocation, DisplayedLocation>>,
   Assert<IsExact<RootRenditionOptions, RenditionOptions>>,
+  Assert<IsExact<RootRenditionHooks, RenditionHooks>>,
   Assert<IsExact<RootRenditionLocationPart, RenditionLocationPart>>,
   Assert<IsExact<RootRenditionLayoutProperties, RenditionLayoutProperties>>,
   Assert<IsExact<RootRenditionManager, RenditionManager>>,
@@ -519,6 +521,7 @@ type CoreClassAssertions = [
   Assert<IsExact<Rendition["manager"], RenditionManager | undefined>>,
   Assert<IsExact<Rendition["ViewManager"], RenditionManagerConstructor | undefined>>,
   Assert<IsExact<Rendition["View"], RenditionViewConstructor | undefined>>,
+  Assert<IsExact<Rendition["hooks"], RenditionHooks>>,
   Assert<IsExact<RenditionManager["visible"], () => Array<View>>>,
   Assert<IsExact<RenditionManager["views"], RenditionViewsBridge | undefined>>,
   Assert<IsExact<RenditionManagerOptions["view"], RenditionViewConstructor>>,

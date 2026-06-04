@@ -1256,6 +1256,28 @@ assert(
 	"Rendition source and declarations must keep attach/display return type parity"
 );
 assert(
+	renditionSource.includes('import Themes, { type ThemesRendition } from "./themes"') &&
+		renditionSource.includes('import Annotations, { type AnnotationData, type AnnotationsRendition } from "./annotations"') &&
+		renditionSource.includes("export interface RenditionHooks") &&
+		renditionSource.includes("hooks: RenditionHooks") &&
+		renditionTypes.includes("export interface RenditionHooks") &&
+		renditionTypes.includes("hooks: RenditionHooks") &&
+		typeTests.includes("Rendition[\"hooks\"], RenditionHooks") &&
+		sourceRoot.includes("RenditionHooks") &&
+		typeIndex.includes("RenditionHooks") &&
+		typeTests.includes("RootRenditionHooks, RenditionHooks") &&
+		renditionSource.includes("this.hooks = {") &&
+		renditionSource.includes("display: new Hook(this)") &&
+		!renditionSource.includes("\t\tthis.hooks = {};") &&
+		renditionSource.includes("this.themes = new Themes(this as ThemesRendition)") &&
+		renditionSource.includes("this.annotations = new Annotations(this as AnnotationsRendition)") &&
+		renditionSource.includes("this.book = undefined as unknown as Book") &&
+		!renditionSource.includes("[key: string]: any") &&
+		!renditionSource.includes("new Themes(this as any)") &&
+		!renditionSource.includes("new Annotations(this as any)"),
+	"Rendition source must keep state fields explicit and theme/annotation bridges typed"
+);
+assert(
 	renditionSource.includes("requireManager(manager: string | Function | object): string | Function | object") &&
 		renditionSource.includes("requireView(view: string | Function | object): string | Function | object") &&
 		renditionTypes.includes("requireManager(manager: string | Function | object): string | Function | object") &&

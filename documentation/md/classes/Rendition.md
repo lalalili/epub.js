@@ -60,35 +60,7 @@
 
 ### hooks
 
-> **hooks**: `object`
-
-#### content
-
-> **content**: [`Hook`](../interfaces/Hook.md)
-
-#### display
-
-> **display**: [`Hook`](../interfaces/Hook.md)
-
-#### layout
-
-> **layout**: [`Hook`](../interfaces/Hook.md)
-
-#### render
-
-> **render**: [`Hook`](../interfaces/Hook.md)
-
-#### serialize
-
-> **serialize**: [`Hook`](../interfaces/Hook.md)
-
-#### show
-
-> **show**: [`Hook`](../interfaces/Hook.md)
-
-#### unloaded
-
-> **unloaded**: [`Hook`](../interfaces/Hook.md)
+> **hooks**: [`RenditionHooks`](../interfaces/RenditionHooks.md)
 
 ***
 

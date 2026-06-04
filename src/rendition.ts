@@ -7,8 +7,8 @@ import EpubCFI from "./epubcfi";
 import Queue from "./utils/queue";
 import Layout, { type LayoutProps, type LayoutSettings } from "./layout";
 // import Mapping from "./mapping";
-import Themes from "./themes";
-import Annotations, { type AnnotationData } from "./annotations";
+import Themes, { type ThemesRendition } from "./themes";
+import Annotations, { type AnnotationData, type AnnotationsRendition } from "./annotations";
 import { EVENTS, DOM_EVENTS } from "./utils/constants";
 import type Book from "./book";
 import type Contents from "./contents";
@@ -132,6 +132,16 @@ export interface RenditionManagerOptions {
 	settings: RenditionOptions;
 }
 
+export interface RenditionHooks {
+	display: Hook;
+	serialize: Hook;
+	content: Hook;
+	unloaded: Hook;
+	layout: Hook;
+	render: Hook;
+	show: Hook;
+}
+
 export type RenditionManagerConstructor = new (options: RenditionManagerOptions) => RenditionManager;
 export type RenditionViewConstructor = typeof IframeView;
 
@@ -194,10 +204,9 @@ function firstOrLastRenditionView(views?: RenditionViewsBridge): IframeView | un
  * @param {boolean} [options.allowPopups=false] enable opening popup in content
  */
 class Rendition {
-	[key: string]: any;
 	settings: RenditionOptions;
 	book: Book;
-	hooks: Record<string, Hook>;
+	hooks: RenditionHooks;
 	manager?: RenditionManager;
 	ViewManager?: RenditionManagerConstructor;
 	View?: RenditionViewConstructor;
@@ -246,14 +255,15 @@ class Rendition {
 		 * @property {Hook} hooks.content
 		 * @memberof Rendition
 		 */
-		this.hooks = {};
-		this.hooks.display = new Hook(this);
-		this.hooks.serialize = new Hook(this);
-		this.hooks.content = new Hook(this);
-		this.hooks.unloaded = new Hook(this);
-		this.hooks.layout = new Hook(this);
-		this.hooks.render = new Hook(this);
-		this.hooks.show = new Hook(this);
+		this.hooks = {
+			display: new Hook(this),
+			serialize: new Hook(this),
+			content: new Hook(this),
+			unloaded: new Hook(this),
+			layout: new Hook(this),
+			render: new Hook(this),
+			show: new Hook(this)
+		};
 
 		this.hooks.content.register(this.handleLinks.bind(this));
 		this.hooks.content.register(this.passEvents.bind(this));
@@ -273,13 +283,13 @@ class Rendition {
 		 * @member {Themes} themes
 		 * @memberof Rendition
 		 */
-		this.themes = new Themes(this as any);
+		this.themes = new Themes(this as ThemesRendition);
 
 		/**
 		 * @member {Annotations} annotations
 		 * @memberof Rendition
 		 */
-		this.annotations = new Annotations(this as any);
+		this.annotations = new Annotations(this as AnnotationsRendition);
 
 		this.epubcfi = new EpubCFI();
 
@@ -1125,7 +1135,7 @@ class Rendition {
 
 		this.manager && this.manager.destroy();
 
-		this.book = undefined;
+		this.book = undefined as unknown as Book;
 
 		// this.views = null;
 

@@ -16654,14 +16654,15 @@
 			* @property {Hook} hooks.content
 			* @memberof Rendition
 			*/
-			this.hooks = {};
-			this.hooks.display = new Hook(this);
-			this.hooks.serialize = new Hook(this);
-			this.hooks.content = new Hook(this);
-			this.hooks.unloaded = new Hook(this);
-			this.hooks.layout = new Hook(this);
-			this.hooks.render = new Hook(this);
-			this.hooks.show = new Hook(this);
+			this.hooks = {
+				display: new Hook(this),
+				serialize: new Hook(this),
+				content: new Hook(this),
+				unloaded: new Hook(this),
+				layout: new Hook(this),
+				render: new Hook(this),
+				show: new Hook(this)
+			};
 			this.hooks.content.register(this.handleLinks.bind(this));
 			this.hooks.content.register(this.passEvents.bind(this));
 			this.hooks.content.register(this.adjustImages.bind(this));
