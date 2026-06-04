@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0427
+- Why:
+  - `bounds()` and `borders()` only sum a fixed set of CSS pixel properties, but `sumStylePixels()` still indexed `CSSStyleDeclaration` through `style[prop as any]`.
+  - Aligning those property names with a source-side `StylePixelProperty` union removes another local `any` escape while preserving the public `SizeBounds` helpers exposed through `utils/core`.
+  - Gate 1 now guards the typed style access before release work.
+- Diff Scope:
+  - `src/platform/layout.ts`: type CSS pixel property names and remove the `any` style index.
+  - `scripts/verify-gate1-readiness.mjs`: require typed style property access in platform layout.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/platform-layout.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if platform layout style summing must accept arbitrary CSS property names.
+
 ### P-0426
 - Why:
   - `Mapping.findRanges()` computes `count` as a number from scroll width, spread width, and divisor, but the source loop still read `(count as any).pages`.

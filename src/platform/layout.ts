@@ -14,11 +14,27 @@ interface SizeBounds {
 	height: number;
 }
 
-function sumStylePixels(style: CSSStyleDeclaration, props: string[]): number {
+type StylePixelProperty =
+	"width" |
+	"height" |
+	"paddingRight" |
+	"paddingLeft" |
+	"paddingTop" |
+	"paddingBottom" |
+	"marginRight" |
+	"marginLeft" |
+	"marginTop" |
+	"marginBottom" |
+	"borderRightWidth" |
+	"borderLeftWidth" |
+	"borderTopWidth" |
+	"borderBottomWidth";
+
+function sumStylePixels(style: CSSStyleDeclaration, props: StylePixelProperty[]): number {
 	var total = 0;
 
 	props.forEach(function(prop) {
-		total += parseFloat(style[prop as any]) || 0;
+		total += parseFloat(style[prop]) || 0;
 	});
 
 	return total;
@@ -48,8 +64,8 @@ export function documentHeight(): number {
 export function bounds(el: Element): SizeBounds {
 	var win = getWindow() as Window;
 	var style = win.getComputedStyle(el);
-	var widthProps = ["width", "paddingRight", "paddingLeft", "marginRight", "marginLeft", "borderRightWidth", "borderLeftWidth"];
-	var heightProps = ["height", "paddingTop", "paddingBottom", "marginTop", "marginBottom", "borderTopWidth", "borderBottomWidth"];
+	var widthProps: StylePixelProperty[] = ["width", "paddingRight", "paddingLeft", "marginRight", "marginLeft", "borderRightWidth", "borderLeftWidth"];
+	var heightProps: StylePixelProperty[] = ["height", "paddingTop", "paddingBottom", "marginTop", "marginBottom", "borderTopWidth", "borderBottomWidth"];
 
 	return {
 		height: sumStylePixels(style, heightProps),
@@ -65,8 +81,8 @@ export function bounds(el: Element): SizeBounds {
 export function borders(el: Element): SizeBounds {
 	var win = getWindow() as Window;
 	var style = win.getComputedStyle(el);
-	var widthProps = ["paddingRight", "paddingLeft", "marginRight", "marginLeft", "borderRightWidth", "borderLeftWidth"];
-	var heightProps = ["paddingTop", "paddingBottom", "marginTop", "marginBottom", "borderTopWidth", "borderBottomWidth"];
+	var widthProps: StylePixelProperty[] = ["paddingRight", "paddingLeft", "marginRight", "marginLeft", "borderRightWidth", "borderLeftWidth"];
+	var heightProps: StylePixelProperty[] = ["paddingTop", "paddingBottom", "marginTop", "marginBottom", "borderTopWidth", "borderBottomWidth"];
 
 	return {
 		height: sumStylePixels(style, heightProps),

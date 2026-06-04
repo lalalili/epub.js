@@ -38,6 +38,7 @@ const mappingTypes = readFileSync(path.join(root, "types/mapping.d.ts"), "utf8")
 const compatRangeSource = readFileSync(path.join(root, "src/compat/range.ts"), "utf8");
 const platformBlobSource = readFileSync(path.join(root, "src/platform/blob.ts"), "utf8");
 const platformDomSource = readFileSync(path.join(root, "src/platform/dom.ts"), "utf8");
+const platformLayoutSource = readFileSync(path.join(root, "src/platform/layout.ts"), "utf8");
 const requestSource = readFileSync(path.join(root, "src/utils/request.ts"), "utf8");
 const queueSource = readFileSync(path.join(root, "src/utils/queue.ts"), "utf8");
 const queueTypes = readFileSync(path.join(root, "types/utils/queue.d.ts"), "utf8");
@@ -1269,6 +1270,15 @@ assert(
 		platformDomSource.includes("var elements: NodeListOf<Element> | HTMLCollectionOf<Element>") &&
 		!platformDomSource.includes("var query: any"),
 	"source platform DOM querySelectorByType must keep typed query fallback handling"
+);
+assert(
+	platformLayoutSource.includes("type StylePixelProperty =") &&
+		platformLayoutSource.includes("function sumStylePixels(style: CSSStyleDeclaration, props: StylePixelProperty[]): number") &&
+		platformLayoutSource.includes("var widthProps: StylePixelProperty[]") &&
+		platformLayoutSource.includes("var heightProps: StylePixelProperty[]") &&
+		platformLayoutSource.includes("parseFloat(style[prop])") &&
+		!platformLayoutSource.includes("style[prop as any]"),
+	"source platform layout style pixel summing must keep typed CSS property access"
 );
 assert(typeTests.includes("new ePub.utils.RangeObject()"), "type tests must cover utils/core RangeObject typing");
 assert(
