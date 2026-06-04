@@ -1585,7 +1585,7 @@ class Contents {
 			return;
 		}
 		this._onSelectionChange = this.onSelectionChange.bind(this);
-		this.document.addEventListener("selectionchange", this._onSelectionChange, { passive: true } as any);
+		this.document.addEventListener("selectionchange", this._onSelectionChange, { passive: true } as AddEventListenerOptions);
 	}
 
 	/**
@@ -1596,7 +1596,7 @@ class Contents {
 		if(!this.document) {
 			return;
 		}
-		this.document.removeEventListener("selectionchange", this._onSelectionChange, { passive: true } as any);
+		this.document.removeEventListener("selectionchange", this._onSelectionChange, { passive: true } as AddEventListenerOptions);
 		this._onSelectionChange = undefined;
 	}
 

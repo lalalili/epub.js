@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0437
+- Why:
+  - `Contents` selection listeners still used `{ passive: true } as any` even though DOM listener options are available as a typed `AddEventListenerOptions` value.
+  - Casting to `AddEventListenerOptions` preserves the existing runtime literal while removing the source-level `any`.
+  - Gate 1 now rejects the old selection listener options bridge.
+- Diff Scope:
+  - `src/contents.ts`: replace the `any` cast on passive selection listener options with `AddEventListenerOptions`.
+  - `scripts/verify-gate1-readiness.mjs`: guard selection listener option typing.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/contents-text-width.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if selection listener options need browser-specific handling.
+
 ### P-0436
 - Why:
   - `Mapping.walk()` still used `as any` for the legacy IE-compatible `TreeWalker` filter bridge even though the runtime shape is a function with an `acceptNode` property.

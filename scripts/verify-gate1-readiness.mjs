@@ -1266,6 +1266,13 @@ assert(
 	"Contents source must keep stylesheet/script load handlers typed"
 );
 assert(
+	contentsSource.includes('this.document.addEventListener("selectionchange", this._onSelectionChange, { passive: true } as AddEventListenerOptions)') &&
+		contentsSource.includes('this.document.removeEventListener("selectionchange", this._onSelectionChange, { passive: true } as AddEventListenerOptions)') &&
+		!contentsSource.includes('this.document.addEventListener("selectionchange", this._onSelectionChange, { passive: true } as any)') &&
+		!contentsSource.includes('this.document.removeEventListener("selectionchange", this._onSelectionChange, { passive: true } as any)'),
+	"Contents source must keep selection listener options typed without any"
+);
+assert(
 	contentsSource.includes("map(layout: MappingLayout): EpubCFIPair[]") &&
 		contentsTypes.includes("map(layout: MappingLayout): EpubCFIPair[]") &&
 	contentsSource.includes("mapPage(cfiBase: string, layout: MappingLayout, start: number, end: number, dev?: boolean): EpubCFIPair | undefined") &&
