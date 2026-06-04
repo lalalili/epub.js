@@ -422,7 +422,7 @@ class Rendition {
 	 * @param  {string} target Url or EpubCFI
 	 * @return {Promise}
 	 */
-	_display(target?: string | number): Promise<any> | undefined {
+	_display(target?: string | number): Promise<Section | undefined> | undefined {
 		if (!this.book) {
 			return;
 		}

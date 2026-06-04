@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0417
+- Why:
+  - `Rendition._display()` resolves the internal displaying deferred with `Section | undefined`, but source still advertised `Promise<any>`.
+  - Aligning the private display worker return type keeps the public `display()` pipeline typed before Gate 1 release work.
+  - This removes another source-side `Rendition` `any` leak without changing the public `display()` `Promise<void>` contract or queue behavior.
+- Diff Scope:
+  - `src/rendition.ts`: type `_display()` as `Promise<Section | undefined> | undefined`.
+  - `scripts/verify-gate1-readiness.mjs`: require the source `_display()` return type to remain typed.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if the internal display worker must intentionally remain source-untyped.
+
 ### P-0416
 - Why:
   - `Rendition.layout()` now stores `_layout` as the concrete `Layout` class, but its layout update listener still accepted `props` and `changed` as `any`.

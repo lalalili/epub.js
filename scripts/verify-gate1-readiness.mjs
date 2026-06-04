@@ -1001,6 +1001,7 @@ assert(
 assert(
 	renditionSource.includes("attachTo(element: Element | string): Promise<void>") &&
 		renditionSource.includes("display(target?: string | number): Promise<void>") &&
+		renditionSource.includes("_display(target?: string | number): Promise<Section | undefined> | undefined") &&
 		renditionTypes.includes("attachTo(element: Element | string): Promise<void>") &&
 		renditionTypes.includes("display(target?: string): Promise<void>") &&
 		renditionTypes.includes("display(target?: number): Promise<void>"),
