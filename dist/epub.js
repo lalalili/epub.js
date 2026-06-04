@@ -12307,6 +12307,50 @@
 		return typeof window !== "undefined" && window.__EPUB_VRL_DEBUG__ === true;
 	};
 	var IframeView = class {
+		settings;
+		id;
+		section;
+		index;
+		element;
+		added;
+		displayed;
+		rendered;
+		fixedWidth;
+		fixedHeight;
+		epubcfi;
+		layout;
+		pane;
+		highlights;
+		underlines;
+		marks;
+		iframe;
+		resizing = false;
+		_width = null;
+		_height = null;
+		_textWidth;
+		_textHeight;
+		_contentWidth;
+		_contentHeight;
+		_viewportFillingSingleMediaPage;
+		_needsReframe;
+		_expanding;
+		lockedWidth;
+		lockedHeight;
+		prevBounds;
+		elementBounds;
+		iframeBounds;
+		supportsSrcdoc = false;
+		sectionRender;
+		document;
+		window;
+		contents;
+		rendering;
+		axis;
+		writingMode;
+		blobUrl;
+		stopExpanding;
+		listenedEvents;
+		createContainer;
 		constructor(section, options) {
 			this.settings = extend$1({
 				ignoreClass: "",
@@ -12369,7 +12413,7 @@
 			this.iframe.style.height = "0";
 			this._width = 0;
 			this._height = 0;
-			this.element.setAttribute("ref", this.index);
+			this.element.setAttribute("ref", String(this.index));
 			this.added = true;
 			this.elementBounds = bounds$1(this.element);
 			if ("srcdoc" in this.iframe) this.supportsSrcdoc = true;
@@ -12530,12 +12574,12 @@
 			if (isNumber$1(width)) {
 				this.element.style.width = width + "px";
 				this.iframe.style.width = width + "px";
-				this._width = width;
+				this._width = Number(width);
 			}
 			if (isNumber$1(height)) {
 				this.element.style.height = height + "px";
 				this.iframe.style.height = height + "px";
-				this._height = height;
+				this._height = Number(height);
 			}
 			let safeWidth = Number(width) || 0;
 			let safeHeight = Number(height) || 0;
@@ -12778,7 +12822,7 @@
 			mark.style.position = "absolute";
 			mark.dataset["epubcfi"] = cfiRange;
 			if (data) Object.keys(data).forEach((key) => {
-				mark.dataset[key] = data[key];
+				mark.dataset[key] = String(data[key]);
 			});
 			if (cb) {
 				mark.addEventListener("click", cb);

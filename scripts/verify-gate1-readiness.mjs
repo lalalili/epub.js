@@ -879,6 +879,14 @@ assert(
 );
 assert(
 	iframeViewSource.includes("type DebugWindow = Window &") &&
+		iframeViewSource.includes("type SeamlessIframe = HTMLIFrameElement &") &&
+		iframeViewSource.includes("settings: IframeViewSettings") &&
+		iframeViewSource.includes("iframe?: SeamlessIframe") &&
+		iframeViewSource.includes("highlights: Record<string, StoredPaneMark>") &&
+		iframeViewSource.includes("interface IframeView") &&
+		iframeViewSource.includes("emit(type: string, ...args: unknown[]): void") &&
+		iframeViewSource.includes("locationOf(target: string | EpubCFI)") &&
+		!iframeViewSource.includes("[key: string]: any") &&
 		iframeViewSource.includes("__EPUB_VRL_DEBUG__?: boolean") &&
 		iframeViewSource.includes("execUnsafeLocalFunction(callback: () => void): void") &&
 		iframeViewSource.includes("type DisplayReject = (reason?: unknown, view?: IframeView) => void") &&

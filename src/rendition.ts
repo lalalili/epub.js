@@ -1217,7 +1217,7 @@ class Rendition {
 
 		// Should only every return 1 item
 		if (found.length) {
-			return found[0].contents.range(_cfi, ignoreClass);
+			return found[0].contents.range(_cfi, ignoreClass) as Range | undefined;
 		}
 	}
 

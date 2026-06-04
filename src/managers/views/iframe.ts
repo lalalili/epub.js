@@ -25,10 +25,12 @@ type IframeViewLayout = {
 	pageWidth?: number;
 	viewportPageWidth?: number;
 	effectivePageAdvance?: number;
+	pageBoundaryShift?: number;
+	edgeGuardPx?: number;
 	delta?: number;
 	divisor?: number;
 	gap?: number;
-	props?: Record<string, unknown>;
+	props?: Record<string, unknown> & { pageWidth?: number };
 	count?: (totalLength: number, pageLength?: number) => { pages: number; spreads?: number };
 	update?: (settings: Record<string, unknown>) => void;
 	format?: (contents: Contents, section?: IframeViewSection, axis?: string) => void;
@@ -52,6 +54,7 @@ type IframeViewSettings = {
 	globalLayoutProperties: Record<string, unknown>;
 	method?: "srcdoc" | "blobUrl" | "write";
 	forceRight: boolean;
+	forceEvenPages?: boolean;
 	allowScriptedContent: boolean;
 	allowPopups: boolean;
 	flow?: string;
@@ -74,6 +77,12 @@ type StoredAnchorMark = {
 	element: HTMLElement;
 	listeners: MarkListener[];
 	range: Range;
+};
+
+type SectionRenderPromise = Promise<string>;
+
+type SeamlessIframe = HTMLIFrameElement & {
+	seamless?: string;
 };
 
 type VerticalRlPageMetrics = {
@@ -121,7 +130,50 @@ const shouldDebugVerticalRl = () => {
 };
 
 class IframeView {
-	[key: string]: any;
+	settings: IframeViewSettings;
+	id: string;
+	section: IframeViewSection;
+	index: number;
+	element: HTMLElement;
+	added: boolean;
+	displayed: boolean;
+	rendered: boolean;
+	fixedWidth: number;
+	fixedHeight: number;
+	epubcfi: EpubCFI;
+	layout: IframeViewLayout;
+	pane?: Pane;
+	highlights: Record<string, StoredPaneMark>;
+	underlines: Record<string, StoredPaneMark>;
+	marks: Record<string, StoredAnchorMark>;
+	iframe?: SeamlessIframe;
+	resizing = false;
+	_width: number | null = null;
+	_height: number | null = null;
+	_textWidth: number | null | undefined;
+	_textHeight: number | null | undefined;
+	_contentWidth?: number;
+	_contentHeight?: number;
+	_viewportFillingSingleMediaPage?: boolean;
+	_needsReframe?: boolean;
+	_expanding?: boolean;
+	lockedWidth?: number;
+	lockedHeight?: number;
+	prevBounds?: Bounds;
+	elementBounds?: Bounds;
+	iframeBounds?: Bounds;
+	supportsSrcdoc = false;
+	sectionRender?: SectionRenderPromise;
+	document?: Document | null;
+	window?: Window | null;
+	contents?: Contents;
+	rendering?: boolean;
+	axis?: string;
+	writingMode?: string;
+	blobUrl?: string;
+	stopExpanding?: boolean;
+	listenedEvents?: string[];
+	createContainer?: () => HTMLElement;
 
 	constructor(section: IframeViewSection, options?: Partial<IframeViewSettings>) {
 		this.settings = extend({
@@ -199,7 +251,7 @@ class IframeView {
 			this.element = this.createContainer();
 		}
 
-		this.iframe = document.createElement("iframe");
+		this.iframe = document.createElement("iframe") as SeamlessIframe;
 		this.iframe.id = this.id;
 		this.iframe.scrolling = "no"; // Might need to be removed: breaks ios width calculations
 		this.iframe.style.overflow = "hidden";
@@ -229,7 +281,7 @@ class IframeView {
 		this._width = 0;
 		this._height = 0;
 
-		this.element.setAttribute("ref", this.index);
+		this.element.setAttribute("ref", String(this.index));
 
 		this.added = true;
 
@@ -551,13 +603,13 @@ class IframeView {
 		if(isNumber(width)){
 			this.element.style.width = width + "px";
 			this.iframe.style.width = width + "px";
-			this._width = width;
+			this._width = Number(width);
 		}
 
 		if(isNumber(height)){
 			this.element.style.height = height + "px";
 			this.iframe.style.height = height + "px";
-			this._height = height;
+			this._height = Number(height);
 		}
 
 		let safeWidth = Number(width) || 0;
@@ -797,7 +849,7 @@ class IframeView {
 		return this.element.getBoundingClientRect();
 	}
 
-	locationOf(target: string | number) {
+	locationOf(target: string | EpubCFI) {
 		var targetPos = this.contents.locationOf(target, this.settings.ignoreClass);
 
 		return {
@@ -827,7 +879,7 @@ class IframeView {
 			return;
 		}
 		const attributes = Object.assign({"fill": "yellow", "fill-opacity": "0.3", "mix-blend-mode": "multiply"}, styles);
-		let range = this.contents.range(cfiRange);
+		let range = this.contents.range(cfiRange) as Range | null;
 
 		let emitter = () => {
 			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
@@ -860,7 +912,7 @@ class IframeView {
 			return;
 		}
 		const attributes = Object.assign({"stroke": "black", "stroke-opacity": "0.3", "mix-blend-mode": "multiply"}, styles);
-		let range = this.contents.range(cfiRange);
+		let range = this.contents.range(cfiRange) as Range | null;
 		let emitter = () => {
 			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
 		};
@@ -897,7 +949,7 @@ class IframeView {
 			return item;
 		}
 
-		let range = this.contents.range(cfiRange);
+		let range = this.contents.range(cfiRange) as Range | null;
 		if (!range) {
 			return;
 		}
@@ -924,7 +976,7 @@ class IframeView {
 
 		if (data) {
 			Object.keys(data).forEach((key) => {
-				mark.dataset[key] = data[key];
+				mark.dataset[key] = String(data[key]);
 			});
 		}
 
@@ -1063,6 +1115,13 @@ class IframeView {
 		// this.element.style.height = "0px";
 		// this.element.style.width = "0px";
 	}
+}
+
+interface IframeView {
+	emit(type: string, ...args: unknown[]): void;
+	on(type: string, listener: (...args: unknown[]) => void): unknown;
+	off(type: string, listener: (...args: unknown[]) => void): unknown;
+	once(type: string, listener: (...args: unknown[]) => void): unknown;
 }
 
 EventEmitter(IframeView.prototype);

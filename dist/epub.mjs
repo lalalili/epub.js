@@ -7098,6 +7098,50 @@ function Ht(e) {
 	return typeof e != "string" || e.toLowerCase().indexOf("<script") === -1 ? e : e.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, "").replace(/<script\b[^>]*\/\s*>/gi, "");
 }
 var Ut = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, Wt = class {
+	settings;
+	id;
+	section;
+	index;
+	element;
+	added;
+	displayed;
+	rendered;
+	fixedWidth;
+	fixedHeight;
+	epubcfi;
+	layout;
+	pane;
+	highlights;
+	underlines;
+	marks;
+	iframe;
+	resizing = !1;
+	_width = null;
+	_height = null;
+	_textWidth;
+	_textHeight;
+	_contentWidth;
+	_contentHeight;
+	_viewportFillingSingleMediaPage;
+	_needsReframe;
+	_expanding;
+	lockedWidth;
+	lockedHeight;
+	prevBounds;
+	elementBounds;
+	iframeBounds;
+	supportsSrcdoc = !1;
+	sectionRender;
+	document;
+	window;
+	contents;
+	rendering;
+	axis;
+	writingMode;
+	blobUrl;
+	stopExpanding;
+	listenedEvents;
+	createContainer;
 	constructor(e, t) {
 		this.settings = I({
 			ignoreClass: "",
@@ -7118,7 +7162,7 @@ var Ut = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, Wt = cla
 		return t.classList.add("epub-view"), t.style.height = "0px", t.style.width = "0px", t.style.overflow = "hidden", t.style.position = "relative", t.style.display = "block", e && e == "horizontal" ? t.style.flex = "none" : t.style.flex = "initial", t;
 	}
 	create() {
-		return this.iframe ? this.iframe : (this.element ||= this.createContainer(), this.iframe = document.createElement("iframe"), this.iframe.id = this.id, this.iframe.scrolling = "no", this.iframe.style.overflow = "hidden", this.iframe.seamless = "seamless", this.iframe.style.border = "none", this.iframe.setAttribute("sandbox", "allow-same-origin"), this.settings.allowScriptedContent && this.iframe.sandbox.add("allow-scripts"), this.settings.allowPopups && this.iframe.sandbox.add("allow-popups"), this.iframe.setAttribute("enable-annotation", "true"), this.resizing = !0, this.element.style.visibility = "hidden", this.iframe.style.visibility = "hidden", this.iframe.style.width = "0", this.iframe.style.height = "0", this._width = 0, this._height = 0, this.element.setAttribute("ref", this.index), this.added = !0, this.elementBounds = pt(this.element), "srcdoc" in this.iframe ? this.supportsSrcdoc = !0 : this.supportsSrcdoc = !1, this.settings.method || (this.settings.method = this.supportsSrcdoc ? "srcdoc" : "write"), this.iframe);
+		return this.iframe ? this.iframe : (this.element ||= this.createContainer(), this.iframe = document.createElement("iframe"), this.iframe.id = this.id, this.iframe.scrolling = "no", this.iframe.style.overflow = "hidden", this.iframe.seamless = "seamless", this.iframe.style.border = "none", this.iframe.setAttribute("sandbox", "allow-same-origin"), this.settings.allowScriptedContent && this.iframe.sandbox.add("allow-scripts"), this.settings.allowPopups && this.iframe.sandbox.add("allow-popups"), this.iframe.setAttribute("enable-annotation", "true"), this.resizing = !0, this.element.style.visibility = "hidden", this.iframe.style.visibility = "hidden", this.iframe.style.width = "0", this.iframe.style.height = "0", this._width = 0, this._height = 0, this.element.setAttribute("ref", String(this.index)), this.added = !0, this.elementBounds = pt(this.element), "srcdoc" in this.iframe ? this.supportsSrcdoc = !0 : this.supportsSrcdoc = !1, this.settings.method || (this.settings.method = this.supportsSrcdoc ? "srcdoc" : "write"), this.iframe);
 	}
 	render(e, t) {
 		return this.create(), this.size(), this.sectionRender ||= this.section.render(e), this.sectionRender.then(function(e) {
@@ -7187,7 +7231,7 @@ var Ut = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, Wt = cla
 	}
 	reframe(e, t) {
 		var n;
-		G(e) && (this.element.style.width = e + "px", this.iframe.style.width = e + "px", this._width = e), G(t) && (this.element.style.height = t + "px", this.iframe.style.height = t + "px", this._height = t);
+		G(e) && (this.element.style.width = e + "px", this.iframe.style.width = e + "px", this._width = Number(e)), G(t) && (this.element.style.height = t + "px", this.iframe.style.height = t + "px", this._height = Number(t));
 		let r = Number(e) || 0, i = Number(t) || 0;
 		n = {
 			width: r,
@@ -7327,7 +7371,7 @@ var Ut = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, Wt = cla
 		r.collapsed && i.nodeType === 1 ? (r = new Range(), r.selectNodeContents(i)) : r.collapsed && (r = new Range(), r.selectNodeContents(a));
 		let s = this.document.createElement("a");
 		return s.setAttribute("ref", "epubjs-mk"), s.style.position = "absolute", s.dataset.epubcfi = e, t && Object.keys(t).forEach((e) => {
-			s.dataset[e] = t[e];
+			s.dataset[e] = String(t[e]);
 		}), n && (s.addEventListener("click", n), s.addEventListener("touchstart", n)), s.addEventListener("click", o), s.addEventListener("touchstart", o), this.placeMark(s, r), this.element.appendChild(s), this.marks[e] = {
 			element: s,
 			range: r,
