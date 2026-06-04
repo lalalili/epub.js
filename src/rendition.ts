@@ -126,10 +126,6 @@ class Rendition {
 	starting?: CoreDeferred<void>;
 	started?: Promise<void>;
 	displaying?: CoreDeferred<any>;
-	declare emit: (type: string, ...args: any[]) => void;
-	declare on: (type: string, listener: (...args: any[]) => void) => any;
-	declare off: (type: string, listener: (...args: any[]) => void) => any;
-	declare once: (type: string, listener: (...args: any[]) => void) => any;
 
 	constructor(book: any, options?: RenditionOptions) {
 
@@ -1274,6 +1270,13 @@ class Rendition {
 		doc.getElementsByTagName("head")[0].appendChild(meta);
 	}
 
+}
+
+interface Rendition {
+	emit(type: string, ...args: any[]): void;
+	on(type: string, listener: (...args: any[]) => void): unknown;
+	off(type: string, listener: (...args: any[]) => void): unknown;
+	once(type: string, listener: (...args: any[]) => void): unknown;
 }
 
 //-- Enable binding events to Renderer

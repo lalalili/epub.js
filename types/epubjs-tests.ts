@@ -489,6 +489,10 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Rendition["remeasure"]>, Promise<any>>>,
   Assert<IsExact<ReturnType<Rendition["resolveLinkHref"]>, string>>,
   Assert<IsExact<ReturnType<Rendition["resize"]>, void>>,
+  Assert<IsExact<ReturnType<Rendition["emit"]>, void>>,
+  Assert<IsExact<ReturnType<Rendition["on"]>, unknown>>,
+  Assert<IsExact<ReturnType<Rendition["off"]>, unknown>>,
+  Assert<IsExact<ReturnType<Rendition["once"]>, unknown>>,
   Assert<IsExact<Contents["document"], Document>>,
   Assert<IsExact<Contents["documentElement"], HTMLElement>>,
   Assert<IsExact<Contents["content"], HTMLElement>>,
@@ -1103,6 +1107,13 @@ function testEpub() {
   const renditionDebugState: Record<string, any> = rendition.debugVerticalRlPage();
   const renditionRemeasure: Promise<any> = rendition.remeasure({ preserveLocation: true, waitForFonts: false });
   const resolvedRenditionHref: string = rendition.resolveLinkHref("#note", { sectionHref: "Text/chapter.xhtml" });
+  const renditionListener = (...args: unknown[]): void => {
+    void args;
+  };
+  const renditionEmit: void = rendition.emit("relocated", renditionLocationPart);
+  const renditionOn: unknown = rendition.on("relocated", renditionListener);
+  const renditionOff: unknown = rendition.off("relocated", renditionListener);
+  const renditionOnce: unknown = rendition.once("rendered", renditionListener);
 
   const binaryRequest: Promise<ArrayBuffer> = request("https://s3.amazonaws.com/moby-dick/moby-dick.epub", "binary", true, headers);
   const blobRequest: Promise<Blob> = request("https://s3.amazonaws.com/moby-dick/moby-dick.epub", "blob");
@@ -1615,6 +1626,10 @@ function testEpub() {
   void renditionDebugState;
   void renditionRemeasure;
   void resolvedRenditionHref;
+  void renditionEmit;
+  void renditionOn;
+  void renditionOff;
+  void renditionOnce;
   void epubAsBook;
   void rootBookAsBook;
   void blobBook;

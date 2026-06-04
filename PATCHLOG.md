@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0364
+- Why:
+  - `Rendition` is wired with `EventEmitter(Rendition.prototype)`, but the declaration file still exposed listener methods with `any` event names and listener signatures.
+  - The source already treats Rendition event names as strings, and the source/.d.ts/TypeDoc public contract should expose the same listener method surface.
+  - Tightening the type surface keeps Rendition EventEmitter parity enforceable without changing display, relocation, layout, annotation, link, resize, or runtime event wiring.
+- Diff Scope:
+  - `src/rendition.ts`: declare `emit`, `on`, `off`, and `once` on the merged `Rendition` interface after the class.
+  - `types/rendition.d.ts`: expose string event names and listener function signatures for Rendition EventEmitter methods.
+  - `types/epubjs-tests.ts`: assert Rendition EventEmitter method return types and add `emit` / `on` / `off` / `once` usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Rendition EventEmitter method parity and type-smoke assertions.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/rendition.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Rendition stops using EventEmitter prototype augmentation or intentionally keeps untyped listener methods in declarations.
+
 ### P-0363
 - Why:
   - `Contents` is wired with `EventEmitter(Contents.prototype)`, but the declaration file still exposed listener methods with `any` event names and listener signatures.

@@ -9,6 +9,7 @@ const typeTests = readFileSync(path.join(root, "types/epubjs-tests.ts"), "utf8")
 const sourceRoot = readFileSync(path.join(root, "src/index.ts"), "utf8");
 const bookSource = readFileSync(path.join(root, "src/book.ts"), "utf8");
 const contentsSource = readFileSync(path.join(root, "src/contents.ts"), "utf8");
+const renditionSource = readFileSync(path.join(root, "src/rendition.ts"), "utf8");
 const archiveSource = readFileSync(path.join(root, "src/archive.ts"), "utf8");
 const storeSource = readFileSync(path.join(root, "src/store.ts"), "utf8");
 const navigationTypes = readFileSync(path.join(root, "types/navigation.d.ts"), "utf8");
@@ -690,6 +691,17 @@ assert(
 assert(typeTests.includes("rendition.determineLayoutProperties"), "type tests must cover Rendition layout property typing");
 assert(typeTests.includes("rendition.located([managerLocationItem])"), "type tests must cover Rendition manager location typing");
 assert(typeTests.includes("rendition.resolveLinkHref(\"#note\""), "type tests must cover Rendition link resolution typing");
+assert(typeTests.includes("ReturnType<Rendition[\"on\"]>, unknown"), "type tests must assert Rendition EventEmitter listener typing");
+assert(typeTests.includes("const renditionOn: unknown = rendition.on"), "type tests must cover Rendition on listener usage");
+assert(typeTests.includes("const renditionOff: unknown = rendition.off"), "type tests must cover Rendition off listener usage");
+assert(typeTests.includes("const renditionOnce: unknown = rendition.once"), "type tests must cover Rendition once listener usage");
+assert(
+	renditionSource.includes("emit(type: string, ...args: any[]): void") &&
+		renditionSource.includes("on(type: string, listener: (...args: any[]) => void): unknown") &&
+		renditionSource.includes("off(type: string, listener: (...args: any[]) => void): unknown") &&
+		renditionSource.includes("once(type: string, listener: (...args: any[]) => void): unknown"),
+	"source Rendition must keep EventEmitter method type parity"
+);
 assert(
 	typeTests.includes("RootContentsSize") &&
 	typeTests.includes("RootVerticalRlMetricsCache") &&
