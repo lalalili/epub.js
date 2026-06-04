@@ -953,6 +953,12 @@ type AnnotationsAssertions = [
   Assert<IsExact<Annotations["_annotations"], Record<string, Annotation>>>,
   Assert<IsExact<Annotations["_annotationsBySectionIndex"], SectionAnnotationMap>>,
   Assert<IsExact<AnnotationData, Record<string, unknown>>>,
+  Assert<IsExact<ReturnType<AnnotationView["highlight"]>, unknown>>,
+  Assert<IsExact<ReturnType<AnnotationView["mark"]>, unknown>>,
+  Assert<IsExact<ReturnType<AnnotationView["underline"]>, unknown>>,
+  Assert<IsExact<ReturnType<AnnotationView["unhighlight"]>, unknown>>,
+  Assert<IsExact<ReturnType<AnnotationView["unmark"]>, unknown>>,
+  Assert<IsExact<ReturnType<AnnotationView["ununderline"]>, unknown>>,
   Assert<IsExact<ReturnType<Annotations["add"]>, Annotation>>,
   Assert<IsExact<ReturnType<Annotations["remove"]>, void>>,
   Assert<IsExact<ReturnType<Annotations["_removeFromAnnotationBySectionIndex"]>, void>>,
@@ -968,8 +974,9 @@ type AnnotationsAssertions = [
   Assert<IsExact<Annotation["type"], string>>,
   Assert<IsExact<Annotation["data"], AnnotationData | undefined>>,
   Assert<IsExact<ReturnType<Annotation["update"]>, void>>,
-  Assert<IsExact<ReturnType<Annotation["attach"]>, any>>,
-  Assert<IsExact<ReturnType<Annotation["detach"]>, any>>,
+  Assert<IsExact<Annotation["mark"], unknown>>,
+  Assert<IsExact<ReturnType<Annotation["attach"]>, unknown>>,
+  Assert<IsExact<ReturnType<Annotation["detach"]>, unknown>>,
   Assert<IsExact<ReturnType<Annotation["emit"]>, void>>,
   Assert<IsExact<ReturnType<Annotation["on"]>, unknown>>,
   Assert<IsExact<ReturnType<Annotation["off"]>, unknown>>,
@@ -1516,8 +1523,8 @@ function testEpub() {
   annotations.remove("epubcfi(/6/4[chapter-1]!/4/2,/1:0,/1:10)", "mark");
   markAnnotation.update({ newer: true });
   const annotationListener = (...args: unknown[]): void => { void args; };
-  const attachedMark: any = highlightAnnotation.attach(annotationView);
-  const detachedMark: any = underlineAnnotation.detach(annotationView);
+  const attachedMark: unknown = highlightAnnotation.attach(annotationView);
+  const detachedMark: unknown = underlineAnnotation.detach(annotationView);
   const annotationEmit: void = markAnnotation.emit("attach", attachedMark);
   const annotationOn: unknown = markAnnotation.on("attach", annotationListener);
   const annotationOff: unknown = markAnnotation.off("attach", annotationListener);

@@ -34,7 +34,7 @@
 
 ### mark
 
-> **mark**: `any`
+> **mark**: `unknown`
 
 ***
 
@@ -58,7 +58,7 @@
 
 ### attach()
 
-> **attach**(`view`): `any`
+> **attach**(`view`): `unknown`
 
 #### Parameters
 
@@ -68,13 +68,13 @@
 
 #### Returns
 
-`any`
+`unknown`
 
 ***
 
 ### detach()
 
-> **detach**(`view?`): `any`
+> **detach**(`view?`): `unknown`
 
 #### Parameters
 
@@ -84,7 +84,7 @@
 
 #### Returns
 
-`any`
+`unknown`
 
 ***
 

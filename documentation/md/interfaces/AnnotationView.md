@@ -16,7 +16,7 @@
 
 ### highlight()
 
-> **highlight**(`cfiRange`, `data?`, `cb?`, `className?`, `styles?`): `any`
+> **highlight**(`cfiRange`, `data?`, `cb?`, `className?`, `styles?`): `unknown`
 
 #### Parameters
 
@@ -42,13 +42,13 @@
 
 #### Returns
 
-`any`
+`unknown`
 
 ***
 
 ### mark()
 
-> **mark**(`cfiRange`, `data?`, `cb?`): `any`
+> **mark**(`cfiRange`, `data?`, `cb?`): `unknown`
 
 #### Parameters
 
@@ -66,13 +66,13 @@
 
 #### Returns
 
-`any`
+`unknown`
 
 ***
 
 ### underline()
 
-> **underline**(`cfiRange`, `data?`, `cb?`, `className?`, `styles?`): `any`
+> **underline**(`cfiRange`, `data?`, `cb?`, `className?`, `styles?`): `unknown`
 
 #### Parameters
 
@@ -98,13 +98,13 @@
 
 #### Returns
 
-`any`
+`unknown`
 
 ***
 
 ### unhighlight()
 
-> **unhighlight**(`cfiRange`): `any`
+> **unhighlight**(`cfiRange`): `unknown`
 
 #### Parameters
 
@@ -114,13 +114,13 @@
 
 #### Returns
 
-`any`
+`unknown`
 
 ***
 
 ### unmark()
 
-> **unmark**(`cfiRange`): `any`
+> **unmark**(`cfiRange`): `unknown`
 
 #### Parameters
 
@@ -130,13 +130,13 @@
 
 #### Returns
 
-`any`
+`unknown`
 
 ***
 
 ### ununderline()
 
-> **ununderline**(`cfiRange`): `any`
+> **ununderline**(`cfiRange`): `unknown`
 
 #### Parameters
 
@@ -146,4 +146,4 @@
 
 #### Returns
 
-`any`
+`unknown`

@@ -604,6 +604,12 @@ assert(typeTests.includes("new Annotations(annotationsRendition)"), "type tests 
 assert(typeTests.includes("annotations.highlight(\"epubcfi"), "type tests must cover Annotations highlight typing");
 assert(typeTests.includes("annotations.remove(\"epubcfi"), "type tests must cover Annotations removal typing");
 assert(typeTests.includes("AnnotationData, Record<string, unknown>"), "type tests must assert AnnotationData unknown payload typing");
+assert(typeTests.includes("ReturnType<AnnotationView[\"highlight\"]>, unknown"), "type tests must assert AnnotationView mark handle typing");
+assert(typeTests.includes("ReturnType<AnnotationView[\"unhighlight\"]>, unknown"), "type tests must assert AnnotationView removal handle typing");
+assert(typeTests.includes("ReturnType<Annotation[\"attach\"]>, unknown"), "type tests must assert Annotation attach return typing");
+assert(typeTests.includes("ReturnType<Annotation[\"detach\"]>, unknown"), "type tests must assert Annotation detach return typing");
+assert(typeTests.includes("const attachedMark: unknown = highlightAnnotation.attach"), "type tests must cover Annotation attach unknown usage");
+assert(typeTests.includes("const detachedMark: unknown = underlineAnnotation.detach"), "type tests must cover Annotation detach unknown usage");
 assert(typeTests.includes("ReturnType<Annotation[\"emit\"]>, void"), "type tests must assert Annotation emit return typing");
 assert(typeTests.includes("ReturnType<Annotation[\"on\"]>, unknown"), "type tests must assert Annotation on return typing");
 assert(typeTests.includes("ReturnType<Annotation[\"off\"]>, unknown"), "type tests must assert Annotation off return typing");
@@ -614,6 +620,11 @@ assert(typeTests.includes("const annotationOff: unknown = markAnnotation.off"), 
 assert(typeTests.includes("const annotationOnce: unknown = markAnnotation.once"), "type tests must cover Annotation once usage");
 assert(
 	annotationsSource.includes("export type AnnotationData = Record<string, unknown>") &&
+	annotationsSource.includes("highlight(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): unknown") &&
+	annotationsSource.includes("unhighlight(cfiRange: string): unknown") &&
+	annotationsSource.includes("mark: unknown") &&
+	annotationsSource.includes("attach (view: AnnotationView): unknown") &&
+	annotationsSource.includes("detach (view?: AnnotationView): unknown") &&
 	annotationsSource.includes("emit(type: string, ...args: any[]): void") &&
 	annotationsSource.includes("on(type: string, listener: (...args: any[]) => void): unknown") &&
 	annotationsSource.includes("off(type: string, listener: (...args: any[]) => void): unknown") &&

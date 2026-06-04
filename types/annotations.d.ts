@@ -12,12 +12,12 @@ export type SectionAnnotationMap = Record<number, string[]>;
 
 export interface AnnotationView {
   index: number;
-  highlight(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): any;
-  mark(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback): any;
-  underline(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): any;
-  unhighlight(cfiRange: string): any;
-  unmark(cfiRange: string): any;
-  ununderline(cfiRange: string): any;
+  highlight(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): unknown;
+  mark(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback): unknown;
+  underline(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): unknown;
+  unhighlight(cfiRange: string): unknown;
+  unmark(cfiRange: string): unknown;
+  ununderline(cfiRange: string): unknown;
 }
 
 export interface AnnotationsRendition {
@@ -84,16 +84,16 @@ export class Annotation {
   cfiRange: string;
   data: AnnotationData | undefined;
   sectionIndex: number;
-  mark: any;
+  mark: unknown;
   cb: AnnotationCallback | undefined;
   className: string | undefined;
   styles: AnnotationStyles | undefined;
 
   update(data: AnnotationData): void;
 
-  attach(view: AnnotationView): any;
+  attach(view: AnnotationView): unknown;
 
-  detach(view?: AnnotationView): any;
+  detach(view?: AnnotationView): unknown;
 
   text(): void;
 

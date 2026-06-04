@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0369
+- Why:
+  - Annotation view mark handles are opaque values returned by host view implementations, but source, declarations, and TypeDoc still exposed those handles as `any`.
+  - The annotation runtime stores, forwards, and emits the mark handle without reading arbitrary properties, so the public handle surface can use `unknown`.
+  - Tightening this surface keeps Annotation source/.d.ts/TypeDoc parity enforceable without changing highlight, underline, mark, attach, detach, callbacks, or runtime event wiring.
+- Diff Scope:
+  - `src/annotations.ts`: type `AnnotationView` mark/removal return values, `Annotation.mark`, `attach()`, and `detach()` as `unknown`.
+  - `types/annotations.d.ts`: mirror the opaque annotation mark handle types as `unknown`.
+  - `types/epubjs-tests.ts`: assert AnnotationView and Annotation mark handle return types and update usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Annotation opaque mark handle parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/annotations.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Annotation consumers intentionally rely on mark handles being typed as `any` instead of narrowing opaque values.
+
 ### P-0368
 - Why:
   - `AnnotationData` is a package-root exported payload type, but source, declarations, and TypeDoc still exposed it as `Record<string, any>`.
