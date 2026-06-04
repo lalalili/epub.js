@@ -611,9 +611,13 @@ assert(typeTests.includes("archive.handleResponse(\"{\\\"ok\\\":true}\", \"json\
 assert(
 	archiveSource.includes("request(url: string, type: \"blob\"") &&
 	archiveSource.includes("request(url: string, type: ArchiveMarkupRequestType") &&
+	archiveSource.includes("@param  {RequestResponse} response") &&
+	archiveSource.includes("@return {RequestResponse} the parsed result") &&
 	archiveSource.includes("handleResponse(response: string, type: \"json\")") &&
-	archiveSource.includes("handleResponse(response: string, type: ArchiveMarkupRequestType"),
-	"source Archive must expose request and handleResponse overloads"
+	archiveSource.includes("handleResponse(response: string, type: ArchiveMarkupRequestType") &&
+	!archiveSource.includes("@param  {any} response") &&
+	!archiveSource.includes("@return {any} the parsed result"),
+	"source Archive must expose request and handleResponse overloads without stale any JSDoc"
 );
 assert(
 	archiveSource.includes("type DeferConstructor = new <T = unknown>()") &&
@@ -992,8 +996,12 @@ assert(typeTests.includes("store.createUrl(\"/OPS/images/cover.jpg\", storeUrlOp
 assert(
 	storeSource.includes("request(url: string, type: \"blob\"") &&
 	storeSource.includes("retrieve(url: string, type: \"blob\"") &&
-	storeSource.includes("handleResponse(response: string, type: \"json\")"),
-	"source Store must expose request, retrieve, and handleResponse overloads"
+	storeSource.includes("@param  {RequestResponse} response") &&
+	storeSource.includes("@return {RequestResponse} the parsed result") &&
+	storeSource.includes("handleResponse(response: string, type: \"json\")") &&
+	!storeSource.includes("@param  {any} response") &&
+	!storeSource.includes("@return {any} the parsed result"),
+	"source Store must expose request, retrieve, and handleResponse overloads without stale any JSDoc"
 );
 assert(
 	storeSource.includes("type DeferConstructor = new <T = unknown>()") &&

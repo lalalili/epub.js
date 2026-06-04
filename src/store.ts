@@ -246,9 +246,9 @@ class Store {
 	/**
 	 * Handle the response from request
 	 * @private
-	 * @param  {any} response
+	 * @param  {RequestResponse} response
 	 * @param  {string} [type]
-	 * @return {any} the parsed result
+	 * @return {RequestResponse} the parsed result
 	 */
 	handleResponse(response: string, type: "json"): JsonValue;
 	handleResponse(response: string, type: StoreMarkupRequestType): Document | XMLDocument;
