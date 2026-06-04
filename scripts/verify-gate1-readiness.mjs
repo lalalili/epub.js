@@ -233,11 +233,30 @@ assert(
 	sourceRoot.includes("ArchiveZip"),
 	"source root must export Archive public types"
 );
-assert(typeTests.includes("RootPackagingJsonManifest"), "type tests must assert root Packaging type exports");
-assert(typeTests.includes("RootPackagingManifest"), "type tests must assert root Packaging manifest alias export");
-assert(typeTests.includes("RootPackagingMetadata"), "type tests must assert root Packaging metadata alias export");
 assert(
-	sourceRoot.includes("PackagingJsonManifest") && sourceRoot.includes("PackagingManifest") && sourceRoot.includes("PackagingManifestObject") && sourceRoot.includes("PackagingMetadata") && sourceRoot.includes("PackagingMetadataObject"),
+	typeTests.includes("RootPackaging") &&
+	typeTests.includes("RootPackagingJsonManifest") &&
+	typeTests.includes("RootPackagingManifest") &&
+	typeTests.includes("RootPackagingManifestItem") &&
+	typeTests.includes("RootPackagingManifestObject") &&
+	typeTests.includes("RootPackagingMetadata") &&
+	typeTests.includes("RootPackagingMetadataObject") &&
+	typeTests.includes("RootPackagingObject") &&
+	typeTests.includes("RootPackagingSpineItem") &&
+	typeTests.includes("RootPackagingTocItem"),
+	"type tests must assert root Packaging type exports"
+);
+assert(
+	sourceRoot.includes("default as Packaging") &&
+	sourceRoot.includes("PackagingJsonManifest") &&
+	sourceRoot.includes("PackagingManifest") &&
+	sourceRoot.includes("PackagingManifestItem") &&
+	sourceRoot.includes("PackagingManifestObject") &&
+	sourceRoot.includes("PackagingMetadata") &&
+	sourceRoot.includes("PackagingMetadataObject") &&
+	sourceRoot.includes("PackagingObject") &&
+	sourceRoot.includes("PackagingSpineItem") &&
+	sourceRoot.includes("PackagingTocItem"),
 	"source root must export Packaging public types"
 );
 assert(typeTests.includes("type CoreClassAssertions"), "type tests must assert the core class surface");

@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0334
+- Why:
+  - P-0333 tightened the `Archive` root export readiness guard, leaving `Packaging` with the same guard-completeness gap.
+  - Source root exports, declaration root exports, and type smoke already cover `Packaging`, `PackagingJsonManifest`, `PackagingManifest`, `PackagingManifestItem`, `PackagingManifestObject`, `PackagingMetadata`, `PackagingMetadataObject`, `PackagingObject`, `PackagingSpineItem`, and `PackagingTocItem`, but the readiness script only required a subset of that public root surface.
+  - Tightening the guard keeps Packaging root/source/type-smoke parity enforceable before any release tag or host gate, without changing OPF parsing, JSON manifest loading, manifest/spine/metadata/toc shapes, or runtime behavior.
+- Diff Scope:
+  - `scripts/verify-gate1-readiness.mjs`: require the complete Packaging root type-smoke aliases and source root exports.
+  - `documentation/md/*`: rerun TypeDoc to confirm the guard-only update does not change the rendered public markdown surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/packaging.test.js test/browser/book.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Gate 1 readiness should intentionally allow partial Packaging root export coverage.
+
 ### P-0333
 - Why:
   - P-0332 tightened the `Store` root export readiness guard, leaving `Archive` with the same guard-completeness gap.
