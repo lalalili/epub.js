@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0373
+- Why:
+  - `Annotations.each()` is a package-root exported method, but its return type still leaked `any`.
+  - The method delegates to a `forEach`-style iteration path whose result is not a meaningful public value, so the public return surface can be `void`.
+  - Tightening this surface keeps Annotation source/.d.ts/TypeDoc parity enforceable without changing add, remove, highlight, underline, mark, attach, detach, or runtime event wiring.
+- Diff Scope:
+  - `src/annotations.ts`: type `Annotations.each()` as returning `void`.
+  - `types/annotations.d.ts`: mirror the `Annotations.each()` void return surface.
+  - `types/epubjs-tests.ts`: assert the `Annotations.each()` return type.
+  - `scripts/verify-gate1-readiness.mjs`: require Annotation each return parity in the source and type smoke.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/annotations.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Annotations consumers intentionally rely on `each()` being typed as returning `any`.
+
 ### P-0372
 - Why:
   - `LocationsRequest` is a package-root exported surface, but its request result still leaked `any`.

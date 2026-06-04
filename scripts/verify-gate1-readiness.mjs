@@ -628,6 +628,7 @@ assert(typeTests.includes("ReturnType<Annotation[\"emit\"]>, void"), "type tests
 assert(typeTests.includes("ReturnType<Annotation[\"on\"]>, unknown"), "type tests must assert Annotation on return typing");
 assert(typeTests.includes("ReturnType<Annotation[\"off\"]>, unknown"), "type tests must assert Annotation off return typing");
 assert(typeTests.includes("ReturnType<Annotation[\"once\"]>, unknown"), "type tests must assert Annotation once return typing");
+assert(typeTests.includes("ReturnType<Annotations[\"each\"]>, void"), "type tests must assert Annotations each return typing");
 assert(typeTests.includes("const annotationEmit: void = markAnnotation.emit"), "type tests must cover Annotation emit usage");
 assert(typeTests.includes("const annotationOn: unknown = markAnnotation.on"), "type tests must cover Annotation on usage");
 assert(typeTests.includes("const annotationOff: unknown = markAnnotation.off"), "type tests must cover Annotation off usage");
@@ -639,6 +640,7 @@ assert(
 	annotationsSource.includes("mark: unknown") &&
 	annotationsSource.includes("attach (view: AnnotationView): unknown") &&
 	annotationsSource.includes("detach (view?: AnnotationView): unknown") &&
+	annotationsSource.includes("each (...args: any[]): void") &&
 	annotationsSource.includes("emit(type: string, ...args: any[]): void") &&
 	annotationsSource.includes("on(type: string, listener: (...args: any[]) => void): unknown") &&
 	annotationsSource.includes("off(type: string, listener: (...args: any[]) => void): unknown") &&

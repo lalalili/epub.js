@@ -134,7 +134,7 @@
 
 ### each()
 
-> **each**(...`args`): `any`
+> **each**(...`args`): `void`
 
 #### Parameters
 
@@ -144,7 +144,7 @@
 
 #### Returns
 
-`any`
+`void`
 
 ***
 

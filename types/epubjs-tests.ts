@@ -967,7 +967,7 @@ type AnnotationsAssertions = [
   Assert<IsExact<ReturnType<Annotations["highlight"]>, Annotation>>,
   Assert<IsExact<ReturnType<Annotations["underline"]>, Annotation>>,
   Assert<IsExact<ReturnType<Annotations["mark"]>, Annotation>>,
-  Assert<IsExact<ReturnType<Annotations["each"]>, any>>,
+  Assert<IsExact<ReturnType<Annotations["each"]>, void>>,
   Assert<IsExact<ReturnType<Annotations["inject"]>, void>>,
   Assert<IsExact<ReturnType<Annotations["clear"]>, void>>,
   Assert<IsExact<ReturnType<Annotations["show"]>, void>>,

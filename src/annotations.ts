@@ -195,8 +195,8 @@ class Annotations {
 	/**
 	 * iterate over annotations in the store
 	 */
-	each (...args: any[]): any {
-		return (this._annotations as any).forEach.apply(this._annotations, args);
+	each (...args: any[]): void {
+		return (this._annotations as any).forEach.apply(this._annotations, args) as void;
 	}
 
 	/**

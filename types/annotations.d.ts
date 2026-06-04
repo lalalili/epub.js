@@ -66,7 +66,7 @@ export default class Annotations {
 
   mark(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback): Annotation;
 
-  each(...args: any[]): any;
+  each(...args: any[]): void;
 
   inject(view: AnnotationView): void;
 
