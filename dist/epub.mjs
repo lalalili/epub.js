@@ -9483,10 +9483,6 @@ var qr = /* @__PURE__ */ l(Lr()), Jr = N, Yr = class extends Hr {
 	starting;
 	started;
 	displaying;
-	emit;
-	on;
-	off;
-	once;
 	constructor(e, t) {
 		this.settings = I(this.settings || {}, {
 			width: null,
@@ -14437,7 +14433,6 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 	resolver;
 	online;
 	_status;
-	emit;
 	constructor(e, t, n) {
 		this.urlCache = {}, this.storage = void 0, this.name = e, this.requester = t || Ue, this.resolver = n, this.online = !0, this.checkRequirements(), this.addListeners();
 	}
@@ -14601,10 +14596,6 @@ var ni = class {
 	package;
 	displayOptions;
 	cover;
-	emit;
-	on;
-	off;
-	once;
 	constructor(e, t) {
 		t === void 0 && typeof e != "string" && !(e instanceof Blob) && !(e instanceof ArrayBuffer) && (t = e, e = void 0), this.settings = I(this.settings || {}, {
 			requestMethod: void 0,

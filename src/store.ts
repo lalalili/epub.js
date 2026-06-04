@@ -51,7 +51,7 @@ class Store {
 	resolver?: StoreResolver;
 	online: boolean;
 	_status?: (event?: Event) => void;
-	emit: (eventName: string, ...args: any[]) => void;
+	declare emit: (eventName: string, ...args: any[]) => void;
 
 	constructor(name: string, requester?: StoreRequest, resolver?: StoreResolver) {
 		this.urlCache = {};

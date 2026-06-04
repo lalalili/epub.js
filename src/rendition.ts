@@ -126,10 +126,10 @@ class Rendition {
 	starting?: CoreDeferred<void>;
 	started?: Promise<void>;
 	displaying?: CoreDeferred<any>;
-	emit: (type: string, ...args: any[]) => void;
-	on: (type: string, listener: (...args: any[]) => void) => any;
-	off: (type: string, listener: (...args: any[]) => void) => any;
-	once: (type: string, listener: (...args: any[]) => void) => any;
+	declare emit: (type: string, ...args: any[]) => void;
+	declare on: (type: string, listener: (...args: any[]) => void) => any;
+	declare off: (type: string, listener: (...args: any[]) => void) => any;
+	declare once: (type: string, listener: (...args: any[]) => void) => any;
 
 	constructor(book: any, options?: RenditionOptions) {
 

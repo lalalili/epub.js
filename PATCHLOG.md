@@ -12,6 +12,21 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0350
+- Why:
+  - The TypeScript modernization left `Book`, `Rendition`, and `Store` EventEmitter methods as emitted class fields.
+  - The generated bundle created own `emit`, `on`, `off`, and `once` properties with `undefined`, hiding the methods installed by `EventEmitter(...prototype)`.
+  - In the Aitehub reader this surfaced on the scripted interactive EPUB `01KT1F3JBHF8MW3XDPZQRH1EE1` as `t.value.on is not a function` and `this.emit is not a function` during scroll-mode `Rendition.start()`.
+- Diff Scope:
+  - `src/book.ts`, `src/rendition.ts`, `src/store.ts`: convert EventEmitter method type members to `declare` so TypeScript does not emit runtime class fields.
+  - `dist/*`: rebuild package artifacts from the corrected source declarations.
+- Test:
+  - `npm run typecheck`
+  - `npm run build`
+  - Aitehub host verification: focused epubjs runtime guard Vitest, `pnpm run build`, `pnpm run verify:reader-assets`, browser reload of `/epub-reader/reader/01KT1F3JBHF8MW3XDPZQRH1EE1`, and `artisan test --compact --filter=Epub`.
+- Rollback:
+  - Revert this patch if the fork moves EventEmitter wiring to explicit instance methods instead of prototype augmentation.
+
 ### P-0349
 - Why:
   - P-0348 tightened the `Url` root export readiness guard, leaving `replacements` with the same guard-completeness gap.

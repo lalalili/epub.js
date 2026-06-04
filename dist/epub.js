@@ -16552,10 +16552,6 @@
 		starting;
 		started;
 		displaying;
-		emit;
-		on;
-		off;
-		once;
 		constructor(book, options) {
 			this.settings = extend$1(this.settings || {}, {
 				width: null,
@@ -19312,7 +19308,6 @@
 		resolver;
 		online;
 		_status;
-		emit;
 		constructor(name, requester, resolver) {
 			this.urlCache = {};
 			this.storage = void 0;
@@ -19660,10 +19655,6 @@
 		package;
 		displayOptions;
 		cover;
-		emit;
-		on;
-		off;
-		once;
 		constructor(url, options) {
 			if (typeof options === "undefined" && typeof url !== "string" && url instanceof Blob === false && url instanceof ArrayBuffer === false) {
 				options = url;
