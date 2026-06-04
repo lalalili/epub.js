@@ -1451,6 +1451,11 @@ assert(
 	"Manager source and declarations must keep EventEmitter method type parity"
 );
 assert(
+	managerSource.includes("class DefaultViewManager {\n\t[key: string]: unknown") &&
+		!managerSource.includes("class DefaultViewManager {\n\t[key: string]: any"),
+	"Default manager class catch-all must be unknown, not any"
+);
+assert(
 	managerSource.includes("declare orientationTimeout?: ReturnType<typeof setTimeout>") &&
 		managerSource.includes("declare resizeTimeout?: ReturnType<typeof setTimeout>") &&
 		managerSource.includes("declare afterScrolled?: ReturnType<typeof setTimeout>") &&
@@ -1718,6 +1723,7 @@ assert(
 );
 assert(
 	managerSource.includes('import type { ManagerLocationItem } from "../../rendition";') &&
+		managerSource.includes("declare location: Array<ManagerLocationItem | null | undefined>") &&
 		managerSource.includes("currentLocation(): Array<ManagerLocationItem | null | undefined>") &&
 		managerSource.includes("scrolledLocation(): ManagerLocationItem[]") &&
 		managerSource.includes("paginatedLocation(): ManagerLocationItem[]") &&

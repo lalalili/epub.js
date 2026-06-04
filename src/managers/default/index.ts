@@ -225,7 +225,7 @@ type ManagerViewsBridge = {
 };
 
 class DefaultViewManager {
-	[key: string]: any;
+	[key: string]: unknown;
 	declare orientationTimeout?: ReturnType<typeof setTimeout>;
 	declare resizeTimeout?: ReturnType<typeof setTimeout>;
 	declare afterScrolled?: ReturnType<typeof setTimeout>;
@@ -253,6 +253,7 @@ class DefaultViewManager {
 	declare _verticalRlBoundarySnapApplying?: boolean;
 	declare _verticalRlViewportClipOverlay?: HTMLDivElement;
 	declare _verticalRlPreviousParentPosition?: string;
+	declare location: Array<ManagerLocationItem | null | undefined>;
 	declare name: string;
 	declare optsSettings: ManagerSettings;
 	declare settings: ManagerSettings;
