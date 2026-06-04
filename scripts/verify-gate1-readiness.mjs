@@ -1470,6 +1470,12 @@ assert(
 	"Default manager size and bounds caches must keep class state typed without catch-all any"
 );
 assert(
+	managerSource.includes("declare rendered: boolean") &&
+		managerSource.includes("declare _layoutDirty: boolean") &&
+		managerSource.includes("declare _lastLayoutStageSize: ManagerStageSize | null"),
+	"Default manager layout lifecycle flags must keep class state typed without catch-all any"
+);
+assert(
 	managerTypes.includes("[key: string]: unknown") &&
 		!managerTypes.includes("[key: string]: any") &&
 		typeTests.includes("ManagerOptions[\"custom\"], unknown"),

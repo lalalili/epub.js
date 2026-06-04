@@ -160,6 +160,9 @@ class DefaultViewManager {
 	declare _stageSize?: ManagerStageSize;
 	declare _bounds?: ManagerBounds;
 	declare winBounds?: ManagerBounds;
+	declare rendered: boolean;
+	declare _layoutDirty: boolean;
+	declare _lastLayoutStageSize: ManagerStageSize | null;
 	declare emit: (type: string, ...args: unknown[]) => void;
 	declare on: (type: string, listener: (...args: unknown[]) => void) => unknown;
 	declare off: (type: string, listener: (...args: unknown[]) => void) => unknown;
