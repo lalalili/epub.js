@@ -2,10 +2,10 @@ import { Deferred } from "./core";
 
 type AnimationFrameScheduler = (callback: FrameRequestCallback) => number;
 
-export type QueueTask = (...args: any[]) => unknown;
+export type QueueTask = (...args: unknown[]) => unknown;
 
 export interface QueuedItem {
-  args?: any[];
+  args?: unknown[];
   deferred?: Deferred<unknown>;
   promise: Promise<unknown>;
   task?: QueueTask;
@@ -21,7 +21,7 @@ export default class Queue {
   running: boolean | Promise<unknown> | undefined;
   tick: AnimationFrameScheduler;
 
-  enqueue(...items: any[]): Promise<unknown>;
+  enqueue(...items: unknown[]): Promise<unknown>;
 
   dequeue(): Promise<unknown>;
 

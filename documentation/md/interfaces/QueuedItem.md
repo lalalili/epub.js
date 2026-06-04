@@ -10,7 +10,7 @@
 
 ### args?
 
-> `optional` **args?**: `any`[]
+> `optional` **args?**: `unknown`[]
 
 ***
 

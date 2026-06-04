@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0380
+- Why:
+  - `QueueTask`, `QueuedItem.args`, and `Queue.enqueue()` are package-root exported queue surfaces, but their variadic argument typing still leaked `any[]`.
+  - Queue task results were already typed as `unknown`, so carrying `unknown[]` through task arguments keeps the public queue input explicit without changing enqueue order, queue execution, or promise resolution behavior.
+- Diff Scope:
+  - `src/utils/queue.ts`: type queue task arguments, queued args, and enqueue inputs as `unknown[]`, with internal casts for the existing function/promise branches.
+  - `types/utils/queue.d.ts`: mirror queue argument typing.
+  - `types/epubjs-tests.ts`: assert queue enqueue parameters and `QueueTask` argument typing.
+  - `scripts/verify-gate1-readiness.mjs`: require Queue unknown variadic parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if consumers intentionally rely on Queue task arguments being typed as arbitrary `any[]`.
+
 ### P-0379
 - Why:
   - `Rendition.reportLocation()` and `Rendition.remeasure()` are package-root exported side-effect methods, but source/type smoke still exposed the remeasure completion as `Promise<any>`.

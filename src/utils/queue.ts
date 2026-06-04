@@ -7,10 +7,10 @@ const Defer = defer as unknown as {
 	new<T = unknown>(): CoreDeferred<T>;
 };
 
-export type QueueTask = (...args: any[]) => unknown;
+export type QueueTask = (...args: unknown[]) => unknown;
 
 export type QueuedItem = {
-	args?: any[];
+	args?: unknown[];
 	deferred?: CoreDeferred<unknown>;
 	promise: Promise<unknown>;
 	task?: QueueTask;
@@ -41,7 +41,7 @@ class Queue {
 	 * Add an item to the queue
 	 * @return {Promise}
 	 */
-	enqueue(...items: any[]): Promise<unknown> {
+	enqueue(...items: unknown[]): Promise<unknown> {
 		var deferred, promise;
 		var queued: QueuedItem;
 		var task = items.shift();
@@ -61,7 +61,7 @@ class Queue {
 			promise = deferred.promise;
 
 			queued = {
-				"task" : task,
+				"task" : task as QueueTask,
 				"args"     : args,
 				//"context"  : context,
 				"deferred" : deferred,
@@ -71,7 +71,7 @@ class Queue {
 		} else {
 			// Task is a promise
 			queued = {
-				"promise" : task
+				"promise" : task as Promise<unknown>
 			};
 
 		}

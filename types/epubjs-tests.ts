@@ -797,7 +797,7 @@ type QueueAssertions = [
   Assert<IsExact<Queue["paused"], boolean>>,
   Assert<IsExact<Queue["running"], boolean | Promise<unknown> | undefined>>,
   Assert<IsExact<Queue["tick"], (callback: FrameRequestCallback) => number>>,
-  Assert<IsExact<Parameters<Queue["enqueue"]>, any[]>>,
+  Assert<IsExact<Parameters<Queue["enqueue"]>, unknown[]>>,
   Assert<IsExact<ReturnType<Queue["enqueue"]>, Promise<unknown>>>,
   Assert<IsExact<ReturnType<Queue["dequeue"]>, Promise<unknown>>>,
   Assert<IsExact<ReturnType<Queue["dump"]>, void>>,
@@ -807,7 +807,7 @@ type QueueAssertions = [
   Assert<IsExact<ReturnType<Queue["length"]>, number>>,
   Assert<IsExact<ReturnType<Queue["pause"]>, void>>,
   Assert<IsExact<ReturnType<Queue["stop"]>, void>>,
-  Assert<IsExact<QueueTask, (...args: any[]) => unknown>>,
+  Assert<IsExact<QueueTask, (...args: unknown[]) => unknown>>,
   Assert<IsExact<ConstructorParameters<typeof Task>, [task: Function, args?: any[] | undefined, context?: any]>>
 ];
 
@@ -1257,7 +1257,7 @@ function testEpub() {
   const replacementMeta: void = replaceMeta(parsedDocument, replacementSection);
   const replacementLinks: void = replaceLinks(parsedDocument.documentElement, linkCallback, "OPS/Text/chapter.xhtml");
   const substitutedContent: string = substitute("url(cover.jpg)", ["cover.jpg"], ["blob:cover"]);
-  const queueTask: QueueTask = (value: string) => value;
+  const queueTask: QueueTask = (value: unknown) => value;
   const queue = new Queue({ prefix: "ctx" });
   const queuedItem: QueuedItem = {
     task: queueTask,

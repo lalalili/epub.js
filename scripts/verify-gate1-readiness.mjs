@@ -24,6 +24,8 @@ const locationsSource = readFileSync(path.join(root, "src/locations.ts"), "utf8"
 const locationsTypes = readFileSync(path.join(root, "types/locations.d.ts"), "utf8");
 const mappingSource = readFileSync(path.join(root, "src/mapping.ts"), "utf8");
 const mappingTypes = readFileSync(path.join(root, "types/mapping.d.ts"), "utf8");
+const queueSource = readFileSync(path.join(root, "src/utils/queue.ts"), "utf8");
+const queueTypes = readFileSync(path.join(root, "types/utils/queue.d.ts"), "utf8");
 const globalTypeTests = readFileSync(path.join(root, "types/global-namespace-tests.ts"), "utf8");
 const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.test.js"), "utf8");
 const umdGlobalTests = readFileSync(path.join(root, "test/browser/umd-global.test.js"), "utf8");
@@ -530,7 +532,15 @@ assert(typeTests.includes("new Task((): void => undefined)"), "type tests must c
 assert(typeTests.includes("ConstructorParameters<typeof Queue>, [context?: unknown]"), "type tests must assert Queue context typing");
 assert(typeTests.includes("ReturnType<Queue[\"enqueue\"]>, Promise<unknown>"), "type tests must assert Queue enqueue unknown result typing");
 assert(typeTests.includes("ReturnType<Queue[\"flush\"]>, Promise<unknown> | boolean | undefined"), "type tests must assert Queue flush unknown result typing");
-assert(typeTests.includes("QueueTask, (...args: any[]) => unknown"), "type tests must assert QueueTask unknown return typing");
+assert(typeTests.includes("QueueTask, (...args: unknown[]) => unknown"), "type tests must assert QueueTask unknown parameter and return typing");
+assert(typeTests.includes("Parameters<Queue[\"enqueue\"]>, unknown[]"), "type tests must assert Queue enqueue unknown variadic typing");
+assert(
+	queueSource.includes("QueueTask = (...args: unknown[]) => unknown") &&
+		queueSource.includes("enqueue(...items: unknown[]): Promise<unknown>") &&
+		queueTypes.includes("QueueTask = (...args: unknown[]) => unknown") &&
+		queueTypes.includes("enqueue(...items: unknown[]): Promise<unknown>"),
+	"Queue source and declarations must keep unknown variadic typing"
+);
 assert(
 	sourceRoot.includes("QueuedItem") && sourceRoot.includes("QueueTask") && sourceRoot.includes("default as Queue"),
 	"source root must export Queue public types"

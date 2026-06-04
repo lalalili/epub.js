@@ -82,7 +82,7 @@
 
 ##### items
 
-...`any`[]
+...`unknown`[]
 
 #### Returns
 
