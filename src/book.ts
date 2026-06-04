@@ -3,12 +3,12 @@ import { defer, type Deferred as CoreDeferred } from "./core/async";
 import { extend } from "./core/collections";
 import Url from "./utils/url";
 import Path from "./utils/path";
-import Spine from "./spine";
+import Spine, { type SpinePackage, type SpineResolver } from "./spine";
 import Locations from "./locations";
 import Container from "./container";
 import Packaging, { type PackagingJsonManifest, type PackagingManifest, type PackagingMetadata } from "./packaging";
 import Navigation from "./navigation";
-import Resources from "./resources";
+import Resources, { type ResourceResolver } from "./resources";
 import PageList from "./pagelist";
 import Rendition, { type RenditionOptions } from "./rendition";
 import Archive, { type ArchiveZip } from "./archive";
@@ -435,6 +435,7 @@ class Book {
 	load(path: string, type: "blob"): Promise<Blob>;
 	load(path: string, type: "json"): Promise<JsonValue>;
 	load(path: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm"): Promise<Document | XMLDocument>;
+	load(path: string, type: "text"): Promise<string>;
 	load(path: string, _type?: RequestType | null): Promise<RequestResponse>;
 	load(path: string, _type?: RequestType | null): Promise<RequestResponse> {
 		var resolved = this.resolve(path);
@@ -562,12 +563,25 @@ class Book {
 			this.loading!.displayOptions.resolve!(this.displayOptions);
 		}
 
-		this.spine!.unpack(this.packaging as any, this.resolve.bind(this) as any, this.canonical.bind(this) as any);
+		var spineResolver: SpineResolver = (href, absolute) => this.resolve(href, absolute)!;
+		var resourceResolver: ResourceResolver = (href) => this.resolve(href)!;
+		var resourceBook = this;
+		function resourceRequest(url: string, type: "blob"): Promise<Blob>;
+		function resourceRequest(url: string, type: "text"): Promise<string>;
+		function resourceRequest(url: string, type: "blob" | "text"): Promise<Blob | string> {
+			if (type === "blob") {
+				return resourceBook.request(url, "blob");
+			}
+
+			return resourceBook.request(url, "text");
+		}
+
+		this.spine!.unpack(this.packaging as unknown as SpinePackage, spineResolver, this.canonical.bind(this));
 
 		this.resources = new Resources(this.packaging!.manifest!, {
 			archive: this.archive,
-			resolver: this.resolve.bind(this) as any,
-			request: this.request.bind(this) as any,
+			resolver: resourceResolver,
+			request: resourceRequest,
 			replacements: this.settings.replacements || (this.archived ? "blobUrl" : "base64")
 		});
 
@@ -694,7 +708,7 @@ class Book {
 	 */
 	unarchive(input: BookInput | string, encoding?: string): Promise<ArchiveZip> {
 		this.archive = new Archive();
-		return this.archive.open(input as any, encoding as any);
+		return this.archive.open(input, encoding);
 	}
 
 	/**

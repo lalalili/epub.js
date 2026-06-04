@@ -23,6 +23,7 @@ const managerTypes = readFileSync(path.join(root, "types/managers/manager.d.ts")
 const viewTypes = readFileSync(path.join(root, "types/managers/view.d.ts"), "utf8");
 const marksPaneTypes = readFileSync(path.join(root, "types/marks-pane.d.ts"), "utf8");
 const archiveSource = readFileSync(path.join(root, "src/archive.ts"), "utf8");
+const archiveTypes = readFileSync(path.join(root, "types/archive.d.ts"), "utf8");
 const jszipTypes = readFileSync(path.join(root, "types/jszip-dist.d.ts"), "utf8");
 const storeSource = readFileSync(path.join(root, "src/store.ts"), "utf8");
 const sectionSource = readFileSync(path.join(root, "src/section.ts"), "utf8");
@@ -600,7 +601,7 @@ assert(
 assert(typeTests.includes("type ArchiveAssertions"), "type tests must assert the Archive public surface");
 assert(typeTests.includes("RootArchiveZip"), "type tests must assert root Archive zip typing");
 assert(typeTests.includes("ArchiveMarkupRequestType, \"xml\" | \"opf\" | \"ncx\" | \"xhtml\" | \"html\" | \"htm\""), "type tests must assert Archive markup request typing");
-assert(typeTests.includes("ArchiveZipOptions, { base64?: boolean | undefined }"), "type tests must assert Archive zip option typing");
+assert(typeTests.includes("ArchiveZipOptions, { base64?: boolean | string | undefined }"), "type tests must assert Archive zip option typing");
 assert(typeTests.includes("ReturnType<Archive[\"request\"]>"), "type tests must assert Archive request fallback typing");
 assert(typeTests.includes("ReturnType<Archive[\"handleResponse\"]>"), "type tests must assert Archive response handling fallback typing");
 assert(typeTests.includes("archiveZip.loadAsync(archiveInput, archiveZipOptions)"), "type tests must cover ArchiveZip loadAsync option typing");
@@ -615,6 +616,12 @@ assert(
 );
 assert(
 	archiveSource.includes("type DeferConstructor = new <T = unknown>()") &&
+	archiveSource.includes("export type ArchiveInput = ArrayBuffer | Blob | Uint8Array | string") &&
+	archiveTypes.includes("export type ArchiveInput = ArrayBuffer | Blob | Uint8Array | string") &&
+	archiveSource.includes("base64?: boolean | string") &&
+	archiveTypes.includes("base64?: boolean | string") &&
+	typeTests.includes("const archiveBlobInput: ArchiveInput = new Blob()") &&
+	typeTests.includes("ArchiveZipOptions, { base64?: boolean | string | undefined }") &&
 	archiveSource.includes("var deferred = new (defer as unknown as DeferConstructor)<RequestResponse>()") &&
 	archiveSource.includes("var deferred = new (defer as unknown as DeferConstructor)<string>()") &&
 	archiveSource.includes("var response: Promise<Blob | string> | undefined") &&
@@ -1054,6 +1061,7 @@ assert(typeTests.includes("Parameters<Book[\"renderTo\"]>[1], RenditionOptions |
 assert(typeTests.includes("const bookRendition: Rendition = book.renderTo"), "type tests must cover Book renderTo RenditionOptions usage");
 assert(typeTests.includes("book.load(\"OPS/package.opf\", \"opf\")"), "type tests must cover Book load XML overload typing");
 assert(typeTests.includes("book.load(\"manifest.json\", \"json\")"), "type tests must cover Book load JSON overload typing");
+assert(typeTests.includes("book.load(\"OPS/chapter.xhtml\", \"text\")"), "type tests must cover Book load text overload typing");
 assert(typeTests.includes("Parameters<Book[\"emit\"]>, [type: string, ...args: unknown[]]"), "type tests must assert Book EventEmitter emit unknown argument typing");
 assert(typeTests.includes("Parameters<Book[\"on\"]>, [type: string, listener: (...args: unknown[]) => void]"), "type tests must assert Book EventEmitter on unknown listener typing");
 assert(typeTests.includes("Parameters<Book[\"off\"]>, [type: string, listener: (...args: unknown[]) => void]"), "type tests must assert Book EventEmitter off unknown listener typing");
@@ -1091,6 +1099,26 @@ assert(
 	bookSource.includes("unarchive(input: BookInput | string, encoding?: string): Promise<ArchiveZip>") &&
 		bookTypes.includes("unarchive(input: BookInput, encoding?: string): Promise<ArchiveZip>"),
 	"Book source and declarations must keep unarchive ArchiveZip return type parity"
+);
+assert(
+	bookSource.includes("load(path: string, type: \"text\"): Promise<string>") &&
+		bookTypes.includes("load(path: string, type: \"text\"): Promise<string>") &&
+		requestSource.includes("(url: string, type: \"text\", withCredentials?: boolean, headers?: RequestHeaders): Promise<string>") &&
+		typeTests.includes("const requestTextLoad: Promise<string> = request"),
+	"Book source, declarations, and request helper must keep text load overload parity"
+);
+assert(
+	bookSource.includes("var spineResolver: SpineResolver") &&
+		bookSource.includes("var resourceResolver: ResourceResolver") &&
+		bookSource.includes("function resourceRequest(url: string, type: \"blob\"): Promise<Blob>") &&
+		bookSource.includes("function resourceRequest(url: string, type: \"text\"): Promise<string>") &&
+		bookSource.includes("this.spine!.unpack(this.packaging as unknown as SpinePackage, spineResolver, this.canonical.bind(this))") &&
+		!bookSource.includes("this.spine!.unpack(this.packaging as any") &&
+		!bookSource.includes("this.resolve.bind(this) as any") &&
+		!bookSource.includes("this.canonical.bind(this) as any") &&
+		!bookSource.includes("request: this.request.bind(this) as any") &&
+		!bookSource.includes("this.archive.open(input as any, encoding as any)"),
+	"Book source must keep typed spine/resource/archive bridges without any"
 );
 assert(
 	bookSource.includes("openContainer(url: string): Promise<string>") &&

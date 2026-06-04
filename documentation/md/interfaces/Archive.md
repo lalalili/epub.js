@@ -190,7 +190,7 @@
 
 ##### isBase64?
 
-`boolean`
+`string` \| `boolean`
 
 #### Returns
 

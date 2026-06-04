@@ -112,6 +112,32 @@
 
 ## Call Signature
 
+> **RequestMethod**(`url`, `type`, `withCredentials?`, `headers?`): `Promise`\<`string`\>
+
+### Parameters
+
+#### url
+
+`string`
+
+#### type
+
+`"text"`
+
+#### withCredentials?
+
+`boolean`
+
+#### headers?
+
+[`RequestHeaders`](../type-aliases/RequestHeaders.md)
+
+### Returns
+
+`Promise`\<`string`\>
+
+## Call Signature
+
 > **RequestMethod**(`url`, `type?`, `withCredentials?`, `headers?`): `Promise`\<[`RequestResponse`](../type-aliases/RequestResponse.md)\>
 
 ### Parameters

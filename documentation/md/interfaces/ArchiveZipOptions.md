@@ -10,4 +10,4 @@
 
 ### base64?
 
-> `optional` **base64?**: `boolean`
+> `optional` **base64?**: `string` \| `boolean`

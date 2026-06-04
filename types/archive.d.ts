@@ -1,13 +1,13 @@
 import { JsonValue, RequestResponse } from "./utils/request";
 
-export type ArchiveInput = ArrayBuffer | Uint8Array | string;
+export type ArchiveInput = ArrayBuffer | Blob | Uint8Array | string;
 
 export type ArchiveRequestType = string | undefined;
 
 export type ArchiveMarkupRequestType = "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm";
 
 export interface ArchiveZipOptions {
-  base64?: boolean
+  base64?: boolean | string
 }
 
 export interface ArchiveUrlOptions {
@@ -32,7 +32,7 @@ export default class Archive {
   zip?: ArchiveZip;
   urlCache: Record<string, string>;
 
-  open(input: ArchiveInput, isBase64?: boolean): Promise<ArchiveZip>;
+  open(input: ArchiveInput, isBase64?: boolean | string): Promise<ArchiveZip>;
 
   openUrl(zipUrl: string, isBase64?: boolean): Promise<ArchiveZip>;
 

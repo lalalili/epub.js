@@ -28,6 +28,7 @@ export interface RequestMethod {
   (url: string, type: "blob", withCredentials?: boolean, headers?: RequestHeaders): Promise<Blob>;
   (url: string, type: "json", withCredentials?: boolean, headers?: RequestHeaders): Promise<JsonValue>;
   (url: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm", withCredentials?: boolean, headers?: RequestHeaders): Promise<Document | XMLDocument>;
+  (url: string, type: "text", withCredentials?: boolean, headers?: RequestHeaders): Promise<string>;
   (url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders): Promise<RequestResponse>;
 }
 

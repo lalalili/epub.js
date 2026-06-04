@@ -111,6 +111,7 @@ export default class Book {
     load(path: string, type: "blob"): Promise<Blob>;
     load(path: string, type: "json"): Promise<JsonValue>;
     load(path: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm"): Promise<Document | XMLDocument>;
+    load(path: string, type: "text"): Promise<string>;
     load(path: string, type?: RequestType | null): Promise<RequestResponse>;
 
     loadNavigation(packaging: Packaging): Promise<Navigation>;

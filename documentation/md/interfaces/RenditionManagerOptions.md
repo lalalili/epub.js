@@ -16,7 +16,7 @@
 
 ### request
 
-> **request**: \{(`path`, `type`): `Promise`\<`ArrayBuffer`\>; (`path`, `type`): `Promise`\<`Blob`\>; (`path`, `type`): `Promise`\<[`JsonValue`](../type-aliases/JsonValue.md)\>; (`path`, `type`): `Promise`\<`Document` \| `XMLDocument`\>; (`path`, `type?`): `Promise`\<[`RequestResponse`](../type-aliases/RequestResponse.md)\>; \}
+> **request**: \{(`path`, `type`): `Promise`\<`ArrayBuffer`\>; (`path`, `type`): `Promise`\<`Blob`\>; (`path`, `type`): `Promise`\<[`JsonValue`](../type-aliases/JsonValue.md)\>; (`path`, `type`): `Promise`\<`Document` \| `XMLDocument`\>; (`path`, `type`): `Promise`\<`string`\>; (`path`, `type?`): `Promise`\<[`RequestResponse`](../type-aliases/RequestResponse.md)\>; \}
 
 #### Call Signature
 
@@ -89,6 +89,24 @@
 ##### Returns
 
 `Promise`\<`Document` \| `XMLDocument`\>
+
+#### Call Signature
+
+> (`path`, `type`): `Promise`\<`string`\>
+
+##### Parameters
+
+###### path
+
+`string`
+
+###### type
+
+`"text"`
+
+##### Returns
+
+`Promise`\<`string`\>
 
 #### Call Signature
 

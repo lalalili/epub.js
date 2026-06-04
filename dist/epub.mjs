@@ -14780,10 +14780,15 @@ var ai = class {
 			this.displayOptions = new ai(e), this.loading.displayOptions.resolve(this.displayOptions);
 		}).catch((e) => {
 			this.displayOptions = new ai(), this.loading.displayOptions.resolve(this.displayOptions);
-		}) : (this.displayOptions = new ai(), this.loading.displayOptions.resolve(this.displayOptions)), this.spine.unpack(this.packaging, this.resolve.bind(this), this.canonical.bind(this)), this.resources = new it(this.packaging.manifest, {
+		}) : (this.displayOptions = new ai(), this.loading.displayOptions.resolve(this.displayOptions));
+		var t = (e, t) => this.resolve(e, t), n = (e) => this.resolve(e), r = this;
+		function i(e, t) {
+			return t === "blob" ? r.request(e, "blob") : r.request(e, "text");
+		}
+		this.spine.unpack(this.packaging, t, this.canonical.bind(this)), this.resources = new it(this.packaging.manifest, {
 			archive: this.archive,
-			resolver: this.resolve.bind(this),
-			request: this.request.bind(this),
+			resolver: n,
+			request: i,
 			replacements: this.settings.replacements || (this.archived ? "blobUrl" : "base64")
 		}), this.loadNavigation(this.packaging).then(() => {
 			this.loading.navigation.resolve(this.navigation);

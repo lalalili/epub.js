@@ -20045,11 +20045,18 @@
 				this.displayOptions = new DisplayOptions();
 				this.loading.displayOptions.resolve(this.displayOptions);
 			}
-			this.spine.unpack(this.packaging, this.resolve.bind(this), this.canonical.bind(this));
+			var spineResolver = (href, absolute) => this.resolve(href, absolute);
+			var resourceResolver = (href) => this.resolve(href);
+			var resourceBook = this;
+			function resourceRequest(url, type) {
+				if (type === "blob") return resourceBook.request(url, "blob");
+				return resourceBook.request(url, "text");
+			}
+			this.spine.unpack(this.packaging, spineResolver, this.canonical.bind(this));
 			this.resources = new Resources(this.packaging.manifest, {
 				archive: this.archive,
-				resolver: this.resolve.bind(this),
-				request: this.request.bind(this),
+				resolver: resourceResolver,
+				request: resourceRequest,
 				replacements: this.settings.replacements || (this.archived ? "blobUrl" : "base64")
 			});
 			this.loadNavigation(this.packaging).then(() => {

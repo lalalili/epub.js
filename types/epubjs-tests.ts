@@ -499,6 +499,7 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Book["coverUrl"]>, Promise<string | null>>>,
   Assert<IsExact<ReturnType<Book["determineType"]>, string | undefined>>,
   Assert<IsExact<ReturnType<Book["load"]>, Promise<RequestResponse>>>,
+  Assert<IsExact<ReturnType<RequestMethod>, Promise<RequestResponse>>>,
   Assert<IsExact<ReturnType<Book["open"]>, Promise<Book>>>,
   Assert<IsExact<ReturnType<Book["openContainer"]>, Promise<string>>>,
   Assert<IsExact<ReturnType<Book["openEpub"]>, Promise<Book>>>,
@@ -785,9 +786,9 @@ type SpineAssertions = [
 type ArchiveAssertions = [
   Assert<IsExact<Archive["zip"], ArchiveZip | undefined>>,
   Assert<IsExact<ArchiveMarkupRequestType, "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm">>,
-  Assert<IsExact<ArchiveZipOptions, { base64?: boolean | undefined }>>,
+  Assert<IsExact<ArchiveZipOptions, { base64?: boolean | string | undefined }>>,
   Assert<IsExact<Archive["urlCache"], Record<string, string>>>,
-  Assert<IsExact<Parameters<Archive["open"]>, [input: ArchiveInput, isBase64?: boolean | undefined]>>,
+  Assert<IsExact<Parameters<Archive["open"]>, [input: ArchiveInput, isBase64?: boolean | string | undefined]>>,
   Assert<IsExact<ReturnType<Archive["open"]>, Promise<ArchiveZip>>>,
   Assert<IsExact<Parameters<Archive["openUrl"]>, [zipUrl: string, isBase64?: boolean | undefined]>>,
   Assert<IsExact<ReturnType<Archive["request"]>, Promise<RequestResponse>>>,
@@ -1526,6 +1527,7 @@ function testEpub() {
   }, spineEachThisArg);
   const archive = new Archive();
   const archiveInput: ArchiveInput = new ArrayBuffer(0);
+  const archiveBlobInput: ArchiveInput = new Blob();
   const archiveRequestType: ArchiveRequestType = "xhtml";
   const archiveMarkupRequestType: ArchiveMarkupRequestType = "opf";
   const archiveZipOptions: ArchiveZipOptions = { base64: false };
@@ -1840,7 +1842,9 @@ function testEpub() {
   book.openEpub(new ArrayBuffer(0));
   const bookXmlLoad: Promise<Document | XMLDocument> = book.load("OPS/package.opf", "opf");
   const bookJsonLoad: Promise<JsonValue> = book.load("manifest.json", "json");
+  const bookTextLoad: Promise<string> = book.load("OPS/chapter.xhtml", "text");
   const bookFallbackLoad: Promise<RequestResponse> = book.load("OPS/package.opf");
+  const requestTextLoad: Promise<string> = request("OPS/chapter.xhtml", "text");
   rendition.attachTo("area");
   rendition.resize("100%", "100%", "epubcfi(/6/2)");
   const location = rendition.currentLocation();
@@ -1848,6 +1852,9 @@ function testEpub() {
   void version;
   void rendition;
   void rootBlobBook;
+  void archiveBlobInput;
+  void bookTextLoad;
+  void requestTextLoad;
   void rootOptionsOnlyBook;
   void renditionMetadata;
   void renditionLayoutProperties;

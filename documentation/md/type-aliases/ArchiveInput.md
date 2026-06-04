@@ -6,4 +6,4 @@
 
 # Type Alias: ArchiveInput
 
-> **ArchiveInput** = `ArrayBuffer` \| `Uint8Array` \| `string`
+> **ArchiveInput** = `ArrayBuffer` \| `Blob` \| `Uint8Array` \| `string`

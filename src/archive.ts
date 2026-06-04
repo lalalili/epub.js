@@ -6,11 +6,11 @@ import Path from "./utils/path";
 import JSZip from "jszip/dist/jszip";
 import type { JsonValue, RequestResponse } from "./utils/request";
 
-export type ArchiveInput = ArrayBuffer | Uint8Array | string;
+export type ArchiveInput = ArrayBuffer | Blob | Uint8Array | string;
 export type ArchiveRequestType = string | undefined;
 export type ArchiveMarkupRequestType = "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm";
 export type ArchiveZipOptions = {
-	base64?: boolean;
+	base64?: boolean | string;
 };
 export type ArchiveUrlOptions = {
 	base64?: boolean;
@@ -70,7 +70,7 @@ class Archive {
 	 * @param  {boolean} [isBase64] tells JSZip if the input data is base64 encoded
 	 * @return {Promise} zipfile
 	 */
-	open(input: ArchiveInput, isBase64?: boolean): Promise<ArchiveZip> {
+	open(input: ArchiveInput, isBase64?: boolean | string): Promise<ArchiveZip> {
 		return this.zip!.loadAsync(input, {"base64": isBase64});
 	}
 

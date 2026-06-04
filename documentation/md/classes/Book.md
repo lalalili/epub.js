@@ -372,6 +372,24 @@
 
 #### Call Signature
 
+> **load**(`path`, `type`): `Promise`\<`string`\>
+
+##### Parameters
+
+###### path
+
+`string`
+
+###### type
+
+`"text"`
+
+##### Returns
+
+`Promise`\<`string`\>
+
+#### Call Signature
+
 > **load**(`path`, `type?`): `Promise`\<[`RequestResponse`](../type-aliases/RequestResponse.md)\>
 
 ##### Parameters
