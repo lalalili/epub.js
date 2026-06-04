@@ -1498,6 +1498,7 @@ assert(
 assert(
 	managerSource.includes("type ManagerSection = {") &&
 		managerSource.includes("type ManagerView = {") &&
+		managerSource.includes("_contentWidth?: number") &&
 		managerSource.includes("createView(section: unknown, forceRight?: boolean): ManagerView") &&
 		managerSource.includes("display(section: ManagerSection, target?: string | number): Promise<void>") &&
 		managerSource.includes("var displaying = new Deferred<void>()") &&
@@ -1521,6 +1522,13 @@ assert(
 		!managerSource.includes("append(section: any") &&
 		!managerSource.includes("prepend(section: any"),
 	"Default manager view and section bridge inputs must stay typed without any"
+);
+assert(
+	managerSource.includes("getVerticalRlVisualContentWidth(view: ManagerView | undefined): number") &&
+		managerSource.includes("getNavigableWidthForView(view: ManagerView | undefined): number") &&
+		!managerSource.includes("getVerticalRlVisualContentWidth(view: any): number") &&
+		!managerSource.includes("getNavigableWidthForView(view: any): number"),
+	"Default manager vertical width helpers must keep view inputs typed without any"
 );
 assert(
 	continuousManagerSource.includes("var promises: Promise<unknown>[] = []") &&

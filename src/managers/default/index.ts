@@ -113,6 +113,7 @@ type ManagerView = {
 	onDisplayed?: () => void;
 	onResize?: () => void;
 	expanded?: boolean;
+	_contentWidth?: number;
 	offset(): ManagerOffset;
 	width(): number;
 	locationOf(target: string | number): ManagerOffset;
@@ -1377,7 +1378,7 @@ class DefaultViewManager {
 		return Math.max(0, this.container.scrollWidth - this.container.clientWidth);
 	}
 
-	getVerticalRlVisualContentWidth(view: any): number {
+	getVerticalRlVisualContentWidth(view: ManagerView | undefined): number {
 		let visibleWidth = this.container && this.container.clientWidth ? this.container.clientWidth : 0;
 		let maxLogicalScroll = this.getMaxLogicalScrollLeft();
 		let candidates = [
@@ -1399,7 +1400,7 @@ class DefaultViewManager {
 		);
 	}
 
-	getNavigableWidthForView(view: any): number {
+	getNavigableWidthForView(view: ManagerView | undefined): number {
 		let width = view && view.width ? view.width() : 0;
 
 		if (view && this.isRtlVerticalPaginated()) {
