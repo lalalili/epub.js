@@ -15,6 +15,7 @@ const storeSource = readFileSync(path.join(root, "src/store.ts"), "utf8");
 const navigationTypes = readFileSync(path.join(root, "types/navigation.d.ts"), "utf8");
 const pageListSource = readFileSync(path.join(root, "src/pagelist.ts"), "utf8");
 const pageListTypes = readFileSync(path.join(root, "types/pagelist.d.ts"), "utf8");
+const layoutSource = readFileSync(path.join(root, "src/layout.ts"), "utf8");
 const resourcesSource = readFileSync(path.join(root, "src/resources.ts"), "utf8");
 const resourcesTypes = readFileSync(path.join(root, "types/resources.d.ts"), "utf8");
 const storeTypes = readFileSync(path.join(root, "types/store.d.ts"), "utf8");
@@ -401,6 +402,21 @@ assert(typeTests.includes("new Layout()"), "type tests must cover Layout constru
 assert(typeTests.includes("ReturnType<LayoutContent[\"fit\"]>"), "type tests must cover Layout content bridge method return typing");
 assert(typeTests.includes("runtimeLayout.format(layoutContent"), "type tests must cover Layout format content typing");
 assert(typeTests.includes("runtimeLayout.count(4100)"), "type tests must cover Layout count typing");
+assert(typeTests.includes("ReturnType<Layout[\"emit\"]>, void"), "type tests must assert Layout emit return typing");
+assert(typeTests.includes("ReturnType<Layout[\"on\"]>, unknown"), "type tests must assert Layout on return typing");
+assert(typeTests.includes("ReturnType<Layout[\"off\"]>, unknown"), "type tests must assert Layout off return typing");
+assert(typeTests.includes("ReturnType<Layout[\"once\"]>, unknown"), "type tests must assert Layout once return typing");
+assert(typeTests.includes("const layoutEmit: void = runtimeLayout.emit"), "type tests must cover Layout emit usage");
+assert(typeTests.includes("const layoutOn: unknown = runtimeLayout.on"), "type tests must cover Layout on usage");
+assert(typeTests.includes("const layoutOff: unknown = runtimeLayout.off"), "type tests must cover Layout off usage");
+assert(typeTests.includes("const layoutOnce: unknown = runtimeLayout.once"), "type tests must cover Layout once usage");
+assert(
+	layoutSource.includes("emit(type: string, ...args: unknown[]): void") &&
+	layoutSource.includes("on(type: string, listener: (...args: unknown[]) => void): unknown") &&
+	layoutSource.includes("off(type: string, listener: (...args: unknown[]) => void): unknown") &&
+	layoutSource.includes("once(type: string, listener: (...args: unknown[]) => void): unknown"),
+	"source Layout must keep EventEmitter method type parity"
+);
 assert(
 	sourceRoot.includes("\tLayout,") &&
 	sourceRoot.includes("LayoutContent") &&

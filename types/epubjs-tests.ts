@@ -581,7 +581,11 @@ type LayoutAssertions = [
   Assert<IsExact<ReturnType<Layout["calculate"]>, void>>,
   Assert<IsExact<ReturnType<Layout["format"]>, unknown>>,
   Assert<IsExact<ReturnType<Layout["count"]>, LayoutCount>>,
-  Assert<IsExact<ReturnType<Layout["update"]>, void>>
+  Assert<IsExact<ReturnType<Layout["update"]>, void>>,
+  Assert<IsExact<ReturnType<Layout["emit"]>, void>>,
+  Assert<IsExact<ReturnType<Layout["on"]>, unknown>>,
+  Assert<IsExact<ReturnType<Layout["off"]>, unknown>>,
+  Assert<IsExact<ReturnType<Layout["once"]>, unknown>>
 ];
 
 type NavigationAssertions = [
@@ -1161,6 +1165,11 @@ function testEpub() {
   const layoutCount: LayoutCount = runtimeLayout.count(4100);
   const layoutProps: LayoutProps = runtimeLayout.props;
   runtimeLayout.update({ flow: "scrolled" });
+  const layoutListener = (...args: unknown[]): void => { void args; };
+  const layoutEmit: void = runtimeLayout.emit("updated", layoutProps);
+  const layoutOn: unknown = runtimeLayout.on("updated", layoutListener);
+  const layoutOff: unknown = runtimeLayout.off("updated", layoutListener);
+  const layoutOnce: unknown = runtimeLayout.once("updated", layoutListener);
   const uuid: string = ePub.utils.uuid();
   const deferred = new ePub.utils.defer<string>();
   const parsedDocument: Document = ePub.utils.parse("<html><body><p>Text</p></body></html>", "text/html");

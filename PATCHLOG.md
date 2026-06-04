@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0367
+- Why:
+  - `Layout` already exposes `emit`, `on`, `off`, and `once` in source and declarations, but Gate 1 only guarded the layout construction, formatting, counting, and update surface.
+  - The Layout EventEmitter contract should be covered by the same source/type-smoke guard pattern as Book, Contents, Rendition, Locations, Store, and Annotation.
+  - Adding this guard keeps Layout source/.d.ts/TypeDoc parity enforceable without changing layout calculation, formatting, pagination, spread, flow, or runtime event wiring.
+- Diff Scope:
+  - `types/epubjs-tests.ts`: assert Layout EventEmitter method return types and add `emit` / `on` / `off` / `once` usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Layout EventEmitter method parity and type-smoke assertions.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/layout.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Layout stops using EventEmitter prototype augmentation or intentionally narrows its listener methods in declarations.
+
 ### P-0366
 - Why:
   - `Annotation` is wired with `EventEmitter(Annotation.prototype)`, but the source only exposed event emission through a local cast that declared `emit` alone.
