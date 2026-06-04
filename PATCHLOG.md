@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0400
+- Why:
+  - `Book.openContainer()` loads `META-INF/container.xml` and resolves the rootfile package path, which the public declaration already exposes as `Promise<string>`.
+  - The source still returned `Promise<any>`, leaving the package path handoff to `openPackaging()` unguarded by source/.d.ts parity.
+  - Tightening the source return type documents the existing container packagePath invariant without changing container loading behavior.
+- Diff Scope:
+  - `src/book.ts`: type `openContainer()` as returning `Promise<string>`.
+  - `types/epubjs-tests.ts`: assert and exercise `Book.openContainer()` package path typing.
+  - `scripts/verify-gate1-readiness.mjs`: require Book openContainer source/declaration/type-test parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `Book.openContainer()` must intentionally expose unresolved or non-string package path results.
+
 ### P-0399
 - Why:
   - `Book.unarchive()` delegates to `Archive.open()`, whose source and declaration already return `Promise<ArchiveZip>`.

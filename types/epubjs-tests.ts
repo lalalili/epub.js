@@ -470,6 +470,7 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Book["determineType"]>, string | undefined>>,
   Assert<IsExact<ReturnType<Book["load"]>, Promise<RequestResponse>>>,
   Assert<IsExact<ReturnType<Book["open"]>, Promise<Book>>>,
+  Assert<IsExact<ReturnType<Book["openContainer"]>, Promise<string>>>,
   Assert<IsExact<ReturnType<Book["openEpub"]>, Promise<Book>>>,
   Assert<IsExact<ReturnType<Book["renderTo"]>, Rendition>>,
   Assert<IsExact<Parameters<Book["renderTo"]>[1], RenditionOptions | undefined>>,
@@ -1157,6 +1158,7 @@ function testEpub() {
     flow: "paginated",
   };
   const bookRendition: Rendition = book.renderTo(document.createElement("div"), bookRenderOptions);
+  const bookContainerPath: Promise<string> = book.openContainer("META-INF/container.xml");
   const bookSection: Section | undefined = book.section(0);
   const bookArchiveZip: Promise<ArchiveZip> = book.unarchive(bookInput);
   const bookListener = (...args: unknown[]): void => {
@@ -1784,6 +1786,7 @@ function testEpub() {
   void loadedBookCover;
   void resolvedBookPath;
   void bookRendition;
+  void bookContainerPath;
   void bookSection;
   void bookArchiveZip;
   void bookEmit;

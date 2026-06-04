@@ -387,11 +387,11 @@ class Book {
 	 * @param  {string} url
 	 * @return {string} packagePath
 	 */
-	openContainer(url: string): Promise<any> {
+	openContainer(url: string): Promise<string> {
 		return this.load(url, "xml")
 			.then((xml) => {
 				this.container = new Container(xml);
-				return this.resolve(this.container.packagePath as string);
+				return this.resolve(this.container.packagePath as string)!;
 			});
 	}
 
