@@ -906,18 +906,32 @@ assert(
 	"Rendition source and declarations must keep located parameter type parity"
 );
 assert(typeTests.includes("rendition.resolveLinkHref(\"#note\""), "type tests must cover Rendition link resolution typing");
+assert(typeTests.includes("Parameters<Rendition[\"adjustImages\"]>, [contents: Contents]"), "type tests must assert Rendition adjustImages Contents parameter typing");
 assert(typeTests.includes("Parameters<Rendition[\"handleLinks\"]>, [contents: Contents]"), "type tests must assert Rendition handleLinks Contents parameter typing");
+assert(typeTests.includes("Parameters<Rendition[\"injectIdentifier\"]>, [doc: Document, section: Section]"), "type tests must assert Rendition injectIdentifier Section parameter typing");
+assert(typeTests.includes("Parameters<Rendition[\"injectScript\"]>, [doc: Document, section: Section]"), "type tests must assert Rendition injectScript Section parameter typing");
+assert(typeTests.includes("Parameters<Rendition[\"injectStylesheet\"]>, [doc: Document, section: Section]"), "type tests must assert Rendition injectStylesheet Section parameter typing");
 assert(typeTests.includes("Parameters<Rendition[\"passEvents\"]>, [contents: Contents]"), "type tests must assert Rendition passEvents Contents parameter typing");
 assert(typeTests.includes("Parameters<Rendition[\"resolveLinkHref\"]>, [href: string, contents?: { sectionHref?: string } | undefined]"), "type tests must assert Rendition resolveLinkHref section href parameter typing");
 assert(
+		renditionSource.includes("getRange(cfi: string, ignoreClass?: string): Range | undefined") &&
+		renditionSource.includes("adjustImages(contents: Contents): Promise<void>") &&
 		renditionSource.includes("handleLinks(contents: Contents): void") &&
+		renditionSource.includes("injectIdentifier(doc: Document, _section: Section): void") &&
+		renditionSource.includes("injectScript(doc: Document, _section: Section): void") &&
+		renditionSource.includes("injectStylesheet(doc: Document, _section: Section): void") &&
 		renditionSource.includes("passEvents(contents: Contents): void") &&
 		renditionSource.includes("triggerViewEvent(e: Event, contents: Contents): void") &&
 		renditionSource.includes("triggerSelectedEvent(cfirange: string, contents: Contents): void") &&
 		renditionSource.includes("triggerMarkEvent(cfiRange: string, data: AnnotationData | undefined, contents: Contents): void") &&
 		renditionSource.includes("(cfiRange: string, data: AnnotationData | undefined) => this.triggerMarkEvent(cfiRange, data, view.contents)") &&
 		renditionSource.includes("resolveLinkHref(href: string, contents?: { sectionHref?: string }): string") &&
+		renditionTypes.includes("getRange(cfi: string, ignoreClass?: string): Range | undefined") &&
+		renditionTypes.includes("adjustImages(contents: Contents): Promise<void>") &&
 		renditionTypes.includes("handleLinks(contents: Contents): void") &&
+		renditionTypes.includes("injectIdentifier(doc: Document, section: Section): void") &&
+		renditionTypes.includes("injectScript(doc: Document, section: Section): void") &&
+		renditionTypes.includes("injectStylesheet(doc: Document, section: Section): void") &&
 		renditionTypes.includes("passEvents(contents: Contents): void") &&
 		renditionTypes.includes("private triggerViewEvent(e: Event, contents: Contents): void") &&
 		renditionTypes.includes("private triggerSelectedEvent(cfirange: string, contents: Contents): void") &&

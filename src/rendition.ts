@@ -1143,7 +1143,7 @@ class Rendition {
 	 * @param  {string} ignoreClass
 	 * @return {range}
 	 */
-	getRange(cfi: string, ignoreClass?: string): Range | any {
+	getRange(cfi: string, ignoreClass?: string): Range | undefined {
 		var _cfi = new EpubCFI(cfi);
 		var found = this.manager.visible().filter(function (view: any) {
 			if(_cfi.spinePos === view.index) return true;
@@ -1160,7 +1160,7 @@ class Rendition {
 	 * @param  {Contents} contents
 	 * @private
 	 */
-	adjustImages(contents: any): Promise<void> {
+	adjustImages(contents: Contents): Promise<void> {
 
 		if (this._layout.name === "pre-paginated") {
 			return new Promise<void>(function(resolve){
@@ -1251,7 +1251,7 @@ class Rendition {
 	 * @param  {Section} section
 	 * @private
 	 */
-	injectStylesheet(doc: Document, _section: any): void {
+	injectStylesheet(doc: Document, _section: Section): void {
 		let style = doc.createElement("link");
 		style.setAttribute("type", "text/css");
 		style.setAttribute("rel", "stylesheet");
@@ -1266,7 +1266,7 @@ class Rendition {
 	 * @param  {Section} section
 	 * @private
 	 */
-	injectScript(doc: Document, _section: any): void {
+	injectScript(doc: Document, _section: Section): void {
 		let script = doc.createElement("script");
 		script.setAttribute("type", "text/javascript");
 		script.setAttribute("src", this.settings.script);
@@ -1281,7 +1281,7 @@ class Rendition {
 	 * @param  {Section} section
 	 * @private
 	 */
-	injectIdentifier(doc: Document, _section: any): void {
+	injectIdentifier(doc: Document, _section: Section): void {
 		let ident = this.book.packaging.metadata.identifier;
 		let meta = doc.createElement("meta");
 		meta.setAttribute("name", "dc.relation.ispartof");

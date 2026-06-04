@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0410
+- Why:
+  - `Rendition.getRange()`, `adjustImages()`, and the serialization inject hooks already had concrete declaration types, but source still used `any` for their return or hook parameters.
+  - Aligning source with `Contents` and `Section` keeps content/serialization hook parity enforceable before Gate 1 release work.
+  - This removes several source-side `Rendition` `any` leaks without changing range lookup, image fitting, stylesheet injection, script injection, or identifier injection behavior.
+- Diff Scope:
+  - `src/rendition.ts`: type `getRange()` as `Range | undefined`, `adjustImages()` as `Contents`, and inject hook section parameters as `Section`.
+  - `types/epubjs-tests.ts`: assert the matching `Rendition` helper parameter contracts.
+  - `scripts/verify-gate1-readiness.mjs`: require source/declaration/type-test parity for range/content/serialization helper contracts.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if content/serialization helpers must intentionally remain source-untyped.
+
 ### P-0409
 - Why:
   - `Rendition.afterDisplayed()` and `Rendition.afterRemoved()` receive manager view instances, but both source and declarations still typed those private hook bridge parameters as `any`.
