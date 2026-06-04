@@ -431,12 +431,21 @@ assert(
 	"source root must export Queue public types"
 );
 assert(typeTests.includes("type HookAssertions"), "type tests must assert the Hook public surface");
-assert(typeTests.includes("RootHookRegistration"), "type tests must assert root Hook type exports");
+assert(
+	typeTests.includes("RootHook") &&
+	typeTests.includes("RootHookRegistration") &&
+	typeTests.includes("RootHooksObject") &&
+	typeTests.includes("RootHookTask"),
+	"type tests must assert root Hook type exports"
+);
 assert(typeTests.includes("new Hook({ prefix: \"ctx\" })"), "type tests must cover Hook optional context construction");
 assert(typeTests.includes("hook.register(hookTask, hookRegistration)"), "type tests must cover Hook variadic registration typing");
 assert(typeTests.includes("hook.trigger(\"ready\")"), "type tests must cover Hook trigger result typing");
 assert(
-	sourceRoot.includes("HookRegistration") && sourceRoot.includes("HookTask") && sourceRoot.includes("default as Hook"),
+	sourceRoot.includes("HookRegistration") &&
+	sourceRoot.includes("HookTask") &&
+	sourceRoot.includes("HooksObject") &&
+	sourceRoot.includes("default as Hook"),
 	"source root must export Hook public types"
 );
 assert(typeTests.includes("type PageListAssertions"), "type tests must assert the PageList public surface");
