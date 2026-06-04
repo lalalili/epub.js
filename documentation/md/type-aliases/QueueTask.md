@@ -6,7 +6,7 @@
 
 # Type Alias: QueueTask
 
-> **QueueTask** = (...`args`) => `any`
+> **QueueTask** = (...`args`) => `unknown`
 
 ## Parameters
 
@@ -16,4 +16,4 @@
 
 ## Returns
 
-`any`
+`unknown`

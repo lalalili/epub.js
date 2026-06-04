@@ -775,23 +775,23 @@ type ReplacementsAssertions = [
 ];
 
 type QueueAssertions = [
-  Assert<IsExact<ConstructorParameters<typeof Queue>, [context?: any]>>,
+  Assert<IsExact<ConstructorParameters<typeof Queue>, [context?: unknown]>>,
   Assert<IsExact<Queue["_q"], QueuedItem[]>>,
-  Assert<IsExact<Queue["context"], any>>,
+  Assert<IsExact<Queue["context"], unknown>>,
   Assert<IsExact<Queue["paused"], boolean>>,
-  Assert<IsExact<Queue["running"], boolean | Promise<any> | undefined>>,
-  Assert<IsExact<Queue["tick"], any>>,
+  Assert<IsExact<Queue["running"], boolean | Promise<unknown> | undefined>>,
+  Assert<IsExact<Queue["tick"], (callback: FrameRequestCallback) => number>>,
   Assert<IsExact<Parameters<Queue["enqueue"]>, any[]>>,
-  Assert<IsExact<ReturnType<Queue["enqueue"]>, Promise<any>>>,
-  Assert<IsExact<ReturnType<Queue["dequeue"]>, Promise<any>>>,
+  Assert<IsExact<ReturnType<Queue["enqueue"]>, Promise<unknown>>>,
+  Assert<IsExact<ReturnType<Queue["dequeue"]>, Promise<unknown>>>,
   Assert<IsExact<ReturnType<Queue["dump"]>, void>>,
-  Assert<IsExact<ReturnType<Queue["run"]>, Promise<any>>>,
-  Assert<IsExact<ReturnType<Queue["flush"]>, Promise<any> | boolean | undefined>>,
+  Assert<IsExact<ReturnType<Queue["run"]>, Promise<unknown>>>,
+  Assert<IsExact<ReturnType<Queue["flush"]>, Promise<unknown> | boolean | undefined>>,
   Assert<IsExact<ReturnType<Queue["clear"]>, void>>,
   Assert<IsExact<ReturnType<Queue["length"]>, number>>,
   Assert<IsExact<ReturnType<Queue["pause"]>, void>>,
   Assert<IsExact<ReturnType<Queue["stop"]>, void>>,
-  Assert<IsExact<QueueTask, (...args: any[]) => any>>,
+  Assert<IsExact<QueueTask, (...args: any[]) => unknown>>,
   Assert<IsExact<ConstructorParameters<typeof Task>, [task: Function, args?: any[] | undefined, context?: any]>>
 ];
 
@@ -1246,10 +1246,10 @@ function testEpub() {
     args: ["ready"],
     promise: Promise.resolve("ready"),
   };
-  const queuedPromise: Promise<any> = queue.enqueue(queueTask, "ready");
-  const dequeuedPromise: Promise<any> = queue.dequeue();
-  const queueRun: Promise<any> = queue.run();
-  const queueFlush: Promise<any> | boolean | undefined = queue.flush();
+  const queuedPromise: Promise<unknown> = queue.enqueue(queueTask, "ready");
+  const dequeuedPromise: Promise<unknown> = queue.dequeue();
+  const queueRun: Promise<unknown> = queue.run();
+  const queueFlush: Promise<unknown> | boolean | undefined = queue.flush();
   const queueLength: number = queue.length();
   const taskWrapper: (...args: any[]) => Promise<any> = new Task((): void => undefined);
   const hookTask: HookTask = (value: string) => Promise.resolve(value);

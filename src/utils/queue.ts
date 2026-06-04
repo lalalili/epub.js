@@ -1,16 +1,18 @@
 import { defer, type Deferred as CoreDeferred } from "../core/async";
 import { requestAnimationFrame } from "../platform/browser";
 
+type AnimationFrameScheduler = (callback: FrameRequestCallback) => number;
+
 const Defer = defer as unknown as {
-	new<T = any>(): CoreDeferred<T>;
+	new<T = unknown>(): CoreDeferred<T>;
 };
 
-export type QueueTask = (...args: any[]) => any;
+export type QueueTask = (...args: any[]) => unknown;
 
 export type QueuedItem = {
 	args?: any[];
-	deferred?: CoreDeferred<any>;
-	promise: Promise<any>;
+	deferred?: CoreDeferred<unknown>;
+	promise: Promise<unknown>;
 	task?: QueueTask;
 };
 
@@ -21,16 +23,16 @@ export type QueuedItem = {
  */
 class Queue {
 	_q: QueuedItem[];
-	context: any;
-	defered: CoreDeferred<any>;
+	context: unknown;
+	defered: CoreDeferred<unknown>;
 	paused: boolean;
-	running: boolean | Promise<any> | undefined;
-	tick: any;
+	running: boolean | Promise<unknown> | undefined;
+	tick: AnimationFrameScheduler;
 
-	constructor(context?: any){
+	constructor(context?: unknown){
 		this._q = [];
 		this.context = context;
-		this.tick = requestAnimationFrame;
+		this.tick = requestAnimationFrame as AnimationFrameScheduler;
 		this.running = false;
 		this.paused = false;
 	}
@@ -39,7 +41,7 @@ class Queue {
 	 * Add an item to the queue
 	 * @return {Promise}
 	 */
-	enqueue(...items: any[]): Promise<any> {
+	enqueue(...items: any[]): Promise<unknown> {
 		var deferred, promise;
 		var queued: QueuedItem;
 		var task = items.shift();
@@ -90,27 +92,27 @@ class Queue {
 	 * Run one item
 	 * @return {Promise}
 	 */
-	dequeue(): Promise<any> {
-		var inwait: any, task, result;
+	dequeue(): Promise<unknown> {
+		var inwait: QueuedItem | undefined, task, result: unknown;
 
 		if(this._q.length && !this.paused) {
 			inwait = this._q.shift();
-			task = inwait.task;
+			task = inwait?.task;
 			if(task){
 				// console.log(task)
 
 				result = task.apply(this.context, inwait.args);
 
-				if(result && typeof result["then"] === "function") {
+				if(result && typeof (result as PromiseLike<unknown>)["then"] === "function") {
 					// Task is a function that returns a promise
-					return result.then(function(){
-						inwait.deferred.resolve.apply(this.context, arguments);
+					return (result as Promise<unknown>).then(function(){
+						inwait.deferred?.resolve?.apply(this.context, arguments);
 					}.bind(this), function() {
-						inwait.deferred.reject.apply(this.context, arguments);
+						inwait.deferred?.reject?.apply(this.context, arguments);
 					}.bind(this));
 				} else {
 					// Task resolves immediately
-					inwait.deferred.resolve.apply(this.context, result);
+					inwait.deferred?.resolve?.call(this.context, result);
 					return inwait.promise;
 				}
 
@@ -122,9 +124,9 @@ class Queue {
 			}
 
 		} else {
-			inwait = new Defer();
-			inwait.deferred.resolve();
-			return inwait.promise;
+			const completed = new Defer();
+			completed.resolve?.(undefined);
+			return completed.promise;
 		}
 
 	}
@@ -140,7 +142,7 @@ class Queue {
 	 * Run all tasks sequentially, at convince
 	 * @return {Promise}
 	 */
-	run(): Promise<any> {
+	run(): Promise<unknown> {
 
 		if(!this.running){
 			this.running = true;
@@ -157,7 +159,7 @@ class Queue {
 					}.bind(this));
 
 			} else {
-				(this.defered.resolve as any)();
+				this.defered.resolve?.(undefined);
 				this.running = undefined;
 			}
 
@@ -175,7 +177,7 @@ class Queue {
 	 * Flush all, as quickly as possible
 	 * @return {Promise}
 	 */
-	flush(): Promise<any> | boolean | undefined {
+	flush(): Promise<unknown> | boolean | undefined {
 
 		if(this.running){
 			return this.running;

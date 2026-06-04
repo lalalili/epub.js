@@ -16,13 +16,13 @@
 
 ### context
 
-> **context**: `any`
+> **context**: `unknown`
 
 ***
 
 ### defered
 
-> **defered**: [`Deferred`](Deferred.md)\<`any`\>
+> **defered**: [`Deferred`](Deferred.md)\<`unknown`\>
 
 ***
 
@@ -34,13 +34,13 @@
 
 ### running
 
-> **running**: `boolean` \| `Promise`\<`any`\>
+> **running**: `boolean` \| `Promise`\<`unknown`\>
 
 ***
 
 ### tick
 
-> **tick**: `any`
+> **tick**: `AnimationFrameScheduler`
 
 ## Methods
 
@@ -56,11 +56,11 @@
 
 ### dequeue()
 
-> **dequeue**(): `Promise`\<`any`\>
+> **dequeue**(): `Promise`\<`unknown`\>
 
 #### Returns
 
-`Promise`\<`any`\>
+`Promise`\<`unknown`\>
 
 ***
 
@@ -76,7 +76,7 @@
 
 ### enqueue()
 
-> **enqueue**(...`items`): `Promise`\<`any`\>
+> **enqueue**(...`items`): `Promise`\<`unknown`\>
 
 #### Parameters
 
@@ -86,17 +86,17 @@
 
 #### Returns
 
-`Promise`\<`any`\>
+`Promise`\<`unknown`\>
 
 ***
 
 ### flush()
 
-> **flush**(): `boolean` \| `Promise`\<`any`\>
+> **flush**(): `boolean` \| `Promise`\<`unknown`\>
 
 #### Returns
 
-`boolean` \| `Promise`\<`any`\>
+`boolean` \| `Promise`\<`unknown`\>
 
 ***
 
@@ -122,11 +122,11 @@
 
 ### run()
 
-> **run**(): `Promise`\<`any`\>
+> **run**(): `Promise`\<`unknown`\>
 
 #### Returns
 
-`Promise`\<`any`\>
+`Promise`\<`unknown`\>
 
 ***
 

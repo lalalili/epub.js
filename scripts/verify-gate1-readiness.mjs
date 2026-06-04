@@ -503,6 +503,10 @@ assert(
 assert(typeTests.includes("new Queue({ prefix: \"ctx\" })"), "type tests must cover Queue optional context construction");
 assert(typeTests.includes("queue.enqueue(queueTask, \"ready\")"), "type tests must cover Queue enqueue variadic typing");
 assert(typeTests.includes("new Task((): void => undefined)"), "type tests must cover exported Task construction typing");
+assert(typeTests.includes("ConstructorParameters<typeof Queue>, [context?: unknown]"), "type tests must assert Queue context typing");
+assert(typeTests.includes("ReturnType<Queue[\"enqueue\"]>, Promise<unknown>"), "type tests must assert Queue enqueue unknown result typing");
+assert(typeTests.includes("ReturnType<Queue[\"flush\"]>, Promise<unknown> | boolean | undefined"), "type tests must assert Queue flush unknown result typing");
+assert(typeTests.includes("QueueTask, (...args: any[]) => unknown"), "type tests must assert QueueTask unknown return typing");
 assert(
 	sourceRoot.includes("QueuedItem") && sourceRoot.includes("QueueTask") && sourceRoot.includes("default as Queue"),
 	"source root must export Queue public types"

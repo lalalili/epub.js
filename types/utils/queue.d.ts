@@ -1,33 +1,35 @@
 import { Deferred } from "./core";
 
-export type QueueTask = (...args: any[]) => any;
+type AnimationFrameScheduler = (callback: FrameRequestCallback) => number;
+
+export type QueueTask = (...args: any[]) => unknown;
 
 export interface QueuedItem {
   args?: any[];
-  deferred?: Deferred<any>;
-  promise: Promise<any>;
+  deferred?: Deferred<unknown>;
+  promise: Promise<unknown>;
   task?: QueueTask;
 }
 
 export default class Queue {
-  constructor(context?: any);
+  constructor(context?: unknown);
 
   _q: QueuedItem[];
-  context: any;
-  defered: Deferred<any>;
+  context: unknown;
+  defered: Deferred<unknown>;
   paused: boolean;
-  running: boolean | Promise<any> | undefined;
-  tick: any;
+  running: boolean | Promise<unknown> | undefined;
+  tick: AnimationFrameScheduler;
 
-  enqueue(...items: any[]): Promise<any>;
+  enqueue(...items: any[]): Promise<unknown>;
 
-  dequeue(): Promise<any>;
+  dequeue(): Promise<unknown>;
 
   dump(): void;
 
-  run(): Promise<any>;
+  run(): Promise<unknown>;
 
-  flush(): Promise<any> | boolean | undefined;
+  flush(): Promise<unknown> | boolean | undefined;
 
   clear(): void;
 

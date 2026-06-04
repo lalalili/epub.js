@@ -7789,23 +7789,23 @@
 			var inwait, task, result;
 			if (this._q.length && !this.paused) {
 				inwait = this._q.shift();
-				task = inwait.task;
+				task = inwait?.task;
 				if (task) {
 					result = task.apply(this.context, inwait.args);
 					if (result && typeof result["then"] === "function") return result.then(function() {
-						inwait.deferred.resolve.apply(this.context, arguments);
+						inwait.deferred?.resolve?.apply(this.context, arguments);
 					}.bind(this), function() {
-						inwait.deferred.reject.apply(this.context, arguments);
+						inwait.deferred?.reject?.apply(this.context, arguments);
 					}.bind(this));
 					else {
-						inwait.deferred.resolve.apply(this.context, result);
+						inwait.deferred?.resolve?.call(this.context, result);
 						return inwait.promise;
 					}
 				} else if (inwait.promise) return inwait.promise;
 			} else {
-				inwait = new Defer$5();
-				inwait.deferred.resolve();
-				return inwait.promise;
+				const completed = new Defer$5();
+				completed.resolve?.(void 0);
+				return completed.promise;
 			}
 		}
 		dump() {
@@ -7825,7 +7825,7 @@
 					this.run();
 				}.bind(this));
 				else {
-					this.defered.resolve();
+					this.defered.resolve?.(void 0);
 					this.running = void 0;
 				}
 			});

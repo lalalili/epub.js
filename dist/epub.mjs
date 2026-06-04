@@ -4901,13 +4901,16 @@ var We = class {
 	dequeue() {
 		var e, t, n;
 		if (this._q.length && !this.paused) {
-			if (e = this._q.shift(), t = e.task, t) return n = t.apply(this.context, e.args), n && typeof n.then == "function" ? n.then(function() {
-				e.deferred.resolve.apply(this.context, arguments);
+			if (e = this._q.shift(), t = e?.task, t) return n = t.apply(this.context, e.args), n && typeof n.then == "function" ? n.then(function() {
+				e.deferred?.resolve?.apply(this.context, arguments);
 			}.bind(this), function() {
-				e.deferred.reject.apply(this.context, arguments);
-			}.bind(this)) : (e.deferred.resolve.apply(this.context, n), e.promise);
+				e.deferred?.reject?.apply(this.context, arguments);
+			}.bind(this)) : (e.deferred?.resolve?.call(this.context, n), e.promise);
 			if (e.promise) return e.promise;
-		} else return e = new Ke(), e.deferred.resolve(), e.promise;
+		} else {
+			let e = new Ke();
+			return e.resolve?.(void 0), e.promise;
+		}
 	}
 	dump() {
 		for (; this._q.length;) this.dequeue();
@@ -4916,7 +4919,7 @@ var We = class {
 		return this.running || (this.running = !0, this.defered = new Ke()), this.tick.call(window, () => {
 			this._q.length ? this.dequeue().then(function() {
 				this.run();
-			}.bind(this)) : (this.defered.resolve(), this.running = void 0);
+			}.bind(this)) : (this.defered.resolve?.(void 0), this.running = void 0);
 		}), this.paused == 1 && (this.paused = !1), this.defered.promise;
 	}
 	flush() {

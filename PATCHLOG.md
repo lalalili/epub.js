@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0371
+- Why:
+  - `QueueTask`, `QueuedItem`, and `Queue` are package-root exported surfaces, but task results, queued promises, and context values still leaked `any`.
+  - Queue accepts legacy variadic task arguments, but queued task results are opaque values that are only resolved or chained, so the public result surface can use `unknown`.
+  - Tightening this surface keeps Queue source/.d.ts/TypeDoc parity enforceable without changing enqueue, dequeue, run, flush, pause, stop, or Task runtime behavior.
+- Diff Scope:
+  - `src/utils/queue.ts`: type Queue task results, queued promises, context, running promise, tick callback, and Queue method results as `unknown` where opaque.
+  - `types/utils/queue.d.ts`: mirror the Queue unknown result/context public surface.
+  - `types/epubjs-tests.ts`: assert Queue context, result promises, QueueTask return typing, and update usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Queue unknown result/context parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/queue.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Queue consumers intentionally rely on queued task results or context being typed as `any`.
+
 ### P-0370
 - Why:
   - `HookTask`, `Hook.context`, and `Hook.trigger()` are package-root exported surfaces, but they still exposed task results and context values as `any`.

@@ -16,13 +16,13 @@
 
 ### deferred?
 
-> `optional` **deferred?**: [`Deferred`](Deferred.md)\<`any`\>
+> `optional` **deferred?**: [`Deferred`](Deferred.md)\<`unknown`\>
 
 ***
 
 ### promise
 
-> **promise**: `Promise`\<`any`\>
+> **promise**: `Promise`\<`unknown`\>
 
 ***
 
