@@ -35,6 +35,8 @@ type InlineViewSettings = {
 	globalLayoutProperties: Record<string, unknown>;
 };
 
+type InlineDisplayReject = (reason?: unknown, view?: InlineView) => void;
+
 const Defer = defer as unknown as {
 	new<T = unknown>(): CoreDeferred<T>;
 };
@@ -387,6 +389,9 @@ class InlineView {
 
 				displayed.resolve(this);
 
+			}.bind(this), function (err: unknown) {
+				const reject = displayed.reject as InlineDisplayReject | null;
+				reject && reject(err, this);
 			}.bind(this));
 
 		} else {

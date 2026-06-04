@@ -342,6 +342,20 @@ describe("Views", () => {
 			});
 	});
 
+	it("rejects inline display promises when render fails", async () => {
+		let view = new InlineView({ index: 0, href: "chapter.xhtml" }, {
+			layout: {
+				name: "reflowable"
+			}
+		});
+
+		view.render = function() {
+			return Promise.reject(new Error("inline render failed"));
+		};
+
+		await expect(view.display()).rejects.toThrow("inline render failed");
+	});
+
 	it("keeps inline view constructor defaults and lifecycle cleanup stable", () => {
 		let view = new InlineView({ index: 3, href: "chapter.xhtml" }, {
 			axis: "horizontal",

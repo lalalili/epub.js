@@ -17,6 +17,7 @@ const renditionTypes = readFileSync(path.join(root, "types/rendition.d.ts"), "ut
 const stageSource = readFileSync(path.join(root, "src/managers/helpers/stage.ts"), "utf8");
 const snapSource = readFileSync(path.join(root, "src/managers/helpers/snap.ts"), "utf8");
 const iframeViewSource = readFileSync(path.join(root, "src/managers/views/iframe.ts"), "utf8");
+const inlineViewSource = readFileSync(path.join(root, "src/managers/views/inline.ts"), "utf8");
 const managerSource = readFileSync(path.join(root, "src/managers/default/index.ts"), "utf8");
 const managerTypes = readFileSync(path.join(root, "types/managers/manager.d.ts"), "utf8");
 const viewTypes = readFileSync(path.join(root, "types/managers/view.d.ts"), "utf8");
@@ -901,6 +902,17 @@ assert(
 	viewsTests.includes("uses the Windows MSApp write bridge") &&
 		viewsTests.includes("rejects display promises when render fails"),
 	"views browser tests must cover iframe bridge behavior"
+);
+assert(
+	inlineViewSource.includes("type InlineDisplayReject = (reason?: unknown, view?: InlineView) => void") &&
+		inlineViewSource.includes("const reject = displayed.reject as InlineDisplayReject | null") &&
+		inlineViewSource.includes("function (err: unknown)") &&
+		!inlineViewSource.includes("(displayed.reject as any)"),
+	"InlineView source must keep display rejection bridge typed"
+);
+assert(
+	viewsTests.includes("rejects inline display promises when render fails"),
+	"views browser tests must cover inline display rejection behavior"
 );
 assert(
 	sourceRoot.includes("default as Annotations") &&
