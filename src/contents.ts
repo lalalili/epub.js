@@ -89,6 +89,7 @@ export interface ViewportSettings {
 	minimum?: string | number;
 	maximum?: string | number;
 }
+type ViewportSettingsRecord = ViewportSettings & Record<string, unknown>;
 
 export interface ContentsSize {
 	width: number;
@@ -941,7 +942,7 @@ class Contents {
 			}
 		}
 
-		settings = (defaults as any)(options || {}, parsed);
+		settings = defaults<ViewportSettingsRecord>((options || {}) as ViewportSettingsRecord, parsed as ViewportSettingsRecord);
 
 		if (options) {
 			if (settings.width) {

@@ -19,6 +19,12 @@ function defaultCompare<T>(a: T, b: T): CompareResult {
  * @param {object} obj Target object.
  * @returns {object} Target object with defaults applied.
  */
+export function defaults<T extends MutableRecord>(obj: T, ..._sources: MutableRecord[]): T;
+/**
+ * Apply defaults to an object.
+ * @param {object} obj Target object.
+ * @returns {object} Target object with defaults applied.
+ */
 export function defaults<T extends MutableRecord>(obj: T): T {
 	var target: MutableRecord = obj;
 

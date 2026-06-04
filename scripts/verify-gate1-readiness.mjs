@@ -42,6 +42,7 @@ const mappingTypes = readFileSync(path.join(root, "types/mapping.d.ts"), "utf8")
 const epubcfiSource = readFileSync(path.join(root, "src/epubcfi.ts"), "utf8");
 const epubcfiTypes = readFileSync(path.join(root, "types/epubcfi.d.ts"), "utf8");
 const compatRangeSource = readFileSync(path.join(root, "src/compat/range.ts"), "utf8");
+const coreCollectionsSource = readFileSync(path.join(root, "src/core/collections.ts"), "utf8");
 const platformBlobSource = readFileSync(path.join(root, "src/platform/blob.ts"), "utf8");
 const platformDomSource = readFileSync(path.join(root, "src/platform/dom.ts"), "utf8");
 const platformLayoutSource = readFileSync(path.join(root, "src/platform/layout.ts"), "utf8");
@@ -1315,6 +1316,14 @@ assert(
 	contentsSource.includes("mapPage(cfiBase: string, layout: MappingLayout, start: number, end: number, dev?: boolean): EpubCFIPair | undefined") &&
 		contentsTypes.includes("mapPage(cfiBase: string, layout: MappingLayout, start: number, end: number, dev?: boolean): EpubCFIPair | undefined"),
 	"Contents source and declarations must keep map and mapPage MappingLayout return type parity"
+);
+assert(
+	coreCollectionsSource.includes("export function defaults<T extends MutableRecord>(obj: T, ..._sources: MutableRecord[]): T;") &&
+		coreCollectionsSource.includes("export function defaults<T extends MutableRecord>(obj: T): T") &&
+	contentsSource.includes("type ViewportSettingsRecord = ViewportSettings & Record<string, unknown>") &&
+		contentsSource.includes("settings = defaults<ViewportSettingsRecord>((options || {}) as ViewportSettingsRecord, parsed as ViewportSettingsRecord)") &&
+		!contentsSource.includes("settings = (defaults as any)(options || {}, parsed)"),
+	"Contents viewport settings must keep typed defaults bridge"
 );
 assert(contentsSource.includes("fit(width: number, height: number, section?: unknown): void"), "source Contents must keep fit optional section typed as unknown");
 assert(

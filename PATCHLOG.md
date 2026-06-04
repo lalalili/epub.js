@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0442
+- Why:
+  - `Contents.viewport()` still cast the shared `defaults()` helper to `any` while merging parsed viewport metadata with caller options.
+  - Naming a `ViewportSettingsRecord` bridge keeps the legacy defaults merge explicit without changing viewport parsing, meta tag creation, or scroll reset behavior.
+  - Gate 1 now rejects the old viewport defaults `any` bridge.
+- Diff Scope:
+  - `src/core/collections.ts`: align `defaults()` source overload with its existing multi-source runtime behavior.
+  - `src/contents.ts`: type the viewport settings defaults bridge.
+  - `scripts/verify-gate1-readiness.mjs`: guard Contents viewport defaults typing.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/contents-text-width.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if viewport option merging must intentionally keep the shared defaults helper untyped.
+
 ### P-0441
 - Why:
   - `Snap` still used `any` in the settings merge, EventEmitter adapter, WebKit overflow style bridge, touch feature detection, and scroll animation promises.
