@@ -1115,13 +1115,15 @@ assert(
 		bookSource.includes("var resourceResolver: ResourceResolver") &&
 		bookSource.includes("function resourceRequest(url: string, type: \"blob\"): Promise<Blob>") &&
 		bookSource.includes("function resourceRequest(url: string, type: \"text\"): Promise<string>") &&
+		bookSource.includes("this.locations = new Locations(this.spine, this.load.bind(this))") &&
 		bookSource.includes("this.spine!.unpack(this.packaging as unknown as SpinePackage, spineResolver, this.canonical.bind(this))") &&
+		!bookSource.includes("new Locations(this.spine as any") &&
 		!bookSource.includes("this.spine!.unpack(this.packaging as any") &&
 		!bookSource.includes("this.resolve.bind(this) as any") &&
 		!bookSource.includes("this.canonical.bind(this) as any") &&
 		!bookSource.includes("request: this.request.bind(this) as any") &&
 		!bookSource.includes("this.archive.open(input as any, encoding as any)"),
-	"Book source must keep typed spine/resource/archive bridges without any"
+	"Book source must keep typed locations/spine/resource/archive bridges without any"
 );
 assert(
 	bookSource.includes("openContainer(url: string): Promise<string>") &&
