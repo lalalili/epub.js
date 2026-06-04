@@ -1592,17 +1592,19 @@ assert(
 assert(
 	managerSource.includes("next(): Promise<unknown> | void") &&
 		managerSource.includes("var next: ManagerSection | undefined") &&
+		managerSource.includes("var left: number") &&
 		managerSource.includes('next.properties!.includes("page-spread-right")') &&
 		!managerSource.includes("next(): Promise<any> | void") &&
 		!managerSource.includes("var next: any"),
-	"Default manager next bridge must keep section and promise results typed without any"
+	"Default manager next bridge must keep section, scroll offset, and promise results typed without any"
 );
 assert(
 	managerSource.includes("prev(): Promise<unknown> | void") &&
 		managerSource.includes("var prev: ManagerSection | undefined") &&
+		managerSource.includes("var left: number") &&
 		!managerSource.includes("prev(): Promise<any> | void") &&
 		!managerSource.includes("var prev: any"),
-	"Default manager prev bridge must keep section and promise results typed without any"
+	"Default manager prev bridge must keep section, scroll offset, and promise results typed without any"
 );
 assert(
 	managerSource.includes('import type { ManagerLocationItem } from "../../rendition";') &&

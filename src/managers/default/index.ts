@@ -1773,7 +1773,7 @@ class DefaultViewManager {
 
 	next(): Promise<unknown> | void {
 		var next: ManagerSection | undefined;
-		var left;
+		var left: number;
 
 		let dir = this.settings.direction;
 
@@ -1880,7 +1880,7 @@ class DefaultViewManager {
 
 	prev(): Promise<unknown> | void {
 		var prev: ManagerSection | undefined;
-		var left;
+		var left: number;
 		let dir = this.settings.direction;
 
 		if(!this.views.length) return;
