@@ -74,6 +74,13 @@ export interface VerticalRlPageMetricsCache {
   metrics: VerticalRlPageMetrics
 }
 
+interface EpubReadingSystem {
+    name: string;
+    version: string;
+    layoutStyle: string;
+    hasFeature(feature: string): boolean;
+}
+
 export default class Contents {
     constructor(doc: Document, content?: HTMLElement, cfiBase?: string, sectionIndex?: number, sectionHref?: string);
 
@@ -194,7 +201,7 @@ export default class Contents {
 
     private addSelectionListeners(): void;
 
-    private epubReadingSystem(name: string, version: string): object;
+    private epubReadingSystem(name: string, version: string): EpubReadingSystem;
 
     private expand(): void;
 

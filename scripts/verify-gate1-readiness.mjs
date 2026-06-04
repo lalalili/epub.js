@@ -1213,6 +1213,16 @@ assert(
 );
 assert(contentsSource.includes("fit(width: number, height: number, section?: unknown): void"), "source Contents must keep fit optional section typed as unknown");
 assert(
+	contentsSource.includes("interface EpubReadingSystem") &&
+		contentsTypes.includes("interface EpubReadingSystem") &&
+		contentsSource.includes("type EpubNavigator = Navigator & { epubReadingSystem?: EpubReadingSystem }") &&
+		contentsSource.includes("epubReadingSystem(name: string, version: string): EpubReadingSystem") &&
+		contentsTypes.includes("private epubReadingSystem(name: string, version: string): EpubReadingSystem") &&
+		!contentsSource.includes("epubReadingSystem?: any") &&
+		!contentsSource.includes("epubReadingSystem(name: string, version: string): any"),
+	"Contents source and declarations must keep epubReadingSystem bridge typed"
+);
+assert(
 	sourceRoot.includes("\tContents,") &&
 	sourceRoot.includes("ContentsSize") &&
 	sourceRoot.includes("VerticalRlDebugMetrics") &&

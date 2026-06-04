@@ -106,7 +106,13 @@ export interface VerticalRlPageMetricsCache {
 }
 
 type StylesheetRules = any;
-type EpubNavigator = Navigator & { epubReadingSystem?: any };
+interface EpubReadingSystem {
+	name: string;
+	version: string;
+	layoutStyle: string;
+	hasFeature(feature: string): boolean;
+}
+type EpubNavigator = Navigator & { epubReadingSystem?: EpubReadingSystem };
 type CssRuleWithSelector = CSSRule & {
 	selectorText?: string;
 	style?: CSSStyleDeclaration;
@@ -2326,7 +2332,7 @@ class Contents {
 	 * @param {string} version
 	 * @private
 	 */
-	epubReadingSystem(name: string, version: string): any {
+	epubReadingSystem(name: string, version: string): EpubReadingSystem {
 		(navigator as EpubNavigator).epubReadingSystem = {
 			name: name,
 			version: version,

@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0428
+- Why:
+  - `Contents.epubReadingSystem()` exposes a fixed navigator bridge shape, but the source navigator extension and method return still used `any`.
+  - Aligning the source and declaration with an internal `EpubReadingSystem` interface removes another bridge `any` while preserving the existing navigator payload and feature flags.
+  - Gate 1 now guards this private source/.d.ts parity before release work.
+- Diff Scope:
+  - `src/contents.ts`: define `EpubReadingSystem`, type `EpubNavigator`, and return the typed bridge object.
+  - `types/contents.d.ts`: mirror the private bridge return shape.
+  - `scripts/verify-gate1-readiness.mjs`: require the typed navigator bridge and prevent the old `any` signatures.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/contents-text-width.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if the EPUB reading system navigator bridge must intentionally remain source-untyped.
+
 ### P-0427
 - Why:
   - `bounds()` and `borders()` only sum a fixed set of CSS pixel properties, but `sumStylePixels()` still indexed `CSSStyleDeclaration` through `style[prop as any]`.
