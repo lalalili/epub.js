@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0347
+- Why:
+  - P-0346 tightened the `Hook` root export readiness guard, leaving `Path` with the same guard-completeness gap.
+  - Source root exports, declaration root exports, and type smoke already cover `Path` and `ParsedPath`, but the readiness script only required a subset of that public root surface in the root export guard.
+  - Tightening the guard keeps Path root/source/type-smoke parity enforceable before any release tag or host gate, without changing path parsing, absolute-path checks, resolution, relative path calculation, or stringification behavior.
+- Diff Scope:
+  - `scripts/verify-gate1-readiness.mjs`: require the complete Path root type-smoke aliases.
+  - `documentation/md/*`: rerun TypeDoc to confirm the guard-only update does not change the rendered public markdown surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Gate 1 readiness should intentionally allow partial Path root export coverage.
+
 ### P-0346
 - Why:
   - P-0345 tightened the `Queue` root export readiness guard, leaving `Hook` with the same guard-completeness gap.

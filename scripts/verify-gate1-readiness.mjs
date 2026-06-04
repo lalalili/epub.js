@@ -136,7 +136,11 @@ assert(
 	sourceRoot.includes("PageValue"),
 	"source root must export PageList public types"
 );
-assert(typeTests.includes("RootParsedPath"), "type tests must assert root Path type exports");
+assert(
+	typeTests.includes("RootPath") &&
+	typeTests.includes("RootParsedPath"),
+	"type tests must assert root Path type exports"
+);
 assert(
 	sourceRoot.includes("ParsedPath") && sourceRoot.includes("default as Path"),
 	"source root must export Path public types"
