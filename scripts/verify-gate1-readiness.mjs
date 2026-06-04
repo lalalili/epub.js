@@ -55,6 +55,8 @@ const hookTypes = readFileSync(path.join(root, "types/utils/hook.d.ts"), "utf8")
 const globalTypeTests = readFileSync(path.join(root, "types/global-namespace-tests.ts"), "utf8");
 const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.test.js"), "utf8");
 const umdGlobalTests = readFileSync(path.join(root, "test/browser/umd-global.test.js"), "utf8");
+const debounceTypes = readFileSync(path.join(root, "types/lodash-debounce.d.ts"), "utf8");
+const throttleTypes = readFileSync(path.join(root, "types/lodash-throttle.d.ts"), "utf8");
 
 const requiredScripts = {
 	"build:modules": "vite build --config vite.config.mjs",
@@ -275,6 +277,22 @@ assert(
 		!snapSource.includes("snap(howMany=0): Promise<any>") &&
 		!snapSource.includes("smoothScrollTo(destination: number): Promise<any>"),
 	"Snap helper must keep typed touch, event, settings, and promise bridges"
+);
+assert(
+	debounceTypes.includes("T extends (...args: unknown[]) => unknown") &&
+		debounceTypes.includes("flush(): ReturnType<T>") &&
+		!debounceTypes.includes("any[]") &&
+		!debounceTypes.includes("=> any") &&
+		throttleTypes.includes("T extends (...args: unknown[]) => unknown") &&
+		throttleTypes.includes("flush(): ReturnType<T>") &&
+		!throttleTypes.includes("any[]") &&
+		!throttleTypes.includes("=> any") &&
+		typeTests.includes("type LodashBridgeAssertions") &&
+		typeTests.includes("Parameters<typeof debounce<(...args: unknown[]) => unknown>>[0]") &&
+		typeTests.includes("Parameters<typeof throttle<(...args: unknown[]) => unknown>>[0]") &&
+		typeTests.includes("ReturnType<typeof debouncedCallback.flush>, string") &&
+		typeTests.includes("ReturnType<typeof throttledCallback.flush>, number"),
+	"lodash debounce/throttle declarations and type tests must keep unknown variadic and ReturnType parity"
 );
 assert(
 	sectionSource.includes("type DeferConstructor = new <T = unknown>()") &&

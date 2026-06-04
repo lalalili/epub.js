@@ -11,6 +11,8 @@ import ePub, {
   request,
   substitute as rootSubstitute,
 } from '../';
+import debounce from 'lodash/debounce';
+import throttle from 'lodash/throttle';
 import type {
   Annotation as RootAnnotation,
   AnnotationCallback as RootAnnotationCallback,
@@ -446,6 +448,22 @@ type CoreUtilsAssertions = [
   Assert<IsExact<Parameters<typeof ePub.utils.createBase64Url>, [content: string, mime: string]>>,
   Assert<IsExact<InstanceType<typeof ePub.utils.RangeObject>, CoreRangeObject>>,
   Assert<IsExact<ReturnType<typeof ePub.utils.qsa>, NodeListOf<Element> | HTMLCollectionOf<Element>>>
+];
+
+const debouncedCallback = debounce((value: unknown): string => String(value), 25);
+const throttledCallback = throttle((value: unknown): number => Number(value), 25);
+
+type LodashBridgeAssertions = [
+  Assert<IsExact<Parameters<typeof debounce<(...args: unknown[]) => unknown>>[0], (...args: unknown[]) => unknown>>,
+  Assert<IsExact<Parameters<typeof throttle<(...args: unknown[]) => unknown>>[0], (...args: unknown[]) => unknown>>,
+  Assert<IsExact<Parameters<typeof debouncedCallback>, [value: unknown]>>,
+  Assert<IsExact<ReturnType<typeof debouncedCallback>, string>>,
+  Assert<IsExact<ReturnType<typeof debouncedCallback.flush>, string>>,
+  Assert<IsExact<ReturnType<typeof debouncedCallback.cancel>, void>>,
+  Assert<IsExact<Parameters<typeof throttledCallback>, [value: unknown]>>,
+  Assert<IsExact<ReturnType<typeof throttledCallback>, number>>,
+  Assert<IsExact<ReturnType<typeof throttledCallback.flush>, number>>,
+  Assert<IsExact<ReturnType<typeof throttledCallback.cancel>, void>>
 ];
 
 type CoreClassAssertions = [

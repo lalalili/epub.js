@@ -1,10 +1,10 @@
 declare module "lodash/throttle" {
-	type ThrottledFunction<T extends (...args: any[]) => any> = T & {
+	type ThrottledFunction<T extends (...args: unknown[]) => unknown> = T & {
 		cancel(): void;
 		flush(): ReturnType<T>;
 	};
 
-	export default function throttle<T extends (...args: any[]) => any>(
+	export default function throttle<T extends (...args: unknown[]) => unknown>(
 		func: T,
 		wait?: number,
 		options?: {
