@@ -17,7 +17,7 @@ export interface ViewSettings {
 export default class View {
   constructor(section: Section, options: ViewSettings);
 
-  create(): any;
+  create(): HTMLIFrameElement;
 
   render(request?: Function, show?: boolean): Promise<void>;
 
@@ -25,13 +25,13 @@ export default class View {
 
   size(_width: Number, _height: Number): void;
 
-  load(content: Contents): Promise<any>;
+  load(content: string): Promise<Contents>;
 
   setLayout(layout: Layout): void;
 
   setAxis(axis: string): void;
 
-  display(request?: Function): Promise<any>;
+  display(request?: Function): Promise<View>;
 
   show(): void;
 
@@ -67,7 +67,7 @@ export default class View {
 
   destroy(): void;
 
-  private onLoad(event: Event, promise: Promise<any>): void;
+  private onLoad(event: Event, promise: { resolve(value: Contents): void }): void;
 
   // Event emitters
   emit(type: string, ...args: unknown[]): void;

@@ -1209,6 +1209,12 @@ assert(
 	"Manager source and declarations must keep EventEmitter method type parity"
 );
 assert(
+	managerTypes.includes("[key: string]: unknown") &&
+		!managerTypes.includes("[key: string]: any") &&
+		typeTests.includes("ManagerOptions[\"custom\"], unknown"),
+	"ManagerOptions declarations must keep unknown extension typing"
+);
+assert(
 	managerSource.includes("getContents(): Contents[]") &&
 		managerTypes.includes("getContents(): Contents[]"),
 	"Manager source and declarations must keep getContents return type parity"
@@ -1229,6 +1235,20 @@ assert(
 		viewTypes.includes("off(type: string, listener: (...args: unknown[]) => void): unknown") &&
 		viewTypes.includes("once(type: string, listener: (...args: unknown[]) => void): unknown"),
 	"View declarations must keep EventEmitter method type parity"
+);
+assert(
+	viewTypes.includes("create(): HTMLIFrameElement") &&
+		viewTypes.includes("load(content: string): Promise<Contents>") &&
+		viewTypes.includes("display(request?: Function): Promise<View>") &&
+		viewTypes.includes("private onLoad(event: Event, promise: { resolve(value: Contents): void }): void") &&
+		!viewTypes.includes("create(): any") &&
+		!viewTypes.includes("load(content: Contents): Promise<any>") &&
+		!viewTypes.includes("display(request?: Function): Promise<any>") &&
+		!viewTypes.includes("Promise<any>") &&
+		typeTests.includes("ReturnType<View[\"create\"]>, HTMLIFrameElement") &&
+		typeTests.includes("ReturnType<View[\"load\"]>, Promise<Contents>") &&
+		typeTests.includes("ReturnType<View[\"display\"]>, Promise<View>"),
+	"View declarations must keep iframe load/display promise typing"
 );
 assert(
 	typeTests.includes("RootContentsSize") &&

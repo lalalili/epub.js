@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0444
+- Why:
+  - `types/managers/view.d.ts` still exposed iframe creation, content loading, and display promises through `any` even though the iframe view implementation resolves concrete iframe, `Contents`, and `View` values.
+  - `ManagerOptions` also kept arbitrary extension fields as `any`, widening manager declarations beyond the rest of the Gate 1 public surface.
+  - Gate 1 now rejects the old manager/view declaration `any` signatures.
+- Diff Scope:
+  - `types/managers/view.d.ts`: type `create()`, `load()`, `display()`, and the private load resolver bridge.
+  - `types/managers/manager.d.ts`: type arbitrary manager option extensions as `unknown`.
+  - `types/epubjs-tests.ts`: assert manager option and view promise declaration typing.
+  - `scripts/verify-gate1-readiness.mjs`: guard manager/view declaration parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/views.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if manager/view declarations must intentionally keep these APIs untyped.
+
 ### P-0443
 - Why:
   - The public `ArchiveZip` contract already exposes `loadAsync()` as `Promise<ArchiveZip>`, but the local `jszip/dist/jszip` shim still returned `Promise<any>`.

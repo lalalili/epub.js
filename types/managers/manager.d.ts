@@ -15,7 +15,7 @@ export interface ViewLocation {
 export interface ManagerOptions extends ViewSettings {
   infinite?: boolean,
   overflow?: string,
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export default class Manager {

@@ -224,7 +224,7 @@ import Packaging, {
 import PageList, { PageListDocument, PageListItem, PageLookup, PageReverseLookup, PageValue } from './pagelist';
 import Locations, { LocationInput, LocationRange, LocationsRequest, WordLocation } from './locations';
 import Mapping, { EpubCFIPair, MappingAxis, MappingContents, MappingDirection, MappingLayout, MappingSection, MappingTextNodeWalker, MappingView, RangePair } from './mapping';
-import Manager from './managers/manager';
+import Manager, { ManagerOptions } from './managers/manager';
 import View from './managers/view';
 import type { DisplayedLocation, LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionLocationPart, RenditionOptions, RenditionVerticalRlDebugState, RenditionVerticalRlPageDebug } from './rendition';
 import Resources, {
@@ -545,6 +545,13 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Manager["off"]>, unknown>>,
   Assert<IsExact<Parameters<Manager["once"]>, [type: string, listener: (...args: unknown[]) => void]>>,
   Assert<IsExact<ReturnType<Manager["once"]>, unknown>>,
+  Assert<IsExact<ManagerOptions["infinite"], boolean | undefined>>,
+  Assert<IsExact<ManagerOptions["overflow"], string | undefined>>,
+  Assert<IsExact<ManagerOptions["custom"], unknown>>,
+  Assert<IsExact<ReturnType<View["create"]>, HTMLIFrameElement>>,
+  Assert<IsExact<Parameters<View["load"]>, [content: string]>>,
+  Assert<IsExact<ReturnType<View["load"]>, Promise<Contents>>>,
+  Assert<IsExact<ReturnType<View["display"]>, Promise<View>>>,
   Assert<IsExact<Parameters<View["emit"]>, [type: string, ...args: unknown[]]>>,
   Assert<IsExact<ReturnType<View["emit"]>, void>>,
   Assert<IsExact<Parameters<View["on"]>, [type: string, listener: (...args: unknown[]) => void]>>,
