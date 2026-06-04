@@ -154,9 +154,19 @@ assert(
 	sourceRoot.includes("UrlBase") && sourceRoot.includes("default as Url"),
 	"source root must export Url public types"
 );
-assert(typeTests.includes("RootLinkCallback"), "type tests must assert root replacements type exports");
 assert(
-	sourceRoot.includes("LinkCallback") && sourceRoot.includes("replaceLinks") && sourceRoot.includes("substitute"),
+	typeTests.includes("RootLinkCallback") &&
+	typeTests.includes("RootSectionLike"),
+	"type tests must assert root replacements type exports"
+);
+assert(
+	sourceRoot.includes("LinkCallback") &&
+	sourceRoot.includes("SectionLike") &&
+	sourceRoot.includes("replaceBase") &&
+	sourceRoot.includes("replaceCanonical") &&
+	sourceRoot.includes("replaceLinks") &&
+	sourceRoot.includes("replaceMeta") &&
+	sourceRoot.includes("substitute"),
 	"source root must export replacements public helpers"
 );
 assert(
