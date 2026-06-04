@@ -769,6 +769,15 @@ assert(
 assert(typeTests.includes("rendition.determineLayoutProperties"), "type tests must cover Rendition layout property typing");
 assert(typeTests.includes("rendition.located([managerLocationItem])"), "type tests must cover Rendition manager location typing");
 assert(typeTests.includes("rendition.resolveLinkHref(\"#note\""), "type tests must cover Rendition link resolution typing");
+assert(typeTests.includes("ReturnType<Rendition[\"reportLocation\"]>, Promise<void>"), "type tests must assert Rendition reportLocation void promise typing");
+assert(typeTests.includes("ReturnType<Rendition[\"remeasure\"]>, Promise<void>"), "type tests must assert Rendition remeasure void promise typing");
+assert(typeTests.includes("const renditionRemeasure: Promise<void> = rendition.remeasure"), "type tests must cover Rendition remeasure void promise usage");
+assert(
+	renditionSource.includes("reportLocation(): Promise<void>") &&
+		renditionSource.includes("remeasure({ preserveLocation = true, waitForFonts = true }") &&
+		renditionSource.includes("): Promise<void>"),
+	"source Rendition must keep reportLocation and remeasure typed as void promises"
+);
 assert(typeTests.includes("ReturnType<Rendition[\"on\"]>, unknown"), "type tests must assert Rendition EventEmitter listener typing");
 assert(typeTests.includes("const renditionOn: unknown = rendition.on"), "type tests must cover Rendition on listener usage");
 assert(typeTests.includes("const renditionOff: unknown = rendition.off"), "type tests must cover Rendition off listener usage");

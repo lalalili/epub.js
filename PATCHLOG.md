@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0379
+- Why:
+  - `Rendition.reportLocation()` and `Rendition.remeasure()` are package-root exported side-effect methods, but source/type smoke still exposed the remeasure completion as `Promise<any>`.
+  - `reportLocation()` schedules location emission work and does not expose a meaningful resolved payload; `remeasure()` resolves after layout refresh plus either `display()` or `reportLocation()`.
+  - Typing both completions as `Promise<void>` keeps the public surface aligned with the declaration file without changing rendering, relocation events, or layout refresh behavior.
+- Diff Scope:
+  - `src/rendition.ts`: type `reportLocation()` and `remeasure()` as `Promise<void>`, normalizing the queue result to void.
+  - `types/rendition.d.ts`: mirror `remeasure()` as `Promise<void>`.
+  - `types/epubjs-tests.ts`: assert and use Rendition report/remeasure void promise typing.
+  - `scripts/verify-gate1-readiness.mjs`: require Rendition report/remeasure source and type smoke parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if consumers intentionally depend on `Rendition.remeasure()` resolving with an arbitrary payload.
+
 ### P-0378
 - Why:
   - `EpubCFI.base`, `EpubCFI.path`, `ParsedEpubCFI.base`, `ParsedEpubCFI.path`, and `EpubCFIBase` are package-root exported surfaces, but their empty fallback object branch still leaked `Record<string, any>`.

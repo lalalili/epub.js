@@ -9673,7 +9673,7 @@ var Jr = /* @__PURE__ */ l(Rr()), Yr = N, Xr = class extends Ur {
 					}
 				}
 			}.bind(this));
-		}.bind(this));
+		}.bind(this)).then(function() {});
 	}
 	currentLocation() {
 		var e = this.manager.currentLocation();

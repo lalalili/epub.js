@@ -17087,7 +17087,7 @@
 						this.emit(EVENTS.RENDITION.RELOCATED, this.location);
 					}
 				}.bind(this));
-			}.bind(this));
+			}.bind(this)).then(function() {});
 		}
 		/**
 		* Get the Current Location object

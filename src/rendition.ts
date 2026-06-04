@@ -710,7 +710,7 @@ class Rendition {
 		return result;
 	}
 
-	remeasure({ preserveLocation = true, waitForFonts = true }: { preserveLocation?: boolean; waitForFonts?: boolean } = {}): Promise<any> {
+	remeasure({ preserveLocation = true, waitForFonts = true }: { preserveLocation?: boolean; waitForFonts?: boolean } = {}): Promise<void> {
 		let savedCfi = preserveLocation && this.location && this.location.start
 			? this.location.start.cfi
 			: null;
@@ -876,7 +876,7 @@ class Rendition {
 	 * @fires relocated
 	 * @fires locationChanged
 	 */
-	reportLocation(): Promise<any> {
+	reportLocation(): Promise<void> {
 		return this.q.enqueue(function reportedLocation(){
 			requestAnimationFrame(function reportedLocationAfterRAF() {
 				// P-AITEHUB-0008: Guard against destroyed manager (rendition torn down before rAF fires)
@@ -943,7 +943,9 @@ class Rendition {
 					this.emit(EVENTS.RENDITION.RELOCATED, this.location);
 				}
 			}.bind(this));
-		}.bind(this));
+		}.bind(this)).then(function(): void {
+			return undefined;
+		});
 	}
 
 	/**

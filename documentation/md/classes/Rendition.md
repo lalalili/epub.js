@@ -586,7 +586,7 @@
 
 ### remeasure()
 
-> **remeasure**(`options?`): `Promise`\<`any`\>
+> **remeasure**(`options?`): `Promise`\<`void`\>
 
 #### Parameters
 
@@ -602,7 +602,7 @@
 
 #### Returns
 
-`Promise`\<`any`\>
+`Promise`\<`void`\>
 
 ***
 

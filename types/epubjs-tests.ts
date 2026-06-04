@@ -498,7 +498,8 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Rendition["getContents"]>, Contents[]>>,
   Assert<IsExact<ReturnType<Rendition["getRange"]>, Range | undefined>>,
   Assert<IsExact<ReturnType<Rendition["located"]>, Location>>,
-  Assert<IsExact<ReturnType<Rendition["remeasure"]>, Promise<any>>>,
+  Assert<IsExact<ReturnType<Rendition["reportLocation"]>, Promise<void>>>,
+  Assert<IsExact<ReturnType<Rendition["remeasure"]>, Promise<void>>>,
   Assert<IsExact<ReturnType<Rendition["resolveLinkHref"]>, string>>,
   Assert<IsExact<ReturnType<Rendition["resize"]>, void>>,
   Assert<IsExact<ReturnType<Rendition["emit"]>, void>>,
@@ -1138,7 +1139,8 @@ function testEpub() {
   const displayedLocation: DisplayedLocation = renditionLocationPart;
   const locatedRenditionLocation: Location = rendition.located([managerLocationItem]);
   const renditionDebugState: RenditionVerticalRlDebugState = rendition.debugVerticalRlPage();
-  const renditionRemeasure: Promise<any> = rendition.remeasure({ preserveLocation: true, waitForFonts: false });
+  const renditionReportLocation: Promise<void> = rendition.reportLocation();
+  const renditionRemeasure: Promise<void> = rendition.remeasure({ preserveLocation: true, waitForFonts: false });
   const resolvedRenditionHref: string = rendition.resolveLinkHref("#note", { sectionHref: "Text/chapter.xhtml" });
   const renditionListener = (...args: unknown[]): void => {
     void args;

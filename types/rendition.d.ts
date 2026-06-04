@@ -171,7 +171,7 @@ export default class Rendition {
 
     reportLocation(): Promise<void>;
 
-    remeasure(options?: { preserveLocation?: boolean, waitForFonts?: boolean }): Promise<any>;
+    remeasure(options?: { preserveLocation?: boolean, waitForFonts?: boolean }): Promise<void>;
 
     requireManager(manager: string | Function | object): any;
 
