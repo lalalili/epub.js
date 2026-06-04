@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const packageJson = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
 const tsconfig = JSON.parse(readFileSync(path.join(root, "tsconfig.json"), "utf8"));
+const typeIndex = readFileSync(path.join(root, "types/index.d.ts"), "utf8");
 const typeTests = readFileSync(path.join(root, "types/epubjs-tests.ts"), "utf8");
 const sourceRoot = readFileSync(path.join(root, "src/index.ts"), "utf8");
 const bookSource = readFileSync(path.join(root, "src/book.ts"), "utf8");
@@ -57,6 +58,7 @@ const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.tes
 const umdGlobalTests = readFileSync(path.join(root, "test/browser/umd-global.test.js"), "utf8");
 const viewsTests = readFileSync(path.join(root, "test/browser/views.test.js"), "utf8");
 const contentsTextWidthTests = readFileSync(path.join(root, "test/browser/contents-text-width.test.js"), "utf8");
+const renditionTests = readFileSync(path.join(root, "test/browser/rendition.test.js"), "utf8");
 const debounceTypes = readFileSync(path.join(root, "types/lodash-debounce.d.ts"), "utf8");
 const throttleTypes = readFileSync(path.join(root, "types/lodash-throttle.d.ts"), "utf8");
 
@@ -1157,6 +1159,12 @@ assert(typeTests.includes("ReturnType<Rendition[\"requireView\"]>, string | Func
 assert(typeTests.includes("Rendition[\"displaying\"], Deferred<Section | undefined> | undefined"), "type tests must assert Rendition displaying section promise typing");
 assert(typeTests.includes("const renditionDisplaying: Deferred<Section | undefined> | undefined = rendition.displaying"), "type tests must cover Rendition displaying usage");
 assert(typeTests.includes("RenditionLocationPart[\"page\"], PageValue | undefined"), "type tests must assert Rendition location page PageValue typing");
+assert(typeTests.includes("RootRenditionManager"), "type tests must assert root Rendition manager type export");
+assert(typeTests.includes("RootRenditionManagerConstructor"), "type tests must assert root Rendition manager constructor type export");
+assert(typeTests.includes("RootRenditionViewConstructor"), "type tests must assert root Rendition view constructor type export");
+assert(typeTests.includes("Rendition[\"manager\"], RenditionManager | undefined"), "type tests must assert Rendition manager property typing");
+assert(typeTests.includes("Rendition[\"ViewManager\"], RenditionManagerConstructor | undefined"), "type tests must assert Rendition ViewManager property typing");
+assert(typeTests.includes("Rendition[\"View\"], RenditionViewConstructor | undefined"), "type tests must assert Rendition View property typing");
 assert(typeTests.includes("ReturnType<Rendition[\"attachTo\"]>, Promise<void>"), "type tests must assert Rendition attachTo void promise typing");
 assert(typeTests.includes("ReturnType<Rendition[\"display\"]>, Promise<void>"), "type tests must assert Rendition display void promise typing");
 assert(typeTests.includes("const renditionMove: void = rendition.moveTo"), "type tests must cover Rendition moveTo usage");
@@ -1169,15 +1177,47 @@ assert(typeTests.includes("const setRenditionManager: void = rendition.setManage
 assert(
 	renditionSource.includes("book: Book") &&
 		renditionSource.includes("_layout?: Layout") &&
+		renditionSource.includes("export interface RenditionManager") &&
+		renditionSource.includes("export type RenditionManagerConstructor = new (options: RenditionManagerOptions) => RenditionManager") &&
+		renditionSource.includes("export type RenditionViewConstructor = typeof IframeView") &&
+		renditionSource.includes("manager?: RenditionManager") &&
+		renditionSource.includes("ViewManager?: RenditionManagerConstructor") &&
+		renditionSource.includes("View?: RenditionViewConstructor") &&
 		renditionSource.includes("page?: PageValue") &&
 		renditionSource.includes("constructor(book: Book, options?: RenditionOptions)") &&
 		renditionSource.includes("(props: LayoutProps, changed: Partial<LayoutProps>)") &&
+		renditionTypes.includes("export interface RenditionManager") &&
+		renditionTypes.includes("export type RenditionManagerConstructor = new (options: RenditionManagerOptions) => RenditionManager") &&
+		renditionTypes.includes("export type RenditionViewConstructor = new (section: unknown, options?: unknown) => View") &&
+		renditionTypes.includes("manager?: RenditionManager") &&
+		renditionTypes.includes("ViewManager?: RenditionManagerConstructor") &&
+		renditionTypes.includes("View?: RenditionViewConstructor") &&
 		renditionTypes.includes("constructor(book: Book, options?: RenditionOptions)") &&
 		renditionTypes.includes("_layout?: Layout") &&
 		renditionTypes.includes("page?: PageValue") &&
+		sourceRoot.includes("RenditionManager") &&
+		sourceRoot.includes("RenditionViewConstructor") &&
+		typeIndex.includes("RenditionManager") &&
+		typeIndex.includes("RenditionViewConstructor") &&
 		typeTests.includes("Rendition[\"_layout\"], Layout | undefined") &&
-		typeTests.includes("Rendition[\"book\"], Book"),
+		typeTests.includes("Rendition[\"book\"], Book") &&
+		!renditionSource.includes("manager?: any") &&
+		!renditionSource.includes("ViewManager?: any") &&
+		!renditionSource.includes("View?: any") &&
+		!renditionTypes.includes("manager?: any") &&
+		!renditionTypes.includes("ViewManager?: any") &&
+		!renditionTypes.includes("View?: any"),
 	"Rendition source and declarations must keep book/layout property type parity"
+);
+assert(
+	renditionSource.includes("var found = this.manager.visible().filter(function (view: IframeView)") &&
+		renditionSource.includes("if (Array.isArray(views))") &&
+		renditionSource.includes('if (views && typeof views.all === "function")') &&
+		renditionSource.includes("return views.all()") &&
+		!renditionSource.includes("filter(function (view: any)") &&
+		!renditionSource.includes("return (views || []) as IframeView[]") &&
+		renditionTests.includes("returns manager views from array and collection bridge shapes"),
+	"Rendition source and focused tests must keep visible/views bridge typed"
 );
 assert(
 	renditionSource.includes("attachTo(element: Element | string): Promise<void>") &&

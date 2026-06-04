@@ -258,7 +258,12 @@ export type {
 	Location,
 	ManagerLocationItem,
 	RenditionLocationPart,
+	RenditionManager,
+	RenditionManagerConstructor,
+	RenditionManagerOptions,
 	RenditionOptions,
+	RenditionViewConstructor,
 	RenditionVerticalRlDebugState,
-	RenditionVerticalRlPageDebug
+	RenditionVerticalRlPageDebug,
+	RenditionViewsBridge
 } from "./rendition";

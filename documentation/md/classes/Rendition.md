@@ -100,7 +100,7 @@
 
 ### manager?
 
-> `optional` **manager?**: `any`
+> `optional` **manager?**: [`RenditionManager`](../interfaces/RenditionManager.md)
 
 ***
 
@@ -136,13 +136,13 @@
 
 ### View?
 
-> `optional` **View?**: `any`
+> `optional` **View?**: [`RenditionViewConstructor`](../type-aliases/RenditionViewConstructor.md)
 
 ***
 
 ### ViewManager?
 
-> `optional` **ViewManager?**: `any`
+> `optional` **ViewManager?**: [`RenditionManagerConstructor`](../type-aliases/RenditionManagerConstructor.md)
 
 ## Methods
 

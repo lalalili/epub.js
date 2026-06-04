@@ -17,7 +17,7 @@ export type { BookInput, BookLoaded, BookLoading, BookOptions, BookReady } from 
 export { default as EpubCFI } from './epubcfi';
 export type { EpubCFIBase, EpubCFIComponent, EpubCFIInput, EpubCFISegment, EpubCFIStep, EpubCFITerminal, EpubCFIType, ParsedEpubCFI } from './epubcfi';
 export { default as Rendition } from './rendition';
-export type { DisplayedLocation, LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionLocationPart, RenditionOptions, RenditionVerticalRlDebugState, RenditionVerticalRlPageDebug } from './rendition';
+export type { DisplayedLocation, LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionLocationPart, RenditionManager, RenditionManagerConstructor, RenditionManagerOptions, RenditionOptions, RenditionViewConstructor, RenditionVerticalRlDebugState, RenditionVerticalRlPageDebug, RenditionViewsBridge } from './rendition';
 export { default as Contents } from './contents';
 export type { default as Container, ContainerDocument } from './container';
 export type { default as DisplayOptions } from './displayoptions';

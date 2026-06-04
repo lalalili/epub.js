@@ -89,6 +89,52 @@ export interface ManagerLocationItem {
 	totalPages: number;
 }
 type ManagerLocationResult = Array<ManagerLocationItem | null | undefined>;
+
+export type RenditionViewsBridge = IframeView[] | {
+	all?: () => IframeView[];
+	first?: () => IframeView | undefined;
+	last?: () => IframeView | undefined;
+};
+
+export interface RenditionManager {
+	container?: HTMLElement;
+	layout?: Layout;
+	views?: RenditionViewsBridge;
+	_layoutDirty?: boolean;
+	render(element: Element, size?: { width: number | string | null; height: number | string | null }): void;
+	display(section: Section, target?: string | number): Promise<void>;
+	resize(width?: number | string, height?: number | string, epubcfi?: string): void;
+	resizeView?(view: IframeView): void;
+	moveTo(offset: object): void;
+	clear(): void;
+	next(): Promise<void>;
+	prev(): Promise<void>;
+	currentLocation(): ManagerLocationResult | Promise<ManagerLocationResult>;
+	visible(): IframeView[];
+	getContents(): Contents[];
+	getPageAdvance?(): number;
+	getTotalPagesForCurrentView?(): number;
+	getCurrentPageIndex?(): number;
+	getNormalizedLogicalScrollLeft?(): number;
+	applyLayout(layout: Layout): void;
+	updateFlow(flow: string): void;
+	updateLayout(): void;
+	direction(dir?: string): void;
+	isRendered(): boolean;
+	destroy(): void;
+	on(type: string, listener: (...args: unknown[]) => void): unknown;
+}
+
+export interface RenditionManagerOptions {
+	view: RenditionViewConstructor;
+	queue: Queue;
+	request: Book["load"];
+	settings: RenditionOptions;
+}
+
+export type RenditionManagerConstructor = new (options: RenditionManagerOptions) => RenditionManager;
+export type RenditionViewConstructor = typeof IframeView;
+
 export interface RenditionVerticalRlPageDebug {
 	containerClientWidth: number | null;
 	containerScrollWidth: number | null;
@@ -110,6 +156,18 @@ const Defer = defer as unknown as DeferConstructor;
 
 function isManagerLocationPromise(location: ManagerLocationResult | Promise<ManagerLocationResult>): location is Promise<ManagerLocationResult> {
 	return typeof (location as Promise<ManagerLocationResult>).then === "function";
+}
+
+function firstOrLastRenditionView(views?: RenditionViewsBridge): IframeView | undefined {
+	if (!views) {
+		return;
+	}
+
+	if (Array.isArray(views)) {
+		return views[0] || views[views.length - 1];
+	}
+
+	return (views.first && views.first()) || (views.last && views.last());
 }
 
 /**
@@ -140,9 +198,9 @@ class Rendition {
 	settings: RenditionOptions;
 	book: Book;
 	hooks: Record<string, Hook>;
-	manager?: any;
-	ViewManager?: any;
-	View?: any;
+	manager?: RenditionManager;
+	ViewManager?: RenditionManagerConstructor;
+	View?: RenditionViewConstructor;
 	q: Queue;
 	_layout?: Layout;
 	themes?: Themes;
@@ -177,7 +235,7 @@ class Rendition {
 		extend(this.settings, options);
 
 		if (typeof(this.settings.manager) === "object") {
-			this.manager = this.settings.manager;
+			this.manager = this.settings.manager as RenditionManager;
 		}
 
 		this.book = book;
@@ -274,7 +332,7 @@ class Rendition {
 	 * @param {function} manager
 	 */
 	setManager(manager: Function): void {
-		this.manager = manager;
+		this.manager = manager as unknown as RenditionManager;
 	}
 
 	/**
@@ -335,8 +393,8 @@ class Rendition {
 		}
 
 		if(!this.manager) {
-			this.ViewManager = this.requireManager(this.settings.manager);
-			this.View = this.requireView(this.settings.view);
+			this.ViewManager = this.requireManager(this.settings.manager) as RenditionManagerConstructor;
+			this.View = this.requireView(this.settings.view) as RenditionViewConstructor;
 
 			this.manager = new this.ViewManager({
 				view: this.View,
@@ -660,7 +718,7 @@ class Rendition {
 
 	debugVerticalRlPage(): RenditionVerticalRlDebugState {
 		const manager = this.manager;
-		const view = manager && manager.views && (manager.views.first() || manager.views.last());
+		const view = firstOrLastRenditionView(manager && manager.views);
 		const contents = view && view.contents;
 		const container = manager && manager.container;
 		const pageWidth = manager && manager.layout ? manager.layout.pageWidth : null;
@@ -725,7 +783,7 @@ class Rendition {
 			? this.location.start.cfi
 			: null;
 		const manager = this.manager;
-		const view = manager && manager.views && (manager.views.first() || manager.views.last());
+		const view = firstOrLastRenditionView(manager && manager.views);
 		const doc = view && view.contents && view.contents.document;
 		const fontsReady = waitForFonts && doc && doc.fonts && doc.fonts.ready
 			? doc.fonts.ready.catch(function(){})
@@ -1153,7 +1211,7 @@ class Rendition {
 	 */
 	getRange(cfi: string, ignoreClass?: string): Range | undefined {
 		var _cfi = new EpubCFI(cfi);
-		var found = this.manager.visible().filter(function (view: any) {
+		var found = this.manager.visible().filter(function (view: IframeView) {
 			if(_cfi.spinePos === view.index) return true;
 		});
 
@@ -1219,7 +1277,13 @@ class Rendition {
 	 */
 	views (): IframeView[] {
 		let views = this.manager ? this.manager.views : undefined;
-		return (views || []) as IframeView[];
+		if (Array.isArray(views)) {
+			return views;
+		}
+		if (views && typeof views.all === "function") {
+			return views.all();
+		}
+		return [];
 	}
 
 	/**

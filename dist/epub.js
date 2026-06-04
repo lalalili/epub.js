@@ -16538,6 +16538,11 @@
 	function isManagerLocationPromise(location) {
 		return typeof location.then === "function";
 	}
+	function firstOrLastRenditionView(views) {
+		if (!views) return;
+		if (Array.isArray(views)) return views[0] || views[views.length - 1];
+		return views.first && views.first() || views.last && views.last();
+	}
 	/**
 	* Displays an Epub as a series of Views for each Section.
 	* Requires Manager and View class to handle specifics of rendering
@@ -16922,7 +16927,7 @@
 		}
 		debugVerticalRlPage() {
 			const manager = this.manager;
-			const view = manager && manager.views && (manager.views.first() || manager.views.last());
+			const view = firstOrLastRenditionView(manager && manager.views);
 			const contents = view && view.contents;
 			const container = manager && manager.container;
 			const pageWidth = manager && manager.layout ? manager.layout.pageWidth : null;
@@ -16956,7 +16961,7 @@
 		remeasure({ preserveLocation = true, waitForFonts = true } = {}) {
 			let savedCfi = preserveLocation && this.location && this.location.start ? this.location.start.cfi : null;
 			const manager = this.manager;
-			const view = manager && manager.views && (manager.views.first() || manager.views.last());
+			const view = firstOrLastRenditionView(manager && manager.views);
 			const doc = view && view.contents && view.contents.document;
 			return (waitForFonts && doc && doc.fonts && doc.fonts.ready ? doc.fonts.ready.catch(function() {}) : Promise.resolve()).then(function() {
 				if (manager && typeof manager.updateLayout === "function") {
@@ -17291,7 +17296,10 @@
 		* @returns {Views}
 		*/
 		views() {
-			return (this.manager ? this.manager.views : void 0) || [];
+			let views = this.manager ? this.manager.views : void 0;
+			if (Array.isArray(views)) return views;
+			if (views && typeof views.all === "function") return views.all();
+			return [];
 		}
 		/**
 		* Hook to handle link clicks in rendered content

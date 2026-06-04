@@ -118,6 +118,29 @@ describe("Rendition", () => {
 		expect(book.contentHooks.length).toBe(3);
 	});
 
+	it("returns manager views from array and collection bridge shapes", () => {
+		let rendition = createRendition();
+		let firstView = { index: 1 };
+		let secondView = { index: 2 };
+
+		rendition.manager = {
+			views: [firstView]
+		};
+		expect(rendition.views()).toEqual([firstView]);
+
+		rendition.manager = {
+			views: {
+				all() {
+					return [secondView];
+				}
+			}
+		};
+		expect(rendition.views()).toEqual([secondView]);
+
+		rendition.manager = {};
+		expect(rendition.views()).toEqual([]);
+	});
+
 	it("keeps layout properties, flow normalization, and link resolution stable", () => {
 		let rendition = createRendition();
 		let appliedFlow;

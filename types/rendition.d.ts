@@ -80,6 +80,51 @@ export interface ManagerLocationItem {
   totalPages: number
 }
 
+export type RenditionViewsBridge = Array<View> | {
+  all?: () => Array<View>,
+  first?: () => View | undefined,
+  last?: () => View | undefined
+}
+
+export interface RenditionManager {
+  container?: HTMLElement;
+  layout?: Layout;
+  views?: RenditionViewsBridge;
+  _layoutDirty?: boolean;
+  render(element: Element, size?: { width: number | string | null, height: number | string | null }): void;
+  display(section: Section, target?: string | number): Promise<void>;
+  resize(width?: number | string, height?: number | string, epubcfi?: string): void;
+  resizeView?(view: View): void;
+  moveTo(offset: object): void;
+  clear(): void;
+  next(): Promise<void>;
+  prev(): Promise<void>;
+  currentLocation(): Array<ManagerLocationItem | null | undefined> | Promise<Array<ManagerLocationItem | null | undefined>>;
+  visible(): Array<View>;
+  getContents(): Contents[];
+  getPageAdvance?(): number;
+  getTotalPagesForCurrentView?(): number;
+  getCurrentPageIndex?(): number;
+  getNormalizedLogicalScrollLeft?(): number;
+  applyLayout(layout: Layout): void;
+  updateFlow(flow: string): void;
+  updateLayout(): void;
+  direction(dir?: string): void;
+  isRendered(): boolean;
+  destroy(): void;
+  on(type: string, listener: (...args: unknown[]) => void): unknown;
+}
+
+export interface RenditionManagerOptions {
+  view: RenditionViewConstructor;
+  queue: Queue;
+  request: Book["load"];
+  settings: RenditionOptions;
+}
+
+export type RenditionManagerConstructor = new (options: RenditionManagerOptions) => RenditionManager;
+export type RenditionViewConstructor = new (section: unknown, options?: unknown) => View;
+
 export interface RenditionVerticalRlPageDebug {
   containerClientWidth: number | null,
   containerScrollWidth: number | null,
@@ -111,9 +156,9 @@ export default class Rendition {
       render: Hook,
       show: Hook
     }
-    manager?: any;
-    ViewManager?: any;
-    View?: any;
+    manager?: RenditionManager;
+    ViewManager?: RenditionManagerConstructor;
+    View?: RenditionViewConstructor;
     _layout?: Layout;
     themes?: Themes;
     annotations?: Annotations;

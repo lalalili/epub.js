@@ -168,9 +168,14 @@ import type {
   UrlBase as RootUrlBase,
   RenditionLocationPart as RootRenditionLocationPart,
   RenditionLayoutProperties as RootRenditionLayoutProperties,
+  RenditionManager as RootRenditionManager,
+  RenditionManagerConstructor as RootRenditionManagerConstructor,
+  RenditionManagerOptions as RootRenditionManagerOptions,
   RenditionOptions as RootRenditionOptions,
+  RenditionViewConstructor as RootRenditionViewConstructor,
   RenditionVerticalRlDebugState as RootRenditionVerticalRlDebugState,
   RenditionVerticalRlPageDebug as RootRenditionVerticalRlPageDebug,
+  RenditionViewsBridge as RootRenditionViewsBridge,
 } from '../';
 import Annotations, {
   Annotation,
@@ -228,7 +233,7 @@ import Locations, { LocationInput, LocationRange, LocationsRequest, WordLocation
 import Mapping, { EpubCFIPair, MappingAxis, MappingContents, MappingDirection, MappingLayout, MappingSection, MappingTextNodeWalker, MappingView, RangePair } from './mapping';
 import Manager, { ManagerOptions } from './managers/manager';
 import View from './managers/view';
-import type { DisplayedLocation, LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionLocationPart, RenditionOptions, RenditionVerticalRlDebugState, RenditionVerticalRlPageDebug } from './rendition';
+import type { DisplayedLocation, LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionLocationPart, RenditionManager, RenditionManagerConstructor, RenditionManagerOptions, RenditionOptions, RenditionViewConstructor, RenditionVerticalRlDebugState, RenditionVerticalRlPageDebug, RenditionViewsBridge } from './rendition';
 import Resources, {
   ReplacementMode,
   ResourceArchive,
@@ -303,6 +308,11 @@ type PublicRootAssertions = [
   Assert<IsExact<RootRenditionOptions, RenditionOptions>>,
   Assert<IsExact<RootRenditionLocationPart, RenditionLocationPart>>,
   Assert<IsExact<RootRenditionLayoutProperties, RenditionLayoutProperties>>,
+  Assert<IsExact<RootRenditionManager, RenditionManager>>,
+  Assert<IsExact<RootRenditionManagerConstructor, RenditionManagerConstructor>>,
+  Assert<IsExact<RootRenditionManagerOptions, RenditionManagerOptions>>,
+  Assert<IsExact<RootRenditionViewConstructor, RenditionViewConstructor>>,
+  Assert<IsExact<RootRenditionViewsBridge, RenditionViewsBridge>>,
   Assert<IsExact<RootRenditionVerticalRlDebugState, RenditionVerticalRlDebugState>>,
   Assert<IsExact<RootRenditionVerticalRlPageDebug, RenditionVerticalRlPageDebug>>,
   Assert<IsExact<RootLocation, Location>>,
@@ -506,9 +516,15 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Book["once"]>, unknown>>,
   Assert<IsExact<Rendition["settings"], RenditionOptions>>,
   Assert<IsExact<Rendition["book"], Book>>,
-  Assert<IsExact<Rendition["manager"], any>>,
-  Assert<IsExact<Rendition["ViewManager"], any>>,
-  Assert<IsExact<Rendition["View"], any>>,
+  Assert<IsExact<Rendition["manager"], RenditionManager | undefined>>,
+  Assert<IsExact<Rendition["ViewManager"], RenditionManagerConstructor | undefined>>,
+  Assert<IsExact<Rendition["View"], RenditionViewConstructor | undefined>>,
+  Assert<IsExact<RenditionManager["visible"], () => Array<View>>>,
+  Assert<IsExact<RenditionManager["views"], RenditionViewsBridge | undefined>>,
+  Assert<IsExact<RenditionManagerOptions["view"], RenditionViewConstructor>>,
+  Assert<IsExact<RenditionManagerOptions["settings"], RenditionOptions>>,
+  Assert<IsExact<ConstructorParameters<RenditionManagerConstructor>, [options: RenditionManagerOptions]>>,
+  Assert<IsExact<InstanceType<RenditionManagerConstructor>, RenditionManager>>,
   Assert<IsExact<Rendition["_layout"], Layout | undefined>>,
   Assert<IsExact<Rendition["starting"], Deferred<void> | undefined>>,
   Assert<IsExact<Rendition["started"], Promise<void> | undefined>>,
