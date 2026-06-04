@@ -928,6 +928,8 @@ assert(typeTests.includes("Parameters<Rendition[\"injectScript\"]>, [doc: Docume
 assert(typeTests.includes("Parameters<Rendition[\"injectStylesheet\"]>, [doc: Document, section: Section]"), "type tests must assert Rendition injectStylesheet Section parameter typing");
 assert(typeTests.includes("Parameters<Rendition[\"passEvents\"]>, [contents: Contents]"), "type tests must assert Rendition passEvents Contents parameter typing");
 assert(typeTests.includes("Parameters<Rendition[\"resolveLinkHref\"]>, [href: string, contents?: { sectionHref?: string } | undefined]"), "type tests must assert Rendition resolveLinkHref section href parameter typing");
+assert(typeTests.includes("ReturnType<Rendition[\"views\"]>, Array<View>"), "type tests must assert Rendition views return typing");
+assert(typeTests.includes("const renditionViews: Array<View> = rendition.views"), "type tests must cover Rendition views usage");
 assert(
 		renditionSource.includes("getRange(cfi: string, ignoreClass?: string): Range | undefined") &&
 		renditionSource.includes("adjustImages(contents: Contents): Promise<void>") &&
@@ -940,6 +942,7 @@ assert(
 		renditionSource.includes("triggerSelectedEvent(cfirange: string, contents: Contents): void") &&
 		renditionSource.includes("triggerMarkEvent(cfiRange: string, data: AnnotationData | undefined, contents: Contents): void") &&
 		renditionSource.includes("(cfiRange: string, data: AnnotationData | undefined) => this.triggerMarkEvent(cfiRange, data, view.contents)") &&
+		renditionSource.includes("views (): IframeView[]") &&
 		renditionSource.includes("resolveLinkHref(href: string, contents?: { sectionHref?: string }): string") &&
 		renditionTypes.includes("getRange(cfi: string, ignoreClass?: string): Range | undefined") &&
 		renditionTypes.includes("adjustImages(contents: Contents): Promise<void>") &&
@@ -951,6 +954,7 @@ assert(
 		renditionTypes.includes("private triggerViewEvent(e: Event, contents: Contents): void") &&
 		renditionTypes.includes("private triggerSelectedEvent(cfirange: string, contents: Contents): void") &&
 		renditionTypes.includes("private triggerMarkEvent(cfiRange: string, data: AnnotationData | undefined, contents: Contents): void") &&
+		renditionTypes.includes("views(): Array<View>") &&
 		renditionTypes.includes("resolveLinkHref(href: string, contents?: { sectionHref?: string }): string"),
 	"Rendition source and declarations must keep content hook parameter type parity"
 );

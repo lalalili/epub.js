@@ -509,6 +509,7 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Rendition["debugVerticalRlPage"]>, RenditionVerticalRlDebugState>>,
   Assert<IsExact<ReturnType<Rendition["getContents"]>, Contents[]>>,
   Assert<IsExact<ReturnType<Rendition["getRange"]>, Range | undefined>>,
+  Assert<IsExact<ReturnType<Rendition["views"]>, Array<View>>>,
   Assert<IsExact<Parameters<Rendition["adjustImages"]>, [contents: Contents]>>,
   Assert<IsExact<Parameters<Rendition["handleLinks"]>, [contents: Contents]>>,
   Assert<IsExact<Parameters<Rendition["injectIdentifier"]>, [doc: Document, section: Section]>>,
@@ -1226,6 +1227,7 @@ function testEpub() {
   const locatedRenditionLocation: Location = rendition.located([managerLocationItem]);
   const locatedRenditionFallbackLocation: Location = rendition.located([managerLocationItem, null, undefined]);
   const renditionDebugState: RenditionVerticalRlDebugState = rendition.debugVerticalRlPage();
+  const renditionViews: Array<View> = rendition.views();
   const renditionMove: void = rendition.moveTo({ top: 0, left: 0 });
   const renditionNext: Promise<void> = rendition.next();
   const renditionPrev: Promise<void> = rendition.prev();

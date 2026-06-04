@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0414
+- Why:
+  - `Rendition.views()` already exposes `Array<View>` in declarations, but source still returned `any`.
+  - Aligning source with the rendered iframe view list keeps package-root `Rendition` view access typed before Gate 1 release work.
+  - This removes another source-side `Rendition` `any` leak without changing the manager `Views` helper returned at runtime.
+- Diff Scope:
+  - `src/rendition.ts`: type `views()` as `IframeView[]` at the source boundary.
+  - `types/epubjs-tests.ts`: assert and exercise the public `Array<View>` declaration contract.
+  - `scripts/verify-gate1-readiness.mjs`: require source/declaration/type-test parity for `Rendition.views()`.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `Rendition.views()` must intentionally remain source-untyped.
+
 ### P-0413
 - Why:
   - `Rendition.attachTo()` and `Rendition.display()` already expose `Promise<void>` in declarations and type smoke tests, but source still advertised `Promise<any>`.

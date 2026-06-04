@@ -1211,9 +1211,9 @@ class Rendition {
 	 * Get the views member from the manager
 	 * @returns {Views}
 	 */
-	views (): any {
+	views (): IframeView[] {
 		let views = this.manager ? this.manager.views : undefined;
-		return views || [];
+		return (views || []) as IframeView[];
 	}
 
 	/**
