@@ -145,7 +145,11 @@ assert(
 	sourceRoot.includes("ParsedPath") && sourceRoot.includes("default as Path"),
 	"source root must export Path public types"
 );
-assert(typeTests.includes("RootUrlBase"), "type tests must assert root Url type exports");
+assert(
+	typeTests.includes("RootUrl") &&
+	typeTests.includes("RootUrlBase"),
+	"type tests must assert root Url type exports"
+);
 assert(
 	sourceRoot.includes("UrlBase") && sourceRoot.includes("default as Url"),
 	"source root must export Url public types"
