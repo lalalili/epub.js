@@ -8,6 +8,7 @@ const tsconfig = JSON.parse(readFileSync(path.join(root, "tsconfig.json"), "utf8
 const typeTests = readFileSync(path.join(root, "types/epubjs-tests.ts"), "utf8");
 const sourceRoot = readFileSync(path.join(root, "src/index.ts"), "utf8");
 const bookSource = readFileSync(path.join(root, "src/book.ts"), "utf8");
+const bookTypes = readFileSync(path.join(root, "types/book.d.ts"), "utf8");
 const contentsSource = readFileSync(path.join(root, "src/contents.ts"), "utf8");
 const renditionSource = readFileSync(path.join(root, "src/rendition.ts"), "utf8");
 const archiveSource = readFileSync(path.join(root, "src/archive.ts"), "utf8");
@@ -812,16 +813,24 @@ assert(typeTests.includes("book.unarchive(bookInput)"), "type tests must cover B
 assert(typeTests.includes("ReturnType<Book[\"load\"]>, Promise<RequestResponse>"), "type tests must cover Book load request response typing");
 assert(typeTests.includes("book.load(\"OPS/package.opf\", \"opf\")"), "type tests must cover Book load XML overload typing");
 assert(typeTests.includes("book.load(\"manifest.json\", \"json\")"), "type tests must cover Book load JSON overload typing");
+assert(typeTests.includes("Parameters<Book[\"emit\"]>, [type: string, ...args: unknown[]]"), "type tests must assert Book EventEmitter emit unknown argument typing");
+assert(typeTests.includes("Parameters<Book[\"on\"]>, [type: string, listener: (...args: unknown[]) => void]"), "type tests must assert Book EventEmitter on unknown listener typing");
+assert(typeTests.includes("Parameters<Book[\"off\"]>, [type: string, listener: (...args: unknown[]) => void]"), "type tests must assert Book EventEmitter off unknown listener typing");
+assert(typeTests.includes("Parameters<Book[\"once\"]>, [type: string, listener: (...args: unknown[]) => void]"), "type tests must assert Book EventEmitter once unknown listener typing");
 assert(typeTests.includes("ReturnType<Book[\"on\"]>, unknown"), "type tests must assert Book EventEmitter listener typing");
 assert(typeTests.includes("const bookOn: unknown = book.on"), "type tests must cover Book on listener usage");
 assert(typeTests.includes("const bookOff: unknown = book.off"), "type tests must cover Book off listener usage");
 assert(typeTests.includes("const bookOnce: unknown = book.once"), "type tests must cover Book once listener usage");
 assert(
-	bookSource.includes("emit(type: string, ...args: any[]): void") &&
-		bookSource.includes("on(type: string, listener: (...args: any[]) => void): unknown") &&
-		bookSource.includes("off(type: string, listener: (...args: any[]) => void): unknown") &&
-		bookSource.includes("once(type: string, listener: (...args: any[]) => void): unknown"),
-	"source Book must keep EventEmitter method type parity"
+	bookSource.includes("emit(type: string, ...args: unknown[]): void") &&
+		bookSource.includes("on(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		bookSource.includes("off(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		bookSource.includes("once(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		bookTypes.includes("emit(type: string, ...args: unknown[]): void") &&
+		bookTypes.includes("on(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		bookTypes.includes("off(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		bookTypes.includes("once(type: string, listener: (...args: unknown[]) => void): unknown"),
+	"Book source and declarations must keep EventEmitter method type parity"
 );
 assert(typeTests.includes("rendition.determineLayoutProperties"), "type tests must cover Rendition layout property typing");
 assert(typeTests.includes("rendition.located([managerLocationItem])"), "type tests must cover Rendition manager location typing");

@@ -147,12 +147,12 @@ export default class Book {
     unpack(packaging: Packaging): void;
 
     // Event emitters
-    emit(type: string, ...args: any[]): void;
+    emit(type: string, ...args: unknown[]): void;
 
-    off(type: string, listener: (...args: any[]) => void): unknown;
+    off(type: string, listener: (...args: unknown[]) => void): unknown;
 
-    on(type: string, listener: (...args: any[]) => void): unknown;
+    on(type: string, listener: (...args: unknown[]) => void): unknown;
 
-    once(type: string, listener: (...args: any[]) => void): unknown;
+    once(type: string, listener: (...args: unknown[]) => void): unknown;
 
 }

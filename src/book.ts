@@ -72,7 +72,7 @@ type SectionLike = {
 	load(requester: RequestMethod): Promise<any>;
 };
 type StoreWithEvents = Store & {
-	on(type: string, listener: (...args: any[]) => void): void;
+	on(type: string, listener: (...args: unknown[]) => void): void;
 };
 type DeferConstructor = new <T = unknown>() => CoreDeferred<T>;
 
@@ -855,10 +855,10 @@ class Book {
 }
 
 interface Book {
-	emit(type: string, ...args: any[]): void;
-	on(type: string, listener: (...args: any[]) => void): unknown;
-	off(type: string, listener: (...args: any[]) => void): unknown;
-	once(type: string, listener: (...args: any[]) => void): unknown;
+	emit(type: string, ...args: unknown[]): void;
+	on(type: string, listener: (...args: unknown[]) => void): unknown;
+	off(type: string, listener: (...args: unknown[]) => void): unknown;
+	once(type: string, listener: (...args: unknown[]) => void): unknown;
 }
 
 //-- Enable binding events to book

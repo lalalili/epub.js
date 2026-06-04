@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0385
+- Why:
+  - `Book` is a package-root public class with EventEmitter methods, but source and declarations still exposed event payload arguments as `any[]`.
+  - Book event payloads are forwarded opaquely, so consumers should narrow payload values before reading them.
+  - Tightening this surface keeps Book source/.d.ts/TypeDoc parity enforceable without changing open, load, render, storage, or event wiring behavior.
+- Diff Scope:
+  - `src/book.ts`: type Book EventEmitter variadic arguments and listener arguments as `unknown[]`.
+  - `types/book.d.ts`: mirror Book emit, on, off, and once argument typing.
+  - `types/epubjs-tests.ts`: assert Book EventEmitter parameter typing and keep usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Book EventEmitter source and declaration parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Book consumers intentionally rely on event payload arguments being typed as `any`.
+
 ### P-0384
 - Why:
   - `LocationsRequest` and `Locations` listener methods are package-root public types, but source and declarations still exposed variadic request/listener arguments as `any[]`.
