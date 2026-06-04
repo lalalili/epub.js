@@ -926,7 +926,18 @@ assert(
 );
 assert(typeTests.includes("ReturnType<Rendition[\"reportLocation\"]>, Promise<void>"), "type tests must assert Rendition reportLocation void promise typing");
 assert(typeTests.includes("ReturnType<Rendition[\"remeasure\"]>, Promise<void>"), "type tests must assert Rendition remeasure void promise typing");
+assert(typeTests.includes("ReturnType<Rendition[\"requireManager\"]>, string | Function | object"), "type tests must assert Rendition requireManager return typing");
+assert(typeTests.includes("ReturnType<Rendition[\"requireView\"]>, string | Function | object"), "type tests must assert Rendition requireView return typing");
 assert(typeTests.includes("const renditionRemeasure: Promise<void> = rendition.remeasure"), "type tests must cover Rendition remeasure void promise usage");
+assert(typeTests.includes("const requiredManager: string | Function | object = rendition.requireManager"), "type tests must cover Rendition requireManager usage");
+assert(typeTests.includes("const requiredView: string | Function | object = rendition.requireView"), "type tests must cover Rendition requireView usage");
+assert(
+	renditionSource.includes("requireManager(manager: string | Function | object): string | Function | object") &&
+		renditionSource.includes("requireView(view: string | Function | object): string | Function | object") &&
+		renditionTypes.includes("requireManager(manager: string | Function | object): string | Function | object") &&
+		renditionTypes.includes("requireView(view: string | Function | object): string | Function | object"),
+	"Rendition source and declarations must keep manager/view resolver return type parity"
+);
 assert(
 	renditionSource.includes("reportLocation(): Promise<void>") &&
 		renditionSource.includes("remeasure({ preserveLocation = true, waitForFonts = true }") &&

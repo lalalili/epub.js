@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0406
+- Why:
+  - `Rendition.requireManager()` and `Rendition.requireView()` resolve known string names to built-in classes or return the supplied custom manager/view value, but their source and declarations still returned `any`.
+  - The methods already accept `string | Function | object`, so returning the same union describes the resolver surface without changing the existing custom-extension behavior.
+  - This removes another package-root `Rendition` `any` leak while keeping manager/view construction internals untouched.
+- Diff Scope:
+  - `src/rendition.ts`: type `requireManager()` and `requireView()` parameters and returns as `string | Function | object`.
+  - `types/rendition.d.ts`: mirror the same resolver return types.
+  - `types/epubjs-tests.ts`: assert and exercise manager/view resolver return typing.
+  - `scripts/verify-gate1-readiness.mjs`: require Rendition resolver source/declaration/type-test parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if manager/view resolver methods must intentionally expose untyped returns.
+
 ### P-0405
 - Why:
   - `QueueTask`, `QueuedItem`, and `Queue` already use `unknown` for queued task arguments and results, but the exported `Task` wrapper still exposed its constructor args, context, wrapper args, and promise result as `any`.

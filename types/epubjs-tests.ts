@@ -514,6 +514,8 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Rendition["located"]>, Location>>,
   Assert<IsExact<ReturnType<Rendition["reportLocation"]>, Promise<void>>>,
   Assert<IsExact<ReturnType<Rendition["remeasure"]>, Promise<void>>>,
+  Assert<IsExact<ReturnType<Rendition["requireManager"]>, string | Function | object>>,
+  Assert<IsExact<ReturnType<Rendition["requireView"]>, string | Function | object>>,
   Assert<IsExact<Parameters<Rendition["resolveLinkHref"]>, [href: string, contents?: { sectionHref?: string } | undefined]>>,
   Assert<IsExact<ReturnType<Rendition["resolveLinkHref"]>, string>>,
   Assert<IsExact<ReturnType<Rendition["resize"]>, void>>,
@@ -1217,6 +1219,8 @@ function testEpub() {
   const renditionDebugState: RenditionVerticalRlDebugState = rendition.debugVerticalRlPage();
   const renditionReportLocation: Promise<void> = rendition.reportLocation();
   const renditionRemeasure: Promise<void> = rendition.remeasure({ preserveLocation: true, waitForFonts: false });
+  const requiredManager: string | Function | object = rendition.requireManager("default");
+  const requiredView: string | Function | object = rendition.requireView("iframe");
   const resolvedRenditionHref: string = rendition.resolveLinkHref("#note", { sectionHref: "Text/chapter.xhtml" });
   const renditionListener = (...args: unknown[]): void => {
     void args;
@@ -1787,6 +1791,8 @@ function testEpub() {
   void locatedRenditionFallbackLocation;
   void renditionDebugState;
   void renditionRemeasure;
+  void requiredManager;
+  void requiredView;
   void resolvedRenditionHref;
   void renditionEmit;
   void renditionOn;

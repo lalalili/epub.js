@@ -274,7 +274,7 @@ class Rendition {
 	 * @param  {string|object} manager [description]
 	 * @return {method}
 	 */
-	requireManager(manager: any): any {
+	requireManager(manager: string | Function | object): string | Function | object {
 		var viewManager;
 
 		// If manager is a string, try to load from imported managers
@@ -295,7 +295,7 @@ class Rendition {
 	 * @param  {string|object} view
 	 * @return {view}
 	 */
-	requireView(view: any): any {
+	requireView(view: string | Function | object): string | Function | object {
 		var View;
 
 		// If view is a string, try to load from imported views,

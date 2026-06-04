@@ -174,9 +174,9 @@ export default class Rendition {
 
     remeasure(options?: { preserveLocation?: boolean, waitForFonts?: boolean }): Promise<void>;
 
-    requireManager(manager: string | Function | object): any;
+    requireManager(manager: string | Function | object): string | Function | object;
 
-    requireView(view: string | Function | object): any;
+    requireView(view: string | Function | object): string | Function | object;
 
     resolveLinkHref(href: string, contents?: { sectionHref?: string }): string;
 

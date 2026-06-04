@@ -618,7 +618,7 @@
 
 ### requireManager()
 
-> **requireManager**(`manager`): `any`
+> **requireManager**(`manager`): `string` \| `object` \| `Function`
 
 #### Parameters
 
@@ -628,13 +628,13 @@
 
 #### Returns
 
-`any`
+`string` \| `object` \| `Function`
 
 ***
 
 ### requireView()
 
-> **requireView**(`view`): `any`
+> **requireView**(`view`): `string` \| `object` \| `Function`
 
 #### Parameters
 
@@ -644,7 +644,7 @@
 
 #### Returns
 
-`any`
+`string` \| `object` \| `Function`
 
 ***
 
