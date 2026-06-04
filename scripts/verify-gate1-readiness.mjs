@@ -1499,6 +1499,15 @@ assert(
 	"Continuous manager section input bridge must keep unknown typing"
 );
 assert(
+	continuousManagerSource.includes("type ContinuousSection = {") &&
+		continuousManagerSource.includes("type VisibilityElement = {") &&
+		continuousManagerSource.includes("[key: string]: unknown") &&
+		continuousManagerSource.includes("display(request: unknown): Promise<ContinuousView>") &&
+		continuousManagerSource.includes("bounds(): ViewBounds") &&
+		!continuousManagerSource.includes("type ContinuousView = {\n\t[key: string]: any"),
+	"Continuous manager view bridge must keep structural unknown typing"
+);
+assert(
 	typeTests.includes("Parameters<View[\"emit\"]>, [type: string, ...args: unknown[]]") &&
 		typeTests.includes("Parameters<View[\"on\"]>, [type: string, listener: (...args: unknown[]) => void]") &&
 		typeTests.includes("Parameters<View[\"off\"]>, [type: string, listener: (...args: unknown[]) => void]") &&

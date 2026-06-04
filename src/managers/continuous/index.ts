@@ -25,8 +25,31 @@ type ViewBounds = {
 	heightDelta?: number;
 };
 
+type ContinuousSection = {
+	prev(): unknown;
+	next(): unknown;
+};
+
+type VisibilityElement = {
+	style: {
+		visibility?: string;
+	};
+};
+
 type ContinuousView = {
-	[key: string]: any;
+	[key: string]: unknown;
+	section: ContinuousSection;
+	displayed?: boolean;
+	expanded?: boolean;
+	element?: VisibilityElement;
+	iframe?: VisibilityElement;
+	onDisplayed?: Function;
+	onResize?: Function;
+	on(type: string, callback: Function): void;
+	display(request: unknown): Promise<ContinuousView>;
+	show(): void;
+	hide(): void;
+	bounds(): ViewBounds;
 };
 
 const Defer = defer as unknown as {
