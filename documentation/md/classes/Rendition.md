@@ -294,7 +294,7 @@
 
 ##### args
 
-...`any`[]
+...`unknown`[]
 
 #### Returns
 

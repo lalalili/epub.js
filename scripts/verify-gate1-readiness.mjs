@@ -11,6 +11,7 @@ const bookSource = readFileSync(path.join(root, "src/book.ts"), "utf8");
 const bookTypes = readFileSync(path.join(root, "types/book.d.ts"), "utf8");
 const contentsSource = readFileSync(path.join(root, "src/contents.ts"), "utf8");
 const renditionSource = readFileSync(path.join(root, "src/rendition.ts"), "utf8");
+const renditionTypes = readFileSync(path.join(root, "types/rendition.d.ts"), "utf8");
 const archiveSource = readFileSync(path.join(root, "src/archive.ts"), "utf8");
 const storeSource = readFileSync(path.join(root, "src/store.ts"), "utf8");
 const navigationTypes = readFileSync(path.join(root, "types/navigation.d.ts"), "utf8");
@@ -845,15 +846,23 @@ assert(
 	"source Rendition must keep reportLocation and remeasure typed as void promises"
 );
 assert(typeTests.includes("ReturnType<Rendition[\"on\"]>, unknown"), "type tests must assert Rendition EventEmitter listener typing");
+assert(typeTests.includes("Parameters<Rendition[\"emit\"]>, [type: string, ...args: unknown[]]"), "type tests must assert Rendition EventEmitter emit unknown argument typing");
+assert(typeTests.includes("Parameters<Rendition[\"on\"]>, [type: string, listener: (...args: unknown[]) => void]"), "type tests must assert Rendition EventEmitter on unknown listener typing");
+assert(typeTests.includes("Parameters<Rendition[\"off\"]>, [type: string, listener: (...args: unknown[]) => void]"), "type tests must assert Rendition EventEmitter off unknown listener typing");
+assert(typeTests.includes("Parameters<Rendition[\"once\"]>, [type: string, listener: (...args: unknown[]) => void]"), "type tests must assert Rendition EventEmitter once unknown listener typing");
 assert(typeTests.includes("const renditionOn: unknown = rendition.on"), "type tests must cover Rendition on listener usage");
 assert(typeTests.includes("const renditionOff: unknown = rendition.off"), "type tests must cover Rendition off listener usage");
 assert(typeTests.includes("const renditionOnce: unknown = rendition.once"), "type tests must cover Rendition once listener usage");
 assert(
-	renditionSource.includes("emit(type: string, ...args: any[]): void") &&
-		renditionSource.includes("on(type: string, listener: (...args: any[]) => void): unknown") &&
-		renditionSource.includes("off(type: string, listener: (...args: any[]) => void): unknown") &&
-		renditionSource.includes("once(type: string, listener: (...args: any[]) => void): unknown"),
-	"source Rendition must keep EventEmitter method type parity"
+	renditionSource.includes("emit(type: string, ...args: unknown[]): void") &&
+		renditionSource.includes("on(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		renditionSource.includes("off(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		renditionSource.includes("once(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		renditionTypes.includes("emit(type: string, ...args: unknown[]): void") &&
+		renditionTypes.includes("on(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		renditionTypes.includes("off(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		renditionTypes.includes("once(type: string, listener: (...args: unknown[]) => void): unknown"),
+	"Rendition source and declarations must keep EventEmitter method type parity"
 );
 assert(
 	typeTests.includes("RootContentsSize") &&

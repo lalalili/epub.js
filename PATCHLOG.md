@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0386
+- Why:
+  - `Rendition` is a package-root public class with EventEmitter methods, but source and declarations still exposed event payload arguments as `any[]`.
+  - Rendition event payloads are forwarded opaquely, so consumers should narrow payload values before reading them.
+  - Tightening this surface keeps Rendition source/.d.ts/TypeDoc parity enforceable without changing display, location reporting, remeasure, or event wiring behavior.
+- Diff Scope:
+  - `src/rendition.ts`: type Rendition EventEmitter variadic arguments and listener arguments as `unknown[]`.
+  - `types/rendition.d.ts`: mirror Rendition emit, on, off, and once argument typing.
+  - `types/epubjs-tests.ts`: assert Rendition EventEmitter parameter typing and keep usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Rendition EventEmitter source and declaration parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Rendition consumers intentionally rely on event payload arguments being typed as `any`.
+
 ### P-0385
 - Why:
   - `Book` is a package-root public class with EventEmitter methods, but source and declarations still exposed event payload arguments as `any[]`.
