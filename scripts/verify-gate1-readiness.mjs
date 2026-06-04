@@ -1494,6 +1494,13 @@ assert(
 	"Contents source and declarations must keep epubReadingSystem bridge typed"
 );
 assert(
+	contentsSource.includes("declare _expanding?: boolean") &&
+		contentsSource.includes("interface Contents") &&
+		contentsSource.includes("emit(type: string, ...args: unknown[]): void") &&
+		!contentsSource.includes("[key: string]: any"),
+	"Contents source must keep class state fields explicit without a catch-all any index"
+);
+assert(
 	sourceRoot.includes("\tContents,") &&
 	sourceRoot.includes("ContentsSize") &&
 	sourceRoot.includes("VerticalRlDebugMetrics") &&

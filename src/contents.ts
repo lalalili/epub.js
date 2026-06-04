@@ -448,7 +448,6 @@ const clampOnePageHorizontalTextWidth = (width: number, content: HTMLElement): n
 	* @param {string} sectionHref Section href
 	*/
 class Contents {
-	[key: string]: any;
 	declare epubcfi: EpubCFI;
 	declare document: Document;
 	declare documentElement: HTMLElement;
@@ -467,6 +466,7 @@ class Contents {
 	declare active: boolean;
 	declare observer?: ResizeObserver | MutationObserver;
 	declare expanding?: ReturnType<typeof setTimeout>;
+	declare _expanding?: boolean;
 	declare _resizeCheck?: EventListener;
 	declare _triggerEvent?: EventListener;
 	declare _onSelectionChange?: EventListener;
