@@ -7,10 +7,10 @@ import { EVENTS } from "../../utils/constants";
 import debounce from "lodash/debounce";
 
 type ContinuousManagerOptions = {
-	settings: Record<string, any>;
-	view: any;
-	request: any;
-	queue: any;
+	settings: Record<string, unknown>;
+	view: unknown;
+	request: unknown;
+	queue: unknown;
 };
 
 type ScrollPosition = {

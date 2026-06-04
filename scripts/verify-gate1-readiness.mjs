@@ -1470,6 +1470,17 @@ assert(
 	"Continuous manager must keep promise bridge results typed as unknown"
 );
 assert(
+	continuousManagerSource.includes("settings: Record<string, unknown>") &&
+		continuousManagerSource.includes("view: unknown") &&
+		continuousManagerSource.includes("request: unknown") &&
+		continuousManagerSource.includes("queue: unknown") &&
+		!continuousManagerSource.includes("settings: Record<string, any>") &&
+		!continuousManagerSource.includes("view: any") &&
+		!continuousManagerSource.includes("request: any") &&
+		!continuousManagerSource.includes("queue: any"),
+	"Continuous manager options bridge must keep inputs typed as unknown"
+);
+assert(
 	typeTests.includes("Parameters<View[\"emit\"]>, [type: string, ...args: unknown[]]") &&
 		typeTests.includes("Parameters<View[\"on\"]>, [type: string, listener: (...args: unknown[]) => void]") &&
 		typeTests.includes("Parameters<View[\"off\"]>, [type: string, listener: (...args: unknown[]) => void]") &&
