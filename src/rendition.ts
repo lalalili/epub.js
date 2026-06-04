@@ -5,7 +5,7 @@ import { isFloat } from "./core/types";
 import Hook from "./utils/hook";
 import EpubCFI from "./epubcfi";
 import Queue from "./utils/queue";
-import Layout from "./layout";
+import Layout, { type LayoutSettings } from "./layout";
 // import Mapping from "./mapping";
 import Themes from "./themes";
 import Annotations, { type AnnotationData } from "./annotations";
@@ -139,7 +139,7 @@ class Rendition {
 	ViewManager?: any;
 	View?: any;
 	q: Queue;
-	_layout?: any;
+	_layout?: Layout;
 	themes?: Themes;
 	annotations?: Annotations;
 	epubcfi?: EpubCFI;
@@ -819,8 +819,9 @@ class Rendition {
 	 */
 	layout(settings?: LayoutProperties | Record<string, unknown>): Layout | undefined {
 		if (settings) {
-			this._layout = new Layout(settings as any);
-			this._layout.spread(settings.spread, this.settings.minSpreadWidth);
+			const layoutSettings = settings as LayoutSettings;
+			this._layout = new Layout(layoutSettings);
+			this._layout.spread(layoutSettings.spread, this.settings.minSpreadWidth);
 
 			// this.mapping = new Mapping(this._layout.props);
 

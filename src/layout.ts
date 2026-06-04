@@ -5,7 +5,7 @@ import type Contents from "./contents";
 
 export interface LayoutSettings {
 	layout?: string;
-	spread?: string;
+	spread?: string | boolean;
 	minSpreadWidth?: number;
 	evenSpreads?: boolean;
 	flow?: string;
@@ -149,7 +149,7 @@ class Layout {
 	 * @param  {number} min integer in pixels
 	 * @return {boolean} spread true | false
 	 */
-	spread(spread?: string, min?: number): boolean {
+	spread(spread?: string | boolean, min?: number): boolean {
 
 		if (spread) {
 			this._spread = (spread === "none") ? false : true;

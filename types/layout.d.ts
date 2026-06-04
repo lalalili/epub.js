@@ -2,7 +2,7 @@ import Contents from "./contents";
 
 export interface LayoutSettings {
   layout?: string;
-  spread?: string;
+  spread?: string | boolean;
   minSpreadWidth?: number;
   evenSpreads?: boolean;
   flow?: string;
@@ -64,7 +64,7 @@ export default class Layout {
 
   flow(flow?: string): string;
 
-  spread(spread?: string, min?: number): boolean;
+  spread(spread?: string | boolean, min?: number): boolean;
 
   calculate(_width: number, _height: number, _gap?: number): void;
 

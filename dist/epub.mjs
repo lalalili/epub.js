@@ -9630,9 +9630,13 @@ var Jr = /* @__PURE__ */ l(Rr()), Yr = N, Xr = class extends Ur {
 		(e === "scrolled" || e === "scrolled-doc" || e === "scrolled-continuous") && (t = "scrolled"), (e === "auto" || e === "paginated") && (t = "paginated"), this.settings.flow = e, this._layout && this._layout.flow(t), this.manager && this._layout && this.manager.applyLayout(this._layout), this.manager && this.manager.updateFlow(t), this.manager && this.manager.isRendered() && this.location && (this.manager.clear(), this.display(this.location.start.cfi));
 	}
 	layout(e) {
-		return e && (this._layout = new ot(e), this._layout.spread(e.spread, this.settings.minSpreadWidth), this._layout.on($.LAYOUT.UPDATED, (e, t) => {
-			this.emit($.RENDITION.LAYOUT, e, t);
-		})), this.manager && this._layout && this.manager.applyLayout(this._layout), this._layout;
+		if (e) {
+			let t = e;
+			this._layout = new ot(t), this._layout.spread(t.spread, this.settings.minSpreadWidth), this._layout.on($.LAYOUT.UPDATED, (e, t) => {
+				this.emit($.RENDITION.LAYOUT, e, t);
+			});
+		}
+		return this.manager && this._layout && this.manager.applyLayout(this._layout), this._layout;
 	}
 	spread(e, t) {
 		this.settings.spread = e, t && (this.settings.minSpreadWidth = t), this._layout && this._layout.spread(e, t), this.manager && this.manager.isRendered() && this.manager.updateLayout();

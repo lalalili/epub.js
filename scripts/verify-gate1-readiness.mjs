@@ -24,6 +24,7 @@ const navigationTypes = readFileSync(path.join(root, "types/navigation.d.ts"), "
 const pageListSource = readFileSync(path.join(root, "src/pagelist.ts"), "utf8");
 const pageListTypes = readFileSync(path.join(root, "types/pagelist.d.ts"), "utf8");
 const layoutSource = readFileSync(path.join(root, "src/layout.ts"), "utf8");
+const layoutTypes = readFileSync(path.join(root, "types/layout.d.ts"), "utf8");
 const resourcesSource = readFileSync(path.join(root, "src/resources.ts"), "utf8");
 const resourcesTypes = readFileSync(path.join(root, "types/resources.d.ts"), "utf8");
 const storeTypes = readFileSync(path.join(root, "types/store.d.ts"), "utf8");
@@ -444,10 +445,20 @@ assert(typeTests.includes("ReturnType<Layout[\"emit\"]>, void"), "type tests mus
 assert(typeTests.includes("ReturnType<Layout[\"on\"]>, unknown"), "type tests must assert Layout on return typing");
 assert(typeTests.includes("ReturnType<Layout[\"off\"]>, unknown"), "type tests must assert Layout off return typing");
 assert(typeTests.includes("ReturnType<Layout[\"once\"]>, unknown"), "type tests must assert Layout once return typing");
+assert(typeTests.includes("EpubLayoutSettings[\"spread\"], string | boolean | undefined"), "type tests must assert Layout settings boolean spread typing");
+assert(typeTests.includes("Parameters<Layout[\"spread\"]>, [spread?: string | boolean | undefined, min?: number | undefined]"), "type tests must assert Layout spread boolean parameter typing");
+assert(typeTests.includes("const layoutBooleanSpread: boolean = runtimeLayout.spread"), "type tests must cover Layout boolean spread usage");
 assert(typeTests.includes("const layoutEmit: void = runtimeLayout.emit"), "type tests must cover Layout emit usage");
 assert(typeTests.includes("const layoutOn: unknown = runtimeLayout.on"), "type tests must cover Layout on usage");
 assert(typeTests.includes("const layoutOff: unknown = runtimeLayout.off"), "type tests must cover Layout off usage");
 assert(typeTests.includes("const layoutOnce: unknown = runtimeLayout.once"), "type tests must cover Layout once usage");
+assert(
+	layoutSource.includes("spread?: string | boolean") &&
+	layoutSource.includes("spread(spread?: string | boolean, min?: number): boolean") &&
+	layoutTypes.includes("spread?: string | boolean") &&
+	layoutTypes.includes("spread(spread?: string | boolean, min?: number): boolean"),
+	"source and declaration Layout must keep boolean spread type parity"
+);
 assert(
 	layoutSource.includes("emit(type: string, ...args: unknown[]): void") &&
 	layoutSource.includes("on(type: string, listener: (...args: unknown[]) => void): unknown") &&
@@ -976,12 +987,15 @@ assert(typeTests.includes("const requiredView: string | Function | object = rend
 assert(typeTests.includes("const setRenditionManager: void = rendition.setManager"), "type tests must cover Rendition setManager usage");
 assert(
 	renditionSource.includes("book: Book") &&
+		renditionSource.includes("_layout?: Layout") &&
 		renditionSource.includes("page?: PageValue") &&
 		renditionSource.includes("constructor(book: Book, options?: RenditionOptions)") &&
 		renditionTypes.includes("constructor(book: Book, options?: RenditionOptions)") &&
+		renditionTypes.includes("_layout?: Layout") &&
 		renditionTypes.includes("page?: PageValue") &&
+		typeTests.includes("Rendition[\"_layout\"], Layout | undefined") &&
 		typeTests.includes("Rendition[\"book\"], Book"),
-	"Rendition source and declarations must keep book constructor/property type parity"
+	"Rendition source and declarations must keep book/layout property type parity"
 );
 assert(
 	renditionSource.includes("attachTo(element: Element | string): Promise<void>") &&

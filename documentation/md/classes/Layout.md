@@ -310,7 +310,7 @@
 
 ##### spread?
 
-`string`
+`string` \| `boolean`
 
 ##### min?
 

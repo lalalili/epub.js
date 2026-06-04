@@ -16997,8 +16997,9 @@
 		*/
 		layout(settings) {
 			if (settings) {
-				this._layout = new Layout(settings);
-				this._layout.spread(settings.spread, this.settings.minSpreadWidth);
+				const layoutSettings = settings;
+				this._layout = new Layout(layoutSettings);
+				this._layout.spread(layoutSettings.spread, this.settings.minSpreadWidth);
 				this._layout.on(EVENTS.LAYOUT.UPDATED, (props, changed) => {
 					this.emit(EVENTS.RENDITION.LAYOUT, props, changed);
 				});

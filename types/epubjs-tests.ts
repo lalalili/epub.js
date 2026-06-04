@@ -646,10 +646,12 @@ type LayoutAssertions = [
   Assert<IsExact<Layout["gap"], number>>,
   Assert<IsExact<Layout["divisor"], number>>,
   Assert<IsExact<Layout["props"], LayoutProps>>,
+  Assert<IsExact<EpubLayoutSettings["spread"], string | boolean | undefined>>,
   Assert<IsExact<ReturnType<LayoutContent["fit"]>, void>>,
   Assert<IsExact<ReturnType<LayoutContent["columns"]>, void>>,
   Assert<IsExact<ReturnType<LayoutContent["size"]>, void>>,
   Assert<IsExact<ReturnType<Layout["flow"]>, string>>,
+  Assert<IsExact<Parameters<Layout["spread"]>, [spread?: string | boolean | undefined, min?: number | undefined]>>,
   Assert<IsExact<ReturnType<Layout["spread"]>, boolean>>,
   Assert<IsExact<ReturnType<Layout["calculate"]>, void>>,
   Assert<IsExact<ReturnType<Layout["format"]>, unknown>>,
@@ -1295,6 +1297,7 @@ function testEpub() {
   const runtimeLayout = new Layout(layoutSettings);
   const layoutFlow: string = runtimeLayout.flow("paginated");
   const layoutSpread: boolean = runtimeLayout.spread("none", 0);
+  const layoutBooleanSpread: boolean = runtimeLayout.spread(true, 800);
   const layoutCalculate: void = runtimeLayout.calculate(1000, 600, 20);
   const layoutContent: LayoutContent = {
     fit: () => undefined,

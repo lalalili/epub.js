@@ -12,6 +12,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0415
+- Why:
+  - `Rendition._layout` already exposes `Layout | undefined` in declarations and type smoke tests, but source still kept the property as `any`.
+  - Aligning the source property with the concrete `Layout` class keeps Rendition layout state typed before Gate 1 release work.
+  - Making `_layout` concrete exposes the existing `RenditionOptions.spread` boolean path, so `LayoutSettings.spread` and `Layout.spread()` now reflect the runtime-supported `string | boolean` contract.
+  - This removes another source-side `Rendition` `any` leak without changing layout creation, spread updates, or manager layout application.
+- Diff Scope:
+  - `src/rendition.ts`: type `_layout` as `Layout` and bridge layout input through `LayoutSettings`.
+  - `src/layout.ts` and `types/layout.d.ts`: allow boolean spread values in `LayoutSettings` and `Layout.spread()`.
+  - `types/epubjs-tests.ts`: assert and exercise the boolean spread contract.
+  - `scripts/verify-gate1-readiness.mjs`: require source/declaration/type-test parity for `_layout` and Layout spread typing.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `_layout` must intentionally remain source-untyped or Layout must reject boolean spread typing.
+
 ### P-0414
 - Why:
   - `Rendition.views()` already exposes `Array<View>` in declarations, but source still returned `any`.

@@ -40,4 +40,4 @@
 
 ### spread?
 
-> `optional` **spread?**: `string`
+> `optional` **spread?**: `string` \| `boolean`
