@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0394
+- Why:
+  - Rendition content hook methods receive rendered `Contents` instances, but several source signatures still accepted `any` while the shipped declaration already describes `Contents`.
+  - `resolveLinkHref()` only needs an optional `sectionHref` carrier, so the source can preserve that narrow contract instead of accepting arbitrary values.
+  - Tightening this chain keeps link handling, DOM event forwarding, selection events, and mark-click events aligned with the public declaration surface without changing runtime event wiring.
+- Diff Scope:
+  - `src/rendition.ts`: type content hook, trigger helper, and link-resolution content parameters.
+  - `types/epubjs-tests.ts`: assert Rendition content hook and link-resolution parameter typing.
+  - `scripts/verify-gate1-readiness.mjs`: require Rendition content hook source and declaration parameter parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/rendition.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Rendition content hooks must intentionally accept non-Contents event sources.
+
 ### P-0393
 - Why:
   - The release contract verifiers parse `npm pack --dry-run --json --ignore-scripts` output, but some npm versions can prepend non-JSON diagnostics before the JSON payload.

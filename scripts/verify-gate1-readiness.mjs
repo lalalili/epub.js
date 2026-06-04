@@ -853,6 +853,24 @@ assert(
 	"Rendition source and declarations must keep located parameter type parity"
 );
 assert(typeTests.includes("rendition.resolveLinkHref(\"#note\""), "type tests must cover Rendition link resolution typing");
+assert(typeTests.includes("Parameters<Rendition[\"handleLinks\"]>, [contents: Contents]"), "type tests must assert Rendition handleLinks Contents parameter typing");
+assert(typeTests.includes("Parameters<Rendition[\"passEvents\"]>, [contents: Contents]"), "type tests must assert Rendition passEvents Contents parameter typing");
+assert(typeTests.includes("Parameters<Rendition[\"resolveLinkHref\"]>, [href: string, contents?: { sectionHref?: string } | undefined]"), "type tests must assert Rendition resolveLinkHref section href parameter typing");
+assert(
+	renditionSource.includes("handleLinks(contents: Contents): void") &&
+		renditionSource.includes("passEvents(contents: Contents): void") &&
+		renditionSource.includes("triggerViewEvent(e: Event, contents: Contents): void") &&
+		renditionSource.includes("triggerSelectedEvent(cfirange: string, contents: Contents): void") &&
+		renditionSource.includes("triggerMarkEvent(cfiRange: string, data: any, contents: Contents): void") &&
+		renditionSource.includes("resolveLinkHref(href: string, contents?: { sectionHref?: string }): string") &&
+		renditionTypes.includes("handleLinks(contents: Contents): void") &&
+		renditionTypes.includes("passEvents(contents: Contents): void") &&
+		renditionTypes.includes("private triggerViewEvent(e: Event, contents: Contents): void") &&
+		renditionTypes.includes("private triggerSelectedEvent(cfirange: string, contents: Contents): void") &&
+		renditionTypes.includes("private triggerMarkEvent(cfiRange: string, data: object, contents: Contents): void") &&
+		renditionTypes.includes("resolveLinkHref(href: string, contents?: { sectionHref?: string }): string"),
+	"Rendition source and declarations must keep content hook parameter type parity"
+);
 assert(typeTests.includes("ReturnType<Rendition[\"reportLocation\"]>, Promise<void>"), "type tests must assert Rendition reportLocation void promise typing");
 assert(typeTests.includes("ReturnType<Rendition[\"remeasure\"]>, Promise<void>"), "type tests must assert Rendition remeasure void promise typing");
 assert(typeTests.includes("const renditionRemeasure: Promise<void> = rendition.remeasure"), "type tests must cover Rendition remeasure void promise usage");

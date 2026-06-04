@@ -1085,7 +1085,7 @@ class Rendition {
 	 * @private
 	 * @param  {Contents} view contents
 	 */
-	passEvents(contents: any): void {
+	passEvents(contents: Contents): void {
 		DOM_EVENTS.forEach((e) => {
 			contents.on(e, (ev: Event) => this.triggerViewEvent(ev, contents));
 		});
@@ -1098,7 +1098,7 @@ class Rendition {
 	 * @private
 	 * @param  {event} e
 	 */
-	triggerViewEvent(e: Event, contents: any): void {
+	triggerViewEvent(e: Event, contents: Contents): void {
 		this.emit(e.type, e, contents);
 	}
 
@@ -1107,7 +1107,7 @@ class Rendition {
 	 * @private
 	 * @param  {string} cfirange
 	 */
-	triggerSelectedEvent(cfirange: string, contents: any): void {
+	triggerSelectedEvent(cfirange: string, contents: Contents): void {
 		/**
 		 * Emit that a text selection has occurred
 		 * @event selected
@@ -1123,7 +1123,7 @@ class Rendition {
 	 * @private
 	 * @param  {EpubCFI} cfirange
 	 */
-	triggerMarkEvent(cfiRange: string, data: any, contents: any): void {
+	triggerMarkEvent(cfiRange: string, data: any, contents: Contents): void {
 		/**
 		 * Emit that a mark was clicked
 		 * @event markClicked
@@ -1217,7 +1217,7 @@ class Rendition {
 	 * @param  {Contents} contents
 	 * @private
 	 */
-	handleLinks(contents: any): void {
+	handleLinks(contents: Contents): void {
 		if (contents) {
 			contents.on(EVENTS.CONTENTS.LINK_CLICKED, (href: string) => {
 				let relative = this.resolveLinkHref(href, contents);
@@ -1226,7 +1226,7 @@ class Rendition {
 		}
 	}
 
-	resolveLinkHref(href: string, contents?: any): string {
+	resolveLinkHref(href: string, contents?: { sectionHref?: string }): string {
 		if (!href) {
 			return href;
 		}
