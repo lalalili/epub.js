@@ -1462,6 +1462,14 @@ assert(
 	"Manager source and declarations must keep getContents return type parity"
 );
 assert(
+	managerSource.includes("import { defer, type Deferred as CoreDeferred } from \"../../core/async\"") &&
+		managerSource.includes("type ManagerDeferred<T = unknown> = CoreDeferred<T>") &&
+		managerSource.includes("const Deferred = defer as unknown as {") &&
+		managerSource.includes("new<T = unknown>(): ManagerDeferred<T>") &&
+		!managerSource.includes("const Deferred = defer as any"),
+	"Default manager must keep Deferred constructor bridge typed through unknown"
+);
+assert(
 	continuousManagerSource.includes("var promises: Promise<unknown>[] = []") &&
 		continuousManagerSource.includes("check(_offsetLeft?: number, _offsetTop?: number): Promise<unknown>") &&
 		continuousManagerSource.includes(".then((): Promise<unknown> =>") &&

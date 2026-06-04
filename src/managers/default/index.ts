@@ -1,5 +1,5 @@
 import EventEmitter from "event-emitter";
-import { defer } from "../../core/async";
+import { defer, type Deferred as CoreDeferred } from "../../core/async";
 import { extend } from "../../core/collections";
 import { isNumber } from "../../core/types";
 import { windowBounds } from "../../platform/layout";
@@ -46,7 +46,14 @@ import Stage from "../helpers/stage";
 import Views from "../helpers/views";
 import { EVENTS } from "../../utils/constants";
 
-const Deferred = defer as any;
+type ManagerDeferred<T = unknown> = CoreDeferred<T> & {
+	resolve(value?: T | PromiseLike<T>): void;
+	reject(reason?: unknown): void;
+};
+
+const Deferred = defer as unknown as {
+	new<T = unknown>(): ManagerDeferred<T>;
+};
 
 type EdgeMaskWidths = { left: number; right: number };
 type SnapLimits = {
