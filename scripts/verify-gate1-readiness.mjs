@@ -1559,7 +1559,7 @@ assert(
 	"Default manager layout helpers must keep layout and view callbacks typed without any"
 );
 assert(
-	managerSource.includes("contents?: Contents") &&
+	managerSource.includes("contents: Contents") &&
 		managerSource.includes("getContents(): Contents[]") &&
 		managerSource.includes("var contents: Contents[] = []") &&
 		managerSource.includes("this.views.forEach(function(view: ManagerView | undefined){") &&
@@ -1571,6 +1571,14 @@ assert(
 		managerSource.includes("var visible = this.visible()") &&
 		!managerSource.includes("current(): any"),
 	"Default manager current bridge must return the typed visible view or null without any"
+);
+assert(
+	managerSource.includes("cfiBase: string") &&
+		managerSource.includes("contents: Contents") &&
+		managerSource.includes("height(): number") &&
+		managerSource.includes("let sections = visible.map((view: VisibleManagerView) => {") &&
+		!managerSource.includes("let sections = visible.map((view: any) => {"),
+	"Default manager location map bridge must keep visible view callbacks typed without any"
 );
 assert(
 	continuousManagerSource.includes("var promises: Promise<unknown>[] = []") &&

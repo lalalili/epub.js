@@ -105,8 +105,11 @@ type ManagerBounds = {
 	right: number;
 	top: number;
 	bottom: number;
+	width: number;
+	height: number;
 };
 type ManagerSection = {
+	cfiBase: string;
 	href?: string;
 	index?: number;
 	properties?: {
@@ -117,13 +120,14 @@ type ManagerSection = {
 };
 type ManagerView = {
 	section: ManagerSection;
-	contents?: Contents;
+	contents: Contents;
 	onDisplayed?: () => void;
 	onResize?: () => void;
 	expanded?: boolean;
 	_contentWidth?: number;
 	offset(): ManagerOffset;
 	width(): number;
+	height(): number;
 	locationOf(target: string | number): ManagerOffset;
 	display(request: unknown): Promise<ManagerView>;
 	show(): void;
@@ -2011,7 +2015,7 @@ class DefaultViewManager {
 			offset = vertical ? window.scrollY : window.scrollX;
 		}
 
-		let sections = visible.map((view: any) => {
+		let sections = visible.map((view: VisibleManagerView) => {
 			let {index, href} = view.section;
 			let position = view.position();
 			let width = view.width();
@@ -2077,7 +2081,7 @@ class DefaultViewManager {
 			left = window.scrollX;
 		}
 
-		let sections = visible.map((view: any) => {
+		let sections = visible.map((view: VisibleManagerView) => {
 			let {index, href} = view.section;
 			let offset;
 			let position = view.position();
