@@ -21,6 +21,7 @@ const managerTypes = readFileSync(path.join(root, "types/managers/manager.d.ts")
 const viewTypes = readFileSync(path.join(root, "types/managers/view.d.ts"), "utf8");
 const marksPaneTypes = readFileSync(path.join(root, "types/marks-pane.d.ts"), "utf8");
 const archiveSource = readFileSync(path.join(root, "src/archive.ts"), "utf8");
+const jszipTypes = readFileSync(path.join(root, "types/jszip-dist.d.ts"), "utf8");
 const storeSource = readFileSync(path.join(root, "src/store.ts"), "utf8");
 const sectionSource = readFileSync(path.join(root, "src/section.ts"), "utf8");
 const spineSource = readFileSync(path.join(root, "src/spine.ts"), "utf8");
@@ -598,6 +599,11 @@ assert(
 	!archiveSource.includes("promise: Promise<any>") &&
 	!archiveSource.includes("var response: Promise<any> | undefined"),
 	"source Archive must keep typed deferred and response bridge handling"
+);
+assert(
+	jszipTypes.includes("loadAsync(input: ArrayBuffer | Uint8Array | string, options?: { base64?: boolean }): Promise<JSZip>") &&
+		!jszipTypes.includes("loadAsync(input: ArrayBuffer | Uint8Array | string, options?: { base64?: boolean }): Promise<any>"),
+	"JSZip dist declaration must keep loadAsync result typed"
 );
 assert(typeTests.includes("type PackagingAssertions"), "type tests must assert the Packaging public surface");
 assert(typeTests.includes("RootPackagingObject"), "type tests must assert root Packaging object typing");

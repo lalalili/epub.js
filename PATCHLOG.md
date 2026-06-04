@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0443
+- Why:
+  - The public `ArchiveZip` contract already exposes `loadAsync()` as `Promise<ArchiveZip>`, but the local `jszip/dist/jszip` shim still returned `Promise<any>`.
+  - Typing the shim as `Promise<JSZip>` keeps the archive constructor bridge aligned without changing archive loading, request handling, or zip entry access.
+  - Gate 1 now rejects the old JSZip `loadAsync()` `any` result.
+- Diff Scope:
+  - `types/jszip-dist.d.ts`: type `JSZip.loadAsync()` as returning `Promise<JSZip>`.
+  - `scripts/verify-gate1-readiness.mjs`: guard the JSZip loadAsync declaration.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/archive.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if the JSZip shim must intentionally hide the loaded zip type.
+
 ### P-0442
 - Why:
   - `Contents.viewport()` still cast the shared `defaults()` helper to `any` while merging parsed viewport metadata with caller options.

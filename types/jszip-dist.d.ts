@@ -7,7 +7,7 @@ declare module "jszip/dist/jszip" {
 	};
 
 	export default class JSZip {
-		loadAsync(input: ArrayBuffer | Uint8Array | string, options?: { base64?: boolean }): Promise<any>;
+		loadAsync(input: ArrayBuffer | Uint8Array | string, options?: { base64?: boolean }): Promise<JSZip>;
 		file(path: string): ZipEntry | null;
 	}
 }
