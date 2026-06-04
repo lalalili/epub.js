@@ -1205,6 +1205,16 @@ assert(
 	"Contents source and declarations must keep class mutation parameter type parity"
 );
 assert(
+	contentsSource.includes("type StylesheetRuleProperty = [string, string, boolean?]") &&
+		contentsSource.includes("type StylesheetArrayRule =") &&
+		contentsSource.includes("type StylesheetObjectRule = Record<string, Record<string, string> | Array<Record<string, string>> | string>") &&
+		contentsSource.includes("type StylesheetRules = StylesheetArrayRule[] | StylesheetObjectRule") &&
+		contentsSource.includes("addStylesheetRules(rules: StylesheetRules, key?: string): void") &&
+		contentsTypes.includes("addStylesheetRules(rules: Array<object> | object, key?: string): void") &&
+		!contentsSource.includes("type StylesheetRules = any"),
+	"Contents source and declarations must keep stylesheet rules typing parity"
+);
+assert(
 	contentsSource.includes("map(layout: MappingLayout): EpubCFIPair[]") &&
 		contentsTypes.includes("map(layout: MappingLayout): EpubCFIPair[]") &&
 	contentsSource.includes("mapPage(cfiBase: string, layout: MappingLayout, start: number, end: number, dev?: boolean): EpubCFIPair | undefined") &&

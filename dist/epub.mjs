@@ -6430,26 +6430,31 @@ var _t = class {
 		if (!this.document || !e || e.length === 0) return;
 		this.invalidateVerticalRlMetricsCache();
 		let r = this._getStylesheetNode(t);
-		if (!(!r || !r.sheet)) if (n = r.sheet, Object.prototype.toString.call(e) === "[object Array]") for (var i = 0, a = e.length; i < a; i++) {
-			var o = 1, s = e[i], c = e[i][0], l = "";
-			Object.prototype.toString.call(s[1][0]) === "[object Array]" && (s = s[1], o = 0);
-			for (var u = s.length; o < u; o++) {
-				var d = s[o];
-				l += d[0] + ":" + d[1] + (d[2] ? " !important" : "") + ";\n";
+		if (!(!r || !r.sheet)) if (n = r.sheet, Object.prototype.toString.call(e) === "[object Array]") {
+			let t = e;
+			for (var i = 0, a = t.length; i < a; i++) {
+				var o = 1, s = t[i], c = t[i][0], l = "";
+				Object.prototype.toString.call(s[1][0]) === "[object Array]" && (s = s[1], o = 0);
+				for (var u = s.length; o < u; o++) {
+					var d = s[o];
+					l += d[0] + ":" + d[1] + (d[2] ? " !important" : "") + ";\n";
+				}
+				n.insertRule(c + "{" + l + "}", n.cssRules.length);
 			}
-			n.insertRule(c + "{" + l + "}", n.cssRules.length);
-		}
-		else Object.keys(e).forEach((t) => {
-			let r = e[t];
-			if (Array.isArray(r)) r.forEach((e) => {
-				let r = Object.keys(e).map((t) => `${t}:${e[t]}`).join(";");
-				n.insertRule(`${t}{${r}}`, n.cssRules.length);
+		} else {
+			let t = e;
+			Object.keys(t).forEach((e) => {
+				let r = t[e];
+				if (Array.isArray(r)) r.forEach((t) => {
+					let r = Object.keys(t).map((e) => `${e}:${t[e]}`).join(";");
+					n.insertRule(`${e}{${r}}`, n.cssRules.length);
+				});
+				else {
+					let t = r, i = Object.keys(t).map((e) => `${e}:${t[e]}`).join(";");
+					n.insertRule(`${e}{${i}}`, n.cssRules.length);
+				}
 			});
-			else {
-				let e = Object.keys(r).map((e) => `${e}:${r[e]}`).join(";");
-				n.insertRule(`${t}{${e}}`, n.cssRules.length);
-			}
-		});
+		}
 	}
 	addScript(e) {
 		return new Promise(function(t, n) {

@@ -105,7 +105,10 @@ export interface VerticalRlPageMetricsCache {
 	metrics: VerticalRlPageMetrics;
 }
 
-type StylesheetRules = any;
+type StylesheetRuleProperty = [string, string, boolean?];
+type StylesheetArrayRule = [string, ...StylesheetRuleProperty[]] | [string, StylesheetRuleProperty[]];
+type StylesheetObjectRule = Record<string, Record<string, string> | Array<Record<string, string>> | string>;
+type StylesheetRules = StylesheetArrayRule[] | StylesheetObjectRule;
 interface EpubReadingSystem {
 	name: string;
 	version: string;
@@ -1420,16 +1423,17 @@ class Contents {
 		styleSheet = styleEl.sheet;
 
 		if (Object.prototype.toString.call(rules) === "[object Array]") {
-			for (var i = 0, rl = rules.length; i < rl; i++) {
-				var j = 1, rule = rules[i], selector = rules[i][0], propStr = "";
+			const arrayRules = rules as StylesheetArrayRule[];
+			for (var i = 0, rl = arrayRules.length; i < rl; i++) {
+				var j = 1, rule: StylesheetRuleProperty[] | StylesheetArrayRule = arrayRules[i], selector = arrayRules[i][0], propStr = "";
 				// If the second argument of a rule is an array of arrays, correct our variables.
 				if (Object.prototype.toString.call(rule[1][0]) === "[object Array]") {
-					rule = rule[1];
+					rule = rule[1] as StylesheetRuleProperty[];
 					j = 0;
 				}
 
 				for (var pl = rule.length; j < pl; j++) {
-					var prop = rule[j];
+					var prop = rule[j] as StylesheetRuleProperty;
 					propStr += prop[0] + ":" + prop[1] + (prop[2] ? " !important" : "") + ";\n";
 				}
 
@@ -1437,9 +1441,10 @@ class Contents {
 				styleSheet.insertRule(selector + "{" + propStr + "}", styleSheet.cssRules.length);
 			}
 		} else {
-			const selectors = Object.keys(rules);
+			const objectRules = rules as StylesheetObjectRule;
+			const selectors = Object.keys(objectRules);
 			selectors.forEach((selector) => {
-				const definition = rules[selector];
+				const definition = objectRules[selector];
 				if (Array.isArray(definition)) {
 					definition.forEach((item) => {
 						const _rules = Object.keys(item);
@@ -1449,9 +1454,10 @@ class Contents {
 						styleSheet.insertRule(`${selector}{${result}}`, styleSheet.cssRules.length);
 					});
 				} else {
-					const _rules = Object.keys(definition);
+					const definitionRules = definition as Record<string, string>;
+					const _rules = Object.keys(definitionRules);
 					const result = _rules.map((rule) => {
-						return `${rule}:${definition[rule]}`;
+						return `${rule}:${definitionRules[rule]}`;
 					}).join(';');
 					styleSheet.insertRule(`${selector}{${result}}`, styleSheet.cssRules.length);
 				}

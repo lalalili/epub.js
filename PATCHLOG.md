@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0429
+- Why:
+  - `Contents.addStylesheetRules()` supports fixed stylesheet rule tuple/object inputs, but the source still typed the rules bridge as `any`.
+  - Aligning the internal `StylesheetRules` union with the runtime formats removes another source-side `any` while preserving the broad declaration accepted by existing theme consumers.
+  - Focused browser coverage now locks both object and array rule insertion before Gate 1 release work.
+- Diff Scope:
+  - `src/contents.ts`: define typed stylesheet rule tuple/object inputs and remove the `StylesheetRules = any` bridge.
+  - `test/browser/contents-text-width.test.js`: cover object and array stylesheet rule insertion through `Contents`.
+  - `scripts/verify-gate1-readiness.mjs`: require typed stylesheet rule source/declaration parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/contents-text-width.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if stylesheet rule inputs must intentionally remain source-untyped.
+
 ### P-0428
 - Why:
   - `Contents.epubReadingSystem()` exposes a fixed navigator bridge shape, but the source navigator extension and method return still used `any`.

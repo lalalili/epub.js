@@ -11233,33 +11233,39 @@
 			const styleEl = this._getStylesheetNode(key);
 			if (!styleEl || !styleEl.sheet) return;
 			styleSheet = styleEl.sheet;
-			if (Object.prototype.toString.call(rules) === "[object Array]") for (var i = 0, rl = rules.length; i < rl; i++) {
-				var j = 1, rule = rules[i], selector = rules[i][0], propStr = "";
-				if (Object.prototype.toString.call(rule[1][0]) === "[object Array]") {
-					rule = rule[1];
-					j = 0;
+			if (Object.prototype.toString.call(rules) === "[object Array]") {
+				const arrayRules = rules;
+				for (var i = 0, rl = arrayRules.length; i < rl; i++) {
+					var j = 1, rule = arrayRules[i], selector = arrayRules[i][0], propStr = "";
+					if (Object.prototype.toString.call(rule[1][0]) === "[object Array]") {
+						rule = rule[1];
+						j = 0;
+					}
+					for (var pl = rule.length; j < pl; j++) {
+						var prop = rule[j];
+						propStr += prop[0] + ":" + prop[1] + (prop[2] ? " !important" : "") + ";\n";
+					}
+					styleSheet.insertRule(selector + "{" + propStr + "}", styleSheet.cssRules.length);
 				}
-				for (var pl = rule.length; j < pl; j++) {
-					var prop = rule[j];
-					propStr += prop[0] + ":" + prop[1] + (prop[2] ? " !important" : "") + ";\n";
-				}
-				styleSheet.insertRule(selector + "{" + propStr + "}", styleSheet.cssRules.length);
-			}
-			else Object.keys(rules).forEach((selector) => {
-				const definition = rules[selector];
-				if (Array.isArray(definition)) definition.forEach((item) => {
-					const result = Object.keys(item).map((rule) => {
-						return `${rule}:${item[rule]}`;
-					}).join(";");
-					styleSheet.insertRule(`${selector}{${result}}`, styleSheet.cssRules.length);
+			} else {
+				const objectRules = rules;
+				Object.keys(objectRules).forEach((selector) => {
+					const definition = objectRules[selector];
+					if (Array.isArray(definition)) definition.forEach((item) => {
+						const result = Object.keys(item).map((rule) => {
+							return `${rule}:${item[rule]}`;
+						}).join(";");
+						styleSheet.insertRule(`${selector}{${result}}`, styleSheet.cssRules.length);
+					});
+					else {
+						const definitionRules = definition;
+						const result = Object.keys(definitionRules).map((rule) => {
+							return `${rule}:${definitionRules[rule]}`;
+						}).join(";");
+						styleSheet.insertRule(`${selector}{${result}}`, styleSheet.cssRules.length);
+					}
 				});
-				else {
-					const result = Object.keys(definition).map((rule) => {
-						return `${rule}:${definition[rule]}`;
-					}).join(";");
-					styleSheet.insertRule(`${selector}{${result}}`, styleSheet.cssRules.length);
-				}
-			});
+			}
 		}
 		/**
 		* Append a script tag to the document head

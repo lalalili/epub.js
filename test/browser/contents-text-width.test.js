@@ -90,6 +90,16 @@ describe("Contents textWidth", () => {
 
 			expect(contents.addStylesheetCss("body { color: red; }", "reader")).toBe(true);
 			expect(doc.getElementById("epubjs-inserted-css-reader")).toBeTruthy();
+			contents.addStylesheetRules({
+				body: {
+					background: "white"
+				}
+			}, "rules-object");
+			expect(doc.getElementById("epubjs-inserted-css-rules-object").sheet.cssRules[0].cssText).toContain("background");
+			contents.addStylesheetRules([
+				["p", ["color", "black", true]]
+			], "rules-array");
+			expect(doc.getElementById("epubjs-inserted-css-rules-array").sheet.cssRules[0].cssText).toContain("color");
 
 			contents.addClass("reader-content");
 			expect(content.classList.contains("reader-content")).toBe(true);
