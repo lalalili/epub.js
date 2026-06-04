@@ -1512,9 +1512,9 @@ assert(
 );
 assert(
 	managerSource.includes("type DefaultManagerOptions = {") &&
-		managerSource.includes("settings: Record<string, unknown>") &&
+		managerSource.includes("settings: ManagerSettings") &&
 		managerSource.includes("view: ManagerViewConstructor") &&
-		managerSource.includes("export type ManagerViewConstructor = new (section: unknown, settings: Record<string, unknown>) => ManagerView") &&
+		managerSource.includes("export type ManagerViewConstructor = new (section: unknown, settings: ManagerViewSettings) => ManagerView") &&
 		managerSource.includes("type ManagerRenderSize = {") &&
 		managerSource.includes("constructor(options: DefaultManagerOptions)") &&
 		managerSource.includes("render(element: HTMLElement, size: ManagerRenderSize): void") &&
@@ -1524,7 +1524,8 @@ assert(
 );
 assert(
 	managerSource.includes("declare name: string") &&
-		managerSource.includes("declare optsSettings: Record<string, unknown>") &&
+		managerSource.includes("declare optsSettings: ManagerSettings") &&
+		managerSource.includes("declare settings: ManagerSettings") &&
 		managerSource.includes("declare View: ManagerViewConstructor") &&
 		managerSource.includes("declare request: unknown") &&
 		managerSource.includes("declare renditionQueue: unknown") &&
@@ -1535,10 +1536,23 @@ assert(
 	managerSource.includes("declare stage: Stage") &&
 		managerSource.includes("declare container: HTMLDivElement") &&
 		managerSource.includes("declare overflow?: string") &&
-		managerSource.includes("declare viewSettings: Record<string, unknown>") &&
+		managerSource.includes("declare viewSettings: ManagerViewSettings") &&
 		managerSource.includes("bounds(): ManagerBounds") &&
 		managerSource.includes("this.stage.bounds() as ManagerBounds"),
 	"Default manager render surface state must stay typed without catch-all any"
+);
+assert(
+	managerSource.includes("export type ManagerSettings = {") &&
+		managerSource.includes("[key: string]: unknown") &&
+		managerSource.includes("size?: ManagerRenderSize") &&
+		managerSource.includes("snap?: boolean | ManagerSnapOptions") &&
+		managerSource.includes("verticalRlBoundarySnapRetryDelays?: number[]") &&
+		managerSource.includes("export type ManagerViewSettings = {") &&
+		managerSource.includes("layout?: Layout") &&
+		managerSource.includes("forceEvenPages: boolean") &&
+		!managerSource.includes("settings: Record<string, any>") &&
+		!managerSource.includes("viewSettings: Record<string, any>"),
+	"Default manager settings bridge must keep known fields typed and extension fields unknown"
 );
 assert(
 	managerSource.includes("type ManagerOffset = {") &&
@@ -1688,11 +1702,12 @@ assert(
 	"Continuous manager must keep promise bridge results typed as unknown"
 );
 assert(
-	continuousManagerSource.includes("settings: Record<string, unknown>") &&
-		continuousManagerSource.includes("import DefaultViewManager, { type ManagerViewConstructor } from \"../default\"") &&
+	continuousManagerSource.includes("settings: ManagerSettings") &&
+		continuousManagerSource.includes("import DefaultViewManager, { type ManagerSettings, type ManagerViewConstructor } from \"../default\"") &&
 		continuousManagerSource.includes("view: ManagerViewConstructor") &&
 		continuousManagerSource.includes("request: unknown") &&
 		continuousManagerSource.includes("queue: unknown") &&
+		continuousManagerSource.includes("typeof options.settings.gap !== \"undefined\"") &&
 		!continuousManagerSource.includes("settings: Record<string, any>") &&
 		!continuousManagerSource.includes("view: any") &&
 		!continuousManagerSource.includes("request: any") &&

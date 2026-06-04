@@ -87,6 +87,54 @@ type ManagerRenderSize = {
 	width: number | string | null | false;
 	height: number | string | null | false;
 };
+type ManagerSnapOptions = {
+	duration?: number;
+	minVelocity?: number;
+	minDistance?: number;
+	easing?: (position: number) => number;
+	[key: string]: unknown;
+};
+export type ManagerSettings = {
+	[key: string]: unknown;
+	infinite?: boolean;
+	hidden?: boolean;
+	width?: number | string | null | false;
+	height?: number | string | null | false;
+	axis?: string;
+	writingMode?: string;
+	flow?: string;
+	ignoreClass?: string;
+	fullsize?: boolean;
+	overflow?: string;
+	allowScriptedContent?: boolean;
+	allowPopups?: boolean;
+	method?: unknown;
+	size?: ManagerRenderSize;
+	rtlScrollType?: string;
+	direction?: string;
+	resizeOnOrientationChange?: boolean;
+	gap?: number;
+	offset?: number;
+	offsetDelta?: number;
+	snap?: boolean | ManagerSnapOptions;
+	afterScrolledTimeout?: number;
+	verticalRlFontReadyTimeout?: number;
+	verticalRlBoundarySnapRetryDelays?: number[];
+};
+export type ManagerViewSettings = {
+	[key: string]: unknown;
+	ignoreClass?: string;
+	axis?: string;
+	flow?: string;
+	layout?: Layout;
+	method?: unknown;
+	width: number;
+	height: number;
+	forceEvenPages: boolean;
+	allowScriptedContent?: boolean;
+	allowPopups?: boolean;
+	direction?: string;
+};
 type ManagerOffset = {
 	left: number;
 	top: number;
@@ -135,9 +183,9 @@ type ManagerView = {
 	setLayout(layout: Layout): void;
 	on(type: string, listener: (...args: unknown[]) => void): unknown;
 };
-export type ManagerViewConstructor = new (section: unknown, settings: Record<string, unknown>) => ManagerView;
+export type ManagerViewConstructor = new (section: unknown, settings: ManagerViewSettings) => ManagerView;
 type DefaultManagerOptions = {
-	settings: Record<string, unknown>;
+	settings: ManagerSettings;
 	view: ManagerViewConstructor;
 	request: unknown;
 	queue: unknown;
@@ -173,7 +221,8 @@ class DefaultViewManager {
 	declare layout: Layout;
 	declare mapping: Mapping;
 	declare name: string;
-	declare optsSettings: Record<string, unknown>;
+	declare optsSettings: ManagerSettings;
+	declare settings: ManagerSettings;
 	declare View: ManagerViewConstructor;
 	declare request: unknown;
 	declare renditionQueue: unknown;
@@ -181,7 +230,7 @@ class DefaultViewManager {
 	declare stage: Stage;
 	declare container: HTMLDivElement;
 	declare overflow?: string;
-	declare viewSettings: Record<string, unknown>;
+	declare viewSettings: ManagerViewSettings;
 	declare emit: (type: string, ...args: unknown[]) => void;
 	declare on: (type: string, listener: (...args: unknown[]) => void) => unknown;
 	declare off: (type: string, listener: (...args: unknown[]) => void) => unknown;

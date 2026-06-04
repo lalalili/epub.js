@@ -9335,7 +9335,7 @@ var Jr = /* @__PURE__ */ l(Rr()), Yr = N, Xr = class extends Ur {
 			afterScrolledTimeout: 10,
 			allowScriptedContent: !1,
 			allowPopups: !1
-		}), I(this.settings, e.settings || {}), e.settings.gap != "undefined" && e.settings.gap === 0 && (this.settings.gap = e.settings.gap), this.viewSettings = {
+		}), I(this.settings, e.settings || {}), e.settings.gap !== void 0 && e.settings.gap === 0 && (this.settings.gap = e.settings.gap), this.viewSettings = {
 			ignoreClass: this.settings.ignoreClass,
 			axis: this.settings.axis,
 			flow: this.settings.flow,

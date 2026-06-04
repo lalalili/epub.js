@@ -16231,7 +16231,7 @@
 				allowPopups: false
 			});
 			extend$1(this.settings, options.settings || {});
-			if (options.settings.gap != "undefined" && options.settings.gap === 0) this.settings.gap = options.settings.gap;
+			if (typeof options.settings.gap !== "undefined" && options.settings.gap === 0) this.settings.gap = options.settings.gap;
 			this.viewSettings = {
 				ignoreClass: this.settings.ignoreClass,
 				axis: this.settings.axis,
