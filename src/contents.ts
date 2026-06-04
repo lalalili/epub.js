@@ -1648,7 +1648,7 @@ class Contents {
 	}
 
 	// TODO: find where this is used - remove?
-	map(layout: any): any {
+	map(layout: MappingLayout): EpubCFIPair[] {
 		var map = new Mapping(layout);
 		return map.section(undefined as any);
 	}

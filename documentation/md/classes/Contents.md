@@ -544,17 +544,17 @@
 
 ### map()
 
-> **map**(`layout`): `any`
+> **map**(`layout`): [`EpubCFIPair`](../interfaces/EpubCFIPair.md)[]
 
 #### Parameters
 
 ##### layout
 
-`any`
+[`MappingLayout`](../interfaces/MappingLayout.md)
 
 #### Returns
 
-`any`
+[`EpubCFIPair`](../interfaces/EpubCFIPair.md)[]
 
 ***
 

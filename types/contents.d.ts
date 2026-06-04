@@ -134,7 +134,7 @@ export default class Contents {
 
     locationOf(target: string | number | EpubCFI, ignoreClass?: string): { top: number, left: number };
 
-    map(layout: any): any;
+    map(layout: MappingLayout): EpubCFIPair[];
 
     mapPage(cfiBase: string, layout: MappingLayout, start: number, end: number, dev?: boolean): EpubCFIPair | undefined;
 

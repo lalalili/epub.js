@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0403
+- Why:
+  - `Contents.map()` is a package-root public method that delegates to `Mapping.section()`, but its source and declaration still exposed both the layout input and CFI pair list output as `any`.
+  - The mapping layer already has `MappingLayout` and `EpubCFIPair[]` public types, so the legacy helper can share the same contract as `Mapping.section()`.
+  - This preserves the existing TODO-marked runtime behavior while making the Contents mapping surface enforceable by Gate 1.
+- Diff Scope:
+  - `src/contents.ts`: type `map()` as accepting `MappingLayout` and returning `EpubCFIPair[]`.
+  - `types/contents.d.ts`: mirror the same `map()` parameter and return surface.
+  - `types/epubjs-tests.ts`: assert and exercise `Contents.map()` typing.
+  - `scripts/verify-gate1-readiness.mjs`: require Contents map source/declaration/type-test parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `Contents.map()` must intentionally remain an untyped legacy helper.
+
 ### P-0402
 - Why:
   - `Rendition.layout()` is a package-root public method that creates and returns the active `Layout`, but the declaration still exposed both its settings and result as `any`.
