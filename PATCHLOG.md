@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0353
+- Why:
+  - `Resources.createUrl()` requests binary assets with `type: "blob"` and `Resources.createCssFile()` requests CSS text with `type: "text"`, but `ResourceRequest` exposed both modes through one `Promise<Blob | string>` signature.
+  - That wider public type forced source casts even though the call sites know the requested response shape.
+  - Adding overloads keeps Resources source/.d.ts parity tighter and makes options/settings request typing enforceable before future release tags, without changing replacement mode, archive handling, CSS rewriting, URL substitution, or resource grouping behavior.
+- Diff Scope:
+  - `src/resources.ts`, `types/resources.d.ts`: define `ResourceRequest` overloads for `blob` and `text` response modes.
+  - `src/resources.ts`: remove now-unneeded `Blob` / `string` casts at request call sites.
+  - `types/epubjs-tests.ts`: add ResourceRequest overload smoke and options/settings request assertions.
+  - `scripts/verify-gate1-readiness.mjs`: require Resources request overload parity guards.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/resources.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if ResourceRequest consumers must intentionally use a single union-return signature instead of mode-specific overloads.
+
 ### P-0352
 - Why:
   - `PageListItem.page` and `PageValue` already allow both string and numeric page labels, but `PageLookup` and `PageReverseLookup` were still typed as string-keyed records.

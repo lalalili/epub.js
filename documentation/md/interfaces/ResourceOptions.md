@@ -22,7 +22,7 @@
 
 ### request?
 
-> `optional` **request?**: [`ResourceRequest`](../type-aliases/ResourceRequest.md)
+> `optional` **request?**: [`ResourceRequest`](ResourceRequest.md)
 
 ***
 

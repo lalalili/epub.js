@@ -13,6 +13,8 @@ const storeSource = readFileSync(path.join(root, "src/store.ts"), "utf8");
 const navigationTypes = readFileSync(path.join(root, "types/navigation.d.ts"), "utf8");
 const pageListSource = readFileSync(path.join(root, "src/pagelist.ts"), "utf8");
 const pageListTypes = readFileSync(path.join(root, "types/pagelist.d.ts"), "utf8");
+const resourcesSource = readFileSync(path.join(root, "src/resources.ts"), "utf8");
+const resourcesTypes = readFileSync(path.join(root, "types/resources.d.ts"), "utf8");
 const globalTypeTests = readFileSync(path.join(root, "types/global-namespace-tests.ts"), "utf8");
 const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.test.js"), "utf8");
 const umdGlobalTests = readFileSync(path.join(root, "test/browser/umd-global.test.js"), "utf8");
@@ -550,6 +552,17 @@ assert(typeTests.includes("RootResourceManifest"), "type tests must assert root 
 assert(typeTests.includes("new Resources(resourceManifest, resourceOptions)"), "type tests must cover Resources options typing");
 assert(typeTests.includes("resources.createCssFile(\"Styles/main.css\", resourceArchiveInput)"), "type tests must cover Resources archive input typing");
 assert(typeTests.includes("resources.get(\"Images/cover.jpg\")"), "type tests must cover Resources get replacement typing");
+assert(typeTests.includes("function resourceRequest(url: string, type: \"blob\"): Promise<Blob>"), "type tests must cover Resources blob request overload");
+assert(typeTests.includes("function resourceRequest(url: string, type: \"text\"): Promise<string>"), "type tests must cover Resources text request overload");
+assert(typeTests.includes("ResourceOptions[\"request\"], ResourceRequest | undefined"), "type tests must assert ResourceOptions request typing");
+assert(typeTests.includes("ResourceSettings[\"request\"], ResourceRequest | undefined"), "type tests must assert ResourceSettings request typing");
+assert(
+	resourcesSource.includes("(url: string, type: \"blob\"): Promise<Blob>") &&
+	resourcesSource.includes("(url: string, type: \"text\"): Promise<string>") &&
+	resourcesTypes.includes("(url: string, type: \"blob\"): Promise<Blob>") &&
+	resourcesTypes.includes("(url: string, type: \"text\"): Promise<string>"),
+	"Resources source and declarations must keep ResourceRequest overload parity"
+);
 assert(typeTests.includes("type StoreAssertions"), "type tests must assert the Store public surface");
 assert(typeTests.includes("RootStoreUrlOptions"), "type tests must assert root Store URL option typing");
 assert(typeTests.includes("ReturnType<Store[\"request\"]>"), "type tests must assert Store request fallback typing");

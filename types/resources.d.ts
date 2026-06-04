@@ -20,7 +20,10 @@ export type ResourceArchiveInput = ResourceArchive | Archive;
 
 export type ResourceResolver = (href: string) => string;
 
-export type ResourceRequest = (url: string, type: "blob" | "text") => Promise<Blob | string>;
+export interface ResourceRequest {
+  (url: string, type: "blob"): Promise<Blob>;
+  (url: string, type: "text"): Promise<string>;
+}
 
 export type ReplacementMode = "base64" | "blob" | "none" | string;
 

@@ -24,7 +24,10 @@ export interface ResourceArchive {
 
 export type ResourceArchiveInput = ResourceArchive | Archive;
 export type ResourceResolver = (href: string) => string;
-export type ResourceRequest = (url: string, type: "blob" | "text") => Promise<Blob | string>;
+export interface ResourceRequest {
+	(url: string, type: "blob"): Promise<Blob>;
+	(url: string, type: "text"): Promise<string>;
+}
 export type ReplacementMode = "base64" | "blob" | "none" | string;
 
 export interface ResourceOptions {
@@ -163,14 +166,14 @@ class Resources {
 			if (this.settings!.replacements === "base64") {
 				return this.settings!.request!(url, "blob")
 					.then((blob) => {
-						return blob2base64(blob as Blob);
+						return blob2base64(blob);
 					})
 					.then((blob) => {
 						return createBase64Url(blob, mimeType);
 					});
 			} else {
 				return this.settings!.request!(url, "blob").then((blob) => {
-					return createBlobUrl(blob as Blob, mimeType);
+					return createBlobUrl(blob, mimeType);
 				});
 			}
 		}
@@ -255,7 +258,7 @@ class Resources {
 		if (archive) {
 			textResponse = archive.getText(absolute);
 		} else {
-			textResponse = this.settings!.request!(absolute, "text") as Promise<string>;
+			textResponse = this.settings!.request!(absolute, "text");
 		}
 
 		// Get asset links relative to css file

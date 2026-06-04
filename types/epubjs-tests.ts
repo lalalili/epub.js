@@ -933,6 +933,8 @@ type AnnotationsAssertions = [
 
 type ResourcesAssertions = [
   Assert<IsExact<ConstructorParameters<typeof Resources>, [manifest: ResourceManifest | PackagingManifest, options?: ResourceOptions | undefined]>>,
+  Assert<IsExact<ResourceOptions["request"], ResourceRequest | undefined>>,
+  Assert<IsExact<ResourceSettings["request"], ResourceRequest | undefined>>,
   Assert<IsExact<Resources["settings"], ResourceSettings | undefined>>,
   Assert<IsExact<Resources["manifest"], ResourceManifest | undefined>>,
   Assert<IsExact<Resources["resources"], ResourceManifestItem[] | undefined>>,
@@ -1422,11 +1424,17 @@ function testEpub() {
     },
   };
   const resourceResolver: ResourceResolver = (href: string) => `/OPS/${href}`;
-  const resourceRequest: ResourceRequest = (url: string, type: "blob" | "text") => (
+  function resourceRequest(url: string, type: "blob"): Promise<Blob>;
+  function resourceRequest(url: string, type: "text"): Promise<string>;
+  function resourceRequest(url: string, type: "blob" | "text"): Promise<Blob | string> {
+    return (
     type === "blob"
       ? Promise.resolve(new Blob([url]))
       : Promise.resolve("body { background: url(../Images/cover.jpg); }")
-  );
+    );
+  }
+  const resourceBlobRequest: Promise<Blob> = resourceRequest("/OPS/Images/cover.jpg", "blob");
+  const resourceTextRequest: Promise<string> = resourceRequest("/OPS/Styles/main.css", "text");
   const resourceArchive: ResourceArchive = {
     createUrl: (url: string) => Promise.resolve(url),
     getText: () => Promise.resolve("body {}"),
@@ -1670,6 +1678,8 @@ function testEpub() {
   void annotationHashes;
   void attachedMark;
   void detachedMark;
+  void resourceBlobRequest;
+  void resourceTextRequest;
   void resourceUrl;
   void resourceReplacements;
   void resourceCssReplacements;
