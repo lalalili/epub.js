@@ -101,6 +101,9 @@ type ManagerSnapOptions = {
 	easing?: (position: number) => number;
 	[key: string]: unknown;
 };
+type ManagerScrollState = {
+	scrolled: boolean;
+};
 export type ManagerSettings = {
 	[key: string]: unknown;
 	infinite?: boolean;
@@ -225,7 +228,6 @@ type ManagerViewsBridge = {
 };
 
 class DefaultViewManager {
-	[key: string]: unknown;
 	declare orientationTimeout?: ReturnType<typeof setTimeout>;
 	declare resizeTimeout?: ReturnType<typeof setTimeout>;
 	declare afterScrolled?: ReturnType<typeof setTimeout>;
@@ -2344,7 +2346,7 @@ class DefaultViewManager {
 		} else {
 			window.scrollBy(x * dir, y * dir);
 		}
-		this.scrolled = true;
+		(this as unknown as ManagerScrollState).scrolled = true;
 	}
 
 	scrollTo(x: number, y: number, silent?: boolean): void {
@@ -2358,7 +2360,7 @@ class DefaultViewManager {
 		} else {
 			window.scrollTo(x,y);
 		}
-		this.scrolled = true;
+		(this as unknown as ManagerScrollState).scrolled = true;
 
 		if (!this._verticalRlBoundarySnapApplying && this.isRtlVerticalPaginated()) {
 			this.queueVerticalRlBoundarySnapRetryForCurrentOffset();

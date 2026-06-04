@@ -1451,9 +1451,10 @@ assert(
 	"Manager source and declarations must keep EventEmitter method type parity"
 );
 assert(
-	managerSource.includes("class DefaultViewManager {\n\t[key: string]: unknown") &&
-		!managerSource.includes("class DefaultViewManager {\n\t[key: string]: any"),
-	"Default manager class catch-all must be unknown, not any"
+	managerSource.includes("class DefaultViewManager {\n\tdeclare orientationTimeout?: ReturnType<typeof setTimeout>") &&
+		!managerSource.includes("class DefaultViewManager {\n\t[key: string]: any") &&
+		!managerSource.includes("class DefaultViewManager {\n\t[key: string]: unknown"),
+	"Default manager class must not use a catch-all index signature"
 );
 assert(
 	managerSource.includes("declare orientationTimeout?: ReturnType<typeof setTimeout>") &&
@@ -1555,6 +1556,15 @@ assert(
 		managerSource.includes("declare renditionQueue: unknown") &&
 		managerSource.includes("declare q: Queue"),
 	"Default manager constructor-injected state must stay typed without catch-all any"
+);
+assert(
+	managerSource.includes("class DefaultViewManager {\n\tdeclare orientationTimeout?: ReturnType<typeof setTimeout>") &&
+		managerSource.includes("type ManagerScrollState = {\n\tscrolled: boolean;\n}") &&
+		managerSource.includes("(this as unknown as ManagerScrollState).scrolled = true") &&
+		!managerSource.includes("class DefaultViewManager {\n\t[key: string]: any") &&
+		!managerSource.includes("class DefaultViewManager {\n\t[key: string]: unknown") &&
+		!managerSource.includes("declare scrolled: any"),
+	"Default manager class state must not rely on a catch-all index signature"
 );
 assert(
 	managerSource.includes("declare stage: Stage") &&
