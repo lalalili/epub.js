@@ -50,7 +50,7 @@ export type MappingAxis = string;
 class Mapping {
 	layout: MappingLayout;
 	horizontal: boolean;
-	direction: string;
+	direction: MappingDirection;
 	_dev: boolean;
 
 	constructor(layout: MappingLayout, direction?: MappingDirection, axis?: MappingAxis, dev=false) {

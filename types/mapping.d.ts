@@ -44,7 +44,7 @@ export default class Mapping {
 
   layout: MappingLayout;
   horizontal: boolean;
-  direction: string;
+  direction: MappingDirection;
   _dev: boolean;
 
   section(view: MappingView): Array<EpubCFIPair>;

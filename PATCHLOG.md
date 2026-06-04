@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0360
+- Why:
+  - `MappingDirection` is already part of the public Mapping export surface and is used by the `Mapping` constructor, but the `Mapping.direction` instance property still surfaced as a raw `string` in both source and declarations.
+  - That made the constructor direction input and stored direction state harder to assert as one named public contract.
+  - Reusing `MappingDirection` keeps Mapping source/.d.ts/type-smoke/Gate 1 parity enforceable, without narrowing accepted direction values or changing the existing `direction || "ltr"` runtime fallback.
+- Diff Scope:
+  - `src/mapping.ts`, `types/mapping.d.ts`: type the `Mapping.direction` property with `MappingDirection`.
+  - `types/epubjs-tests.ts`: add `MappingDirection` property and constructor usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require `Mapping.direction` source/declaration/type-smoke parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/mapping.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `Mapping.direction` should intentionally remain typed as a raw string instead of the root-exported direction alias.
+
 ### P-0359
 - Why:
   - `MappingAxis` is already part of the public Mapping export surface and is used by the `Mapping` constructor, but `Mapping.axis()` still accepted a raw `string` in both source and declarations.

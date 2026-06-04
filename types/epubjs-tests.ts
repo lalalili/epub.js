@@ -216,7 +216,7 @@ import Packaging, {
 } from './packaging';
 import PageList, { PageListDocument, PageListItem, PageLookup, PageReverseLookup, PageValue } from './pagelist';
 import Locations, { LocationInput, LocationRange, LocationsRequest, WordLocation } from './locations';
-import Mapping, { EpubCFIPair, MappingAxis, MappingContents, MappingLayout, MappingSection, MappingTextNodeWalker, MappingView, RangePair } from './mapping';
+import Mapping, { EpubCFIPair, MappingAxis, MappingContents, MappingDirection, MappingLayout, MappingSection, MappingTextNodeWalker, MappingView, RangePair } from './mapping';
 import type { DisplayedLocation, LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionLocationPart, RenditionOptions } from './rendition';
 import Resources, {
   ReplacementMode,
@@ -878,9 +878,10 @@ type LocationsAssertions = [
 type MappingAssertions = [
   Assert<IsExact<ConstructorParameters<typeof Mapping>, [layout: MappingLayout, direction?: string | undefined, axis?: string | undefined, dev?: boolean | undefined]>>,
   Assert<IsExact<MappingAxis, string>>,
+  Assert<IsExact<MappingDirection, string>>,
   Assert<IsExact<Mapping["layout"], MappingLayout>>,
   Assert<IsExact<Mapping["horizontal"], boolean>>,
-  Assert<IsExact<Mapping["direction"], string>>,
+  Assert<IsExact<Mapping["direction"], MappingDirection>>,
   Assert<IsExact<Mapping["_dev"], boolean>>,
   Assert<IsExact<MappingView["section"], MappingSection>>,
   Assert<IsExact<ReturnType<Mapping["section"]>, EpubCFIPair[]>>,
@@ -1370,7 +1371,8 @@ function testEpub() {
     gap: 0,
     divisor: 1,
   };
-  const mapping = new Mapping(mappingLayout, "ltr", "horizontal");
+  const mappingDirectionInput: MappingDirection = "ltr";
+  const mapping = new Mapping(mappingLayout, mappingDirectionInput, "horizontal");
   const mappingContents: MappingContents = { document: parsedDocument };
   const mappingPage: EpubCFIPair | undefined = mapping.page(mappingContents, "/6/2[chap]", 0, 100);
   const mappingTextNode = parsedDocument.querySelector("p")?.firstChild;
