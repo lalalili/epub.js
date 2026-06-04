@@ -57,7 +57,18 @@ const Defer = defer as unknown as {
 };
 
 class ContinuousViewManager extends DefaultViewManager {
-	[key: string]: any;
+	[key: string]: unknown;
+	declare trimTimeout?: ReturnType<typeof setTimeout>;
+	declare scrollTimeout?: ReturnType<typeof setTimeout>;
+	declare snapper?: Snap;
+	declare tick: typeof requestAnimationFrame;
+	declare _scrolled: () => void;
+	declare scrollDeltaVert: number;
+	declare scrollDeltaHorz: number;
+	declare prevScrollTop: number;
+	declare prevScrollLeft: number;
+	declare didScroll: boolean;
+	declare scrolledRequestId?: number;
 
 	constructor(options: ContinuousManagerOptions) {
 		super(options);
