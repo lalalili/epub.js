@@ -129,7 +129,7 @@ export function isElement(obj: unknown): obj is Element {
 }
 
 /**
- * @param {any} n
+ * @param {unknown} n
  * @returns {boolean}
  * @memberof Core
  */
@@ -138,7 +138,7 @@ export function isNumber(n: unknown): boolean {
 }
 
 /**
- * @param {any} n
+ * @param {unknown} n
  * @returns {boolean}
  * @memberof Core
  */
@@ -179,7 +179,7 @@ export function extend<T extends object>(target: T, ..._sources: Array<object | 
 /**
  * Fast quicksort insert for sorted array -- based on:
  *  http://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers
- * @param {any} item
+ * @param {T} item
  * @param {array} array
  * @param {function} [compareFunction]
  * @returns {number} location (in array)
@@ -191,7 +191,7 @@ export function insert<T>(item: T, array: T[], compareFunction?: CompareFunction
 
 /**
  * Finds where something would fit into a sorted array
- * @param {any} item
+ * @param {T} item
  * @param {array} array
  * @param {function} [compareFunction]
  * @param {function} [_start]
@@ -212,7 +212,7 @@ export function locationOf<T>(
 /**
  * Finds index of something in a sorted array
  * Returns -1 if not found
- * @param {any} item
+ * @param {T} item
  * @param {array} array
  * @param {function} [compareFunction]
  * @param {function} [_start]

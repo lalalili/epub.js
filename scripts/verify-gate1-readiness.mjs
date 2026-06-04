@@ -1670,6 +1670,13 @@ assert(
 assert(typeTests.includes("ePub.utils.requestAnimationFrame"), "type tests must cover utils/core requestAnimationFrame typing");
 assert(typeTests.includes("ePub.utils.createBlob(coreBlobContent, \"text/plain\")"), "type tests must cover utils/core blob content typing");
 assert(
+	coreUtilsSource.includes("@param {unknown} n") &&
+		coreUtilsSource.includes("@param {T} item") &&
+		!coreUtilsSource.includes("@param {any} n") &&
+		!coreUtilsSource.includes("@param {any} item"),
+	"source utils/core facade must keep unknown and generic helper JSDoc without stale any"
+);
+assert(
 	platformBlobSource.includes("export type BlobContent = BlobPart[] | BlobPart | string | ArrayBuffer | ArrayBufferView") &&
 		platformBlobSource.includes("createBlob(content: BlobContent, mime: string): Blob") &&
 		platformBlobSource.includes("createBlobUrl(content: BlobContent, mime: string): string") &&
