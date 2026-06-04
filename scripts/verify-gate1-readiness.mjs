@@ -151,9 +151,24 @@ assert(
 	sourceRoot.includes("LinkCallback") && sourceRoot.includes("replaceLinks") && sourceRoot.includes("substitute"),
 	"source root must export replacements public helpers"
 );
-assert(typeTests.includes("RootSectionHookSet"), "type tests must assert root Section type exports");
 assert(
-	sourceRoot.includes("SectionHookSet") && sourceRoot.includes("SectionSearchResult") && sourceRoot.includes("default as Section"),
+	typeTests.includes("RootSection") &&
+	typeTests.includes("RootGlobalLayout") &&
+	typeTests.includes("RootSectionLayoutSettings") &&
+	typeTests.includes("RootSectionHookSet") &&
+	typeTests.includes("RootSectionRequest") &&
+	typeTests.includes("RootSectionSearchResult") &&
+	typeTests.includes("RootSpineItem"),
+	"type tests must assert root Section type exports"
+);
+assert(
+	sourceRoot.includes("default as Section") &&
+	sourceRoot.includes("GlobalLayout") &&
+	sourceRoot.includes("SectionLayoutSettings") &&
+	sourceRoot.includes("SectionHookSet") &&
+	sourceRoot.includes("SectionRequest") &&
+	sourceRoot.includes("SectionSearchResult") &&
+	sourceRoot.includes("SpineItem"),
 	"source root must export Section public types"
 );
 assert(typeTests.includes("RootSpinePackage"), "type tests must assert root Spine type exports");
