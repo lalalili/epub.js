@@ -1792,7 +1792,7 @@ assert(
 	"Continuous manager view bridge must keep structural unknown typing"
 );
 assert(
-	continuousManagerSource.includes("class ContinuousViewManager extends DefaultViewManager {\n\t[key: string]: unknown") &&
+	continuousManagerSource.includes("class ContinuousViewManager extends DefaultViewManager {\n\tdeclare trimTimeout?: ReturnType<typeof setTimeout>") &&
 		continuousManagerSource.includes("declare trimTimeout?: ReturnType<typeof setTimeout>") &&
 		continuousManagerSource.includes("declare scrollTimeout?: ReturnType<typeof setTimeout>") &&
 		continuousManagerSource.includes("declare snapper?: Snap") &&
@@ -1802,8 +1802,9 @@ assert(
 		continuousManagerSource.includes("declare prevScrollTop: number") &&
 		continuousManagerSource.includes("declare prevScrollLeft: number") &&
 		continuousManagerSource.includes("declare scrolledRequestId?: number") &&
-		!continuousManagerSource.includes("class ContinuousViewManager extends DefaultViewManager {\n\t[key: string]: any"),
-	"Continuous manager runtime state must keep class catch-all unknown with explicit scroll state"
+		!continuousManagerSource.includes("class ContinuousViewManager extends DefaultViewManager {\n\t[key: string]: any") &&
+		!continuousManagerSource.includes("class ContinuousViewManager extends DefaultViewManager {\n\t[key: string]: unknown"),
+	"Continuous manager runtime state must not rely on a class catch-all index signature"
 );
 assert(
 	typeTests.includes("Parameters<View[\"emit\"]>, [type: string, ...args: unknown[]]") &&

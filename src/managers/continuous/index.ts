@@ -57,7 +57,6 @@ const Defer = defer as unknown as {
 };
 
 class ContinuousViewManager extends DefaultViewManager {
-	[key: string]: unknown;
 	declare trimTimeout?: ReturnType<typeof setTimeout>;
 	declare scrollTimeout?: ReturnType<typeof setTimeout>;
 	declare snapper?: Snap;
