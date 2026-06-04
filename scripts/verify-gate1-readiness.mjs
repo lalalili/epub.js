@@ -1485,6 +1485,13 @@ assert(
 	"Default manager scroll and runtime flags must keep class state typed without catch-all any"
 );
 assert(
+	managerSource.includes("declare layout: Layout") &&
+		managerSource.includes("declare mapping: Mapping") &&
+		managerSource.includes("applyLayout(layout: Layout): void") &&
+		managerSource.includes("setLayout(layout: Layout): void"),
+	"Default manager layout and mapping state must keep class state typed without catch-all any"
+);
+assert(
 	managerTypes.includes("[key: string]: unknown") &&
 		!managerTypes.includes("[key: string]: any") &&
 		typeTests.includes("ManagerOptions[\"custom\"], unknown"),

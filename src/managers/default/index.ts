@@ -170,6 +170,8 @@ class DefaultViewManager {
 	declare target?: string | number;
 	declare writingMode?: string;
 	declare isPaginated: boolean;
+	declare layout: Layout;
+	declare mapping: Mapping;
 	declare name: string;
 	declare optsSettings: Record<string, unknown>;
 	declare View: ManagerViewConstructor;
