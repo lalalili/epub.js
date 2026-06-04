@@ -272,6 +272,7 @@ assert(
 		snapSource.includes("const Defer = defer as unknown as { new<T = unknown>(): DeferredLike<T>; }") &&
 		snapSource.includes("type TouchWindow = Window &") &&
 		snapSource.includes("type WebKitOverflowStyle = CSSStyleDeclaration") &&
+		snapSource.includes("export type ManagerLike =") &&
 		snapSource.includes("emit(type: string, ...args: unknown[]): void") &&
 		snapSource.includes("extend<SnapSettings>({") &&
 		snapSource.includes("(this.element.style as WebKitOverflowStyle).WebkitOverflowScrolling = \"touch\"") &&
@@ -1479,6 +1480,12 @@ assert(
 		!continuousManagerSource.includes("request: any") &&
 		!continuousManagerSource.includes("queue: any"),
 	"Continuous manager options bridge must keep inputs typed as unknown"
+);
+assert(
+	continuousManagerSource.includes("import Snap, { type ManagerLike as SnapManagerLike } from \"../helpers/snap\"") &&
+		continuousManagerSource.includes("new Snap(this as unknown as SnapManagerLike") &&
+		!continuousManagerSource.includes("new Snap(this as any"),
+	"Continuous manager must use the typed Snap manager bridge"
 );
 assert(
 	typeTests.includes("Parameters<View[\"emit\"]>, [type: string, ...args: unknown[]]") &&

@@ -2,7 +2,7 @@ import { defer, type Deferred as CoreDeferred } from "../../core/async";
 import { extend } from "../../core/collections";
 import { requestAnimationFrame } from "../../platform/browser";
 import DefaultViewManager from "../default";
-import Snap from "../helpers/snap";
+import Snap, { type ManagerLike as SnapManagerLike } from "../helpers/snap";
 import { EVENTS } from "../../utils/constants";
 import debounce from "lodash/debounce";
 
@@ -481,7 +481,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		this.addScrollListeners();
 
 		if (this.isPaginated && this.settings.snap) {
-				this.snapper = new Snap(this as any, this.settings.snap && (typeof this.settings.snap === "object") && this.settings.snap);
+				this.snapper = new Snap(this as unknown as SnapManagerLike, this.settings.snap && (typeof this.settings.snap === "object") && this.settings.snap);
 		}
 	}
 
@@ -647,7 +647,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		super.updateFlow(flow, "scroll");
 
 		if (this.rendered && this.isPaginated && this.settings.snap) {
-			this.snapper = new Snap(this as any, this.settings.snap && (typeof this.settings.snap === "object") && this.settings.snap);
+			this.snapper = new Snap(this as unknown as SnapManagerLike, this.settings.snap && (typeof this.settings.snap === "object") && this.settings.snap);
 		}
 	}
 

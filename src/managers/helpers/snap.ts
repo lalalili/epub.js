@@ -53,7 +53,7 @@ type ViewLike = {
 	contents: ContentsLike;
 };
 
-type ManagerLike = {
+export type ManagerLike = {
 	isPaginated: boolean;
 	layout: LayoutLike;
 	settings: {
