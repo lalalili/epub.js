@@ -109,6 +109,10 @@ type ManagerBounds = {
 	width: number;
 	height: number;
 };
+type ManagerStageSize = {
+	width: number;
+	height: number;
+};
 type ManagerSection = {
 	cfiBase: string;
 	href?: string;
@@ -153,6 +157,9 @@ class DefaultViewManager {
 	declare _verticalRlBoundarySnapAfterScroll?: ReturnType<typeof setTimeout>;
 	declare _onUnload?: EventListener;
 	declare _onScroll?: EventListener;
+	declare _stageSize?: ManagerStageSize;
+	declare _bounds?: ManagerBounds;
+	declare winBounds?: ManagerBounds;
 	declare emit: (type: string, ...args: unknown[]) => void;
 	declare on: (type: string, listener: (...args: unknown[]) => void) => unknown;
 	declare off: (type: string, listener: (...args: unknown[]) => void) => unknown;

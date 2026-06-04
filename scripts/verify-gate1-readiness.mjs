@@ -1463,6 +1463,13 @@ assert(
 	"Default manager event listener handles must keep class state typed without catch-all any"
 );
 assert(
+	managerSource.includes("type ManagerStageSize = {") &&
+		managerSource.includes("declare _stageSize?: ManagerStageSize") &&
+		managerSource.includes("declare _bounds?: ManagerBounds") &&
+		managerSource.includes("declare winBounds?: ManagerBounds"),
+	"Default manager size and bounds caches must keep class state typed without catch-all any"
+);
+assert(
 	managerTypes.includes("[key: string]: unknown") &&
 		!managerTypes.includes("[key: string]: any") &&
 		typeTests.includes("ManagerOptions[\"custom\"], unknown"),
