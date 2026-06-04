@@ -1581,6 +1581,15 @@ assert(
 	"Default manager location map bridge must keep visible view callbacks typed without any"
 );
 assert(
+	managerSource.includes("displaySpineItemAtEnd(section: ManagerSection, forceRight?: boolean): Promise<void>") &&
+		managerSource.includes("var left: ManagerSection | undefined") &&
+		managerSource.includes(".catch((err: unknown) => {") &&
+		!managerSource.includes("displaySpineItemAtEnd(section: any") &&
+		!managerSource.includes("var left: any") &&
+		!managerSource.includes(".catch((err: any) => {"),
+	"Default manager end-display helper must keep section and rejection bridge typed without any"
+);
+assert(
 	continuousManagerSource.includes("var promises: Promise<unknown>[] = []") &&
 		continuousManagerSource.includes("check(_offsetLeft?: number, _offsetTop?: number): Promise<unknown>") &&
 		continuousManagerSource.includes(".then((): Promise<unknown> =>") &&

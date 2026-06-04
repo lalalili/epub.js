@@ -1734,10 +1734,10 @@ class DefaultViewManager {
 		}.bind(this), 0);
 	}
 
-	displaySpineItemAtEnd(section: any, forceRight?: boolean): Promise<any> {
+	displaySpineItemAtEnd(section: ManagerSection, forceRight?: boolean): Promise<void> {
 		return (this.prepend(section, forceRight) as Promise<ManagerView>)
 			.then(function(){
-			var left: any;
+			var left: ManagerSection | undefined;
 				if (this.layout.name === "pre-paginated" && this.layout.divisor > 1) {
 					left = section.prev();
 					if (left) {
@@ -1963,7 +1963,7 @@ class DefaultViewManager {
 			}
 
 			return this.displaySpineItemAtEnd(prev, forceRight)
-					.catch((err: any) => {
+					.catch((err: unknown) => {
 						return err;
 					});
 		}
