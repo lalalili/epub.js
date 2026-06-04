@@ -2,9 +2,9 @@ import EpubCFI from "./epubcfi";
 
 export type PageValue = string | number;
 
-export type PageLookup = Record<string, string>;
+export type PageLookup = Record<PageValue, string>;
 
-export type PageReverseLookup = Record<string, PageValue>;
+export type PageReverseLookup = Record<PageValue, PageValue>;
 
 export type PageListDocument = Document | XMLDocument;
 

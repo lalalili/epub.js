@@ -17,8 +17,8 @@ export interface PageListItem {
 }
 
 export type PageValue = string | number;
-export type PageLookup = Record<string, string>;
-export type PageReverseLookup = Record<string, PageValue>;
+export type PageLookup = Record<PageValue, string>;
+export type PageReverseLookup = Record<PageValue, PageValue>;
 export type PageListDocument = XMLDocument | Document;
 
 /**

@@ -6,4 +6,4 @@
 
 # Type Alias: PageReverseLookup
 
-> **PageReverseLookup** = `Record`\<`string`, [`PageValue`](PageValue.md)\>
+> **PageReverseLookup** = `Record`\<[`PageValue`](PageValue.md), [`PageValue`](PageValue.md)\>

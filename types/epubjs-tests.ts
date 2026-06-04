@@ -777,6 +777,9 @@ type HookAssertions = [
 
 type PageListAssertions = [
   Assert<IsExact<ConstructorParameters<typeof PageList>, [xml?: PageListDocument | undefined]>>,
+  Assert<IsExact<PageLookup, Record<PageValue, string>>>,
+  Assert<IsExact<PageReverseLookup, Record<PageValue, PageValue>>>,
+  Assert<IsExact<PageListItem["page"], PageValue>>,
   Assert<IsExact<PageList["pages"], PageValue[] | undefined>>,
   Assert<IsExact<PageList["locations"], string[] | undefined>>,
   Assert<IsExact<PageList["hrefs"], string[] | undefined>>,
@@ -786,18 +789,31 @@ type PageListAssertions = [
   Assert<IsExact<PageList["lastPage"], number>>,
   Assert<IsExact<PageList["totalPages"], number>>,
   Assert<IsExact<PageList["pageList"], PageListItem[] | undefined>>,
+  Assert<IsExact<Parameters<PageList["parse"]>[0], PageListDocument>>,
   Assert<IsExact<ReturnType<PageList["parse"]>, PageListItem[] | undefined>>,
+  Assert<IsExact<Parameters<PageList["parseNav"]>[0], PageListDocument>>,
   Assert<IsExact<ReturnType<PageList["parseNav"]>, PageListItem[]>>,
+  Assert<IsExact<Parameters<PageList["parseNcx"]>[0], PageListDocument>>,
   Assert<IsExact<ReturnType<PageList["parseNcx"]>, PageListItem[]>>,
+  Assert<IsExact<Parameters<PageList["item"]>[0], Element>>,
   Assert<IsExact<ReturnType<PageList["item"]>, PageListItem>>,
+  Assert<IsExact<Parameters<PageList["ncxItem"]>[0], Element>>,
   Assert<IsExact<ReturnType<PageList["ncxItem"]>, PageListItem>>,
+  Assert<IsExact<Parameters<PageList["process"]>[0], PageListItem[]>>,
   Assert<IsExact<ReturnType<PageList["process"]>, void>>,
+  Assert<IsExact<Parameters<PageList["pageFromCfi"]>[0], string>>,
   Assert<IsExact<ReturnType<PageList["pageFromCfi"]>, PageValue | -1>>,
+  Assert<IsExact<Parameters<PageList["cfiFromPage"]>[0], PageValue>>,
   Assert<IsExact<ReturnType<PageList["cfiFromPage"]>, string | -1>>,
+  Assert<IsExact<Parameters<PageList["hrefFromPage"]>[0], PageValue>>,
   Assert<IsExact<ReturnType<PageList["hrefFromPage"]>, string | undefined>>,
+  Assert<IsExact<Parameters<PageList["pageFromHref"]>[0], string>>,
   Assert<IsExact<ReturnType<PageList["pageFromHref"]>, PageValue | undefined>>,
+  Assert<IsExact<Parameters<PageList["pageFromPercentage"]>[0], number>>,
   Assert<IsExact<ReturnType<PageList["pageFromPercentage"]>, number>>,
+  Assert<IsExact<Parameters<PageList["percentageFromPage"]>[0], number>>,
   Assert<IsExact<ReturnType<PageList["percentageFromPage"]>, number>>,
+  Assert<IsExact<Parameters<PageList["percentageFromCfi"]>[0], string>>,
   Assert<IsExact<ReturnType<PageList["percentageFromCfi"]>, number>>,
   Assert<IsExact<ReturnType<PageList["destroy"]>, void>>
 ];
@@ -1263,10 +1279,14 @@ function testEpub() {
   }];
   const pageList = new PageList();
   const parsedPageList: PageListItem[] | undefined = pageList.parse(parsedDocument);
+  const pageLookup: PageLookup = { "1": "Text/chapter.xhtml#page-1", 2: "Text/chapter.xhtml#page-2" };
+  const pageReverseLookup: PageReverseLookup = { "Text/chapter.xhtml#page-1": "1", "Text/chapter.xhtml#page-2": 2 };
   const loadedPageList: void = pageList.process(pageListItems);
   const pageFromCfi: PageValue | -1 = pageList.pageFromCfi("epubcfi(/6/2[chap]!/4/2/2)");
   const cfiFromPage: string | -1 = pageList.cfiFromPage("1");
+  const cfiFromNumericPage: string | -1 = pageList.cfiFromPage(1);
   const hrefFromPage: string | undefined = pageList.hrefFromPage("1");
+  const hrefFromNumericPage: string | undefined = pageList.hrefFromPage(1);
   const pageFromHref: PageValue | undefined = pageList.pageFromHref("Text/chapter.xhtml#page-1");
   const pageFromPercentage: number = pageList.pageFromPercentage(0.5);
   const percentageFromPage: number = pageList.percentageFromPage(1);
@@ -1617,10 +1637,14 @@ function testEpub() {
   void parsedContainer;
   void containerPackagePath;
   void parsedPageList;
+  void pageLookup;
+  void pageReverseLookup;
   void loadedPageList;
   void pageFromCfi;
   void cfiFromPage;
+  void cfiFromNumericPage;
   void hrefFromPage;
+  void hrefFromNumericPage;
   void pageFromHref;
   void pageFromPercentage;
   void percentageFromPage;

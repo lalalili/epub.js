@@ -6,4 +6,4 @@
 
 # Type Alias: PageLookup
 
-> **PageLookup** = `Record`\<`string`, `string`\>
+> **PageLookup** = `Record`\<[`PageValue`](PageValue.md), `string`\>

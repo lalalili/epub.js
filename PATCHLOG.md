@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0352
+- Why:
+  - `PageListItem.page` and `PageValue` already allow both string and numeric page labels, but `PageLookup` and `PageReverseLookup` were still typed as string-keyed records.
+  - The source stores lookups with `item.page` and accepts `PageValue` for `cfiFromPage()` and `hrefFromPage()`, so the public lookup aliases should preserve numeric page key compatibility.
+  - Tightening this contract keeps PageList value/lookup parity enforceable before future release tags without changing page-list parsing, CFI lookup, href lookup, percentage calculation, or destroy behavior.
+- Diff Scope:
+  - `src/pagelist.ts`, `types/pagelist.d.ts`: key `PageLookup` and `PageReverseLookup` by `PageValue`.
+  - `types/epubjs-tests.ts`: add PageList lookup alias assertions and numeric page lookup smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require PageList lookup alias and numeric lookup guards.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/pagelist.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if PageList lookups should intentionally reject numeric `PageValue` keys despite accepting numeric page values in the public methods.
+
 ### P-0351
 - Why:
   - `Navigation` root exports and type smoke already covered the main public class and value types, but `types/navigation.d.ts` still diverged from the TypeScript source for parser helper methods.

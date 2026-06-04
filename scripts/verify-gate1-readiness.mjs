@@ -11,6 +11,8 @@ const bookSource = readFileSync(path.join(root, "src/book.ts"), "utf8");
 const archiveSource = readFileSync(path.join(root, "src/archive.ts"), "utf8");
 const storeSource = readFileSync(path.join(root, "src/store.ts"), "utf8");
 const navigationTypes = readFileSync(path.join(root, "types/navigation.d.ts"), "utf8");
+const pageListSource = readFileSync(path.join(root, "src/pagelist.ts"), "utf8");
+const pageListTypes = readFileSync(path.join(root, "types/pagelist.d.ts"), "utf8");
 const globalTypeTests = readFileSync(path.join(root, "types/global-namespace-tests.ts"), "utf8");
 const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.test.js"), "utf8");
 const umdGlobalTests = readFileSync(path.join(root, "test/browser/umd-global.test.js"), "utf8");
@@ -484,7 +486,18 @@ assert(typeTests.includes("RootPageValue"), "type tests must assert root PageLis
 assert(typeTests.includes("new PageList()"), "type tests must cover PageList construction without a document");
 assert(typeTests.includes("pageList.process(pageListItems)"), "type tests must cover PageList item processing");
 assert(typeTests.includes("pageList.pageFromCfi"), "type tests must cover PageList CFI lookup typing");
+assert(typeTests.includes("PageLookup, Record<PageValue, string>"), "type tests must assert PageLookup PageValue key typing");
+assert(typeTests.includes("PageReverseLookup, Record<PageValue, PageValue>"), "type tests must assert PageReverseLookup PageValue key typing");
+assert(typeTests.includes("pageList.cfiFromPage(1)"), "type tests must cover PageList numeric cfiFromPage lookup typing");
+assert(typeTests.includes("pageList.hrefFromPage(1)"), "type tests must cover PageList numeric hrefFromPage lookup typing");
 assert(typeTests.includes("ReturnType<PageList[\"destroy\"]>"), "type tests must cover PageList destroy return typing");
+assert(
+	pageListSource.includes("export type PageLookup = Record<PageValue, string>") &&
+	pageListSource.includes("export type PageReverseLookup = Record<PageValue, PageValue>") &&
+	pageListTypes.includes("export type PageLookup = Record<PageValue, string>") &&
+	pageListTypes.includes("export type PageReverseLookup = Record<PageValue, PageValue>"),
+	"PageList source and declarations must keep lookup aliases keyed by PageValue"
+);
 assert(typeTests.includes("type LocationsAssertions"), "type tests must assert the Locations public surface");
 assert(typeTests.includes("new Locations(spine"), "type tests must cover Locations construction with spine/request typing");
 assert(typeTests.includes("locations.generateForSection"), "type tests must cover Locations section refinement typing");
