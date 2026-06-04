@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0382
+- Why:
+  - `AnnotationCallback` and the Annotation EventEmitter bridge are package-root public types, but source and declarations still exposed their variadic arguments as `any[]`.
+  - Annotation callbacks and event payloads are forwarded opaquely, so consumers should narrow payload values before reading them.
+  - Tightening this surface keeps Annotation source/.d.ts/TypeDoc parity enforceable without changing runtime annotation storage, mark handles, or event wiring.
+- Diff Scope:
+  - `src/annotations.ts`: type `AnnotationCallback`, `Annotations.each()`, and `Annotation` EventEmitter variadic arguments as `unknown[]`.
+  - `types/annotations.d.ts`: mirror the callback, each, emit, on, off, and once argument typing.
+  - `types/epubjs-tests.ts`: assert Annotation callback/event parameter typing and keep annotation usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Annotation callback/event source and declaration parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Annotation consumers intentionally rely on callback or event payload arguments being typed as `any`.
+
 ### P-0381
 - Why:
   - `HookTask` and `Hook.trigger()` are package-root exported hook surfaces, but their variadic argument typing still leaked `any[]`.

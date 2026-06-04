@@ -20,6 +20,7 @@ const resourcesSource = readFileSync(path.join(root, "src/resources.ts"), "utf8"
 const resourcesTypes = readFileSync(path.join(root, "types/resources.d.ts"), "utf8");
 const storeTypes = readFileSync(path.join(root, "types/store.d.ts"), "utf8");
 const annotationsSource = readFileSync(path.join(root, "src/annotations.ts"), "utf8");
+const annotationsTypes = readFileSync(path.join(root, "types/annotations.d.ts"), "utf8");
 const locationsSource = readFileSync(path.join(root, "src/locations.ts"), "utf8");
 const locationsTypes = readFileSync(path.join(root, "types/locations.d.ts"), "utf8");
 const mappingSource = readFileSync(path.join(root, "src/mapping.ts"), "utf8");
@@ -654,6 +655,7 @@ assert(
 assert(typeTests.includes("new Annotations(annotationsRendition)"), "type tests must cover Annotations construction typing");
 assert(typeTests.includes("annotations.highlight(\"epubcfi"), "type tests must cover Annotations highlight typing");
 assert(typeTests.includes("annotations.remove(\"epubcfi"), "type tests must cover Annotations removal typing");
+assert(typeTests.includes("AnnotationCallback, (...args: unknown[]) => void"), "type tests must assert AnnotationCallback unknown argument typing");
 assert(typeTests.includes("AnnotationData, Record<string, unknown>"), "type tests must assert AnnotationData unknown payload typing");
 assert(typeTests.includes("ReturnType<AnnotationView[\"highlight\"]>, unknown"), "type tests must assert AnnotationView mark handle typing");
 assert(typeTests.includes("ReturnType<AnnotationView[\"unhighlight\"]>, unknown"), "type tests must assert AnnotationView removal handle typing");
@@ -665,23 +667,41 @@ assert(typeTests.includes("ReturnType<Annotation[\"emit\"]>, void"), "type tests
 assert(typeTests.includes("ReturnType<Annotation[\"on\"]>, unknown"), "type tests must assert Annotation on return typing");
 assert(typeTests.includes("ReturnType<Annotation[\"off\"]>, unknown"), "type tests must assert Annotation off return typing");
 assert(typeTests.includes("ReturnType<Annotation[\"once\"]>, unknown"), "type tests must assert Annotation once return typing");
+assert(typeTests.includes("Parameters<Annotations[\"each\"]>, unknown[]"), "type tests must assert Annotations each unknown argument typing");
 assert(typeTests.includes("ReturnType<Annotations[\"each\"]>, void"), "type tests must assert Annotations each return typing");
+assert(typeTests.includes("Parameters<Annotation[\"emit\"]>, [type: string, ...args: unknown[]]"), "type tests must assert Annotation emit unknown argument typing");
+assert(typeTests.includes("Parameters<Annotation[\"on\"]>, [type: string, listener: (...args: unknown[]) => void]"), "type tests must assert Annotation on unknown listener typing");
+assert(typeTests.includes("Parameters<Annotation[\"off\"]>, [type: string, listener: (...args: unknown[]) => void]"), "type tests must assert Annotation off unknown listener typing");
+assert(typeTests.includes("Parameters<Annotation[\"once\"]>, [type: string, listener: (...args: unknown[]) => void]"), "type tests must assert Annotation once unknown listener typing");
 assert(typeTests.includes("const annotationEmit: void = markAnnotation.emit"), "type tests must cover Annotation emit usage");
 assert(typeTests.includes("const annotationOn: unknown = markAnnotation.on"), "type tests must cover Annotation on usage");
 assert(typeTests.includes("const annotationOff: unknown = markAnnotation.off"), "type tests must cover Annotation off usage");
 assert(typeTests.includes("const annotationOnce: unknown = markAnnotation.once"), "type tests must cover Annotation once usage");
 assert(
+	annotationsSource.includes("export type AnnotationCallback = (...args: unknown[]) => void") &&
 	annotationsSource.includes("export type AnnotationData = Record<string, unknown>") &&
 	annotationsSource.includes("highlight(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): unknown") &&
 	annotationsSource.includes("unhighlight(cfiRange: string): unknown") &&
 	annotationsSource.includes("mark: unknown") &&
 	annotationsSource.includes("attach (view: AnnotationView): unknown") &&
 	annotationsSource.includes("detach (view?: AnnotationView): unknown") &&
-	annotationsSource.includes("each (...args: any[]): void") &&
-	annotationsSource.includes("emit(type: string, ...args: any[]): void") &&
-	annotationsSource.includes("on(type: string, listener: (...args: any[]) => void): unknown") &&
-	annotationsSource.includes("off(type: string, listener: (...args: any[]) => void): unknown") &&
-	annotationsSource.includes("once(type: string, listener: (...args: any[]) => void): unknown"),
+	annotationsSource.includes("each (...args: unknown[]): void") &&
+	annotationsSource.includes("emit(type: string, ...args: unknown[]): void") &&
+	annotationsSource.includes("on(type: string, listener: (...args: unknown[]) => void): unknown") &&
+	annotationsSource.includes("off(type: string, listener: (...args: unknown[]) => void): unknown") &&
+	annotationsSource.includes("once(type: string, listener: (...args: unknown[]) => void): unknown") &&
+	annotationsTypes.includes("export type AnnotationCallback = (...args: unknown[]) => void") &&
+	annotationsTypes.includes("export type AnnotationData = Record<string, unknown>") &&
+	annotationsTypes.includes("highlight(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): unknown") &&
+	annotationsTypes.includes("unhighlight(cfiRange: string): unknown") &&
+	annotationsTypes.includes("mark: unknown") &&
+	annotationsTypes.includes("attach(view: AnnotationView): unknown") &&
+	annotationsTypes.includes("detach(view?: AnnotationView): unknown") &&
+	annotationsTypes.includes("each(...args: unknown[]): void") &&
+	annotationsTypes.includes("emit(type: string, ...args: unknown[]): void") &&
+	annotationsTypes.includes("on(type: string, listener: (...args: unknown[]) => void): unknown") &&
+	annotationsTypes.includes("off(type: string, listener: (...args: unknown[]) => void): unknown") &&
+	annotationsTypes.includes("once(type: string, listener: (...args: unknown[]) => void): unknown"),
 	"source Annotation must keep EventEmitter method type parity"
 );
 assert(

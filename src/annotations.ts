@@ -4,7 +4,7 @@ import { EVENTS } from "./utils/constants";
 
 export type AnnotationType = "highlight" | "underline" | "mark" | string;
 
-export type AnnotationCallback = (...args: any[]) => void;
+export type AnnotationCallback = (...args: unknown[]) => void;
 
 export type AnnotationData = Record<string, unknown>;
 
@@ -195,7 +195,7 @@ class Annotations {
 	/**
 	 * iterate over annotations in the store
 	 */
-	each (...args: any[]): void {
+	each (...args: unknown[]): void {
 		return (this._annotations as any).forEach.apply(this._annotations, args) as void;
 	}
 
@@ -354,10 +354,10 @@ export class Annotation {
 }
 
 export interface Annotation {
-	emit(type: string, ...args: any[]): void;
-	on(type: string, listener: (...args: any[]) => void): unknown;
-	off(type: string, listener: (...args: any[]) => void): unknown;
-	once(type: string, listener: (...args: any[]) => void): unknown;
+	emit(type: string, ...args: unknown[]): void;
+	on(type: string, listener: (...args: unknown[]) => void): unknown;
+	off(type: string, listener: (...args: unknown[]) => void): unknown;
+	once(type: string, listener: (...args: unknown[]) => void): unknown;
 }
 
 EventEmitter(Annotation.prototype);

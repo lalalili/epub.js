@@ -1,6 +1,6 @@
 export type AnnotationType = "highlight" | "underline" | "mark" | string;
 
-export type AnnotationCallback = (...args: any[]) => void;
+export type AnnotationCallback = (...args: unknown[]) => void;
 
 export type AnnotationData = Record<string, unknown>;
 
@@ -66,7 +66,7 @@ export default class Annotations {
 
   mark(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback): Annotation;
 
-  each(...args: any[]): void;
+  each(...args: unknown[]): void;
 
   inject(view: AnnotationView): void;
 
@@ -97,11 +97,11 @@ export class Annotation {
 
   text(): void;
 
-  emit(type: string, ...args: any[]): void;
+  emit(type: string, ...args: unknown[]): void;
 
-  off(type: string, listener: (...args: any[]) => void): unknown;
+  off(type: string, listener: (...args: unknown[]) => void): unknown;
 
-  on(type: string, listener: (...args: any[]) => void): unknown;
+  on(type: string, listener: (...args: unknown[]) => void): unknown;
 
-  once(type: string, listener: (...args: any[]) => void): unknown;
+  once(type: string, listener: (...args: unknown[]) => void): unknown;
 }
