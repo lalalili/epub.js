@@ -99,6 +99,29 @@ type ViewResizeBounds = {
 	widthDelta: number;
 	heightDelta: number;
 };
+type ManagerSection = {
+	href?: string;
+	index?: number;
+	properties?: {
+		includes(value: string): boolean;
+	};
+	next(): ManagerSection | undefined;
+	prev(): ManagerSection | undefined;
+};
+type ManagerView = {
+	section: ManagerSection;
+	onDisplayed?: () => void;
+	onResize?: () => void;
+	expanded?: boolean;
+	offset(): ManagerOffset;
+	width(): number;
+	locationOf(target: string | number): ManagerOffset;
+	display(request: unknown): Promise<ManagerView>;
+	show(): void;
+	hide(): void;
+	bounds(): ViewResizeBounds;
+	on(type: string, listener: (...args: unknown[]) => void): unknown;
+};
 
 class DefaultViewManager {
 	[key: string]: any;
@@ -344,11 +367,15 @@ class DefaultViewManager {
 		}, epubcfi || this.target);
 	}
 
-	createView(section: any, forceRight?: boolean): any {
+	createView(section: unknown, forceRight?: boolean): ManagerView {
 		return new this.View(section, extend(this.viewSettings, { forceRight }) );
 	}
 
-	handleNextPrePaginated(forceRight: boolean, section: any, action: any): any {
+	handleNextPrePaginated(
+		forceRight: boolean,
+		section: ManagerSection,
+		action: (section: unknown) => ManagerView | Promise<ManagerView>
+	): ManagerView | Promise<ManagerView> | void {
 		let next;
 
 		if (this.layout.name === "pre-paginated" && this.layout.divisor > 1) {
@@ -357,15 +384,15 @@ class DefaultViewManager {
 				return;
 			}
 			next = section.next();
-			if (next && !next.properties.includes("page-spread-left")) {
+			if (next && !next.properties!.includes("page-spread-left")) {
 				return action.call(this, next);
 			}
 		}
 	}
 
-	display(section: any, target?: any): Promise<any> {
+	display(section: ManagerSection, target?: string | number): Promise<void> {
 
-		var displaying = new Deferred();
+		var displaying = new Deferred<void>();
 		var displayed = displaying.promise;
 
 		// Check if moving to target is needed
@@ -377,7 +404,7 @@ class DefaultViewManager {
 		this.target = target;
 
 		// Check to make sure the section we want isn't already shown
-		var visible = this.views.find(section);
+		var visible: ManagerView | undefined = this.views.find(section);
 
 		// View is already shown, just move to correct location in view
 		if(visible && section && this.layout.name !== "pre-paginated") {
@@ -404,12 +431,12 @@ class DefaultViewManager {
 		this.clear();
 
 		let forceRight = false;
-		if (this.layout.name === "pre-paginated" && this.layout.divisor === 2 && section.properties.includes("page-spread-right")) {
+		if (this.layout.name === "pre-paginated" && this.layout.divisor === 2 && section.properties!.includes("page-spread-right")) {
 			forceRight = true;
 		}
 
 		this.add(section, forceRight)
-			.then(function(view: any){
+			.then(function(view: ManagerView){
 
 				// Move to correct place within the section, if needed
 				if(target) {
@@ -418,7 +445,7 @@ class DefaultViewManager {
 					this.moveTo(offset, width);
 				}
 
-			}.bind(this), (err: any) => {
+			}.bind(this), (err: unknown) => {
 				displaying.reject(err);
 			})
 			.then(function(){
@@ -443,14 +470,14 @@ class DefaultViewManager {
 		return displayed;
 	}
 
-	afterDisplayed(view: any): void {
+	afterDisplayed(view: ManagerView): void {
 		if (this.isRtlVerticalPaginated()) {
 			this.queueVerticalRlBoundarySnapRetryForCurrentOffset();
 		}
 		this.emit(EVENTS.MANAGERS.ADDED, view);
 	}
 
-	afterResized(view: any): void {
+	afterResized(view: ManagerView): void {
 		this.syncVerticalRlViewportClip();
 		this.emit(EVENTS.MANAGERS.RESIZE, view.section);
 	}
@@ -547,7 +574,7 @@ class DefaultViewManager {
 		this.scrollTo(distX, distY, true);
 	}
 
-	add(section: any, forceRight?: boolean): Promise<any> {
+	add(section: ManagerSection, forceRight?: boolean): Promise<ManagerView> {
 		var view = this.createView(section, forceRight);
 
 		this.views.append(view);
@@ -567,7 +594,7 @@ class DefaultViewManager {
 		return view.display(this.request);
 	}
 
-	append(section: any, forceRight?: boolean): Promise<any> {
+	append(section: unknown, forceRight?: boolean): ManagerView | Promise<ManagerView> {
 		var view = this.createView(section, forceRight);
 		this.views.append(view);
 
@@ -585,7 +612,7 @@ class DefaultViewManager {
 		return view.display(this.request);
 	}
 
-	prepend(section: any, forceRight?: boolean): Promise<any> {
+	prepend(section: unknown, forceRight?: boolean): ManagerView | Promise<ManagerView> {
 		var view = this.createView(section, forceRight);
 
 		view.on(EVENTS.VIEWS.RESIZED, (bounds: ViewResizeBounds) => {
@@ -1687,7 +1714,7 @@ class DefaultViewManager {
 	}
 
 	displaySpineItemAtEnd(section: any, forceRight?: boolean): Promise<any> {
-		return this.prepend(section, forceRight)
+		return (this.prepend(section, forceRight) as Promise<ManagerView>)
 			.then(function(){
 			var left: any;
 				if (this.layout.name === "pre-paginated" && this.layout.divisor > 1) {
@@ -1806,10 +1833,10 @@ class DefaultViewManager {
 				forceRight = true;
 			}
 
-				return this.append(next, forceRight)
+				return (this.append(next, forceRight) as Promise<ManagerView>)
 					.then(function(){
 						return this.handleNextPrePaginated(forceRight, next, this.append);
-					}.bind(this), (err: any) => {
+					}.bind(this), (err: unknown) => {
 						return err;
 					})
 				.then(function(){

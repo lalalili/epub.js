@@ -1496,6 +1496,33 @@ assert(
 	"Default manager resize, movement, and view event bridge inputs must stay typed without any"
 );
 assert(
+	managerSource.includes("type ManagerSection = {") &&
+		managerSource.includes("type ManagerView = {") &&
+		managerSource.includes("createView(section: unknown, forceRight?: boolean): ManagerView") &&
+		managerSource.includes("display(section: ManagerSection, target?: string | number): Promise<void>") &&
+		managerSource.includes("var displaying = new Deferred<void>()") &&
+		managerSource.includes("var visible: ManagerView | undefined = this.views.find(section)") &&
+		managerSource.includes(".then(function(view: ManagerView)") &&
+		managerSource.includes("}.bind(this), (err: unknown) => {") &&
+		managerSource.includes("afterDisplayed(view: ManagerView): void") &&
+		managerSource.includes("afterResized(view: ManagerView): void") &&
+		managerSource.includes("add(section: ManagerSection, forceRight?: boolean): Promise<ManagerView>") &&
+		managerSource.includes("append(section: unknown, forceRight?: boolean): ManagerView | Promise<ManagerView>") &&
+		managerSource.includes("prepend(section: unknown, forceRight?: boolean): ManagerView | Promise<ManagerView>") &&
+		managerSource.includes("return (this.prepend(section, forceRight) as Promise<ManagerView>)") &&
+		managerSource.includes("return (this.append(next, forceRight) as Promise<ManagerView>)") &&
+		!managerSource.includes("createView(section: any") &&
+		!managerSource.includes("display(section: any") &&
+		!managerSource.includes("target?: any") &&
+		!managerSource.includes("then(function(view: any)") &&
+		!managerSource.includes("afterDisplayed(view: any)") &&
+		!managerSource.includes("afterResized(view: any)") &&
+		!managerSource.includes("add(section: any") &&
+		!managerSource.includes("append(section: any") &&
+		!managerSource.includes("prepend(section: any"),
+	"Default manager view and section bridge inputs must stay typed without any"
+);
+assert(
 	continuousManagerSource.includes("var promises: Promise<unknown>[] = []") &&
 		continuousManagerSource.includes("check(_offsetLeft?: number, _offsetTop?: number): Promise<unknown>") &&
 		continuousManagerSource.includes(".then((): Promise<unknown> =>") &&
