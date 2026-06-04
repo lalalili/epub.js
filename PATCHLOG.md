@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0362
+- Why:
+  - `Book` is wired with `EventEmitter(Book.prototype)`, but the declaration file still exposed its listener methods with `any` event names and listener signatures.
+  - The source already treats Book event names as strings, and consumers should get the same EventEmitter contract from source, package-root types, and generated docs.
+  - Tightening the type surface keeps Book EventEmitter parity enforceable without changing book opening, loading, rendering, storage, navigation, or runtime event wiring.
+- Diff Scope:
+  - `src/book.ts`: declare `emit`, `on`, `off`, and `once` on the merged `Book` interface after the class.
+  - `types/book.d.ts`: expose string event names and listener function signatures for Book EventEmitter methods.
+  - `types/epubjs-tests.ts`: assert Book EventEmitter method return types and add `emit` / `on` / `off` / `once` usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Book EventEmitter method parity and type-smoke assertions.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Book stops using EventEmitter prototype augmentation or intentionally keeps untyped listener methods in declarations.
+
 ### P-0361
 - Why:
   - `Store` is wired with `EventEmitter(Store.prototype)` and already calls `emit()` for online/offline status transitions, but source and declarations only exposed `emit`.

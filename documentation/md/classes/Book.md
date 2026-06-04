@@ -252,7 +252,7 @@
 
 ##### type
 
-`any`
+`string`
 
 ##### args
 
@@ -408,65 +408,61 @@
 
 ### off()
 
-> **off**(`type`, `listener`): `any`
+> **off**(`type`, `listener`): `unknown`
 
 #### Parameters
 
 ##### type
 
-`any`
+`string`
 
 ##### listener
 
-`any`
+(...`args`) => `void`
 
 #### Returns
 
-`any`
+`unknown`
 
 ***
 
 ### on()
 
-> **on**(`type`, `listener`): `any`
+> **on**(`type`, `listener`): `unknown`
 
 #### Parameters
 
 ##### type
 
-`any`
+`string`
 
 ##### listener
 
-`any`
+(...`args`) => `void`
 
 #### Returns
 
-`any`
+`unknown`
 
 ***
 
 ### once()
 
-> **once**(`type`, `listener`, ...`args`): `any`
+> **once**(`type`, `listener`): `unknown`
 
 #### Parameters
 
 ##### type
 
-`any`
+`string`
 
 ##### listener
 
-`any`
-
-##### args
-
-...`any`[]
+(...`args`) => `void`
 
 #### Returns
 
-`any`
+`unknown`
 
 ***
 

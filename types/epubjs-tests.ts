@@ -462,6 +462,10 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Book["section"]>, Section | undefined>>,
   Assert<IsExact<ReturnType<Book["unarchive"]>, Promise<ArchiveZip>>>,
   Assert<IsExact<ReturnType<Book["setRequestHeaders"]>, void>>,
+  Assert<IsExact<ReturnType<Book["emit"]>, void>>,
+  Assert<IsExact<ReturnType<Book["on"]>, unknown>>,
+  Assert<IsExact<ReturnType<Book["off"]>, unknown>>,
+  Assert<IsExact<ReturnType<Book["once"]>, unknown>>,
   Assert<IsExact<Rendition["settings"], RenditionOptions>>,
   Assert<IsExact<Rendition["book"], Book>>,
   Assert<IsExact<Rendition["manager"], any>>,
@@ -1052,6 +1056,13 @@ function testEpub() {
   const resolvedBookPath: string | undefined = book.resolve();
   const bookSection: Section | undefined = book.section(0);
   const bookArchiveZip: Promise<ArchiveZip> = book.unarchive(bookInput);
+  const bookListener = (...args: unknown[]): void => {
+    void args;
+  };
+  const bookEmit: void = book.emit("openFailed", new Error("type smoke"));
+  const bookOn: unknown = book.on("openFailed", bookListener);
+  const bookOff: unknown = book.off("openFailed", bookListener);
+  const bookOnce: unknown = book.once("openFailed", bookListener);
 
   const rendition = new Rendition(book, {});
   const renditionLayoutProperties: RenditionLayoutProperties = rendition.determineLayoutProperties({
@@ -1613,6 +1624,10 @@ function testEpub() {
   void resolvedBookPath;
   void bookSection;
   void bookArchiveZip;
+  void bookEmit;
+  void bookOn;
+  void bookOff;
+  void bookOnce;
   void bookXmlLoad;
   void bookJsonLoad;
   void bookFallbackLoad;

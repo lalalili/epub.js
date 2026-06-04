@@ -675,6 +675,17 @@ assert(typeTests.includes("book.unarchive(bookInput)"), "type tests must cover B
 assert(typeTests.includes("ReturnType<Book[\"load\"]>, Promise<RequestResponse>"), "type tests must cover Book load request response typing");
 assert(typeTests.includes("book.load(\"OPS/package.opf\", \"opf\")"), "type tests must cover Book load XML overload typing");
 assert(typeTests.includes("book.load(\"manifest.json\", \"json\")"), "type tests must cover Book load JSON overload typing");
+assert(typeTests.includes("ReturnType<Book[\"on\"]>, unknown"), "type tests must assert Book EventEmitter listener typing");
+assert(typeTests.includes("const bookOn: unknown = book.on"), "type tests must cover Book on listener usage");
+assert(typeTests.includes("const bookOff: unknown = book.off"), "type tests must cover Book off listener usage");
+assert(typeTests.includes("const bookOnce: unknown = book.once"), "type tests must cover Book once listener usage");
+assert(
+	bookSource.includes("emit(type: string, ...args: any[]): void") &&
+		bookSource.includes("on(type: string, listener: (...args: any[]) => void): unknown") &&
+		bookSource.includes("off(type: string, listener: (...args: any[]) => void): unknown") &&
+		bookSource.includes("once(type: string, listener: (...args: any[]) => void): unknown"),
+	"source Book must keep EventEmitter method type parity"
+);
 assert(typeTests.includes("rendition.determineLayoutProperties"), "type tests must cover Rendition layout property typing");
 assert(typeTests.includes("rendition.located([managerLocationItem])"), "type tests must cover Rendition manager location typing");
 assert(typeTests.includes("rendition.resolveLinkHref(\"#note\""), "type tests must cover Rendition link resolution typing");

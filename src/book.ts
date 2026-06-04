@@ -125,10 +125,6 @@ class Book {
 	package?: Packaging;
 	displayOptions?: DisplayOptions;
 	cover?: string;
-	declare emit: (type: string, ...args: any[]) => void;
-	declare on: (type: string, listener: (...args: any[]) => void) => any;
-	declare off: (type: string, listener: (...args: any[]) => void) => any;
-	declare once: (type: string, listener: (...args: any[]) => void) => any;
 
 	constructor(url?: BookInput | BookOptions, options?: BookOptions) {
 		// Allow passing just options to the Book
@@ -847,6 +843,13 @@ class Book {
 		this.archived = false;
 	}
 
+}
+
+interface Book {
+	emit(type: string, ...args: any[]): void;
+	on(type: string, listener: (...args: any[]) => void): unknown;
+	off(type: string, listener: (...args: any[]) => void): unknown;
+	once(type: string, listener: (...args: any[]) => void): unknown;
 }
 
 //-- Enable binding events to book
