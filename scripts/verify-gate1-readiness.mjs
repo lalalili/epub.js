@@ -1531,6 +1531,25 @@ assert(
 	"Default manager vertical width helpers must keep view inputs typed without any"
 );
 assert(
+	managerSource.includes("type ManagerBounds = {") &&
+		managerSource.includes("type VisibleManagerView = ManagerView & {") &&
+		managerSource.includes("type PositionedView = {") &&
+		managerSource.includes("section?: unknown") &&
+		managerSource.includes("position?: () => ManagerBounds") &&
+		managerSource.includes("isVisible(view: PositionedView, offsetPrev: number, offsetNext: number, _container?: ManagerBounds): boolean") &&
+		managerSource.includes("var position = view.position!()") &&
+		managerSource.includes("var container: ManagerBounds = _container || this.bounds()") &&
+		managerSource.includes("visible(): VisibleManagerView[]") &&
+		managerSource.includes("var views: VisibleManagerView[] = this.views.displayed()") &&
+		managerSource.includes("var visible: VisibleManagerView[] = []") &&
+		managerSource.includes("var view: VisibleManagerView") &&
+		!managerSource.includes("isVisible(view: any") &&
+		!managerSource.includes("_container?: any") &&
+		!managerSource.includes("visible(): any[]") &&
+		!managerSource.includes("var visible: any[] = []"),
+	"Default manager visible helpers must keep view and bounds inputs typed without any"
+);
+assert(
 	continuousManagerSource.includes("var promises: Promise<unknown>[] = []") &&
 		continuousManagerSource.includes("check(_offsetLeft?: number, _offsetTop?: number): Promise<unknown>") &&
 		continuousManagerSource.includes(".then((): Promise<unknown> =>") &&

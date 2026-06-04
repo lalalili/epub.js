@@ -99,6 +99,12 @@ type ViewResizeBounds = {
 	widthDelta: number;
 	heightDelta: number;
 };
+type ManagerBounds = {
+	left: number;
+	right: number;
+	top: number;
+	bottom: number;
+};
 type ManagerSection = {
 	href?: string;
 	index?: number;
@@ -122,6 +128,13 @@ type ManagerView = {
 	hide(): void;
 	bounds(): ViewResizeBounds;
 	on(type: string, listener: (...args: unknown[]) => void): unknown;
+};
+type VisibleManagerView = ManagerView & {
+	position(): ManagerBounds;
+};
+type PositionedView = {
+	section?: unknown;
+	position?: () => ManagerBounds;
 };
 
 class DefaultViewManager {
@@ -2150,9 +2163,9 @@ class DefaultViewManager {
 		return sections;
 	}
 
-	isVisible(view: any, offsetPrev: number, offsetNext: number, _container?: any): boolean {
-		var position = view.position();
-		var container = _container || this.bounds();
+	isVisible(view: PositionedView, offsetPrev: number, offsetNext: number, _container?: ManagerBounds): boolean {
+		var position = view.position!();
+		var container: ManagerBounds = _container || this.bounds();
 
 		if(this.settings.axis === "horizontal" &&
 			position.right > container.left - offsetPrev &&
@@ -2171,13 +2184,13 @@ class DefaultViewManager {
 
 	}
 
-	visible(): any[] {
-		var container = this.bounds();
-		var views = this.views.displayed();
+	visible(): VisibleManagerView[] {
+		var container: ManagerBounds = this.bounds();
+		var views: VisibleManagerView[] = this.views.displayed();
 		var viewsLength = views.length;
-			var visible: any[] = [];
+			var visible: VisibleManagerView[] = [];
 		var isVisible;
-		var view;
+		var view: VisibleManagerView;
 
 		for (var i = 0; i < viewsLength; i++) {
 			view = views[i];
