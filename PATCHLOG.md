@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0391
+- Why:
+  - `Rendition.getContents()` is a package-root public method whose JSDoc and `.d.ts` already describe `Contents[]`, but the source signature still returned `any[]`.
+  - The implementation delegates to the manager contents collection or returns an empty array, so the source can preserve the public contract directly.
+  - Tightening this surface keeps Rendition source/.d.ts/TypeDoc parity enforceable without changing manager delegation or rendered content lookup behavior.
+- Diff Scope:
+  - `src/rendition.ts`: type `getContents()` as returning `Contents[]`.
+  - `scripts/verify-gate1-readiness.mjs`: require `getContents()` source and declaration return type parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `Rendition.getContents()` must intentionally expose untyped view contents.
+
 ### P-0390
 - Why:
   - `Rendition.located()` is a package-root public method, but its source declaration still accepted `any[]` and its `.d.ts` kept an `any[]` fallback.

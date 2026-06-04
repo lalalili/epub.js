@@ -10,6 +10,7 @@ import Layout from "./layout";
 import Themes from "./themes";
 import Annotations from "./annotations";
 import { EVENTS, DOM_EVENTS } from "./utils/constants";
+import type Contents from "./contents";
 import type { VerticalRlDebugMetrics } from "./contents";
 
 // Default Views
@@ -1198,7 +1199,7 @@ class Rendition {
 	 * Get the Contents object of each rendered view
 	 * @returns {Contents[]}
 	 */
-	getContents (): any[] {
+	getContents (): Contents[] {
 		return this.manager ? this.manager.getContents() : [];
 	}
 

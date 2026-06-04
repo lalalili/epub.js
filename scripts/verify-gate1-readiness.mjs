@@ -838,6 +838,12 @@ assert(
 	"Book source and declarations must keep EventEmitter method type parity"
 );
 assert(typeTests.includes("rendition.determineLayoutProperties"), "type tests must cover Rendition layout property typing");
+assert(typeTests.includes("ReturnType<Rendition[\"getContents\"]>, Contents[]"), "type tests must assert Rendition getContents return typing");
+assert(
+	renditionSource.includes("getContents (): Contents[]") &&
+		renditionTypes.includes("getContents(): Contents[]"),
+	"Rendition source and declarations must keep getContents return type parity"
+);
 assert(typeTests.includes("rendition.located([managerLocationItem])"), "type tests must cover Rendition manager location typing");
 assert(typeTests.includes("Parameters<Rendition[\"located\"]>, [location: Array<ManagerLocationItem | null | undefined>]"), "type tests must assert Rendition located nullable manager location parameter typing");
 assert(typeTests.includes("rendition.located([managerLocationItem, null, undefined])"), "type tests must cover Rendition located nullable manager location usage");
