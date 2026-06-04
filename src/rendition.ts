@@ -5,7 +5,7 @@ import { isFloat } from "./core/types";
 import Hook from "./utils/hook";
 import EpubCFI from "./epubcfi";
 import Queue from "./utils/queue";
-import Layout, { type LayoutSettings } from "./layout";
+import Layout, { type LayoutProps, type LayoutSettings } from "./layout";
 // import Mapping from "./mapping";
 import Themes from "./themes";
 import Annotations, { type AnnotationData } from "./annotations";
@@ -825,7 +825,7 @@ class Rendition {
 
 			// this.mapping = new Mapping(this._layout.props);
 
-			this._layout.on(EVENTS.LAYOUT.UPDATED, (props: any, changed: any) => {
+			this._layout.on(EVENTS.LAYOUT.UPDATED, (props: LayoutProps, changed: Partial<LayoutProps>) => {
 				this.emit(EVENTS.RENDITION.LAYOUT, props, changed);
 			});
 		}

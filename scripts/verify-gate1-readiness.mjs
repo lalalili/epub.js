@@ -990,6 +990,7 @@ assert(
 		renditionSource.includes("_layout?: Layout") &&
 		renditionSource.includes("page?: PageValue") &&
 		renditionSource.includes("constructor(book: Book, options?: RenditionOptions)") &&
+		renditionSource.includes("(props: LayoutProps, changed: Partial<LayoutProps>)") &&
 		renditionTypes.includes("constructor(book: Book, options?: RenditionOptions)") &&
 		renditionTypes.includes("_layout?: Layout") &&
 		renditionTypes.includes("page?: PageValue") &&

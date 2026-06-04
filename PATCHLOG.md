@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0416
+- Why:
+  - `Rendition.layout()` now stores `_layout` as the concrete `Layout` class, but its layout update listener still accepted `props` and `changed` as `any`.
+  - Aligning the listener bridge with `LayoutProps` keeps Rendition layout event forwarding typed before Gate 1 release work.
+  - This removes another source-side `Rendition` `any` leak without changing emitted layout payloads or event forwarding behavior.
+- Diff Scope:
+  - `src/rendition.ts`: type the `EVENTS.LAYOUT.UPDATED` listener payload as `LayoutProps` and `Partial<LayoutProps>`.
+  - `scripts/verify-gate1-readiness.mjs`: require the source listener bridge to remain typed.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if the layout event bridge must intentionally remain source-untyped.
+
 ### P-0415
 - Why:
   - `Rendition._layout` already exposes `Layout | undefined` in declarations and type smoke tests, but source still kept the property as `any`.
