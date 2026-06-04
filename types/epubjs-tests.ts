@@ -83,6 +83,7 @@ import type {
   RequestType as RootRequestType,
   RectBounds as RootRectBounds,
   SizeBounds as RootSizeBounds,
+  VerticalRlPageMetrics as RootVerticalRlPageMetrics,
   VerticalRlMetricsCache as RootVerticalRlMetricsCache,
   VerticalRlPageMetricsCache as RootVerticalRlPageMetricsCache,
   ViewportSettings as RootViewportSettings,
@@ -183,6 +184,7 @@ import type { BookInput, BookLoaded, BookLoading, BookOptions, BookReady } from 
 import Container, { ContainerDocument } from './container';
 import type {
   ContentsSize,
+  VerticalRlPageMetrics,
   VerticalRlMetricsCache,
   VerticalRlPageMetricsCache,
   ViewportSettings,
@@ -362,6 +364,7 @@ type PublicRootAssertions = [
   Assert<IsExact<RootRequestType, RequestType>>,
   Assert<IsExact<RootRectBounds, RectBounds>>,
   Assert<IsExact<RootSizeBounds, SizeBounds>>,
+  Assert<IsExact<RootVerticalRlPageMetrics, VerticalRlPageMetrics>>,
   Assert<IsExact<RootVerticalRlMetricsCache, VerticalRlMetricsCache>>,
   Assert<IsExact<RootVerticalRlPageMetricsCache, VerticalRlPageMetricsCache>>,
   Assert<IsExact<RootViewportSettings, ViewportSettings>>,
@@ -503,6 +506,7 @@ type CoreClassAssertions = [
   Assert<IsExact<Contents["sectionHref"], string>>,
   Assert<IsExact<Contents["_verticalRlMetricsCache"], VerticalRlMetricsCache | null>>,
   Assert<IsExact<Contents["_verticalRlPageMetricsCache"], VerticalRlPageMetricsCache | null>>,
+  Assert<IsExact<VerticalRlPageMetricsCache["metrics"], VerticalRlPageMetrics>>,
   Assert<IsExact<Contents["_forcedWritingMode"], string>>,
   Assert<IsExact<Contents["called"], number>>,
   Assert<IsExact<Contents["active"], boolean>>,
@@ -525,6 +529,7 @@ type CoreClassAssertions = [
     rawWidth: number,
     rawHeight: number
   }>>,
+  Assert<IsExact<ReturnType<Contents["verticalRlPageMetrics"]>, VerticalRlPageMetrics>>,
   Assert<IsExact<ReturnType<Contents["viewport"]>, ViewportSettings>>,
   Assert<IsExact<ReturnType<Contents["writingMode"]>, string>>
 ];

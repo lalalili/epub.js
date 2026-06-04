@@ -20,9 +20,29 @@ export interface VerticalRlMetricsCache {
   width: number
 }
 
+export interface VerticalRlPageMetrics {
+  rawWidth: number,
+  rawPaintWidth: number,
+  rawHeight: number,
+  pageWidth: number,
+  viewportPageWidth: number | null,
+  effectivePageAdvance: number | null,
+  linePitch: number | null,
+  lineWidth: number | null,
+  edgeGuardPx: number,
+  edgeGuard: number,
+  pageBoundaryShift: number,
+  sampleCount: number,
+  gapMad: number | null,
+  stable: boolean,
+  verticalFragmentPages: number,
+  totalPages: number,
+  snappedContentWidth: number
+}
+
 export interface VerticalRlPageMetricsCache {
   key: string,
-  metrics: Record<string, any>
+  metrics: VerticalRlPageMetrics
 }
 
 export default class Contents {
@@ -122,7 +142,7 @@ export default class Contents {
 
     textWidth(): number;
 
-    verticalRlPageMetrics(pageWidth?: number, pageHeight?: number): Record<string, any>;
+    verticalRlPageMetrics(pageWidth?: number, pageHeight?: number): VerticalRlPageMetrics;
 
     debugVerticalRlMetrics(pageWidth?: number): Record<string, any>;
 

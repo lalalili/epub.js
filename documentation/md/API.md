@@ -112,6 +112,7 @@
 - [ThemesRendition](interfaces/ThemesRendition.md)
 - [Url](interfaces/Url.md)
 - [VerticalRlMetricsCache](interfaces/VerticalRlMetricsCache.md)
+- [VerticalRlPageMetrics](interfaces/VerticalRlPageMetrics.md)
 - [VerticalRlPageMetricsCache](interfaces/VerticalRlPageMetricsCache.md)
 - [ViewportSettings](interfaces/ViewportSettings.md)
 - [WordLocation](interfaces/WordLocation.md)

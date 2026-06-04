@@ -26,7 +26,25 @@ type LineBox = {
 	right: number;
 	width?: number;
 };
-type VerticalRlPageMetrics = Record<string, any>;
+export interface VerticalRlPageMetrics {
+	rawWidth: number;
+	rawPaintWidth: number;
+	rawHeight: number;
+	pageWidth: number;
+	viewportPageWidth: number | null;
+	effectivePageAdvance: number | null;
+	linePitch: number | null;
+	lineWidth: number | null;
+	edgeGuardPx: number;
+	edgeGuard: number;
+	pageBoundaryShift: number;
+	sampleCount: number;
+	gapMad: number | null;
+	stable: boolean;
+	verticalFragmentPages: number;
+	totalPages: number;
+	snappedContentWidth: number;
+}
 type VerticalRlLineMetrics = {
 	linePitch: number | null;
 	lineWidth: number | null;
@@ -57,7 +75,7 @@ export interface VerticalRlMetricsCache {
 
 export interface VerticalRlPageMetricsCache {
 	key: string;
-	metrics: Record<string, any>;
+	metrics: VerticalRlPageMetrics;
 }
 
 type StylesheetRules = any;

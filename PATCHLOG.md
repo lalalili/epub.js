@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0375
+- Why:
+  - `Contents.verticalRlPageMetrics()` and `VerticalRlPageMetricsCache.metrics` are package-root exported surfaces, but they still exposed the page metrics payload as `Record<string, any>`.
+  - The runtime result has a fixed set of numeric, nullable numeric, and boolean fields used by vertical-rl pagination.
+  - Naming that payload as `VerticalRlPageMetrics` keeps the cache and method return surface precise without changing vertical writing measurement, snapping, cache invalidation, or debug behavior.
+- Diff Scope:
+  - `src/contents.ts`: add `VerticalRlPageMetrics`, use it for `verticalRlPageMetrics()` and the page metrics cache payload.
+  - `src/index.ts`, `types/index.d.ts`, `types/contents.d.ts`: export and mirror the `VerticalRlPageMetrics` public type.
+  - `types/epubjs-tests.ts`: assert root export parity, cache payload typing, and method return typing.
+  - `scripts/verify-gate1-readiness.mjs`: require Contents vertical-rl page metrics parity across source and type smoke.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/contents.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if consumers intentionally rely on vertical-rl page metrics being typed as an arbitrary `Record<string, any>`.
+
 ### P-0374
 - Why:
   - `Book.ready` is a package-root exported surface, but it still exposed the loaded promise tuple as `Promise<any[]>`.

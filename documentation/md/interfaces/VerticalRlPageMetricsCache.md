@@ -16,4 +16,4 @@
 
 ### metrics
 
-> **metrics**: `Record`\<`string`, `any`\>
+> **metrics**: [`VerticalRlPageMetrics`](VerticalRlPageMetrics.md)

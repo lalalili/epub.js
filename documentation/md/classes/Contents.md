@@ -864,7 +864,7 @@
 
 ### verticalRlPageMetrics()
 
-> **verticalRlPageMetrics**(`pageWidth?`, `pageHeight?`): `Record`\<`string`, `any`\>
+> **verticalRlPageMetrics**(`pageWidth?`, `pageHeight?`): [`VerticalRlPageMetrics`](../interfaces/VerticalRlPageMetrics.md)
 
 #### Parameters
 
@@ -878,7 +878,7 @@
 
 #### Returns
 
-`Record`\<`string`, `any`\>
+[`VerticalRlPageMetrics`](../interfaces/VerticalRlPageMetrics.md)
 
 ***
 
