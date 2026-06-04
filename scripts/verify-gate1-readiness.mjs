@@ -1480,6 +1480,22 @@ assert(
 	"Default manager constructor and render size inputs must stay typed without any"
 );
 assert(
+	managerSource.includes("type ManagerOffset = {") &&
+		managerSource.includes("type ViewResizeBounds = {") &&
+		managerSource.includes("resize(width?: number, height?: number, epubcfi?: string): void") &&
+		managerSource.includes("getVerticalRlPageIndexForOffset(offset: ManagerOffset, width?: number): number") &&
+		managerSource.includes("moveTo(offset: ManagerOffset, width?: number): void") &&
+		managerSource.includes("counter(bounds: ViewResizeBounds): void") &&
+		!managerSource.includes("resize(width?: number, height?: number, epubcfi?: any): void") &&
+		!managerSource.includes("getVerticalRlPageIndexForOffset(offset: any") &&
+		!managerSource.includes("moveTo(offset: any") &&
+		!managerSource.includes("view.on(EVENTS.VIEWS.AXIS, (axis: any)") &&
+		!managerSource.includes("view.on(EVENTS.VIEWS.WRITING_MODE, (mode: any)") &&
+		!managerSource.includes("view.on(EVENTS.VIEWS.RESIZED, (bounds: any)") &&
+		!managerSource.includes("counter(bounds: any): void"),
+	"Default manager resize, movement, and view event bridge inputs must stay typed without any"
+);
+assert(
 	continuousManagerSource.includes("var promises: Promise<unknown>[] = []") &&
 		continuousManagerSource.includes("check(_offsetLeft?: number, _offsetTop?: number): Promise<unknown>") &&
 		continuousManagerSource.includes(".then((): Promise<unknown> =>") &&

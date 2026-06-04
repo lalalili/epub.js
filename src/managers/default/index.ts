@@ -91,6 +91,14 @@ type ManagerRenderSize = {
 	width: number | string | null | false;
 	height: number | string | null | false;
 };
+type ManagerOffset = {
+	left: number;
+	top: number;
+};
+type ViewResizeBounds = {
+	widthDelta: number;
+	heightDelta: number;
+};
 
 class DefaultViewManager {
 	[key: string]: any;
@@ -297,7 +305,7 @@ class DefaultViewManager {
 		this.resize();
 	}
 
-	resize(width?: number, height?: number, epubcfi?: any): void {
+	resize(width?: number, height?: number, epubcfi?: string): void {
 		let stageSize = this.stage.size(width, height);
 
 		// For Safari, wait for orientation to catch up
@@ -447,7 +455,7 @@ class DefaultViewManager {
 		this.emit(EVENTS.MANAGERS.RESIZE, view.section);
 	}
 
-	getVerticalRlPageIndexForOffset(offset: any, width?: number): number {
+	getVerticalRlPageIndexForOffset(offset: ManagerOffset, width?: number): number {
 		let advance = this.getPageAdvance() || 0;
 		let view = this.views && (this.views.first() || this.views.last());
 		let contentWidth = Math.max(
@@ -495,7 +503,7 @@ class DefaultViewManager {
 		return nearestIndex;
 	}
 
-	moveTo(offset: any, width?: number): void {
+	moveTo(offset: ManagerOffset, width?: number): void {
 		var distX = 0,
 				distY = 0;
 
@@ -548,11 +556,11 @@ class DefaultViewManager {
 		view.onDisplayed = this.afterDisplayed.bind(this);
 		view.onResize = this.afterResized.bind(this);
 
-		view.on(EVENTS.VIEWS.AXIS, (axis: any) => {
+		view.on(EVENTS.VIEWS.AXIS, (axis: string) => {
 			this.updateAxis(axis);
 		});
 
-		view.on(EVENTS.VIEWS.WRITING_MODE, (mode: any) => {
+		view.on(EVENTS.VIEWS.WRITING_MODE, (mode: string) => {
 			this.updateWritingMode(mode);
 		});
 
@@ -566,11 +574,11 @@ class DefaultViewManager {
 		view.onDisplayed = this.afterDisplayed.bind(this);
 		view.onResize = this.afterResized.bind(this);
 
-		view.on(EVENTS.VIEWS.AXIS, (axis: any) => {
+		view.on(EVENTS.VIEWS.AXIS, (axis: string) => {
 			this.updateAxis(axis);
 		});
 
-		view.on(EVENTS.VIEWS.WRITING_MODE, (mode: any) => {
+		view.on(EVENTS.VIEWS.WRITING_MODE, (mode: string) => {
 			this.updateWritingMode(mode);
 		});
 
@@ -580,7 +588,7 @@ class DefaultViewManager {
 	prepend(section: any, forceRight?: boolean): Promise<any> {
 		var view = this.createView(section, forceRight);
 
-		view.on(EVENTS.VIEWS.RESIZED, (bounds: any) => {
+		view.on(EVENTS.VIEWS.RESIZED, (bounds: ViewResizeBounds) => {
 			this.counter(bounds);
 		});
 
@@ -589,18 +597,18 @@ class DefaultViewManager {
 		view.onDisplayed = this.afterDisplayed.bind(this);
 		view.onResize = this.afterResized.bind(this);
 
-		view.on(EVENTS.VIEWS.AXIS, (axis: any) => {
+		view.on(EVENTS.VIEWS.AXIS, (axis: string) => {
 			this.updateAxis(axis);
 		});
 
-		view.on(EVENTS.VIEWS.WRITING_MODE, (mode: any) => {
+		view.on(EVENTS.VIEWS.WRITING_MODE, (mode: string) => {
 			this.updateWritingMode(mode);
 		});
 
 		return view.display(this.request);
 	}
 
-	counter(bounds: any): void {
+	counter(bounds: ViewResizeBounds): void {
 		if(this.settings.axis === "vertical") {
 			this.scrollBy(0, bounds.heightDelta, true);
 		} else {
