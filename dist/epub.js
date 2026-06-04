@@ -12350,9 +12350,9 @@
 			this.iframe.style.overflow = "hidden";
 			this.iframe.seamless = "seamless";
 			this.iframe.style.border = "none";
-			this.iframe.sandbox = "allow-same-origin";
-			if (this.settings.allowScriptedContent) this.iframe.sandbox += " allow-scripts";
-			if (this.settings.allowPopups) this.iframe.sandbox += " allow-popups";
+			this.iframe.setAttribute("sandbox", "allow-same-origin");
+			if (this.settings.allowScriptedContent) this.iframe.sandbox.add("allow-scripts");
+			if (this.settings.allowPopups) this.iframe.sandbox.add("allow-popups");
 			this.iframe.setAttribute("enable-annotation", "true");
 			this.resizing = true;
 			this.element.style.visibility = "hidden";
@@ -12576,9 +12576,10 @@
 					return loaded;
 				}
 				this.iframe.contentDocument.open();
-				if (window.MSApp && window.MSApp.execUnsafeLocalFunction) {
+				const msApp = window.MSApp;
+				if (msApp && msApp.execUnsafeLocalFunction) {
 					var outerThis = this;
-					window.MSApp.execUnsafeLocalFunction(function() {
+					msApp.execUnsafeLocalFunction(function() {
 						outerThis.iframe.contentDocument.write(contents);
 					});
 				} else this.iframe.contentDocument.write(contents);
@@ -12639,7 +12640,8 @@
 				this.displayed = true;
 				displayed.resolve(this);
 			}.bind(this), function(err) {
-				displayed.reject(err, this);
+				const reject = displayed.reject;
+				reject && reject(err, this);
 			});
 			else displayed.resolve(this);
 			return displayed.promise;

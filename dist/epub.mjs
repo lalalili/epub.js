@@ -7110,7 +7110,7 @@ var Ut = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, Wt = cla
 		return t.classList.add("epub-view"), t.style.height = "0px", t.style.width = "0px", t.style.overflow = "hidden", t.style.position = "relative", t.style.display = "block", e && e == "horizontal" ? t.style.flex = "none" : t.style.flex = "initial", t;
 	}
 	create() {
-		return this.iframe ? this.iframe : (this.element ||= this.createContainer(), this.iframe = document.createElement("iframe"), this.iframe.id = this.id, this.iframe.scrolling = "no", this.iframe.style.overflow = "hidden", this.iframe.seamless = "seamless", this.iframe.style.border = "none", this.iframe.sandbox = "allow-same-origin", this.settings.allowScriptedContent && (this.iframe.sandbox += " allow-scripts"), this.settings.allowPopups && (this.iframe.sandbox += " allow-popups"), this.iframe.setAttribute("enable-annotation", "true"), this.resizing = !0, this.element.style.visibility = "hidden", this.iframe.style.visibility = "hidden", this.iframe.style.width = "0", this.iframe.style.height = "0", this._width = 0, this._height = 0, this.element.setAttribute("ref", this.index), this.added = !0, this.elementBounds = pt(this.element), "srcdoc" in this.iframe ? this.supportsSrcdoc = !0 : this.supportsSrcdoc = !1, this.settings.method || (this.settings.method = this.supportsSrcdoc ? "srcdoc" : "write"), this.iframe);
+		return this.iframe ? this.iframe : (this.element ||= this.createContainer(), this.iframe = document.createElement("iframe"), this.iframe.id = this.id, this.iframe.scrolling = "no", this.iframe.style.overflow = "hidden", this.iframe.seamless = "seamless", this.iframe.style.border = "none", this.iframe.setAttribute("sandbox", "allow-same-origin"), this.settings.allowScriptedContent && this.iframe.sandbox.add("allow-scripts"), this.settings.allowPopups && this.iframe.sandbox.add("allow-popups"), this.iframe.setAttribute("enable-annotation", "true"), this.resizing = !0, this.element.style.visibility = "hidden", this.iframe.style.visibility = "hidden", this.iframe.style.width = "0", this.iframe.style.height = "0", this._width = 0, this._height = 0, this.element.setAttribute("ref", this.index), this.added = !0, this.elementBounds = pt(this.element), "srcdoc" in this.iframe ? this.supportsSrcdoc = !0 : this.supportsSrcdoc = !1, this.settings.method || (this.settings.method = this.supportsSrcdoc ? "srcdoc" : "write"), this.iframe);
 	}
 	render(e, t) {
 		return this.create(), this.size(), this.sectionRender ||= this.section.render(e), this.sectionRender.then(function(e) {
@@ -7200,9 +7200,11 @@ var Ut = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, Wt = cla
 		else if (this.settings.method === "srcdoc") this.iframe.srcdoc = e, this.element.appendChild(this.iframe);
 		else {
 			if (this.element.appendChild(this.iframe), this.document = this.iframe.contentDocument, !this.document) return t.reject(/* @__PURE__ */ Error("No Document Available")), n;
-			if (this.iframe.contentDocument.open(), window.MSApp && window.MSApp.execUnsafeLocalFunction) {
+			this.iframe.contentDocument.open();
+			let i = window.MSApp;
+			if (i && i.execUnsafeLocalFunction) {
 				var r = this;
-				window.MSApp.execUnsafeLocalFunction(function() {
+				i.execUnsafeLocalFunction(function() {
 					r.iframe.contentDocument.write(e);
 				});
 			} else this.iframe.contentDocument.write(e);
@@ -7235,7 +7237,8 @@ var Ut = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, Wt = cla
 		return this.displayed ? t.resolve(this) : this.render(e).then(function() {
 			this.emit($.VIEWS.DISPLAYED, this), this.onDisplayed(this), this.displayed = !0, t.resolve(this);
 		}.bind(this), function(e) {
-			t.reject(e, this);
+			let n = t.reject;
+			n && n(e, this);
 		}), t.promise;
 	}
 	show() {

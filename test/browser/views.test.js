@@ -228,6 +228,51 @@ describe("Views", () => {
 		expect(view._needsReframe).toBe(true);
 	});
 
+	it("uses the Windows MSApp write bridge without changing iframe load setup", () => {
+		let originalMSApp = window.MSApp;
+		let unsafeWriteCount = 0;
+		let view = new IframeView({ index: 0, href: "chapter.xhtml" }, {
+			method: "write",
+			layout: {
+				name: "reflowable"
+			}
+		});
+		let contents = "<html><body><p>Readable</p></body></html>";
+
+		window.MSApp = {
+			execUnsafeLocalFunction(callback) {
+				unsafeWriteCount += 1;
+				callback();
+			}
+		};
+
+		try {
+			view.create();
+			document.body.appendChild(view.element);
+			view.load(contents);
+
+			expect(unsafeWriteCount).toBe(1);
+			expect(view.document.body.textContent).toContain("Readable");
+		} finally {
+			view.element.remove();
+			window.MSApp = originalMSApp;
+		}
+	});
+
+	it("rejects display promises when render fails", async () => {
+		let view = new IframeView({ index: 0, href: "chapter.xhtml" }, {
+			layout: {
+				name: "reflowable"
+			}
+		});
+
+		view.render = function() {
+			return Promise.reject(new Error("render failed"));
+		};
+
+		await expect(view.display()).rejects.toThrow("render failed");
+	});
+
 	it("loads and revokes iframe blob URLs through the platform boundary", () => {
 		let originalCreateObjectURL = window.URL.createObjectURL;
 		let originalRevokeObjectURL = window.URL.revokeObjectURL;

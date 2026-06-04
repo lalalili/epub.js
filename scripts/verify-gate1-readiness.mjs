@@ -55,6 +55,7 @@ const hookTypes = readFileSync(path.join(root, "types/utils/hook.d.ts"), "utf8")
 const globalTypeTests = readFileSync(path.join(root, "types/global-namespace-tests.ts"), "utf8");
 const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.test.js"), "utf8");
 const umdGlobalTests = readFileSync(path.join(root, "test/browser/umd-global.test.js"), "utf8");
+const viewsTests = readFileSync(path.join(root, "test/browser/views.test.js"), "utf8");
 const debounceTypes = readFileSync(path.join(root, "types/lodash-debounce.d.ts"), "utf8");
 const throttleTypes = readFileSync(path.join(root, "types/lodash-throttle.d.ts"), "utf8");
 
@@ -871,6 +872,32 @@ assert(
 		!iframeViewSource.includes("styles: Record<string, any> = {}") &&
 		!marksPaneTypes.includes("Record<string, any>"),
 	"iframe marks and marks-pane declarations must keep annotation payload typing"
+);
+assert(
+	iframeViewSource.includes("type DebugWindow = Window &") &&
+		iframeViewSource.includes("__EPUB_VRL_DEBUG__?: boolean") &&
+		iframeViewSource.includes("execUnsafeLocalFunction(callback: () => void): void") &&
+		iframeViewSource.includes("type DisplayReject = (reason?: unknown, view?: IframeView) => void") &&
+		iframeViewSource.includes("props?: Record<string, unknown>") &&
+		iframeViewSource.includes("update?: (settings: Record<string, unknown>) => void") &&
+		iframeViewSource.includes("(window as DebugWindow).__EPUB_VRL_DEBUG__ === true") &&
+		iframeViewSource.includes('this.iframe.setAttribute("sandbox", "allow-same-origin")') &&
+		iframeViewSource.includes('this.iframe.sandbox.add("allow-scripts")') &&
+		iframeViewSource.includes('this.iframe.sandbox.add("allow-popups")') &&
+		iframeViewSource.includes("const msApp = (window as DebugWindow).MSApp") &&
+		iframeViewSource.includes("const reject = displayed.reject as DisplayReject | null") &&
+		!iframeViewSource.includes("(window as any).__EPUB_VRL_DEBUG__") &&
+		!iframeViewSource.includes("(window as any).MSApp") &&
+		!iframeViewSource.includes('this.iframe.sandbox = "allow-same-origin" as any') &&
+		!iframeViewSource.includes('this.iframe.sandbox += " allow-scripts" as any') &&
+		!iframeViewSource.includes('this.iframe.sandbox += " allow-popups" as any') &&
+		!iframeViewSource.includes("(displayed.reject as any)"),
+	"IframeView source must keep debug, sandbox, MSApp, and display rejection bridges typed"
+);
+assert(
+	viewsTests.includes("uses the Windows MSApp write bridge") &&
+		viewsTests.includes("rejects display promises when render fails"),
+	"views browser tests must cover iframe bridge behavior"
 );
 assert(
 	sourceRoot.includes("default as Annotations") &&

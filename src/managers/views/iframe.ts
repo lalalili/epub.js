@@ -28,9 +28,9 @@ type IframeViewLayout = {
 	delta?: number;
 	divisor?: number;
 	gap?: number;
-	props?: Record<string, any>;
+	props?: Record<string, unknown>;
 	count?: (totalLength: number, pageLength?: number) => { pages: number; spreads?: number };
-	update?: (settings: Record<string, any>) => void;
+	update?: (settings: Record<string, unknown>) => void;
 	format?: (contents: Contents, section?: IframeViewSection, axis?: string) => void;
 };
 
@@ -89,6 +89,15 @@ type VerticalRlPageMetrics = {
 	linePitch?: number;
 };
 
+type DebugWindow = Window & {
+	__EPUB_VRL_DEBUG__?: boolean;
+	MSApp?: {
+		execUnsafeLocalFunction(callback: () => void): void;
+	};
+};
+
+type DisplayReject = (reason?: unknown, view?: IframeView) => void;
+
 const Defer = defer as unknown as {
 	new<T = unknown>(): CoreDeferred<T>;
 };
@@ -108,7 +117,7 @@ export function stripScriptTagsFromContents(contents: string): string {
 }
 
 const shouldDebugVerticalRl = () => {
-	return typeof window !== "undefined" && (window as any).__EPUB_VRL_DEBUG__ === true;
+	return typeof window !== "undefined" && (window as DebugWindow).__EPUB_VRL_DEBUG__ === true;
 };
 
 class IframeView {
@@ -199,12 +208,12 @@ class IframeView {
 		this.iframe.style.border = "none";
 
 		// sandbox
-		this.iframe.sandbox = "allow-same-origin" as any;
+		this.iframe.setAttribute("sandbox", "allow-same-origin");
 		if (this.settings.allowScriptedContent) {
-			this.iframe.sandbox += " allow-scripts" as any;
+			this.iframe.sandbox.add("allow-scripts");
 		}
 		if (this.settings.allowPopups) {
-			this.iframe.sandbox += " allow-popups" as any;
+			this.iframe.sandbox.add("allow-popups");
 		}
 		
 		this.iframe.setAttribute("enable-annotation", "true");
@@ -625,9 +634,10 @@ class IframeView {
 
 			this.iframe.contentDocument.open();
 			// For Cordova windows platform
-			if((window as any).MSApp && (window as any).MSApp.execUnsafeLocalFunction) {
+			const msApp = (window as DebugWindow).MSApp;
+			if(msApp && msApp.execUnsafeLocalFunction) {
 				var outerThis = this;
-				(window as any).MSApp.execUnsafeLocalFunction(function () {
+				msApp.execUnsafeLocalFunction(function () {
 					outerThis.iframe.contentDocument.write(contents);
 				});
 			} else {
@@ -731,7 +741,8 @@ class IframeView {
 					displayed.resolve(this);
 
 					}.bind(this), function (err: unknown) {
-						(displayed.reject as any)(err, this);
+						const reject = displayed.reject as DisplayReject | null;
+						reject && reject(err, this);
 					});
 
 		} else {
