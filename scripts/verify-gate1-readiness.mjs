@@ -10,6 +10,7 @@ const sourceRoot = readFileSync(path.join(root, "src/index.ts"), "utf8");
 const bookSource = readFileSync(path.join(root, "src/book.ts"), "utf8");
 const bookTypes = readFileSync(path.join(root, "types/book.d.ts"), "utf8");
 const contentsSource = readFileSync(path.join(root, "src/contents.ts"), "utf8");
+const contentsTypes = readFileSync(path.join(root, "types/contents.d.ts"), "utf8");
 const renditionSource = readFileSync(path.join(root, "src/rendition.ts"), "utf8");
 const renditionTypes = readFileSync(path.join(root, "types/rendition.d.ts"), "utf8");
 const archiveSource = readFileSync(path.join(root, "src/archive.ts"), "utf8");
@@ -886,11 +887,22 @@ assert(typeTests.includes("const contentsOn: unknown = typedContents.on"), "type
 assert(typeTests.includes("const contentsOff: unknown = typedContents.off"), "type tests must cover Contents off listener usage");
 assert(typeTests.includes("const contentsOnce: unknown = typedContents.once"), "type tests must cover Contents once listener usage");
 assert(
-	contentsSource.includes("emit(type: string, ...args: any[]): void") &&
-		contentsSource.includes("on(type: string, listener: (...args: any[]) => void): unknown") &&
-		contentsSource.includes("off(type: string, listener: (...args: any[]) => void): unknown") &&
-		contentsSource.includes("once(type: string, listener: (...args: any[]) => void): unknown"),
-	"source Contents must keep EventEmitter method type parity"
+	typeTests.includes("Parameters<Contents[\"emit\"]>, [type: string, ...args: unknown[]]") &&
+		typeTests.includes("Parameters<Contents[\"on\"]>, [type: string, listener: (...args: unknown[]) => void]") &&
+		typeTests.includes("Parameters<Contents[\"off\"]>, [type: string, listener: (...args: unknown[]) => void]") &&
+		typeTests.includes("Parameters<Contents[\"once\"]>, [type: string, listener: (...args: unknown[]) => void]"),
+	"type tests must assert Contents EventEmitter parameter typing"
+);
+assert(
+	contentsSource.includes("emit(type: string, ...args: unknown[]): void") &&
+		contentsSource.includes("on(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		contentsSource.includes("off(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		contentsSource.includes("once(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		contentsTypes.includes("emit(type: string, ...args: unknown[]): void") &&
+		contentsTypes.includes("on(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		contentsTypes.includes("off(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		contentsTypes.includes("once(type: string, listener: (...args: unknown[]) => void): unknown"),
+	"Contents source and declarations must keep EventEmitter method type parity"
 );
 assert(contentsSource.includes("fit(width: number, height: number, section?: unknown): void"), "source Contents must keep fit optional section typed as unknown");
 assert(

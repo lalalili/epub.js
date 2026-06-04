@@ -2362,10 +2362,10 @@ class Contents {
 }
 
 interface Contents {
-	emit(type: string, ...args: any[]): void;
-	on(type: string, listener: (...args: any[]) => void): unknown;
-	off(type: string, listener: (...args: any[]) => void): unknown;
-	once(type: string, listener: (...args: any[]) => void): unknown;
+	emit(type: string, ...args: unknown[]): void;
+	on(type: string, listener: (...args: unknown[]) => void): unknown;
+	off(type: string, listener: (...args: unknown[]) => void): unknown;
+	once(type: string, listener: (...args: unknown[]) => void): unknown;
 }
 
 EventEmitter(Contents.prototype);
