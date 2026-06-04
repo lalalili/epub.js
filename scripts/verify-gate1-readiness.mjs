@@ -1516,6 +1516,15 @@ assert(
 	"Default manager constructor-injected state must stay typed without catch-all any"
 );
 assert(
+	managerSource.includes("declare stage: Stage") &&
+		managerSource.includes("declare container: HTMLDivElement") &&
+		managerSource.includes("declare overflow?: string") &&
+		managerSource.includes("declare viewSettings: Record<string, unknown>") &&
+		managerSource.includes("bounds(): ManagerBounds") &&
+		managerSource.includes("this.stage.bounds() as ManagerBounds"),
+	"Default manager render surface state must stay typed without catch-all any"
+);
+assert(
 	managerSource.includes("type ManagerOffset = {") &&
 		managerSource.includes("type ViewResizeBounds = {") &&
 		managerSource.includes("resize(width?: number, height?: number, epubcfi?: string): void") &&

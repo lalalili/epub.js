@@ -170,6 +170,10 @@ class DefaultViewManager {
 	declare request: unknown;
 	declare renditionQueue: unknown;
 	declare q: Queue;
+	declare stage: Stage;
+	declare container: HTMLDivElement;
+	declare overflow?: string;
+	declare viewSettings: Record<string, unknown>;
 	declare emit: (type: string, ...args: unknown[]) => void;
 	declare on: (type: string, listener: (...args: unknown[]) => void) => unknown;
 	declare off: (type: string, listener: (...args: unknown[]) => void) => unknown;
@@ -2312,10 +2316,10 @@ class DefaultViewManager {
 
 	}
 
-	bounds() {
+	bounds(): ManagerBounds {
 		var bounds;
 
-		bounds = this.stage.bounds();
+		bounds = this.stage.bounds() as ManagerBounds;
 
 		return bounds;
 	}
