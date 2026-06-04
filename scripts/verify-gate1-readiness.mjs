@@ -1458,6 +1458,11 @@ assert(
 	"Default manager timeout handles must keep class state typed without catch-all any"
 );
 assert(
+	managerSource.includes("declare _onUnload?: EventListener") &&
+		managerSource.includes("declare _onScroll?: EventListener"),
+	"Default manager event listener handles must keep class state typed without catch-all any"
+);
+assert(
 	managerTypes.includes("[key: string]: unknown") &&
 		!managerTypes.includes("[key: string]: any") &&
 		typeTests.includes("ManagerOptions[\"custom\"], unknown"),
