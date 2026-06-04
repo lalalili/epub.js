@@ -251,6 +251,8 @@ class DefaultViewManager {
 	declare _verticalRlSequentialBoundaryConstraint?: VerticalRlSequentialBoundaryConstraint | null;
 	declare _verticalRlBoundarySnapRetryToken?: number;
 	declare _verticalRlBoundarySnapApplying?: boolean;
+	declare _verticalRlViewportClipOverlay?: HTMLDivElement;
+	declare _verticalRlPreviousParentPosition?: string;
 	declare name: string;
 	declare optsSettings: ManagerSettings;
 	declare settings: ManagerSettings;
@@ -1240,7 +1242,7 @@ class DefaultViewManager {
 		return { left, right };
 	}
 
-	syncVerticalRlViewportClip(){
+	syncVerticalRlViewportClip(): void {
 		if (!this.container || !this.container.style) {
 			return;
 		}
@@ -1278,7 +1280,7 @@ class DefaultViewManager {
 		this.container.dataset.epubVrlEdgeMaskRight = String(maskWidths.right);
 	}
 
-	getVerticalRlViewportClipOverlay(){
+	getVerticalRlViewportClipOverlay(): HTMLDivElement | null {
 		let parent = this.container && this.container.parentElement;
 		if (!parent || !parent.style) {
 			return null;
@@ -1312,7 +1314,7 @@ class DefaultViewManager {
 		return overlay;
 	}
 
-	removeVerticalRlViewportClip(){
+	removeVerticalRlViewportClip(): void {
 		if (this._verticalRlViewportClipOverlay) {
 			this._verticalRlViewportClipOverlay.remove();
 			this._verticalRlViewportClipOverlay = undefined;

@@ -1503,6 +1503,14 @@ assert(
 	"Default manager vertical-rl cache and retry token state must stay typed without catch-all any"
 );
 assert(
+	managerSource.includes("declare _verticalRlViewportClipOverlay?: HTMLDivElement") &&
+		managerSource.includes("declare _verticalRlPreviousParentPosition?: string") &&
+		managerSource.includes("syncVerticalRlViewportClip(): void") &&
+		managerSource.includes("getVerticalRlViewportClipOverlay(): HTMLDivElement | null") &&
+		managerSource.includes("removeVerticalRlViewportClip(): void"),
+	"Default manager vertical-rl viewport clip DOM state must stay typed without catch-all any"
+);
+assert(
 	managerTypes.includes("[key: string]: unknown") &&
 		!managerTypes.includes("[key: string]: any") &&
 		typeTests.includes("ManagerOptions[\"custom\"], unknown"),
