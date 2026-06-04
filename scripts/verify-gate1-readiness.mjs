@@ -21,6 +21,7 @@ const resourcesTypes = readFileSync(path.join(root, "types/resources.d.ts"), "ut
 const storeTypes = readFileSync(path.join(root, "types/store.d.ts"), "utf8");
 const annotationsSource = readFileSync(path.join(root, "src/annotations.ts"), "utf8");
 const locationsSource = readFileSync(path.join(root, "src/locations.ts"), "utf8");
+const locationsTypes = readFileSync(path.join(root, "types/locations.d.ts"), "utf8");
 const mappingSource = readFileSync(path.join(root, "src/mapping.ts"), "utf8");
 const mappingTypes = readFileSync(path.join(root, "types/mapping.d.ts"), "utf8");
 const globalTypeTests = readFileSync(path.join(root, "types/global-namespace-tests.ts"), "utf8");
@@ -261,6 +262,12 @@ assert(
 	sourceRoot.includes("LocationsRequest") &&
 	sourceRoot.includes("WordLocation"),
 	"source root must export Locations public types"
+);
+assert(
+	locationsSource.includes("LocationsRequest = (...args: any[]) => Promise<unknown>") &&
+	locationsTypes.includes("LocationsRequest = (...args: any[]) => Promise<unknown>") &&
+	typeTests.includes("Promise<unknown> = locationsRequest"),
+	"LocationsRequest source, declarations, and type tests must keep unknown result parity"
 );
 assert(
 	typeTests.includes("RootThemes") &&

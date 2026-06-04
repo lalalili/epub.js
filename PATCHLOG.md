@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0372
+- Why:
+  - `LocationsRequest` is a package-root exported surface, but its request result still leaked `any`.
+  - Locations passes the request through to `Section.load()` and treats the loaded section contents through that typed boundary, so the public request result can remain opaque as `unknown`.
+  - Tightening this surface keeps Locations source/.d.ts/TypeDoc parity enforceable without changing generate, process, generateForSection, or word-location runtime behavior.
+- Diff Scope:
+  - `src/locations.ts`: type `LocationsRequest` results as `unknown` and explicitly bridge the request into the `SectionRequest` load boundary.
+  - `types/locations.d.ts`: mirror the LocationsRequest unknown result public surface.
+  - `types/epubjs-tests.ts`: assert Locations constructor/request typing and usage smoke with `Promise<unknown>`.
+  - `scripts/verify-gate1-readiness.mjs`: require LocationsRequest unknown result parity across source, declarations, and type tests.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/locations.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Locations consumers intentionally rely on request results being typed as `any`.
+
 ### P-0371
 - Why:
   - `QueueTask`, `QueuedItem`, and `Queue` are package-root exported surfaces, but task results, queued promises, and context values still leaked `any`.

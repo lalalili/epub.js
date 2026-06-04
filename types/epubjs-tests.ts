@@ -853,9 +853,9 @@ type PageListAssertions = [
 ];
 
 type LocationsAssertions = [
-  Assert<IsExact<ConstructorParameters<typeof Locations>, [spine?: Spine | undefined, request?: ((...args: any[]) => Promise<any>) | undefined, pause?: number | undefined]>>,
+  Assert<IsExact<ConstructorParameters<typeof Locations>, [spine?: Spine | undefined, request?: ((...args: any[]) => Promise<unknown>) | undefined, pause?: number | undefined]>>,
   Assert<IsExact<Locations["spine"], Spine | undefined>>,
-  Assert<IsExact<Locations["request"], ((...args: any[]) => Promise<any>) | undefined>>,
+  Assert<IsExact<Locations["request"], ((...args: any[]) => Promise<unknown>) | undefined>>,
   Assert<IsExact<Locations["pause"], number | undefined>>,
   Assert<IsExact<Locations["_locations"], string[] | undefined>>,
   Assert<IsExact<Locations["_locationsWords"], WordLocation[] | undefined>>,
@@ -1401,7 +1401,9 @@ function testEpub() {
   const pageFromPercentage: number = pageList.pageFromPercentage(0.5);
   const percentageFromPage: number = pageList.percentageFromPage(1);
   const percentageFromCfi: number = pageList.percentageFromCfi("epubcfi(/6/2[chap]!/4/2/2)");
-  const locations = new Locations(spine, () => Promise.resolve(parsedDocument), 10);
+  const locationsRequest: LocationsRequest = () => Promise.resolve(parsedDocument);
+  const locationsRequestResult: Promise<unknown> = locationsRequest("Text/chapter.xhtml");
+  const locations = new Locations(spine, locationsRequest, 10);
   const locationRange: LocationRange = locations.createRange();
   const loadedLocations: string[] = locations.load([
     "epubcfi(/6/2[chap]!/4/2/2)",
@@ -1426,6 +1428,7 @@ function testEpub() {
   const locationOn: unknown = locations.on("changed", locationListener);
   const locationOff: unknown = locations.off("changed", locationListener);
   const locationOnce: unknown = locations.once("changed", locationListener);
+  void locationsRequestResult;
   const mappingLayout: MappingLayout = {
     spreadWidth: 200,
     columnWidth: 100,

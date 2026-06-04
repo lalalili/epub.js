@@ -6,7 +6,7 @@
 
 # Type Alias: LocationsRequest
 
-> **LocationsRequest** = (...`args`) => `Promise`\<`any`\>
+> **LocationsRequest** = (...`args`) => `Promise`\<`unknown`\>
 
 ## Parameters
 
@@ -16,4 +16,4 @@
 
 ## Returns
 
-`Promise`\<`any`\>
+`Promise`\<`unknown`\>

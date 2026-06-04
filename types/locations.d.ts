@@ -15,7 +15,7 @@ export interface WordLocation {
   wordCount: number;
 }
 
-export type LocationsRequest = (...args: any[]) => Promise<any>;
+export type LocationsRequest = (...args: any[]) => Promise<unknown>;
 
 export type LocationInput = string | EpubCFI;
 

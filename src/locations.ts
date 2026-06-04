@@ -7,6 +7,7 @@ import EpubCFI from "./epubcfi";
 import { EVENTS } from "./utils/constants";
 import EventEmitter from "event-emitter";
 import type Section from "./section";
+import type { SectionRequest } from "./section";
 import type Spine from "./spine";
 
 export interface LocationRange {
@@ -16,7 +17,7 @@ export interface LocationRange {
 	endOffset?: number;
 }
 
-export type LocationsRequest = (...args: any[]) => Promise<any>;
+export type LocationsRequest = (...args: any[]) => Promise<unknown>;
 
 export interface WordLocation {
 	cfi: string;
@@ -125,7 +126,7 @@ class Locations {
 
 	process(section: Section): Promise<string[]> {
 
-		return section.load(this.request)
+		return section.load(this.request as SectionRequest | undefined)
 			.then(function(contents: Element) {
 				var completed = new (defer as any)();
 				var locations = this.parse(contents, section.cfiBase!);
@@ -267,7 +268,7 @@ class Locations {
 		var breakSize = chars || this.break!;
 		var cfiPrefix = "epubcfi(" + section.cfiBase + "!";
 
-		return section.load(this.request)
+		return section.load(this.request as SectionRequest | undefined)
 			.then(function(contents: Element) {
 				var newLocs = this.parse(contents, section.cfiBase, breakSize);
 				section.unload();
@@ -346,7 +347,7 @@ class Locations {
 			return Promise.resolve();
 		}
 
-		return section.load(this.request)
+		return section.load(this.request as SectionRequest | undefined)
 			.then(function(contents: Element) {
 				var completed = new (defer as any)();
 				var locations = this.parseWords(contents, section, wordCount, startCfi);
