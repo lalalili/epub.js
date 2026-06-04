@@ -502,6 +502,8 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Rendition["currentLocation"]>, Location | Promise<Location> | undefined>>,
   Assert<IsExact<ReturnType<Rendition["display"]>, Promise<void>>>,
   Assert<IsExact<ReturnType<Rendition["determineLayoutProperties"]>, RenditionLayoutProperties>>,
+  Assert<IsExact<Parameters<Rendition["layout"]>, [settings?: RenditionLayoutProperties | Record<string, unknown> | undefined]>>,
+  Assert<IsExact<ReturnType<Rendition["layout"]>, Layout | undefined>>,
   Assert<IsExact<ReturnType<Rendition["debugVerticalRlPage"]>, RenditionVerticalRlDebugState>>,
   Assert<IsExact<ReturnType<Rendition["getContents"]>, Contents[]>>,
   Assert<IsExact<ReturnType<Rendition["getRange"]>, Range | undefined>>,
@@ -1179,6 +1181,11 @@ function testEpub() {
     viewport: "",
     direction: "ltr",
   });
+  const renditionLayout: Layout | undefined = rendition.layout(renditionLayoutProperties);
+  const renditionLayoutWithCustomSettings: Layout | undefined = rendition.layout({
+    layout: "reflowable",
+    customSetting: true,
+  });
   const managerLocationItem: ManagerLocationItem = {
     index: 1,
     href: "Text/chapter.xhtml",
@@ -1765,6 +1772,8 @@ function testEpub() {
   void rootBlobBook;
   void rootOptionsOnlyBook;
   void renditionLayoutProperties;
+  void renditionLayout;
+  void renditionLayoutWithCustomSettings;
   void managerLocationItem;
   void renditionLocationPart;
   void displayedLocation;

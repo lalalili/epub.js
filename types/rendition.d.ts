@@ -155,7 +155,7 @@ export default class Rendition {
 
     injectStylesheet(doc: Document, section: Section): void;
 
-    layout(settings: any): any;
+    layout(settings?: LayoutProperties | Record<string, unknown>): Layout | undefined;
 
     located(location: Array<ManagerLocationItem | null | undefined>): Location;
 

@@ -426,17 +426,17 @@
 
 ### layout()
 
-> **layout**(`settings`): `any`
+> **layout**(`settings?`): [`Layout`](Layout.md)
 
 #### Parameters
 
-##### settings
+##### settings?
 
-`any`
+[`RenditionLayoutProperties`](../interfaces/RenditionLayoutProperties.md) \| `Record`\<`string`, `unknown`\>
 
 #### Returns
 
-`any`
+[`Layout`](Layout.md)
 
 ***
 

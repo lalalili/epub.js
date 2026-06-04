@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0402
+- Why:
+  - `Rendition.layout()` is a package-root public method that creates and returns the active `Layout`, but the declaration still exposed both its settings and result as `any`.
+  - The method accepts the existing layout property bag while preserving extension settings, so the fallback can use `Record<string, unknown>` instead of leaking arbitrary `any`.
+  - Tightening the return to `Layout | undefined` keeps source, declarations, TypeDoc, and Gate 1 aligned with the existing `_layout` lifecycle without changing layout application behavior.
+- Diff Scope:
+  - `src/rendition.ts`: type `layout()` settings fallback as `unknown` values and return `Layout | undefined`.
+  - `types/rendition.d.ts`: mirror the same `layout()` parameter and return surface.
+  - `types/epubjs-tests.ts`: assert and exercise `Rendition.layout()` settings and return typing.
+  - `scripts/verify-gate1-readiness.mjs`: require Rendition layout source/declaration/type-test parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `Rendition.layout()` must intentionally expose untyped settings or return values.
+
 ### P-0401
 - Why:
   - `Spine.each()` forwards directly to `Array.prototype.forEach`, and the optional `thisArg` does not need to leak `any` through the package-root public API.

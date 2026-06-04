@@ -813,7 +813,7 @@ class Rendition {
 	 * Adjust the layout of the rendition to reflowable or pre-paginated
 	 * @param  {object} settings
 	 */
-	layout(settings?: LayoutProperties | Record<string, any>): any {
+	layout(settings?: LayoutProperties | Record<string, unknown>): Layout | undefined {
 		if (settings) {
 			this._layout = new Layout(settings as any);
 			this._layout.spread(settings.spread, this.settings.minSpreadWidth);
