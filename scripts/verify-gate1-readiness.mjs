@@ -118,9 +118,22 @@ assert(
 	sourceRoot.includes("NavigationDocument"),
 	"source root must export Navigation public types"
 );
-assert(typeTests.includes("RootPageListItem"), "type tests must assert root PageList type exports");
 assert(
-	sourceRoot.includes("PageListItem") && sourceRoot.includes("PageValue") && sourceRoot.includes("PageListDocument"),
+	typeTests.includes("RootPageList") &&
+	typeTests.includes("RootPageListDocument") &&
+	typeTests.includes("RootPageListItem") &&
+	typeTests.includes("RootPageLookup") &&
+	typeTests.includes("RootPageReverseLookup") &&
+	typeTests.includes("RootPageValue"),
+	"type tests must assert root PageList type exports"
+);
+assert(
+	sourceRoot.includes("default as PageList") &&
+	sourceRoot.includes("PageListDocument") &&
+	sourceRoot.includes("PageListItem") &&
+	sourceRoot.includes("PageLookup") &&
+	sourceRoot.includes("PageReverseLookup") &&
+	sourceRoot.includes("PageValue"),
 	"source root must export PageList public types"
 );
 assert(typeTests.includes("RootParsedPath"), "type tests must assert root Path type exports");
