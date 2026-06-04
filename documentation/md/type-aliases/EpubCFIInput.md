@@ -6,4 +6,4 @@
 
 # Type Alias: EpubCFIInput
 
-> **EpubCFIInput** = `string` \| `Range` \| `RangeObject` \| `Node` \| [`EpubCFI`](../classes/EpubCFI.md)
+> **EpubCFIInput** = `string` \| `Range` \| `RangeObject` \| [`EpubCFIRangeInput`](../interfaces/EpubCFIRangeInput.md) \| `Node` \| [`EpubCFI`](../classes/EpubCFI.md)

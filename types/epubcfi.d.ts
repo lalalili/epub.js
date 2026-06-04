@@ -22,6 +22,14 @@ export interface EpubCFIComponent {
   terminal: EpubCFITerminal | null
 }
 
+export interface EpubCFIRangeInput {
+  startContainer?: Node,
+  startOffset?: number,
+  endContainer?: Node,
+  endOffset?: number,
+  collapsed?: boolean
+}
+
 export interface ParsedEpubCFI {
   spinePos?: number,
   range: boolean,
@@ -32,7 +40,7 @@ export interface ParsedEpubCFI {
 }
 
 export type EpubCFIBase = string | EpubCFIComponent | Record<string, never>;
-export type EpubCFIInput = string | Range | RangeObject | Node | EpubCFI;
+export type EpubCFIInput = string | Range | RangeObject | EpubCFIRangeInput | Node | EpubCFI;
 export type EpubCFIType = "string" | "range" | "node" | "EpubCFI" | false;
 
 interface MissedBoundary {
@@ -55,7 +63,7 @@ export default class EpubCFI {
 
     fromNode(anchor: Node, base: EpubCFIBase, ignoreClass?: string): ParsedEpubCFI;
 
-    fromRange(range: Range | RangeObject, base: EpubCFIBase, ignoreClass?: string): ParsedEpubCFI;
+    fromRange(range: Range | RangeObject | EpubCFIRangeInput, base: EpubCFIBase, ignoreClass?: string): ParsedEpubCFI;
 
     parse(cfiStr: string): ParsedEpubCFI | { spinePos: number };
 

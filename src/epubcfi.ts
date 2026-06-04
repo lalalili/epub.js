@@ -25,6 +25,14 @@ export interface EpubCFIComponent {
 	terminal: EpubCFITerminal | null;
 }
 
+export interface EpubCFIRangeInput {
+	startContainer?: Node;
+	startOffset?: number;
+	endContainer?: Node;
+	endOffset?: number;
+	collapsed?: boolean;
+}
+
 export interface ParsedEpubCFI {
 	spinePos?: number;
 	range: boolean;
@@ -34,7 +42,7 @@ export interface ParsedEpubCFI {
 	end: EpubCFIComponent | null;
 }
 
-type RangeLike = Range | RangeObject;
+type RangeLike = Range | RangeObject | EpubCFIRangeInput;
 export type EpubCFIBase = string | EpubCFIComponent | Record<string, never>;
 export type EpubCFIInput = string | RangeLike | Node | EpubCFI;
 export type EpubCFIType = "string" | "range" | "node" | "EpubCFI" | false;
@@ -75,7 +83,7 @@ class EpubCFI {
 	start: EpubCFIComponent | null;
 	end: EpubCFIComponent | null;
 
-	constructor(cfiFrom?: EpubCFIInput | any, base?: EpubCFIBase, ignoreClass?: string){
+	constructor(cfiFrom?: EpubCFIInput, base?: EpubCFIBase, ignoreClass?: string){
 		var type;
 
 		this.str = "";
@@ -104,14 +112,14 @@ class EpubCFI {
 
 
 		if(type === "string") {
-			this.str = cfiFrom;
-			return extend(this, this.parse(cfiFrom));
+			this.str = cfiFrom as string;
+			return extend(this, this.parse(cfiFrom as string));
 		} else if (type === "range") {
-			return extend(this, this.fromRange(cfiFrom, this.base, ignoreClass));
+			return extend(this, this.fromRange(cfiFrom as RangeLike, this.base, ignoreClass));
 		} else if (type === "node") {
-			return extend(this, this.fromNode(cfiFrom, this.base, ignoreClass));
-		} else if (type === "EpubCFI" && cfiFrom.path) {
-			return cfiFrom;
+			return extend(this, this.fromNode(cfiFrom as Node, this.base, ignoreClass));
+		} else if (type === "EpubCFI" && (cfiFrom as EpubCFI).path) {
+			return cfiFrom as EpubCFI;
 		} else if (!cfiFrom) {
 			return this;
 		} else {
@@ -566,11 +574,11 @@ class EpubCFI {
 			end: null
 		};
 
-		var start = range.startContainer;
-		var end = range.endContainer;
+		var start = range.startContainer!;
+		var end = range.endContainer!;
 
-		var startOffset = range.startOffset;
-		var endOffset = range.endOffset;
+		var startOffset = range.startOffset!;
+		var endOffset = range.endOffset!;
 
 		var needsIgnoring = false;
 

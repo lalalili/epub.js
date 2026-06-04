@@ -47,6 +47,7 @@ import type {
   EpubCFIBase as RootEpubCFIBase,
   EpubCFIComponent as RootEpubCFIComponent,
   EpubCFIInput as RootEpubCFIInput,
+  EpubCFIRangeInput as RootEpubCFIRangeInput,
   DisplayedLocation as RootDisplayedLocation,
   Location as RootLocation,
   LocationInput as RootLocationInput,
@@ -205,6 +206,7 @@ import type {
   EpubCFIBase,
   EpubCFIComponent,
   EpubCFIInput,
+  EpubCFIRangeInput,
   EpubCFISegment,
   EpubCFIStep,
   EpubCFITerminal,
@@ -292,6 +294,7 @@ type PublicRootAssertions = [
   Assert<IsExact<RootEpubCFIBase, EpubCFIBase>>,
   Assert<IsExact<RootEpubCFIComponent, EpubCFIComponent>>,
   Assert<IsExact<RootEpubCFIInput, EpubCFIInput>>,
+  Assert<IsExact<RootEpubCFIRangeInput, EpubCFIRangeInput>>,
   Assert<IsExact<RootEpubCFISegment, EpubCFISegment>>,
   Assert<IsExact<RootEpubCFIStep, EpubCFIStep>>,
   Assert<IsExact<RootEpubCFITerminal, EpubCFITerminal>>,
@@ -654,6 +657,7 @@ type EpubCFIAssertions = [
   Assert<IsExact<EpubCFI["path"], EpubCFIComponent | Record<string, never>>>,
   Assert<IsExact<EpubCFI["start"], EpubCFIComponent | null>>,
   Assert<IsExact<EpubCFI["end"], EpubCFIComponent | null>>,
+  Assert<IsExact<EpubCFIRangeInput, { startContainer?: Node | undefined; startOffset?: number | undefined; endContainer?: Node | undefined; endOffset?: number | undefined; collapsed?: boolean | undefined }>>,
   Assert<IsExact<ReturnType<EpubCFI["isCfiString"]>, boolean>>,
   Assert<IsExact<ReturnType<EpubCFI["checkType"]>, EpubCFIType>>,
   Assert<IsExact<ReturnType<EpubCFI["parse"]>, ParsedEpubCFI | { spinePos: number }>>,
@@ -662,6 +666,7 @@ type EpubCFIAssertions = [
   Assert<IsExact<ReturnType<EpubCFI["parseTerminal"]>, EpubCFITerminal>>,
   Assert<IsExact<ReturnType<EpubCFI["getPathComponent"]>, string | undefined>>,
   Assert<IsExact<ReturnType<EpubCFI["getRange"]>, [string, string] | false>>,
+  Assert<IsExact<Parameters<EpubCFI["fromRange"]>[0], Range | import('./compat/range').RangeObject | EpubCFIRangeInput>>,
   Assert<IsExact<ReturnType<EpubCFI["fromNode"]>, ParsedEpubCFI>>,
   Assert<IsExact<ReturnType<EpubCFI["fromRange"]>, ParsedEpubCFI>>,
   Assert<IsExact<ReturnType<EpubCFI["collapse"]>, void>>,
@@ -1607,6 +1612,7 @@ function testEpub() {
   const locationsRequestResult: Promise<unknown> = locationsRequest("Text/chapter.xhtml");
   const locations = new Locations(spine, locationsRequest, 10);
   const locationRange: LocationRange = locations.createRange();
+  const locationRangeCfiInput: EpubCFIInput = locationRange;
   const loadedLocations: string[] = locations.load([
     "epubcfi(/6/2[chap]!/4/2/2)",
     "epubcfi(/6/2[chap]!/4/4/2)",
@@ -1956,6 +1962,7 @@ function testEpub() {
   void coreRangeEndContainer;
   void coreRangeEndOffset;
   void coreRangeCommonAncestorContainer;
+  void locationRangeCfiInput;
   void coreQueryAll;
   void layout;
   void defaultLayout;

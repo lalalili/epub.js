@@ -37,6 +37,7 @@
 - [DisplayOptions](interfaces/DisplayOptions.md)
 - [EpubCFIComponent](interfaces/EpubCFIComponent.md)
 - [EpubCFIPair](interfaces/EpubCFIPair.md)
+- [EpubCFIRangeInput](interfaces/EpubCFIRangeInput.md)
 - [EpubCFISegment](interfaces/EpubCFISegment.md)
 - [EpubCFIStep](interfaces/EpubCFIStep.md)
 - [EpubCFITerminal](interfaces/EpubCFITerminal.md)

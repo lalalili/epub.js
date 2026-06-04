@@ -15,7 +15,7 @@ export type { default as Archive, ArchiveEntry, ArchiveInput, ArchiveMarkupReque
 export { default as Book } from './book';
 export type { BookInput, BookLoaded, BookLoading, BookOptions, BookReady } from './book';
 export { default as EpubCFI } from './epubcfi';
-export type { EpubCFIBase, EpubCFIComponent, EpubCFIInput, EpubCFISegment, EpubCFIStep, EpubCFITerminal, EpubCFIType, ParsedEpubCFI } from './epubcfi';
+export type { EpubCFIBase, EpubCFIComponent, EpubCFIInput, EpubCFIRangeInput, EpubCFISegment, EpubCFIStep, EpubCFITerminal, EpubCFIType, ParsedEpubCFI } from './epubcfi';
 export { default as Rendition } from './rendition';
 export type { DisplayedLocation, LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionHooks, RenditionLocationPart, RenditionManager, RenditionManagerConstructor, RenditionManagerOptions, RenditionOptions, RenditionViewConstructor, RenditionVerticalRlDebugState, RenditionVerticalRlPageDebug, RenditionViewsBridge } from './rendition';
 export { default as Contents } from './contents';

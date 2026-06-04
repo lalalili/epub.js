@@ -198,7 +198,7 @@
 
 ##### range
 
-`Range` \| `RangeObject`
+`Range` \| `RangeObject` \| [`EpubCFIRangeInput`](../interfaces/EpubCFIRangeInput.md)
 
 ##### base
 

@@ -1649,8 +1649,23 @@ assert(typeTests.includes("cfi.fromRange(parsedDocument.createRange(), cfiBase)"
 assert(typeTests.includes("EpubCFIComponent | Record<string, never>"), "type tests must assert EpubCFI empty fallback object typing without any");
 assert(typeTests.includes("const cfiFallbackBase: EpubCFIBase = {}"), "type tests must cover EpubCFI empty fallback base typing");
 assert(
-	sourceRoot.includes("ParsedEpubCFI") && sourceRoot.includes("EpubCFISegment") && sourceRoot.includes("EpubCFIInput"),
+	sourceRoot.includes("ParsedEpubCFI") &&
+		sourceRoot.includes("EpubCFISegment") &&
+		sourceRoot.includes("EpubCFIInput") &&
+		sourceRoot.includes("EpubCFIRangeInput"),
 	"source root must export EpubCFI public types"
+);
+assert(
+	epubcfiSource.includes("export interface EpubCFIRangeInput") &&
+		epubcfiTypes.includes("export interface EpubCFIRangeInput") &&
+		epubcfiSource.includes("constructor(cfiFrom?: EpubCFIInput, base?: EpubCFIBase, ignoreClass?: string)") &&
+		epubcfiTypes.includes("constructor(cfiFrom?: EpubCFIInput, base?: EpubCFIBase, ignoreClass?: string)") &&
+		typeIndex.includes("EpubCFIRangeInput") &&
+		typeTests.includes("RootEpubCFIRangeInput, EpubCFIRangeInput") &&
+		typeTests.includes("const locationRangeCfiInput: EpubCFIInput = locationRange") &&
+		typeTests.includes("Parameters<EpubCFI[\"fromRange\"]>[0], Range | import('./compat/range').RangeObject | EpubCFIRangeInput") &&
+		!epubcfiSource.includes("constructor(cfiFrom?: EpubCFIInput | any"),
+	"EpubCFI source and declarations must keep constructor and lightweight range input typed without any"
 );
 assert(
 	epubcfiSource.includes("segmentString(segment: EpubCFIComponent | Record<string, never>): string") &&

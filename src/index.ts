@@ -65,6 +65,7 @@ export type {
 	EpubCFIBase,
 	EpubCFIComponent,
 	EpubCFIInput,
+	EpubCFIRangeInput,
 	EpubCFISegment,
 	EpubCFIStep,
 	EpubCFITerminal,
