@@ -213,9 +213,20 @@ assert(
 	sourceRoot.includes("RangePair"),
 	"source root must export Mapping public types"
 );
-assert(typeTests.includes("RootLocationsRequest"), "type tests must assert root Locations type exports");
 assert(
-	sourceRoot.includes("LocationRange") && sourceRoot.includes("LocationsRequest") && sourceRoot.includes("default as Locations"),
+	typeTests.includes("RootLocations") &&
+	typeTests.includes("RootLocationInput") &&
+	typeTests.includes("RootLocationRange") &&
+	typeTests.includes("RootLocationsRequest") &&
+	typeTests.includes("RootWordLocation"),
+	"type tests must assert root Locations type exports"
+);
+assert(
+	sourceRoot.includes("default as Locations") &&
+	sourceRoot.includes("LocationInput") &&
+	sourceRoot.includes("LocationRange") &&
+	sourceRoot.includes("LocationsRequest") &&
+	sourceRoot.includes("WordLocation"),
 	"source root must export Locations public types"
 );
 assert(typeTests.includes("RootThemesRendition"), "type tests must assert root Themes type exports");
