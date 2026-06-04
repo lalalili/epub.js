@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0424
+- Why:
+  - `querySelectorByType()` already has a public `Element | undefined` utility declaration, but the platform DOM source still stored its query result as `any`.
+  - Aligning the querySelector result and fallback collection with DOM types keeps source typing in sync with the public utils/core surface before Gate 1 release work.
+  - This removes another source-side `any` leak without changing querySelector priority, EPUB namespace fallback, or return values.
+- Diff Scope:
+  - `src/platform/dom.ts`: type the querySelector result and fallback collection in `querySelectorByType()`.
+  - `scripts/verify-gate1-readiness.mjs`: require the platform DOM query fallback to remain typed.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `querySelectorByType()` fallback values must intentionally remain source-untyped.
+
 ### P-0423
 - Why:
   - The root `utils/core` declarations and type smoke tests already expose `BlobContent` for `createBlob()` and `createBlobUrl()`, but the platform blob source still accepted `any`.

@@ -961,11 +961,10 @@ function ve(e, t, n) {
 	}), i) return i[0];
 }
 function Q(e, t, n) {
-	var r;
-	if (e.querySelector !== void 0 && (r = e.querySelector(`${t}[*|type="${n}"]`)), !r || r.length === 0) {
-		r = _e(e, t);
-		for (var i = 0; i < r.length; i++) if (r[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === n || r[i].getAttribute("epub:type") === n) return r[i];
-	} else return r;
+	var r, i;
+	if (e.querySelector !== void 0 && (r = e.querySelector(`${t}[*|type="${n}"]`)), r) return r;
+	i = _e(e, t);
+	for (var a = 0; a < i.length; a++) if (i[a].getAttributeNS("http://www.idpf.org/2007/ops", "type") === n || i[a].getAttribute("epub:type") === n) return i[a];
 }
 //#endregion
 //#region src/utils/replacements.ts

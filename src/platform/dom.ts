@@ -81,20 +81,21 @@ export function qsp(el: Element | Document, sel: string, props: QueryProps): Ele
  * @returns {Element | undefined} First matching element.
  */
 export function querySelectorByType(html: Element | Document, element: string, type: string): Element | undefined {
-	var query: any;
+	var query: Element | null | undefined;
+	var elements: NodeListOf<Element> | HTMLCollectionOf<Element>;
 
 	if (typeof html.querySelector !== "undefined") {
 		query = html.querySelector(`${element}[*|type="${type}"]`);
 	}
 
-	if (!query || query.length === 0) {
-		query = qsa(html, element);
-		for (var i = 0; i < query.length; i++) {
+	if (!query) {
+		elements = qsa(html, element);
+		for (var i = 0; i < elements.length; i++) {
 			if (
-				query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type ||
-				query[i].getAttribute("epub:type") === type
+				elements[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type ||
+				elements[i].getAttribute("epub:type") === type
 			) {
-				return query[i];
+				return elements[i];
 			}
 		}
 	} else {

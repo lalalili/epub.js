@@ -36,6 +36,7 @@ const locationsTypes = readFileSync(path.join(root, "types/locations.d.ts"), "ut
 const mappingSource = readFileSync(path.join(root, "src/mapping.ts"), "utf8");
 const mappingTypes = readFileSync(path.join(root, "types/mapping.d.ts"), "utf8");
 const platformBlobSource = readFileSync(path.join(root, "src/platform/blob.ts"), "utf8");
+const platformDomSource = readFileSync(path.join(root, "src/platform/dom.ts"), "utf8");
 const requestSource = readFileSync(path.join(root, "src/utils/request.ts"), "utf8");
 const queueSource = readFileSync(path.join(root, "src/utils/queue.ts"), "utf8");
 const queueTypes = readFileSync(path.join(root, "types/utils/queue.d.ts"), "utf8");
@@ -1258,6 +1259,13 @@ assert(
 		!platformBlobSource.includes("createBlobUrl(content: any") &&
 		!platformBlobSource.includes("createBase64Url(content: any"),
 	"source platform blob helpers must keep BlobContent and string input type parity"
+);
+assert(
+	platformDomSource.includes("querySelectorByType(html: Element | Document, element: string, type: string): Element | undefined") &&
+		platformDomSource.includes("var query: Element | null | undefined") &&
+		platformDomSource.includes("var elements: NodeListOf<Element> | HTMLCollectionOf<Element>") &&
+		!platformDomSource.includes("var query: any"),
+	"source platform DOM querySelectorByType must keep typed query fallback handling"
 );
 assert(typeTests.includes("new ePub.utils.RangeObject()"), "type tests must cover utils/core RangeObject typing");
 assert(typeTests.includes("type EpubCFIAssertions"), "type tests must assert the EpubCFI public surface");

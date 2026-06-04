@@ -1999,10 +1999,11 @@
 	*/
 	function querySelectorByType$1(html, element, type) {
 		var query;
+		var elements;
 		if (typeof html.querySelector !== "undefined") query = html.querySelector(`${element}[*|type="${type}"]`);
-		if (!query || query.length === 0) {
-			query = qsa$1(html, element);
-			for (var i = 0; i < query.length; i++) if (query[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type || query[i].getAttribute("epub:type") === type) return query[i];
+		if (!query) {
+			elements = qsa$1(html, element);
+			for (var i = 0; i < elements.length; i++) if (elements[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type || elements[i].getAttribute("epub:type") === type) return elements[i];
 		} else return query;
 	}
 	//#endregion
