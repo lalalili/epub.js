@@ -36,10 +36,10 @@ type UrlFactory = typeof URL & {
 	webkitURL?: typeof URL;
 	mozURL?: typeof URL;
 };
-type DeferConstructor = new () => {
-	promise: Promise<any>;
-	resolve(value?: any): void;
-	reject(error?: any): void;
+type DeferConstructor = new <T = unknown>() => {
+	promise: Promise<T>;
+	resolve(value?: T): void;
+	reject(error?: unknown): void;
 };
 
 /**
@@ -212,7 +212,7 @@ class Store {
 	retrieve(url: string, type: StoreMarkupRequestType): Promise<Document | XMLDocument>;
 	retrieve(url: string, type?: StoreRequestType): Promise<RequestResponse>;
 	retrieve(url: string, type?: StoreRequestType): Promise<RequestResponse> {
-		var response: Promise<any>;
+		var response: Promise<Blob | string | ArrayBuffer | null | undefined>;
 		var path = new Path(url);
 
 		// If type isn't set, determine it from the file extension
@@ -228,10 +228,10 @@ class Store {
 
 
 		return response.then((r) => {
-			var deferred = new (defer as unknown as DeferConstructor)();
-			var result;
+			var deferred = new (defer as unknown as DeferConstructor)<RequestResponse>();
+			var result: RequestResponse;
 			if (r) {
-				result = this.handleResponse(r, type);
+				result = this.handleResponse(r as RequestResponse, type);
 				deferred.resolve(result);
 			} else {
 				deferred.reject({
@@ -302,9 +302,9 @@ class Store {
 		mimeType = mimeType || mime.lookup(url);
 
 		return this.storage!.getItem(encodedUrl).then(function(uint8array) {
-			var deferred = new (defer as unknown as DeferConstructor)();
+			var deferred = new (defer as unknown as DeferConstructor)<string | ArrayBuffer | null>();
 			var reader = new FileReader();
-			var blob;
+			var blob: Blob;
 
 			if(!uint8array) return;
 
@@ -332,9 +332,9 @@ class Store {
 		mimeType = mimeType || mime.lookup(url);
 
 		return this.storage!.getItem(encodedUrl).then((uint8array) => {
-			var deferred = new (defer as unknown as DeferConstructor)();
+			var deferred = new (defer as unknown as DeferConstructor)<string | ArrayBuffer | null>();
 			var reader = new FileReader();
-			var blob;
+			var blob: Blob;
 
 			if(!uint8array) return;
 
@@ -356,10 +356,10 @@ class Store {
 	 * @return {Promise} url promise with Url string
 	 */
 	createUrl(url: string, options?: StoreUrlOptions): Promise<string> {
-		var deferred = new (defer as unknown as DeferConstructor)();
+		var deferred = new (defer as unknown as DeferConstructor)<string>();
 		var _URL = (window.URL || (window as unknown as UrlFactory).webkitURL || (window as unknown as UrlFactory).mozURL) as typeof URL;
-		var tempUrl;
-		var response: Promise<any>;
+		var tempUrl: string;
+		var response: Promise<Blob | string | ArrayBuffer | null | undefined>;
 		var useBase64 = options && options.base64;
 
 		if(url in this.urlCache) {
@@ -368,13 +368,14 @@ class Store {
 		}
 
 		if (useBase64) {
-			response = this.getBase64(url);
+			var base64Response = this.getBase64(url);
+			response = base64Response;
 
-			if (response) {
-					response.then((tempUrl) => {
+			if (base64Response) {
+					base64Response.then((tempUrl) => {
 
-						this.urlCache[url] = tempUrl;
-						deferred.resolve(tempUrl);
+						this.urlCache[url] = tempUrl as string;
+						deferred.resolve(tempUrl as string);
 
 					});
 
@@ -382,10 +383,11 @@ class Store {
 
 		} else {
 
-			response = this.getBlob(url);
+			var blobResponse = this.getBlob(url);
+			response = blobResponse;
 
-			if (response) {
-					response.then((blob) => {
+			if (blobResponse) {
+					blobResponse.then((blob) => {
 
 						tempUrl = _URL.createObjectURL(blob as Blob);
 						this.urlCache[url] = tempUrl;

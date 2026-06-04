@@ -14526,14 +14526,22 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 	}
 	createUrl(e, t) {
 		var n = new N(), r = window.URL || window.webkitURL || window.mozURL, i, a, o = t && t.base64;
-		return e in this.urlCache ? (n.resolve(this.urlCache[e]), n.promise) : (o ? (a = this.getBase64(e), a && a.then((t) => {
-			this.urlCache[e] = t, n.resolve(t);
-		})) : (a = this.getBlob(e), a && a.then((t) => {
-			i = r.createObjectURL(t), this.urlCache[e] = i, n.resolve(i);
-		})), a || n.reject({
+		if (e in this.urlCache) return n.resolve(this.urlCache[e]), n.promise;
+		if (o) {
+			var s = this.getBase64(e);
+			a = s, s && s.then((t) => {
+				this.urlCache[e] = t, n.resolve(t);
+			});
+		} else {
+			var c = this.getBlob(e);
+			a = c, c && c.then((t) => {
+				i = r.createObjectURL(t), this.urlCache[e] = i, n.resolve(i);
+			});
+		}
+		return a || n.reject({
 			message: "File not found in storage: " + e,
 			stack: (/* @__PURE__ */ Error()).stack
-		}), n.promise);
+		}), n.promise;
 	}
 	revokeUrl(e) {
 		var t = window.URL || window.webkitURL || window.mozURL, n = this.urlCache[e];

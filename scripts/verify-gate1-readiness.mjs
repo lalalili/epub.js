@@ -826,6 +826,17 @@ assert(
 	"source Store must expose request, retrieve, and handleResponse overloads"
 );
 assert(
+	storeSource.includes("type DeferConstructor = new <T = unknown>()") &&
+		storeSource.includes("var deferred = new (defer as unknown as DeferConstructor)<RequestResponse>()") &&
+		storeSource.includes("var deferred = new (defer as unknown as DeferConstructor)<string>()") &&
+		storeSource.includes("var response: Promise<Blob | string | ArrayBuffer | null | undefined>") &&
+		storeSource.includes("var result: RequestResponse") &&
+		storeSource.includes("var tempUrl: string") &&
+		!storeSource.includes("promise: Promise<any>") &&
+		!storeSource.includes("var response: Promise<any>"),
+	"source Store must keep typed deferred and response bridge handling"
+);
+assert(
 	storeSource.includes("emit(eventName: string, ...args: unknown[]): void") &&
 	storeSource.includes("on(eventName: string, listener: (...args: unknown[]) => void): unknown") &&
 	storeSource.includes("off(eventName: string, listener: (...args: unknown[]) => void): unknown") &&

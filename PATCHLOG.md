@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0422
+- Why:
+  - `Store` already exposes typed request/retrieve overloads and root public types, but its source-side deferred and response bridge still used `Promise<any>`.
+  - Aligning storage retrieval, FileReader, and object URL deferred values with concrete result types keeps Store source typing closer to declaration and type-test coverage before Gate 1 release work.
+  - This removes another source-side `any` leak without changing Store request overloads, offline retrieval, object URL caching, or rejected error payloads.
+- Diff Scope:
+  - `src/store.ts`: type the deferred constructor generically and use concrete `RequestResponse`, `string`, and storage response bridge values in `retrieve()`, `getText()`, `getBase64()`, and `createUrl()`.
+  - `scripts/verify-gate1-readiness.mjs`: require the Store deferred and response bridge to remain typed.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Store deferred and response bridge values must intentionally remain source-untyped.
+
 ### P-0421
 - Why:
   - `Section` and `Spine` already expose typed root public surfaces, but their source-side Hook constructor bridge and Section deferred rejection signatures still used `any`.

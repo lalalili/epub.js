@@ -19515,14 +19515,16 @@
 				return deferred.promise;
 			}
 			if (useBase64) {
-				response = this.getBase64(url);
-				if (response) response.then((tempUrl) => {
+				var base64Response = this.getBase64(url);
+				response = base64Response;
+				if (base64Response) base64Response.then((tempUrl) => {
 					this.urlCache[url] = tempUrl;
 					deferred.resolve(tempUrl);
 				});
 			} else {
-				response = this.getBlob(url);
-				if (response) response.then((blob) => {
+				var blobResponse = this.getBlob(url);
+				response = blobResponse;
+				if (blobResponse) blobResponse.then((blob) => {
 					tempUrl = _URL.createObjectURL(blob);
 					this.urlCache[url] = tempUrl;
 					deferred.resolve(tempUrl);
