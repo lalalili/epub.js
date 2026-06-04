@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0426
+- Why:
+  - `Mapping.findRanges()` computes `count` as a number from scroll width, spread width, and divisor, but the source loop still read `(count as any).pages`.
+  - Aligning the loop with the numeric count removes a source-side `any` escape and keeps `findRanges()` consistent with its `RangePair[]` declaration before Gate 1 release work.
+  - A focused browser test now locks the calculated page-count behavior without depending on layout engine text bounds.
+- Diff Scope:
+  - `src/mapping.ts`: iterate `findRanges()` over the numeric count directly.
+  - `test/browser/mapping.test.js`: cover one range pair per calculated page using stubbed range boundaries.
+  - `scripts/verify-gate1-readiness.mjs`: require the numeric count loop and prevent the old `any` bridge.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/mapping.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `findRanges()` must intentionally consume a count object with a `.pages` field.
+
 ### P-0425
 - Why:
   - `RangeObject` declarations already expose boundary containers as `Node | undefined` and offsets as `number | undefined`, but the source polyfill still stored those fields as `any`.

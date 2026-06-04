@@ -695,7 +695,9 @@ assert(
 	mappingSource.includes("direction: MappingDirection") &&
 	mappingTypes.includes("direction: MappingDirection") &&
 	mappingSource.includes("axis(axis?: MappingAxis): boolean") &&
-	mappingTypes.includes("axis(axis?: MappingAxis): boolean"),
+	mappingTypes.includes("axis(axis?: MappingAxis): boolean") &&
+	mappingSource.includes("for (var i = 0; i < count; i++)") &&
+	!mappingSource.includes("(count as any).pages"),
 	"Mapping source and declarations must keep MappingSection parity"
 );
 assert(typeTests.includes("type ThemesAssertions"), "type tests must assert the Themes public surface");

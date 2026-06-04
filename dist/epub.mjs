@@ -6005,7 +6005,7 @@ var _t = class {
 		}
 	}
 	findRanges(e) {
-		for (var t = [], n = e.contents.scrollWidth(), r = Math.ceil(n / this.layout.spreadWidth) * this.layout.divisor, i = this.layout.columnWidth, a = this.layout.gap, o, s, c = 0; c < r.pages; c++) o = (i + a) * c, s = i * (c + 1) + a * c, t.push({
+		for (var t = [], n = e.contents.scrollWidth(), r = Math.ceil(n / this.layout.spreadWidth) * this.layout.divisor, i = this.layout.columnWidth, a = this.layout.gap, o, s, c = 0; c < r; c++) o = (i + a) * c, s = i * (c + 1) + a * c, t.push({
 			start: this.findStart(e.document.body, o, s),
 			end: this.findEnd(e.document.body, o, s)
 		});

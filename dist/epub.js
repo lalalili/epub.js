@@ -10238,7 +10238,7 @@
 			var columnWidth = this.layout.columnWidth;
 			var gap = this.layout.gap;
 			var start, end;
-			for (var i = 0; i < count.pages; i++) {
+			for (var i = 0; i < count; i++) {
 				start = (columnWidth + gap) * i;
 				end = columnWidth * (i + 1) + gap * i;
 				columns.push({
