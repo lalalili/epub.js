@@ -15969,7 +15969,7 @@
 			} else {
 				this.element = this.manager.stage.container;
 				this.scroller = this.element;
-				this.element.style["WebkitOverflowScrolling"] = "touch";
+				this.element.style.WebkitOverflowScrolling = "touch";
 			}
 			this.manager.settings.offset = this.layout.width;
 			this.manager.settings.afterScrolledTimeout = this.settings.duration * 2;
@@ -15989,7 +15989,8 @@
 			this.addListeners();
 		}
 		detectSupportsTouch() {
-			if ("ontouchstart" in window || window.DocumentTouch && document instanceof window.DocumentTouch) return true;
+			const touchWindow = window;
+			if ("ontouchstart" in window || touchWindow.DocumentTouch && document instanceof touchWindow.DocumentTouch) return true;
 			return false;
 		}
 		disableScroll() {

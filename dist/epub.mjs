@@ -9178,7 +9178,8 @@ var Wr = N, Gr = Math.PI / 2, Kr = {
 		this.manager = e, this.layout = this.manager.layout, this.fullsize = this.manager.settings.fullsize, this.fullsize ? (this.element = this.manager.stage.element, this.scroller = window, this.disableScroll()) : (this.element = this.manager.stage.container, this.scroller = this.element, this.element.style.WebkitOverflowScrolling = "touch"), this.manager.settings.offset = this.layout.width, this.manager.settings.afterScrolledTimeout = this.settings.duration * 2, this.isVertical = this.manager.settings.axis === "vertical", !(!this.manager.isPaginated || this.isVertical) && (this.touchCanceler = !1, this.resizeCanceler = !1, this.snapping = !1, this.scrollLeft, this.scrollTop, this.startTouchX = void 0, this.startTouchY = void 0, this.startTime = void 0, this.endTouchX = void 0, this.endTouchY = void 0, this.endTime = void 0, this.addListeners());
 	}
 	detectSupportsTouch() {
-		return !!("ontouchstart" in window || window.DocumentTouch && document instanceof window.DocumentTouch);
+		let e = window;
+		return !!("ontouchstart" in window || e.DocumentTouch && document instanceof e.DocumentTouch);
 	}
 	disableScroll() {
 		this.element.style.overflow = "hidden";

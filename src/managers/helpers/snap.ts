@@ -14,12 +14,12 @@ type SnapSettings = {
 
 type SnapOptions = Partial<SnapSettings>;
 
-type DeferredLike<T = any> = {
+type DeferredLike<T = unknown> = {
 	promise: Promise<T>;
 	resolve(value?: T | PromiseLike<T>): void;
 };
 
-const Defer = defer as unknown as { new<T = any>(): DeferredLike<T>; };
+const Defer = defer as unknown as { new<T = unknown>(): DeferredLike<T>; };
 
 type LayoutLike = {
 	width: number;
@@ -35,6 +35,14 @@ type TouchPointLike = {
 type TouchEventLike = {
 	touches: TouchPointLike[];
 	type?: string;
+};
+
+type TouchWindow = Window & {
+	DocumentTouch?: { new(): Document };
+};
+
+type WebKitOverflowStyle = CSSStyleDeclaration & {
+	WebkitOverflowScrolling?: string;
 };
 
 type ContentsLike = {
@@ -68,9 +76,9 @@ type SnapScroller = (Window & {
 }) | HTMLElement;
 
 type EventedSnap = Snap & {
-	emit(type: string, ...args: any[]): void;
-	off(type: string, listener: (...args: any[]) => void): void;
-	on(type: string, listener: (...args: any[]) => void): void;
+	emit(type: string, ...args: unknown[]): void;
+	off(type: string, listener: (...args: unknown[]) => void): void;
+	on(type: string, listener: (...args: unknown[]) => void): void;
 };
 
 // easing equations from https://github.com/danro/easing-js/blob/master/easing.js
@@ -122,12 +130,12 @@ class Snap {
 
 	constructor(manager: ManagerLike, options?: SnapOptions) {
 
-		this.settings = (extend as any)({
+		this.settings = extend<SnapSettings>({
 			duration: 80,
 			minVelocity: 0.2,
 			minDistance: 10,
 			easing: EASING_EQUATIONS["easeInCubic"]
-		}, options || {}) as SnapSettings;
+		}, options || {});
 
 		this.supportsTouch = this.detectSupportsTouch();
 
@@ -149,7 +157,7 @@ class Snap {
 		} else {
 			this.element = this.manager.stage.container;
 			this.scroller = this.element;
-			(this.element.style as any)["WebkitOverflowScrolling"] = "touch";
+			(this.element.style as WebKitOverflowStyle).WebkitOverflowScrolling = "touch";
 		}
 
 		// this.overflow = this.manager.overflow;
@@ -184,7 +192,8 @@ class Snap {
 	}
 
 	detectSupportsTouch(): boolean {
-		if (("ontouchstart" in window) || (window as any).DocumentTouch && document instanceof (window as any).DocumentTouch) {
+		const touchWindow = window as TouchWindow;
+		if (("ontouchstart" in window) || (touchWindow.DocumentTouch && document instanceof touchWindow.DocumentTouch)) {
 			return true;
 		}
 
@@ -351,7 +360,7 @@ class Snap {
 		return (left % snapWidth) !== 0;
 	}
 
-	snap(howMany=0): Promise<any> {
+	snap(howMany=0): Promise<void> {
 		let left = this.scrollLeft;
 		let snapWidth = this.layout.pageWidth * this.layout.divisor;
 		let snapTo = Math.round(left / snapWidth) * snapWidth;
@@ -363,8 +372,8 @@ class Snap {
 		return this.smoothScrollTo(snapTo);
 	}
 
-	smoothScrollTo(destination: number): Promise<any> {
-		const deferred = new Defer();
+	smoothScrollTo(destination: number): Promise<void> {
+		const deferred = new Defer<void>();
 		const start = this.scrollLeft;
 		const startTime = this.now();
 

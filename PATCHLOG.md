@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0441
+- Why:
+  - `Snap` still used `any` in the settings merge, EventEmitter adapter, WebKit overflow style bridge, touch feature detection, and scroll animation promises.
+  - Typing those bridges keeps touch snapping setup and animation completion explicit without changing swipe detection, scroll offsets, listener wiring, or snap destinations.
+  - Gate 1 now rejects the old Snap helper `any` bridges.
+- Diff Scope:
+  - `src/managers/helpers/snap.ts`: type Snap settings, event, touch, style, and promise bridges.
+  - `scripts/verify-gate1-readiness.mjs`: guard Snap helper bridge typing.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/snap.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if touch snapping adapters must intentionally keep broad `any` bridge types.
+
 ### P-0440
 - Why:
   - `StageOptions` still used a string index signature of `any`, and `Stage.create()` cast the shared `extend()` helper to `any` before merging options.

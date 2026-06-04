@@ -14,6 +14,7 @@ const contentsTypes = readFileSync(path.join(root, "types/contents.d.ts"), "utf8
 const renditionSource = readFileSync(path.join(root, "src/rendition.ts"), "utf8");
 const renditionTypes = readFileSync(path.join(root, "types/rendition.d.ts"), "utf8");
 const stageSource = readFileSync(path.join(root, "src/managers/helpers/stage.ts"), "utf8");
+const snapSource = readFileSync(path.join(root, "src/managers/helpers/snap.ts"), "utf8");
 const iframeViewSource = readFileSync(path.join(root, "src/managers/views/iframe.ts"), "utf8");
 const managerSource = readFileSync(path.join(root, "src/managers/default/index.ts"), "utf8");
 const managerTypes = readFileSync(path.join(root, "types/managers/manager.d.ts"), "utf8");
@@ -252,6 +253,26 @@ assert(
 		!stageSource.includes("[key: string]: any") &&
 		!stageSource.includes("(extend as any)(this.settings, options)"),
 	"Stage helper options must keep typed extension bridge"
+);
+assert(
+	snapSource.includes("type DeferredLike<T = unknown>") &&
+		snapSource.includes("const Defer = defer as unknown as { new<T = unknown>(): DeferredLike<T>; }") &&
+		snapSource.includes("type TouchWindow = Window &") &&
+		snapSource.includes("type WebKitOverflowStyle = CSSStyleDeclaration") &&
+		snapSource.includes("emit(type: string, ...args: unknown[]): void") &&
+		snapSource.includes("extend<SnapSettings>({") &&
+		snapSource.includes("(this.element.style as WebKitOverflowStyle).WebkitOverflowScrolling = \"touch\"") &&
+		snapSource.includes("const touchWindow = window as TouchWindow") &&
+		snapSource.includes("snap(howMany=0): Promise<void>") &&
+		snapSource.includes("smoothScrollTo(destination: number): Promise<void>") &&
+		snapSource.includes("const deferred = new Defer<void>()") &&
+		!snapSource.includes("emit(type: string, ...args: any[]): void") &&
+		!snapSource.includes("(extend as any)") &&
+		!snapSource.includes("(this.element.style as any)") &&
+		!snapSource.includes("(window as any).DocumentTouch") &&
+		!snapSource.includes("snap(howMany=0): Promise<any>") &&
+		!snapSource.includes("smoothScrollTo(destination: number): Promise<any>"),
+	"Snap helper must keep typed touch, event, settings, and promise bridges"
 );
 assert(
 	sectionSource.includes("type DeferConstructor = new <T = unknown>()") &&
