@@ -15,6 +15,7 @@ const renditionSource = readFileSync(path.join(root, "src/rendition.ts"), "utf8"
 const renditionTypes = readFileSync(path.join(root, "types/rendition.d.ts"), "utf8");
 const managerSource = readFileSync(path.join(root, "src/managers/default/index.ts"), "utf8");
 const managerTypes = readFileSync(path.join(root, "types/managers/manager.d.ts"), "utf8");
+const viewTypes = readFileSync(path.join(root, "types/managers/view.d.ts"), "utf8");
 const archiveSource = readFileSync(path.join(root, "src/archive.ts"), "utf8");
 const storeSource = readFileSync(path.join(root, "src/store.ts"), "utf8");
 const navigationTypes = readFileSync(path.join(root, "types/navigation.d.ts"), "utf8");
@@ -887,6 +888,23 @@ assert(
 		managerTypes.includes("off(type: string, listener: (...args: unknown[]) => void): unknown") &&
 		managerTypes.includes("once(type: string, listener: (...args: unknown[]) => void): unknown"),
 	"Manager source and declarations must keep EventEmitter method type parity"
+);
+assert(
+	typeTests.includes("Parameters<View[\"emit\"]>, [type: string, ...args: unknown[]]") &&
+		typeTests.includes("Parameters<View[\"on\"]>, [type: string, listener: (...args: unknown[]) => void]") &&
+		typeTests.includes("Parameters<View[\"off\"]>, [type: string, listener: (...args: unknown[]) => void]") &&
+		typeTests.includes("Parameters<View[\"once\"]>, [type: string, listener: (...args: unknown[]) => void]") &&
+		typeTests.includes("const viewOn: unknown = view.on") &&
+		typeTests.includes("const viewOff: unknown = view.off") &&
+		typeTests.includes("const viewOnce: unknown = view.once"),
+	"type tests must assert View EventEmitter parameter typing and usage"
+);
+assert(
+	viewTypes.includes("emit(type: string, ...args: unknown[]): void") &&
+		viewTypes.includes("on(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		viewTypes.includes("off(type: string, listener: (...args: unknown[]) => void): unknown") &&
+		viewTypes.includes("once(type: string, listener: (...args: unknown[]) => void): unknown"),
+	"View declarations must keep EventEmitter method type parity"
 );
 assert(
 	typeTests.includes("RootContentsSize") &&

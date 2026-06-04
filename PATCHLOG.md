@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0389
+- Why:
+  - `View` is a shipped deep declaration surface with EventEmitter methods, but its `.d.ts` still exposed event names, payloads, and listeners as `any`.
+  - View event payloads are forwarded opaquely, so consumers should narrow payload values before reading them.
+  - Tightening this surface keeps view declaration parity enforceable without changing rendering, sizing, annotation, or event wiring behavior.
+- Diff Scope:
+  - `types/managers/view.d.ts`: type View emit, on, off, and once event names and payload/listener arguments.
+  - `types/epubjs-tests.ts`: assert View EventEmitter parameter typing and keep usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require View EventEmitter declaration parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if View consumers intentionally rely on event payload arguments being typed as `any`.
+
 ### P-0388
 - Why:
   - `Manager` is a shipped deep declaration surface with EventEmitter methods, but its source declaration and `.d.ts` still exposed event names, payloads, and listeners as `any`.

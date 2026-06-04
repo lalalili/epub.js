@@ -225,6 +225,7 @@ import PageList, { PageListDocument, PageListItem, PageLookup, PageReverseLookup
 import Locations, { LocationInput, LocationRange, LocationsRequest, WordLocation } from './locations';
 import Mapping, { EpubCFIPair, MappingAxis, MappingContents, MappingDirection, MappingLayout, MappingSection, MappingTextNodeWalker, MappingView, RangePair } from './mapping';
 import Manager from './managers/manager';
+import View from './managers/view';
 import type { DisplayedLocation, LayoutProperties as RenditionLayoutProperties, Location, ManagerLocationItem, RenditionLocationPart, RenditionOptions, RenditionVerticalRlDebugState, RenditionVerticalRlPageDebug } from './rendition';
 import Resources, {
   ReplacementMode,
@@ -523,6 +524,14 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Manager["off"]>, unknown>>,
   Assert<IsExact<Parameters<Manager["once"]>, [type: string, listener: (...args: unknown[]) => void]>>,
   Assert<IsExact<ReturnType<Manager["once"]>, unknown>>,
+  Assert<IsExact<Parameters<View["emit"]>, [type: string, ...args: unknown[]]>>,
+  Assert<IsExact<ReturnType<View["emit"]>, void>>,
+  Assert<IsExact<Parameters<View["on"]>, [type: string, listener: (...args: unknown[]) => void]>>,
+  Assert<IsExact<ReturnType<View["on"]>, unknown>>,
+  Assert<IsExact<Parameters<View["off"]>, [type: string, listener: (...args: unknown[]) => void]>>,
+  Assert<IsExact<ReturnType<View["off"]>, unknown>>,
+  Assert<IsExact<Parameters<View["once"]>, [type: string, listener: (...args: unknown[]) => void]>>,
+  Assert<IsExact<ReturnType<View["once"]>, unknown>>,
   Assert<IsExact<Contents["document"], Document>>,
   Assert<IsExact<Contents["documentElement"], HTMLElement>>,
   Assert<IsExact<Contents["content"], HTMLElement>>,
@@ -1194,6 +1203,14 @@ function testEpub() {
   const managerOn: unknown = manager.on("resized", managerListener);
   const managerOff: unknown = manager.off("resized", managerListener);
   const managerOnce: unknown = manager.once("added", managerListener);
+  const view = {} as View;
+  const viewListener = (...args: unknown[]): void => {
+    void args;
+  };
+  const viewEmit: void = view.emit("displayed", view);
+  const viewOn: unknown = view.on("displayed", viewListener);
+  const viewOff: unknown = view.off("displayed", viewListener);
+  const viewOnce: unknown = view.once("resized", viewListener);
 
   const binaryRequest: Promise<ArrayBuffer> = request("https://s3.amazonaws.com/moby-dick/moby-dick.epub", "binary", true, headers);
   const blobRequest: Promise<Blob> = request("https://s3.amazonaws.com/moby-dick/moby-dick.epub", "blob");

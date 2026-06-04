@@ -70,11 +70,11 @@ export default class View {
   private onLoad(event: Event, promise: Promise<any>): void;
 
   // Event emitters
-  emit(type: any, ...args: any[]): void;
+  emit(type: string, ...args: unknown[]): void;
 
-  off(type: any, listener: any): any;
+  off(type: string, listener: (...args: unknown[]) => void): unknown;
 
-  on(type: any, listener: any): any;
+  on(type: string, listener: (...args: unknown[]) => void): unknown;
 
-  once(type: any, listener: any, ...args: any[]): any;
+  once(type: string, listener: (...args: unknown[]) => void): unknown;
 }
