@@ -138,7 +138,9 @@ import type {
   Store as RootStore,
   StoreData as RootStoreData,
   StoreHeaders as RootStoreHeaders,
+  StoreMarkupRequestType as RootStoreMarkupRequestType,
   StoreRequest as RootStoreRequest,
+  StoreRequestResponse as RootStoreRequestResponse,
   StoreRequestType as RootStoreRequestType,
   StoreResolver as RootStoreResolver,
   StoreResource as RootStoreResource,
@@ -235,7 +237,7 @@ import Queue, { QueuedItem, QueueTask, Task } from './utils/queue';
 import Hook, { HookRegistration, HooksObject, HookTask } from './utils/hook';
 import Section, { GlobalLayout, LayoutSettings, SectionHookSet, SectionRequest, SectionSearchResult, SpineItem } from './section';
 import Spine, { SpineLookup, SpineManifestItem, SpinePackage, SpinePackageItem, SpineResolver } from './spine';
-import Store, { StoreData, StoreHeaders, StoreRequest, StoreRequestType, StoreResource, StoreResources, StoreResolver, StoreStorage, StoreUrlOptions } from './store';
+import Store, { StoreData, StoreHeaders, StoreMarkupRequestType, StoreRequest, StoreRequestResponse, StoreRequestType, StoreResource, StoreResources, StoreResolver, StoreStorage, StoreUrlOptions } from './store';
 import Themes, { InjectedThemes, Theme, ThemeInput, ThemeOverride, ThemeRules, ThemesContent, ThemesRendition } from './themes';
 import { AnimationFrameRequest, BlobContent, Deferred, RangeObject as CoreRangeObject, RectBounds, SizeBounds } from './utils/core';
 import { JsonValue, RequestHeaders, RequestMethod, RequestResponse, RequestType } from './utils/request';
@@ -311,7 +313,9 @@ type PublicRootAssertions = [
   Assert<IsExact<RootStore, Store>>,
   Assert<IsExact<RootStoreData, StoreData>>,
   Assert<IsExact<RootStoreHeaders, StoreHeaders>>,
+  Assert<IsExact<RootStoreMarkupRequestType, StoreMarkupRequestType>>,
   Assert<IsExact<RootStoreRequest, StoreRequest>>,
+  Assert<IsExact<RootStoreRequestResponse, StoreRequestResponse>>,
   Assert<IsExact<RootStoreRequestType, StoreRequestType>>,
   Assert<IsExact<RootStoreResolver, StoreResolver>>,
   Assert<IsExact<RootStoreResource, StoreResource>>,
@@ -961,6 +965,8 @@ type ResourcesAssertions = [
 
 type StoreAssertions = [
   Assert<IsExact<ConstructorParameters<typeof Store>, [name: string, requester?: StoreRequest | undefined, resolver?: StoreResolver | undefined]>>,
+  Assert<IsExact<StoreRequestResponse, RequestResponse | StoreData>>,
+  Assert<IsExact<StoreMarkupRequestType, "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm">>,
   Assert<IsExact<Store["urlCache"], Record<string, string>>>,
   Assert<IsExact<Store["storage"], StoreStorage | undefined>>,
   Assert<IsExact<Store["name"], string>>,
@@ -1458,11 +1464,27 @@ function testEpub() {
   const storeHeaders: StoreHeaders = { Accept: "application/json" };
   const storeRequestType: StoreRequestType = "json";
   const storeResolver: StoreResolver = (href: string) => `/OPS/${href}`;
-  const storeRequest: StoreRequest = (url: string, type?: StoreRequestType) => (
-    type === "json"
-      ? Promise.resolve({ ok: true })
-      : Promise.resolve(new ArrayBuffer(0))
-  );
+  function storeRequest(url: string, type: "binary", withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreData>;
+  function storeRequest(url: string, type: "blob", withCredentials?: boolean, headers?: StoreHeaders): Promise<Blob>;
+  function storeRequest(url: string, type: "json", withCredentials?: boolean, headers?: StoreHeaders): Promise<JsonValue>;
+  function storeRequest(url: string, type: StoreMarkupRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<Document | XMLDocument>;
+  function storeRequest(url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreRequestResponse>;
+  function storeRequest(url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreRequestResponse> {
+    if (type === "blob") {
+      return Promise.resolve(new Blob([url]));
+    }
+    if (type === "json") {
+      return Promise.resolve({ ok: true });
+    }
+    if (type === "opf") {
+      return Promise.resolve(parsedDocument);
+    }
+    return Promise.resolve(new ArrayBuffer(0));
+  }
+  const storeBinaryRequest: Promise<StoreData> = storeRequest("/OPS/chapter.xhtml", "binary", true, storeHeaders);
+  const storeBlobRequest: Promise<Blob> = storeRequest("/OPS/images/cover.jpg", "blob");
+  const storeJsonRequest: Promise<JsonValue> = storeRequest("/OPS/data.json", "json");
+  const storeMarkupRequest: Promise<Document | XMLDocument> = storeRequest("/OPS/package.opf", "opf");
   const storeUrlOptions: StoreUrlOptions = { base64: true };
   const storeResources: StoreResources = {
     resources: [{ href: "Text/chapter.xhtml" }],
@@ -1687,6 +1709,10 @@ function testEpub() {
   void relativeResourceUrls;
   void resourceReplacement;
   void substitutedResourceContent;
+  void storeBinaryRequest;
+  void storeBlobRequest;
+  void storeJsonRequest;
+  void storeMarkupRequest;
   void storedResources;
   void storedData;
   void storedRequest;

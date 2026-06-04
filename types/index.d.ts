@@ -40,6 +40,6 @@ export type { default as Mapping, EpubCFIPair, MappingAxis, MappingContents, Map
 export type { default as Locations, LocationInput, LocationRange, LocationsRequest, WordLocation } from './locations';
 export type { default as Themes, InjectedThemes, Theme, ThemeInput, ThemeOverride, ThemeRules, ThemesContent, ThemesRendition } from './themes';
 export type { default as Resources, ReplacementMode, ResourceArchive, ResourceArchiveInput, ResourceManifest, ResourceManifestItem, ResourceOptions, ResourceRequest, ResourceResolver, ResourceSettings } from './resources';
-export type { default as Store, StoreData, StoreHeaders, StoreRequest, StoreRequestType, StoreResolver, StoreResource, StoreResources, StoreStorage, StoreUrlOptions } from './store';
+export type { default as Store, StoreData, StoreHeaders, StoreMarkupRequestType, StoreRequest, StoreRequestResponse, StoreRequestType, StoreResolver, StoreResource, StoreResources, StoreStorage, StoreUrlOptions } from './store';
 export { default as request } from './utils/request';
 export type { JsonValue, RequestHeaders, RequestMethod, RequestResponse, RequestType } from './utils/request';

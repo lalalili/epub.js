@@ -233,7 +233,9 @@ export type {
 export type {
 	StoreData,
 	StoreHeaders,
+	StoreMarkupRequestType,
 	StoreRequest,
+	StoreRequestResponse,
 	StoreRequestType,
 	StoreResolver,
 	StoreResource,

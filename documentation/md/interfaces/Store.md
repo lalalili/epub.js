@@ -38,7 +38,7 @@
 
 ### requester
 
-> **requester**: [`StoreRequest`](../type-aliases/StoreRequest.md)
+> **requester**: [`StoreRequest`](StoreRequest.md)
 
 ***
 
@@ -242,7 +242,7 @@
 
 ###### type
 
-`"xml"` \| `"opf"` \| `"ncx"` \| `"xhtml"` \| `"html"` \| `"htm"`
+[`StoreMarkupRequestType`](../type-aliases/StoreMarkupRequestType.md)
 
 ##### Returns
 
@@ -368,7 +368,7 @@
 
 ###### type
 
-`"xml"` \| `"opf"` \| `"ncx"` \| `"xhtml"` \| `"html"` \| `"htm"`
+[`StoreMarkupRequestType`](../type-aliases/StoreMarkupRequestType.md)
 
 ###### withCredentials?
 
@@ -460,7 +460,7 @@
 
 ###### type
 
-`"xml"` \| `"opf"` \| `"ncx"` \| `"xhtml"` \| `"html"` \| `"htm"`
+[`StoreMarkupRequestType`](../type-aliases/StoreMarkupRequestType.md)
 
 ##### Returns
 

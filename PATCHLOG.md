@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0354
+- Why:
+  - `Store.request()`, `Store.retrieve()`, and `Store.handleResponse()` already expose mode-specific overloads, but the public `StoreRequest` requester type still used one broad `Promise<RequestResponse | StoreData>` function signature.
+  - The store requester is called with explicit modes such as `binary`, `blob`, `json`, and EPUB markup request types, so exposing those modes makes constructor/requester typing match the source call sites and root public API.
+  - Adding `StoreRequestResponse` and `StoreMarkupRequestType` as root-exported public types keeps Store source/.d.ts/root parity enforceable before future release tags, without changing storage writes, offline retrieval, URL creation, event status handling, or response parsing behavior.
+- Diff Scope:
+  - `src/store.ts`, `types/store.d.ts`: define `StoreRequest` overloads and export `StoreRequestResponse` / `StoreMarkupRequestType`.
+  - `src/index.ts`, `types/index.d.ts`: export the new Store public request helper types from the package root.
+  - `types/epubjs-tests.ts`: add root export assertions and Store requester overload smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Store request overload/source/declaration/root parity guards.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/store.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Store requester consumers must intentionally use only a single union-return signature instead of mode-specific overloads.
+
 ### P-0353
 - Why:
   - `Resources.createUrl()` requests binary assets with `type: "blob"` and `Resources.createCssFile()` requests CSS text with `type: "text"`, but `ResourceRequest` exposed both modes through one `Promise<Blob | string>` signature.

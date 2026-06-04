@@ -9,9 +9,15 @@ import localforage from "localforage";
 export type StoreData = ArrayBuffer | Uint8Array | string | Blob | object | JsonValue;
 export type StoreRequestType = string | undefined;
 export type StoreHeaders = Record<string, string>;
-type StoreRequestResponse = RequestResponse | StoreData;
-type StoreMarkupRequestType = "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm";
-export type StoreRequest = (url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders) => Promise<StoreRequestResponse>;
+export type StoreRequestResponse = RequestResponse | StoreData;
+export type StoreMarkupRequestType = "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm";
+export interface StoreRequest {
+	(url: string, type: "binary", withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreData>;
+	(url: string, type: "blob", withCredentials?: boolean, headers?: StoreHeaders): Promise<Blob>;
+	(url: string, type: "json", withCredentials?: boolean, headers?: StoreHeaders): Promise<JsonValue>;
+	(url: string, type: StoreMarkupRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<Document | XMLDocument>;
+	(url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreRequestResponse>;
+}
 export type StoreResolver = (href: string) => string;
 export interface StoreStorage {
 	getItem(key: string): Promise<StoreData | null | undefined>;

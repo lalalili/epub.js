@@ -15,6 +15,7 @@ const pageListSource = readFileSync(path.join(root, "src/pagelist.ts"), "utf8");
 const pageListTypes = readFileSync(path.join(root, "types/pagelist.d.ts"), "utf8");
 const resourcesSource = readFileSync(path.join(root, "src/resources.ts"), "utf8");
 const resourcesTypes = readFileSync(path.join(root, "types/resources.d.ts"), "utf8");
+const storeTypes = readFileSync(path.join(root, "types/store.d.ts"), "utf8");
 const globalTypeTests = readFileSync(path.join(root, "types/global-namespace-tests.ts"), "utf8");
 const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.test.js"), "utf8");
 const umdGlobalTests = readFileSync(path.join(root, "test/browser/umd-global.test.js"), "utf8");
@@ -303,7 +304,9 @@ assert(
 	typeTests.includes("RootStore") &&
 	typeTests.includes("RootStoreData") &&
 	typeTests.includes("RootStoreHeaders") &&
+	typeTests.includes("RootStoreMarkupRequestType") &&
 	typeTests.includes("RootStoreRequest") &&
+	typeTests.includes("RootStoreRequestResponse") &&
 	typeTests.includes("RootStoreRequestType") &&
 	typeTests.includes("RootStoreResolver") &&
 	typeTests.includes("RootStoreResource") &&
@@ -316,7 +319,9 @@ assert(
 	sourceRoot.includes("default as Store") &&
 	sourceRoot.includes("StoreData") &&
 	sourceRoot.includes("StoreHeaders") &&
+	sourceRoot.includes("StoreMarkupRequestType") &&
 	sourceRoot.includes("StoreRequest") &&
+	sourceRoot.includes("StoreRequestResponse") &&
 	sourceRoot.includes("StoreRequestType") &&
 	sourceRoot.includes("StoreResolver") &&
 	sourceRoot.includes("StoreResource") &&
@@ -565,6 +570,12 @@ assert(
 );
 assert(typeTests.includes("type StoreAssertions"), "type tests must assert the Store public surface");
 assert(typeTests.includes("RootStoreUrlOptions"), "type tests must assert root Store URL option typing");
+assert(typeTests.includes("StoreRequestResponse, RequestResponse | StoreData"), "type tests must assert Store request response typing");
+assert(typeTests.includes("StoreMarkupRequestType, \"xml\" | \"opf\" | \"ncx\" | \"xhtml\" | \"html\" | \"htm\""), "type tests must assert Store markup request typing");
+assert(typeTests.includes("function storeRequest(url: string, type: \"binary\""), "type tests must cover Store binary request overload");
+assert(typeTests.includes("function storeRequest(url: string, type: \"blob\""), "type tests must cover Store blob request overload");
+assert(typeTests.includes("function storeRequest(url: string, type: \"json\""), "type tests must cover Store json request overload");
+assert(typeTests.includes("function storeRequest(url: string, type: StoreMarkupRequestType"), "type tests must cover Store markup request overload");
 assert(typeTests.includes("ReturnType<Store[\"request\"]>"), "type tests must assert Store request fallback typing");
 assert(typeTests.includes("ReturnType<Store[\"retrieve\"]>"), "type tests must assert Store retrieve fallback typing");
 assert(typeTests.includes("ReturnType<Store[\"handleResponse\"]>"), "type tests must assert Store response handling fallback typing");
@@ -575,6 +586,15 @@ assert(
 	storeSource.includes("retrieve(url: string, type: \"blob\"") &&
 	storeSource.includes("handleResponse(response: string, type: \"json\")"),
 	"source Store must expose request, retrieve, and handleResponse overloads"
+);
+assert(
+	storeSource.includes("export interface StoreRequest") &&
+	storeSource.includes("(url: string, type: \"binary\"") &&
+	storeSource.includes("(url: string, type: StoreMarkupRequestType") &&
+	storeTypes.includes("export interface StoreRequest") &&
+	storeTypes.includes("(url: string, type: \"binary\"") &&
+	storeTypes.includes("(url: string, type: StoreMarkupRequestType"),
+	"Store source and declarations must keep StoreRequest overload parity"
 );
 assert(typeTests.includes("RequestMethod"), "type tests must assert request method typing");
 assert(typeTests.includes("RootRequestMethod"), "type tests must assert root request method type export");

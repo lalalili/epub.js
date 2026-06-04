@@ -6,7 +6,17 @@ export type StoreRequestType = string | undefined;
 
 export type StoreHeaders = Record<string, string>;
 
-export type StoreRequest = (url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders) => Promise<RequestResponse | StoreData>;
+export type StoreRequestResponse = RequestResponse | StoreData;
+
+export type StoreMarkupRequestType = "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm";
+
+export interface StoreRequest {
+  (url: string, type: "binary", withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreData>;
+  (url: string, type: "blob", withCredentials?: boolean, headers?: StoreHeaders): Promise<Blob>;
+  (url: string, type: "json", withCredentials?: boolean, headers?: StoreHeaders): Promise<JsonValue>;
+  (url: string, type: StoreMarkupRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<Document | XMLDocument>;
+  (url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreRequestResponse>;
+}
 
 export type StoreResolver = (href: string) => string;
 
@@ -45,16 +55,16 @@ export default class Store {
 
   request(url: string, type: "blob", withCredentials?: boolean, headers?: StoreHeaders): Promise<Blob>;
   request(url: string, type: "json", withCredentials?: boolean, headers?: StoreHeaders): Promise<JsonValue>;
-  request(url: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm", withCredentials?: boolean, headers?: StoreHeaders): Promise<Document | XMLDocument>;
+  request(url: string, type: StoreMarkupRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<Document | XMLDocument>;
   request(url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<RequestResponse>;
 
   retrieve(url: string, type: "blob"): Promise<Blob>;
   retrieve(url: string, type: "json"): Promise<JsonValue>;
-  retrieve(url: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm"): Promise<Document | XMLDocument>;
+  retrieve(url: string, type: StoreMarkupRequestType): Promise<Document | XMLDocument>;
   retrieve(url: string, type?: StoreRequestType): Promise<RequestResponse>;
 
   handleResponse(response: string, type: "json"): JsonValue;
-  handleResponse(response: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm"): Document | XMLDocument;
+  handleResponse(response: string, type: StoreMarkupRequestType): Document | XMLDocument;
   handleResponse(response: RequestResponse, type?: StoreRequestType): RequestResponse;
 
   getBlob(url: string, mimeType?: string): Promise<Blob | undefined>;
