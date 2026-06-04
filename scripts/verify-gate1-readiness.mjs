@@ -1598,6 +1598,13 @@ assert(
 	"Default manager next bridge must keep section and promise results typed without any"
 );
 assert(
+	managerSource.includes("prev(): Promise<unknown> | void") &&
+		managerSource.includes("var prev: ManagerSection | undefined") &&
+		!managerSource.includes("prev(): Promise<any> | void") &&
+		!managerSource.includes("var prev: any"),
+	"Default manager prev bridge must keep section and promise results typed without any"
+);
+assert(
 	continuousManagerSource.includes("var promises: Promise<unknown>[] = []") &&
 		continuousManagerSource.includes("check(_offsetLeft?: number, _offsetTop?: number): Promise<unknown>") &&
 		continuousManagerSource.includes(".then((): Promise<unknown> =>") &&

@@ -1877,8 +1877,8 @@ class DefaultViewManager {
 
 	}
 
-	prev(): Promise<any> | void {
-		var prev: any;
+	prev(): Promise<unknown> | void {
+		var prev: ManagerSection | undefined;
 		var left;
 		let dir = this.settings.direction;
 
