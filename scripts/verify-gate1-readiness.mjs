@@ -189,9 +189,28 @@ assert(
 	sourceRoot.includes("SpineResolver"),
 	"source root must export Spine public types"
 );
-assert(typeTests.includes("RootMappingLayout"), "type tests must assert root Mapping type exports");
 assert(
-	sourceRoot.includes("MappingLayout") && sourceRoot.includes("MappingTextNodeWalker") && sourceRoot.includes("default as Mapping"),
+	typeTests.includes("RootMapping") &&
+	typeTests.includes("RootEpubCFIPair") &&
+	typeTests.includes("RootMappingAxis") &&
+	typeTests.includes("RootMappingContents") &&
+	typeTests.includes("RootMappingDirection") &&
+	typeTests.includes("RootMappingLayout") &&
+	typeTests.includes("RootMappingTextNodeWalker") &&
+	typeTests.includes("RootMappingView") &&
+	typeTests.includes("RootRangePair"),
+	"type tests must assert root Mapping type exports"
+);
+assert(
+	sourceRoot.includes("default as Mapping") &&
+	sourceRoot.includes("EpubCFIPair") &&
+	sourceRoot.includes("MappingAxis") &&
+	sourceRoot.includes("MappingContents") &&
+	sourceRoot.includes("MappingDirection") &&
+	sourceRoot.includes("MappingLayout") &&
+	sourceRoot.includes("MappingTextNodeWalker") &&
+	sourceRoot.includes("MappingView") &&
+	sourceRoot.includes("RangePair"),
 	"source root must export Mapping public types"
 );
 assert(typeTests.includes("RootLocationsRequest"), "type tests must assert root Locations type exports");
