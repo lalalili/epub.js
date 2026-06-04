@@ -25,13 +25,13 @@ export interface EpubCFIComponent {
 export interface ParsedEpubCFI {
   spinePos?: number,
   range: boolean,
-  base: EpubCFIComponent | Record<string, any>,
-  path: EpubCFIComponent | Record<string, any>,
+  base: EpubCFIComponent | Record<string, never>,
+  path: EpubCFIComponent | Record<string, never>,
   start: EpubCFIComponent | null,
   end: EpubCFIComponent | null
 }
 
-export type EpubCFIBase = string | EpubCFIComponent | Record<string, any>;
+export type EpubCFIBase = string | EpubCFIComponent | Record<string, never>;
 export type EpubCFIInput = string | Range | RangeObject | Node | EpubCFI;
 export type EpubCFIType = "string" | "range" | "node" | "EpubCFI" | false;
 
@@ -39,10 +39,10 @@ export default class EpubCFI {
     constructor(cfiFrom?: EpubCFIInput, base?: EpubCFIBase, ignoreClass?: string);
 
     str: string;
-    base: EpubCFIComponent | Record<string, any>;
+    base: EpubCFIComponent | Record<string, never>;
 		spinePos: number;
 		range: boolean;
-    path: EpubCFIComponent | Record<string, any>;
+    path: EpubCFIComponent | Record<string, never>;
     start: EpubCFIComponent | null;
     end: EpubCFIComponent | null;
 

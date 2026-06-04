@@ -28,14 +28,14 @@ export interface EpubCFIComponent {
 export interface ParsedEpubCFI {
 	spinePos?: number;
 	range: boolean;
-	base: EpubCFIComponent | Record<string, any>;
-	path: EpubCFIComponent | Record<string, any>;
+	base: EpubCFIComponent | Record<string, never>;
+	path: EpubCFIComponent | Record<string, never>;
 	start: EpubCFIComponent | null;
 	end: EpubCFIComponent | null;
 }
 
 type RangeLike = Range | RangeObject;
-export type EpubCFIBase = string | EpubCFIComponent | Record<string, any>;
+export type EpubCFIBase = string | EpubCFIComponent | Record<string, never>;
 export type EpubCFIInput = string | RangeLike | Node | EpubCFI;
 export type EpubCFIType = "string" | "range" | "node" | "EpubCFI" | false;
 type NormalizedMap = Record<number, number>;
@@ -68,10 +68,10 @@ const DOCUMENT_NODE = 9;
 */
 class EpubCFI {
 	str: string;
-	base: EpubCFIComponent | Record<string, any>;
+	base: EpubCFIComponent | Record<string, never>;
 	spinePos: number;
 	range: boolean;
-	path: EpubCFIComponent | Record<string, any>;
+	path: EpubCFIComponent | Record<string, never>;
 	start: EpubCFIComponent | null;
 	end: EpubCFIComponent | null;
 

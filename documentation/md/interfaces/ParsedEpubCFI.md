@@ -10,7 +10,7 @@
 
 ### base
 
-> **base**: [`EpubCFIComponent`](EpubCFIComponent.md) \| `Record`\<`string`, `any`\>
+> **base**: [`EpubCFIComponent`](EpubCFIComponent.md) \| `Record`\<`string`, `never`\>
 
 ***
 
@@ -22,7 +22,7 @@
 
 ### path
 
-> **path**: [`EpubCFIComponent`](EpubCFIComponent.md) \| `Record`\<`string`, `any`\>
+> **path**: [`EpubCFIComponent`](EpubCFIComponent.md) \| `Record`\<`string`, `never`\>
 
 ***
 

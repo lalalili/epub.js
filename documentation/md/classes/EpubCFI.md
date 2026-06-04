@@ -34,7 +34,7 @@
 
 ### base
 
-> **base**: [`EpubCFIComponent`](../interfaces/EpubCFIComponent.md) \| `Record`\<`string`, `any`\>
+> **base**: [`EpubCFIComponent`](../interfaces/EpubCFIComponent.md) \| `Record`\<`string`, `never`\>
 
 ***
 
@@ -46,7 +46,7 @@
 
 ### path
 
-> **path**: [`EpubCFIComponent`](../interfaces/EpubCFIComponent.md) \| `Record`\<`string`, `any`\>
+> **path**: [`EpubCFIComponent`](../interfaces/EpubCFIComponent.md) \| `Record`\<`string`, `never`\>
 
 ***
 

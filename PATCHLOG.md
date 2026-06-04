@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0378
+- Why:
+  - `EpubCFI.base`, `EpubCFI.path`, `ParsedEpubCFI.base`, `ParsedEpubCFI.path`, and `EpubCFIBase` are package-root exported surfaces, but their empty fallback object branch still leaked `Record<string, any>`.
+  - The runtime fallback is the initialized empty object used before a parsed CFI component is available.
+  - Typing that fallback as `Record<string, never>` keeps the empty-object state explicit without changing CFI parsing, range generation, or string serialization behavior.
+- Diff Scope:
+  - `src/epubcfi.ts`: replace CFI fallback object branches with `Record<string, never>`.
+  - `types/epubcfi.d.ts`: mirror the CFI fallback object typing.
+  - `types/epubjs-tests.ts`: assert CFI `base/path` typing and empty fallback base usage.
+  - `scripts/verify-gate1-readiness.mjs`: require CFI fallback object parity without `any`.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if consumers intentionally rely on CFI fallback object branches being typed as arbitrary `Record<string, any>`.
+
 ### P-0377
 - Why:
   - `Rendition.debugVerticalRlPage()` is a package-root exported diagnostic method, but its return surface still leaked `Record<string, any>`.

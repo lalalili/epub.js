@@ -545,10 +545,10 @@ type CoreClassAssertions = [
 type EpubCFIAssertions = [
   Assert<IsExact<ConstructorParameters<typeof EpubCFI>, [cfiFrom?: EpubCFIInput | undefined, base?: EpubCFIBase | undefined, ignoreClass?: string | undefined]>>,
   Assert<IsExact<EpubCFI["str"], string>>,
-  Assert<IsExact<EpubCFI["base"], EpubCFIComponent | Record<string, any>>>,
+  Assert<IsExact<EpubCFI["base"], EpubCFIComponent | Record<string, never>>>,
   Assert<IsExact<EpubCFI["spinePos"], number>>,
   Assert<IsExact<EpubCFI["range"], boolean>>,
-  Assert<IsExact<EpubCFI["path"], EpubCFIComponent | Record<string, any>>>,
+  Assert<IsExact<EpubCFI["path"], EpubCFIComponent | Record<string, never>>>,
   Assert<IsExact<EpubCFI["start"], EpubCFIComponent | null>>,
   Assert<IsExact<EpubCFI["end"], EpubCFIComponent | null>>,
   Assert<IsExact<ReturnType<EpubCFI["isCfiString"]>, boolean>>,
@@ -1168,6 +1168,7 @@ function testEpub() {
   const cfiPathComponent: string | undefined = cfi.getPathComponent("/6/2[cover]!/6");
   const cfiRange: [string, string] | false = cfi.getRange("/6/2[cover]!/6,/2/1:1,/3:4");
   const cfiBase: EpubCFIBase = cfiComponent;
+  const cfiFallbackBase: EpubCFIBase = {};
   const layout = new Layout({
     layout: "reflowable",
     spread: "auto",

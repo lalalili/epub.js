@@ -855,6 +855,8 @@ assert(typeTests.includes("RootParsedEpubCFI"), "type tests must assert root Epu
 assert(typeTests.includes("cfi.parse(\"epubcfi(/6/2[cover]!/6)\")"), "type tests must cover EpubCFI parse typing");
 assert(typeTests.includes("cfi.checkType(\"epubcfi(/6/2[cover]!/6)\")"), "type tests must cover EpubCFI checkType typing");
 assert(typeTests.includes("cfi.fromRange(parsedDocument.createRange(), cfiBase)"), "type tests must cover EpubCFI range construction typing");
+assert(typeTests.includes("EpubCFIComponent | Record<string, never>"), "type tests must assert EpubCFI empty fallback object typing without any");
+assert(typeTests.includes("const cfiFallbackBase: EpubCFIBase = {}"), "type tests must cover EpubCFI empty fallback base typing");
 assert(
 	sourceRoot.includes("ParsedEpubCFI") && sourceRoot.includes("EpubCFISegment") && sourceRoot.includes("EpubCFIInput"),
 	"source root must export EpubCFI public types"

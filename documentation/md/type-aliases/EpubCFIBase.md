@@ -6,4 +6,4 @@
 
 # Type Alias: EpubCFIBase
 
-> **EpubCFIBase** = `string` \| [`EpubCFIComponent`](../interfaces/EpubCFIComponent.md) \| `Record`\<`string`, `any`\>
+> **EpubCFIBase** = `string` \| [`EpubCFIComponent`](../interfaces/EpubCFIComponent.md) \| `Record`\<`string`, `never`\>
