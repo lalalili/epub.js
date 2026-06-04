@@ -870,9 +870,10 @@ type PageListAssertions = [
 ];
 
 type LocationsAssertions = [
-  Assert<IsExact<ConstructorParameters<typeof Locations>, [spine?: Spine | undefined, request?: ((...args: any[]) => Promise<unknown>) | undefined, pause?: number | undefined]>>,
+  Assert<IsExact<ConstructorParameters<typeof Locations>, [spine?: Spine | undefined, request?: LocationsRequest | undefined, pause?: number | undefined]>>,
+  Assert<IsExact<LocationsRequest, (...args: unknown[]) => Promise<unknown>>>,
   Assert<IsExact<Locations["spine"], Spine | undefined>>,
-  Assert<IsExact<Locations["request"], ((...args: any[]) => Promise<unknown>) | undefined>>,
+  Assert<IsExact<Locations["request"], LocationsRequest | undefined>>,
   Assert<IsExact<Locations["pause"], number | undefined>>,
   Assert<IsExact<Locations["_locations"], string[] | undefined>>,
   Assert<IsExact<Locations["_locationsWords"], WordLocation[] | undefined>>,
@@ -882,9 +883,13 @@ type LocationsAssertions = [
   Assert<IsExact<Locations["_wordCounter"], number | undefined>>,
   Assert<IsExact<Locations["_currentCfi"], string | undefined>>,
   Assert<IsExact<Locations["processingTimeout"], ReturnType<typeof setTimeout> | undefined>>,
+  Assert<IsExact<Parameters<Locations["emit"]>, [eventName: string, data?: unknown]>>,
   Assert<IsExact<ReturnType<Locations["emit"]>, void>>,
+  Assert<IsExact<Parameters<Locations["on"]>, [eventName: string, listener: (...args: unknown[]) => void]>>,
   Assert<IsExact<ReturnType<Locations["on"]>, unknown>>,
+  Assert<IsExact<Parameters<Locations["off"]>, [eventName: string, listener: (...args: unknown[]) => void]>>,
   Assert<IsExact<ReturnType<Locations["off"]>, unknown>>,
+  Assert<IsExact<Parameters<Locations["once"]>, [eventName: string, listener: (...args: unknown[]) => void]>>,
   Assert<IsExact<ReturnType<Locations["once"]>, unknown>>,
   Assert<IsExact<ReturnType<Locations["generate"]>, Promise<string[]>>>,
   Assert<IsExact<ReturnType<Locations["createRange"]>, LocationRange>>,

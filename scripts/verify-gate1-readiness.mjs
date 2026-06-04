@@ -286,10 +286,11 @@ assert(
 	"source root must export Locations public types"
 );
 assert(
-	locationsSource.includes("LocationsRequest = (...args: any[]) => Promise<unknown>") &&
-	locationsTypes.includes("LocationsRequest = (...args: any[]) => Promise<unknown>") &&
+	locationsSource.includes("LocationsRequest = (...args: unknown[]) => Promise<unknown>") &&
+	locationsTypes.includes("LocationsRequest = (...args: unknown[]) => Promise<unknown>") &&
+	typeTests.includes("LocationsRequest, (...args: unknown[]) => Promise<unknown>") &&
 	typeTests.includes("Promise<unknown> = locationsRequest"),
-	"LocationsRequest source, declarations, and type tests must keep unknown result parity"
+	"LocationsRequest source, declarations, and type tests must keep unknown argument and result parity"
 );
 assert(
 	typeTests.includes("RootThemes") &&
@@ -596,18 +597,26 @@ assert(
 );
 assert(typeTests.includes("type LocationsAssertions"), "type tests must assert the Locations public surface");
 assert(typeTests.includes("new Locations(spine"), "type tests must cover Locations construction with spine/request typing");
+assert(typeTests.includes("Parameters<Locations[\"emit\"]>, [eventName: string, data?: unknown]"), "type tests must assert Locations emit parameter typing");
 assert(typeTests.includes("ReturnType<Locations[\"emit\"]>, void"), "type tests must assert Locations emit typing");
+assert(typeTests.includes("Parameters<Locations[\"on\"]>, [eventName: string, listener: (...args: unknown[]) => void]"), "type tests must assert Locations on unknown listener typing");
 assert(typeTests.includes("ReturnType<Locations[\"on\"]>, unknown"), "type tests must assert Locations on typing");
+assert(typeTests.includes("Parameters<Locations[\"off\"]>, [eventName: string, listener: (...args: unknown[]) => void]"), "type tests must assert Locations off unknown listener typing");
 assert(typeTests.includes("ReturnType<Locations[\"off\"]>, unknown"), "type tests must assert Locations off typing");
+assert(typeTests.includes("Parameters<Locations[\"once\"]>, [eventName: string, listener: (...args: unknown[]) => void]"), "type tests must assert Locations once unknown listener typing");
 assert(typeTests.includes("ReturnType<Locations[\"once\"]>, unknown"), "type tests must assert Locations once typing");
 assert(typeTests.includes("locations.generateForSection"), "type tests must cover Locations section refinement typing");
 assert(typeTests.includes("locations.parseWords"), "type tests must cover Locations word-location typing");
 assert(
 	locationsSource.includes("emit(eventName: string, data?: unknown): void") &&
-	locationsSource.includes("on(eventName: string, listener: (...args: any[]) => void): unknown") &&
-	locationsSource.includes("off(eventName: string, listener: (...args: any[]) => void): unknown") &&
-	locationsSource.includes("once(eventName: string, listener: (...args: any[]) => void): unknown"),
-	"source Locations must keep EventEmitter method type parity"
+	locationsSource.includes("on(eventName: string, listener: (...args: unknown[]) => void): unknown") &&
+	locationsSource.includes("off(eventName: string, listener: (...args: unknown[]) => void): unknown") &&
+	locationsSource.includes("once(eventName: string, listener: (...args: unknown[]) => void): unknown") &&
+	locationsTypes.includes("emit(eventName: string, data?: unknown): void") &&
+	locationsTypes.includes("on(eventName: string, listener: (...args: unknown[]) => void): unknown") &&
+	locationsTypes.includes("off(eventName: string, listener: (...args: unknown[]) => void): unknown") &&
+	locationsTypes.includes("once(eventName: string, listener: (...args: unknown[]) => void): unknown"),
+	"Locations source and declarations must keep EventEmitter method type parity"
 );
 assert(typeTests.includes("type MappingAssertions"), "type tests must assert the Mapping public surface");
 assert(typeTests.includes("new Mapping(mappingLayout"), "type tests must cover Mapping construction typing");

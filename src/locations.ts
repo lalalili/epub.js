@@ -17,7 +17,7 @@ export interface LocationRange {
 	endOffset?: number;
 }
 
-export type LocationsRequest = (...args: any[]) => Promise<unknown>;
+export type LocationsRequest = (...args: unknown[]) => Promise<unknown>;
 
 export interface WordLocation {
 	cfi: string;
@@ -627,9 +627,9 @@ class Locations {
 
 interface Locations {
 	emit(eventName: string, data?: unknown): void;
-	on(eventName: string, listener: (...args: any[]) => void): unknown;
-	off(eventName: string, listener: (...args: any[]) => void): unknown;
-	once(eventName: string, listener: (...args: any[]) => void): unknown;
+	on(eventName: string, listener: (...args: unknown[]) => void): unknown;
+	off(eventName: string, listener: (...args: unknown[]) => void): unknown;
+	once(eventName: string, listener: (...args: unknown[]) => void): unknown;
 }
 
 EventEmitter(Locations.prototype);

@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0384
+- Why:
+  - `LocationsRequest` and `Locations` listener methods are package-root public types, but source and declarations still exposed variadic request/listener arguments as `any[]`.
+  - Locations forwards request and event payloads opaquely, so consumers should narrow payload values before reading them.
+  - Tightening this surface keeps Locations source/.d.ts/TypeDoc parity enforceable without changing location generation, CFI parsing, or event wiring.
+- Diff Scope:
+  - `src/locations.ts`: type `LocationsRequest` and `Locations` listener arguments as `unknown[]`.
+  - `types/locations.d.ts`: mirror request and listener argument typing.
+  - `types/epubjs-tests.ts`: assert LocationsRequest and EventEmitter parameter typing and keep usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Locations request/listener source and declaration parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Locations consumers intentionally rely on request or listener arguments being typed as `any`.
+
 ### P-0383
 - Why:
   - `Store` is a package-root public class with EventEmitter methods, but source and declarations still exposed event payload arguments as `any[]`.

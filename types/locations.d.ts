@@ -15,7 +15,7 @@ export interface WordLocation {
   wordCount: number;
 }
 
-export type LocationsRequest = (...args: any[]) => Promise<unknown>;
+export type LocationsRequest = (...args: unknown[]) => Promise<unknown>;
 
 export type LocationInput = string | EpubCFI;
 
@@ -38,11 +38,11 @@ export default class Locations {
 
   emit(eventName: string, data?: unknown): void;
 
-  on(eventName: string, listener: (...args: any[]) => void): unknown;
+  on(eventName: string, listener: (...args: unknown[]) => void): unknown;
 
-  off(eventName: string, listener: (...args: any[]) => void): unknown;
+  off(eventName: string, listener: (...args: unknown[]) => void): unknown;
 
-  once(eventName: string, listener: (...args: any[]) => void): unknown;
+  once(eventName: string, listener: (...args: unknown[]) => void): unknown;
 
   generate(chars?: number): Promise<Array<string>>;
 
