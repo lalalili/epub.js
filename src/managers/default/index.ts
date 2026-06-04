@@ -81,6 +81,16 @@ type TextRect = {
 	width?: number;
 	height?: number;
 };
+type DefaultManagerOptions = {
+	settings: Record<string, unknown>;
+	view: unknown;
+	request: unknown;
+	queue: unknown;
+};
+type ManagerRenderSize = {
+	width: number | string | null | false;
+	height: number | string | null | false;
+};
 
 class DefaultViewManager {
 	[key: string]: any;
@@ -89,7 +99,7 @@ class DefaultViewManager {
 	declare off: (type: string, listener: (...args: unknown[]) => void) => unknown;
 	declare once: (type: string, listener: (...args: unknown[]) => void) => unknown;
 
-	constructor(options: any) {
+	constructor(options: DefaultManagerOptions) {
 
 		this.name = "default";
 		this.optsSettings = options.settings;
@@ -133,7 +143,7 @@ class DefaultViewManager {
 
 	}
 
-	render(element: HTMLElement, size: any): void {
+	render(element: HTMLElement, size: ManagerRenderSize): void {
 		let tag = element.tagName;
 
 		if (typeof this.settings.fullsize === "undefined" &&

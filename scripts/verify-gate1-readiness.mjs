@@ -1470,6 +1470,16 @@ assert(
 	"Default manager must keep Deferred constructor bridge typed through unknown"
 );
 assert(
+	managerSource.includes("type DefaultManagerOptions = {") &&
+		managerSource.includes("settings: Record<string, unknown>") &&
+		managerSource.includes("type ManagerRenderSize = {") &&
+		managerSource.includes("constructor(options: DefaultManagerOptions)") &&
+		managerSource.includes("render(element: HTMLElement, size: ManagerRenderSize): void") &&
+		!managerSource.includes("constructor(options: any)") &&
+		!managerSource.includes("render(element: HTMLElement, size: any): void"),
+	"Default manager constructor and render size inputs must stay typed without any"
+);
+assert(
 	continuousManagerSource.includes("var promises: Promise<unknown>[] = []") &&
 		continuousManagerSource.includes("check(_offsetLeft?: number, _offsetTop?: number): Promise<unknown>") &&
 		continuousManagerSource.includes(".then((): Promise<unknown> =>") &&
