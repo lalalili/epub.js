@@ -3,7 +3,7 @@ import Hook from "./utils/hook";
 import Section, { SectionHookSet } from "./section";
 import {replaceBase, replaceCanonical, replaceMeta} from "./utils/replacements";
 
-type HookConstructor = new (context?: any) => Hook;
+type HookConstructor = new (context?: unknown) => Hook;
 export type SpineLookup = Record<string, number>;
 
 export type SpineManifestItem = {

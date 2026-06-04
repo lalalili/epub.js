@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0421
+- Why:
+  - `Section` and `Spine` already expose typed root public surfaces, but their source-side Hook constructor bridge and Section deferred rejection signatures still used `any`.
+  - Aligning these internal bridges with `unknown` keeps source typing closer to the existing Hook and deferred contracts before Gate 1 release work.
+  - This removes another small source-side `any` leak without changing section loading, rendering, spine hook registration, or rejected error payloads.
+- Diff Scope:
+  - `src/section.ts`: type deferred rejection reasons and Hook constructor context as `unknown`.
+  - `src/spine.ts`: type Hook constructor context as `unknown`.
+  - `scripts/verify-gate1-readiness.mjs`: require Section and Spine internal Hook/deferred bridges to stay typed.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Section or Spine hook/deferred bridge values must intentionally remain source-untyped.
+
 ### P-0420
 - Why:
   - `Archive` already exposes typed request and object URL APIs, but its source-side deferred and archive response bridge still used `Promise<any>`.

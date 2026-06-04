@@ -46,22 +46,22 @@ export type SectionRequest = (url: string) => Promise<Document>;
 type SerializerConstructor = new () => {
 	serializeToString(input: Node): string;
 };
-type DeferConstructor = new <T = any>() => {
+type DeferConstructor = new <T = unknown>() => {
 	promise: Promise<T>;
 	resolve(value?: T): void;
-	reject(error?: any): void;
+	reject(error?: unknown): void;
 };
 type ElementDeferConstructor = new () => {
 	promise: Promise<Element | undefined>;
 	resolve(value?: Element): void;
-	reject(error?: any): void;
+	reject(error?: unknown): void;
 };
 type StringDeferConstructor = new () => {
 	promise: Promise<string | undefined>;
 	resolve(value?: string): void;
-	reject(error?: any): void;
+	reject(error?: unknown): void;
 };
-type HookConstructor = new (context?: any) => Hook;
+type HookConstructor = new (context?: unknown) => Hook;
 
 /**
  * Represents a Section of the Book

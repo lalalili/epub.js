@@ -18,6 +18,7 @@ const managerTypes = readFileSync(path.join(root, "types/managers/manager.d.ts")
 const viewTypes = readFileSync(path.join(root, "types/managers/view.d.ts"), "utf8");
 const archiveSource = readFileSync(path.join(root, "src/archive.ts"), "utf8");
 const storeSource = readFileSync(path.join(root, "src/store.ts"), "utf8");
+const sectionSource = readFileSync(path.join(root, "src/section.ts"), "utf8");
 const spineSource = readFileSync(path.join(root, "src/spine.ts"), "utf8");
 const spineTypes = readFileSync(path.join(root, "types/spine.d.ts"), "utf8");
 const navigationTypes = readFileSync(path.join(root, "types/navigation.d.ts"), "utf8");
@@ -236,6 +237,14 @@ assert(
 	"source root must export Section public types"
 );
 assert(
+	sectionSource.includes("type DeferConstructor = new <T = unknown>()") &&
+	sectionSource.includes("reject(error?: unknown): void") &&
+	sectionSource.includes("type HookConstructor = new (context?: unknown) => Hook") &&
+	!sectionSource.includes("reject(error?: any): void") &&
+	!sectionSource.includes("type HookConstructor = new (context?: any) => Hook"),
+	"source Section must keep deferred rejection and Hook constructor context typed as unknown"
+);
+assert(
 	typeTests.includes("RootSpine") &&
 	typeTests.includes("RootSpineLookup") &&
 	typeTests.includes("RootSpineManifestItem") &&
@@ -252,6 +261,11 @@ assert(
 	sourceRoot.includes("SpinePackageItem") &&
 	sourceRoot.includes("SpineResolver"),
 	"source root must export Spine public types"
+);
+assert(
+	spineSource.includes("type HookConstructor = new (context?: unknown) => Hook") &&
+	!spineSource.includes("type HookConstructor = new (context?: any) => Hook"),
+	"source Spine must keep Hook constructor context typed as unknown"
 );
 assert(
 	typeTests.includes("RootMapping") &&
