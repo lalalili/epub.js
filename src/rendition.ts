@@ -518,7 +518,7 @@ class Rendition {
 	 * @private
 	 * @param  {*} view
 	 */
-	afterDisplayed(view: any): void {
+	afterDisplayed(view: IframeView): void {
 
 		view.on(EVENTS.VIEWS.MARK_CLICKED, (cfiRange: string, data: AnnotationData | undefined) => this.triggerMarkEvent(cfiRange, data, view.contents));
 
@@ -547,7 +547,7 @@ class Rendition {
 	 * @private
 	 * @param  {*} view
 	 */
-	afterRemoved(view: any): void {
+	afterRemoved(view: IframeView): void {
 		this.hooks.unloaded.trigger(view, this).then(() => {
 			/**
 			 * Emit that a section has been removed

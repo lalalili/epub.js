@@ -207,8 +207,8 @@ export default class Rendition {
 
     private onResized(size: { width: number, height: number }): void;
 
-    private afterDisplayed(view: any): void;
+    private afterDisplayed(view: View): void;
 
-    private afterRemoved(view: any): void;
+    private afterRemoved(view: View): void;
 
 }

@@ -948,6 +948,13 @@ assert(
 	"Rendition source and declarations must keep displaying deferred value type parity"
 );
 assert(
+	renditionSource.includes("afterDisplayed(view: IframeView): void") &&
+		renditionSource.includes("afterRemoved(view: IframeView): void") &&
+		renditionTypes.includes("private afterDisplayed(view: View): void") &&
+		renditionTypes.includes("private afterRemoved(view: View): void"),
+	"Rendition source and declarations must keep displayed/removed view hook parameter parity"
+);
+assert(
 	renditionSource.includes("reportLocation(): Promise<void>") &&
 		renditionSource.includes("remeasure({ preserveLocation = true, waitForFonts = true }") &&
 		renditionSource.includes("): Promise<void>"),

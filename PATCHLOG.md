@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0409
+- Why:
+  - `Rendition.afterDisplayed()` and `Rendition.afterRemoved()` receive manager view instances, but both source and declarations still typed those private hook bridge parameters as `any`.
+  - Source already uses the default `IframeView` class and declarations already expose the public `View` class for `Rendition.views()`.
+  - Typing the bridge parameters removes another `Rendition` `any` leak without changing render/unload hook behavior.
+- Diff Scope:
+  - `src/rendition.ts`: type displayed/removed hook bridge parameters as `IframeView`.
+  - `types/rendition.d.ts`: mirror those private hook parameters as `View`.
+  - `scripts/verify-gate1-readiness.mjs`: require source/declaration parity for displayed/removed view hook parameters.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if custom manager view bridge parameters must intentionally stay untyped.
+
 ### P-0408
 - Why:
   - `Rendition.triggerMarkEvent()` bridges annotation mark clicks to the public `markClicked` event, but source still accepted `data: any` while declarations used a broad `object`.
