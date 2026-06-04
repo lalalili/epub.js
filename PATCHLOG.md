@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0342
+- Why:
+  - P-0341 tightened the `Themes` root export readiness guard, leaving `Annotations` with the same guard-completeness gap.
+  - Source root exports, declaration root exports, and type smoke already cover `Annotations`, `Annotation`, `AnnotationCallback`, `AnnotationData`, `AnnotationMap`, `AnnotationOptions`, `AnnotationsRendition`, `AnnotationStyles`, `AnnotationType`, `AnnotationView`, and `SectionAnnotationMap`, but the readiness script only required a subset of that public root surface.
+  - Tightening the guard keeps Annotations root/source/type-smoke parity enforceable before any release tag or host gate, without changing annotation creation, highlight/underline/mark helpers, removal behavior, or section annotation maps.
+- Diff Scope:
+  - `scripts/verify-gate1-readiness.mjs`: require the complete Annotations root type-smoke aliases and source root exports.
+  - `documentation/md/*`: rerun TypeDoc to confirm the guard-only update does not change the rendered public markdown surface.
+- Test:
+  - `npm run typecheck`
+  - `npm run docs:md`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/annotations.test.js test/browser/rendition.test.js test/browser/book.test.js test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Gate 1 readiness should intentionally allow partial Annotations root export coverage.
+
 ### P-0341
 - Why:
   - P-0340 tightened the `Locations` root export readiness guard, leaving `Themes` with the same guard-completeness gap.

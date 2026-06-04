@@ -456,12 +456,35 @@ assert(typeTests.includes("ReturnType<Themes[\"default\"]>"), "type tests must c
 assert(typeTests.includes("themes.register(\"night\", themeRules)"), "type tests must cover Themes rule registration typing");
 assert(typeTests.includes("themes.removeOverride(\"font-size\")"), "type tests must cover Themes override removal typing");
 assert(typeTests.includes("type AnnotationsAssertions"), "type tests must assert the Annotations public surface");
-assert(typeTests.includes("RootAnnotationsRendition"), "type tests must assert root Annotations type exports");
+assert(
+	typeTests.includes("RootAnnotations") &&
+	typeTests.includes("RootAnnotation") &&
+	typeTests.includes("RootAnnotationCallback") &&
+	typeTests.includes("RootAnnotationData") &&
+	typeTests.includes("RootAnnotationMap") &&
+	typeTests.includes("RootAnnotationOptions") &&
+	typeTests.includes("RootAnnotationsRendition") &&
+	typeTests.includes("RootAnnotationStyles") &&
+	typeTests.includes("RootAnnotationType") &&
+	typeTests.includes("RootAnnotationView") &&
+	typeTests.includes("RootSectionAnnotationMap"),
+	"type tests must assert root Annotations type exports"
+);
 assert(typeTests.includes("new Annotations(annotationsRendition)"), "type tests must cover Annotations construction typing");
 assert(typeTests.includes("annotations.highlight(\"epubcfi"), "type tests must cover Annotations highlight typing");
 assert(typeTests.includes("annotations.remove(\"epubcfi"), "type tests must cover Annotations removal typing");
 assert(
-	sourceRoot.includes("AnnotationOptions") && sourceRoot.includes("AnnotationsRendition") && sourceRoot.includes("default as Annotations"),
+	sourceRoot.includes("default as Annotations") &&
+	sourceRoot.includes("Annotation") &&
+	sourceRoot.includes("AnnotationCallback") &&
+	sourceRoot.includes("AnnotationData") &&
+	sourceRoot.includes("AnnotationMap") &&
+	sourceRoot.includes("AnnotationOptions") &&
+	sourceRoot.includes("AnnotationsRendition") &&
+	sourceRoot.includes("AnnotationStyles") &&
+	sourceRoot.includes("AnnotationType") &&
+	sourceRoot.includes("AnnotationView") &&
+	sourceRoot.includes("SectionAnnotationMap"),
 	"source root must export Annotations public types"
 );
 assert(typeTests.includes("type ResourcesAssertions"), "type tests must assert the Resources public surface");
