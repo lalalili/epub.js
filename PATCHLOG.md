@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0383
+- Why:
+  - `Store` is a package-root public class with EventEmitter methods, but source and declarations still exposed event payload arguments as `any[]`.
+  - Store event payloads are forwarded opaquely, so consumers should narrow payload values before reading them.
+  - Tightening this surface keeps Store source/.d.ts/TypeDoc parity enforceable without changing storage, request, retrieval, URL, or online/offline event wiring.
+- Diff Scope:
+  - `src/store.ts`: type Store EventEmitter variadic arguments and listener arguments as `unknown[]`.
+  - `types/store.d.ts`: mirror Store emit, on, off, and once argument typing.
+  - `types/epubjs-tests.ts`: assert Store EventEmitter parameter typing and keep usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Store EventEmitter source and declaration parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Store consumers intentionally rely on event payload arguments being typed as `any`.
+
 ### P-0382
 - Why:
   - `AnnotationCallback` and the Annotation EventEmitter bridge are package-root public types, but source and declarations still exposed their variadic arguments as `any[]`.

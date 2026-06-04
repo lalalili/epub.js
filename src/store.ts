@@ -428,10 +428,10 @@ class Store {
 }
 
 interface Store {
-	emit(eventName: string, ...args: any[]): void;
-	on(eventName: string, listener: (...args: any[]) => void): unknown;
-	off(eventName: string, listener: (...args: any[]) => void): unknown;
-	once(eventName: string, listener: (...args: any[]) => void): unknown;
+	emit(eventName: string, ...args: unknown[]): void;
+	on(eventName: string, listener: (...args: unknown[]) => void): unknown;
+	off(eventName: string, listener: (...args: unknown[]) => void): unknown;
+	once(eventName: string, listener: (...args: unknown[]) => void): unknown;
 }
 
 EventEmitter(Store.prototype);

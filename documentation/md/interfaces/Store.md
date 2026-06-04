@@ -142,7 +142,7 @@
 
 ##### args
 
-...`any`[]
+...`unknown`[]
 
 #### Returns
 
