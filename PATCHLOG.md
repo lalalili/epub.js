@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0351
+- Why:
+  - `Navigation` root exports and type smoke already covered the main public class and value types, but `types/navigation.d.ts` still diverged from the TypeScript source for parser helper methods.
+  - The declaration file omitted `parseNavList`, narrowed `NavigationDocument` parameters to `XMLDocument`, hid source-public helpers behind TypeScript `private`, and missed `undefined` fallback returns for `navItem`, `landmarkItem`, and `getByIndex`.
+  - Aligning the declaration signatures keeps source/.d.ts parity enforceable before future release tags without changing navigation parsing, TOC lookup, landmark lookup, or legacy JSON loading behavior.
+- Diff Scope:
+  - `types/navigation.d.ts`: align parser helper method visibility, parameters, and fallback return types with `src/navigation.ts`.
+  - `types/epubjs-tests.ts`: add Navigation helper method type smoke coverage.
+  - `scripts/verify-gate1-readiness.mjs`: require Navigation declaration/type-smoke parity guards.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if the project intentionally reintroduces TypeScript `private` declarations for JSDoc-private Navigation helpers despite the runtime/source public method shape.
+
 ### P-0350
 - Why:
   - The TypeScript modernization left `Book`, `Rendition`, and `Store` EventEmitter methods as emitted class fields.

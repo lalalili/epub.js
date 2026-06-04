@@ -10,6 +10,7 @@ const sourceRoot = readFileSync(path.join(root, "src/index.ts"), "utf8");
 const bookSource = readFileSync(path.join(root, "src/book.ts"), "utf8");
 const archiveSource = readFileSync(path.join(root, "src/archive.ts"), "utf8");
 const storeSource = readFileSync(path.join(root, "src/store.ts"), "utf8");
+const navigationTypes = readFileSync(path.join(root, "types/navigation.d.ts"), "utf8");
 const globalTypeTests = readFileSync(path.join(root, "types/global-namespace-tests.ts"), "utf8");
 const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.test.js"), "utf8");
 const umdGlobalTests = readFileSync(path.join(root, "test/browser/umd-global.test.js"), "utf8");
@@ -390,6 +391,18 @@ assert(typeTests.includes("ConstructorParameters<typeof Navigation>"), "type tes
 assert(typeTests.includes("new Navigation(legacyNavItems)"), "type tests must cover legacy JSON Navigation construction");
 assert(typeTests.includes("legacyNavigation.get()"), "type tests must cover Navigation get() toc overload");
 assert(typeTests.includes("legacyNavigation.landmark()"), "type tests must cover Navigation landmark() list overload");
+assert(typeTests.includes("Parameters<Navigation[\"parseNavList\"]>"), "type tests must cover Navigation parseNavList typing");
+assert(typeTests.includes("ReturnType<Navigation[\"navItem\"]>, NavItem | undefined"), "type tests must cover Navigation navItem fallback typing");
+assert(typeTests.includes("ReturnType<Navigation[\"landmarkItem\"]>, LandmarkItem | undefined"), "type tests must cover Navigation landmarkItem fallback typing");
+assert(typeTests.includes("Parameters<Navigation[\"getByIndex\"]>"), "type tests must cover Navigation getByIndex optional index typing");
+assert(
+	navigationTypes.includes("parseNav(navHtml: NavigationDocument)") &&
+	navigationTypes.includes("parseNavList(navListHtml?: Element, parent?: string)") &&
+	navigationTypes.includes("navItem(item: Element, parent?: string): NavItem | undefined") &&
+	navigationTypes.includes("landmarkItem(item: Element): LandmarkItem | undefined") &&
+	navigationTypes.includes("getByIndex(target: string, index: number | undefined, navItems: NavItem[]): NavItem | undefined"),
+	"Navigation declarations must match source parser helper signatures"
+);
 assert(typeTests.includes("type SectionAssertions"), "type tests must assert the Section public surface");
 assert(typeTests.includes("new Section(spineItem)"), "type tests must cover Section construction without explicit hooks");
 assert(typeTests.includes("section.search(\"Text\")"), "type tests must cover Section search result typing");

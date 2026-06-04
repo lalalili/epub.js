@@ -49,19 +49,21 @@ export default class Navigation {
 
   forEach(fn: (item: NavItem, index: number, array: Array<NavItem>) => void): void;
 
-  private unpack(toc: Array<NavItem>): void;
+  unpack(toc: Array<NavItem>): void;
 
-  private parseNav(navHtml: XMLDocument): Array<NavItem>;
+  parseNav(navHtml: NavigationDocument): Array<NavItem>;
 
-  private navItem(item: Element): NavItem;
+  parseNavList(navListHtml?: Element, parent?: string): Array<NavItem>;
 
-  private parseLandmarks(navHtml: XMLDocument): Array<LandmarkItem>;
+  navItem(item: Element, parent?: string): NavItem | undefined;
 
-  private landmarkItem(item: Element): LandmarkItem;
+  parseLandmarks(navHtml: NavigationDocument): Array<LandmarkItem>;
 
-  private parseNcx(navHtml: XMLDocument): Array<NavItem>;
+  landmarkItem(item: Element): LandmarkItem | undefined;
 
-  private ncxItem(item: Element): NavItem;
+  parseNcx(navHtml: NavigationDocument): Array<NavItem>;
 
-  private getByIndex(target: string, index: number, navItems: NavItem[]): NavItem;
+  ncxItem(item: Element): NavItem;
+
+  getByIndex(target: string, index: number | undefined, navItems: NavItem[]): NavItem | undefined;
 }

@@ -86,6 +86,30 @@
 
 ***
 
+### getByIndex()
+
+> **getByIndex**(`target`, `index`, `navItems`): [`NavItem`](NavItem.md)
+
+#### Parameters
+
+##### target
+
+`string`
+
+##### index
+
+`number`
+
+##### navItems
+
+[`NavItem`](NavItem.md)[]
+
+#### Returns
+
+[`NavItem`](NavItem.md)
+
+***
+
 ### landmark()
 
 #### Call Signature
@@ -112,6 +136,22 @@
 
 ***
 
+### landmarkItem()
+
+> **landmarkItem**(`item`): [`LandmarkItem`](LandmarkItem.md)
+
+#### Parameters
+
+##### item
+
+`Element`
+
+#### Returns
+
+[`LandmarkItem`](LandmarkItem.md)
+
+***
+
 ### load()
 
 > **load**(`json`): [`NavItem`](NavItem.md)[]
@@ -128,6 +168,42 @@
 
 ***
 
+### navItem()
+
+> **navItem**(`item`, `parent?`): [`NavItem`](NavItem.md)
+
+#### Parameters
+
+##### item
+
+`Element`
+
+##### parent?
+
+`string`
+
+#### Returns
+
+[`NavItem`](NavItem.md)
+
+***
+
+### ncxItem()
+
+> **ncxItem**(`item`): [`NavItem`](NavItem.md)
+
+#### Parameters
+
+##### item
+
+`Element`
+
+#### Returns
+
+[`NavItem`](NavItem.md)
+
+***
+
 ### parse()
 
 > **parse**(`xml`): `void`
@@ -137,6 +213,90 @@
 ##### xml
 
 [`NavigationInput`](../type-aliases/NavigationInput.md)
+
+#### Returns
+
+`void`
+
+***
+
+### parseLandmarks()
+
+> **parseLandmarks**(`navHtml`): [`LandmarkItem`](LandmarkItem.md)[]
+
+#### Parameters
+
+##### navHtml
+
+[`NavigationDocument`](../type-aliases/NavigationDocument.md)
+
+#### Returns
+
+[`LandmarkItem`](LandmarkItem.md)[]
+
+***
+
+### parseNav()
+
+> **parseNav**(`navHtml`): [`NavItem`](NavItem.md)[]
+
+#### Parameters
+
+##### navHtml
+
+[`NavigationDocument`](../type-aliases/NavigationDocument.md)
+
+#### Returns
+
+[`NavItem`](NavItem.md)[]
+
+***
+
+### parseNavList()
+
+> **parseNavList**(`navListHtml?`, `parent?`): [`NavItem`](NavItem.md)[]
+
+#### Parameters
+
+##### navListHtml?
+
+`Element`
+
+##### parent?
+
+`string`
+
+#### Returns
+
+[`NavItem`](NavItem.md)[]
+
+***
+
+### parseNcx()
+
+> **parseNcx**(`navHtml`): [`NavItem`](NavItem.md)[]
+
+#### Parameters
+
+##### navHtml
+
+[`NavigationDocument`](../type-aliases/NavigationDocument.md)
+
+#### Returns
+
+[`NavItem`](NavItem.md)[]
+
+***
+
+### unpack()
+
+> **unpack**(`toc`): `void`
+
+#### Parameters
+
+##### toc
+
+[`NavItem`](NavItem.md)[]
 
 #### Returns
 
