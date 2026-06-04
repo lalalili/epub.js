@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0365
+- Why:
+  - `LayoutContent.fit()` and `Layout.format()` already treat the optional section bridge argument as `unknown`, but `Contents.fit()` still exposed it as `any` in both source and declarations.
+  - `Contents.fit()` only needs to detect a `properties` array containing `page-spread-left`, so a local type guard can keep the public bridge argument unknown while preserving the valid section behavior.
+  - Tightening this surface keeps Contents source/.d.ts/TypeDoc parity enforceable without changing fixed-layout fitting, viewport sizing, scaling, overflow, transform behavior, or valid page-spread-left margin handling.
+- Diff Scope:
+  - `src/contents.ts`: type the optional `Contents.fit()` section argument as `unknown`.
+  - `types/contents.d.ts`: mirror the `Contents.fit()` optional section argument as `unknown`.
+  - `types/epubjs-tests.ts`: assert `Contents.fit()` parameters and add usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require `Contents.fit()` optional section parity and type-smoke assertions.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/contents-text-width.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `Contents.fit()` starts reading section-specific properties that need a dedicated public section bridge type.
+
 ### P-0364
 - Why:
   - `Rendition` is wired with `EventEmitter(Rendition.prototype)`, but the declaration file still exposed listener methods with `any` event names and listener signatures.

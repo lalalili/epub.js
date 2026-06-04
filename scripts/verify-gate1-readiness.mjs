@@ -712,6 +712,8 @@ assert(
 assert(typeTests.includes("typedContents._size"), "type tests must cover Contents runtime size state typing");
 assert(typeTests.includes("typedContents.sectionHref"), "type tests must cover Contents sectionHref state typing");
 assert(typeTests.includes("typedContents._verticalRlMetricsCache"), "type tests must cover Contents vertical-rl metrics cache typing");
+assert(typeTests.includes("Parameters<Contents[\"fit\"]>, [width: number, height: number, section?: unknown]"), "type tests must assert Contents fit optional section typing");
+assert(typeTests.includes("typedContents.fit(320, 480"), "type tests must cover Contents fit optional section usage");
 assert(typeTests.includes("ReturnType<Contents[\"on\"]>, unknown"), "type tests must assert Contents EventEmitter listener typing");
 assert(typeTests.includes("const contentsOn: unknown = typedContents.on"), "type tests must cover Contents on listener usage");
 assert(typeTests.includes("const contentsOff: unknown = typedContents.off"), "type tests must cover Contents off listener usage");
@@ -723,6 +725,7 @@ assert(
 		contentsSource.includes("once(type: string, listener: (...args: any[]) => void): unknown"),
 	"source Contents must keep EventEmitter method type parity"
 );
+assert(contentsSource.includes("fit(width: number, height: number, section?: unknown): void"), "source Contents must keep fit optional section typed as unknown");
 assert(
 	sourceRoot.includes("\tContents,") &&
 	sourceRoot.includes("ContentsSize") &&

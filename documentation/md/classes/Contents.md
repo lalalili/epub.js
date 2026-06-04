@@ -448,7 +448,7 @@
 
 ##### section?
 
-`any`
+`unknown`
 
 #### Returns
 

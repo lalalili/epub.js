@@ -10508,6 +10508,9 @@
 		const sorted = values.slice().sort((a, b) => a - b);
 		return sorted[Math.floor(sorted.length / 2)];
 	};
+	var hasPageSpreadLeft = (section) => {
+		return Boolean(section && typeof section === "object" && Array.isArray(section.properties) && section.properties.includes("page-spread-left"));
+	};
 	var cssPixelValue = (value) => {
 		const parsed = parseFloat(value);
 		return Number.isFinite(parsed) ? parsed : 0;
@@ -11786,7 +11789,7 @@
 			this.scaler(scale, 0, 0);
 			this.css("background-size", viewportWidth * scale + "px " + viewportHeight * scale + "px");
 			this.css("background-color", "transparent");
-			if (section && section.properties.includes("page-spread-left")) {
+			if (hasPageSpreadLeft(section)) {
 				var marginLeft = width - viewportWidth * scale;
 				this.css("margin-left", marginLeft + "px");
 			}

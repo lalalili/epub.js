@@ -66,11 +66,23 @@ type CssRuleWithSelector = CSSRule & {
 	selectorText?: string;
 	style?: CSSStyleDeclaration;
 };
+type ContentsFitSection = {
+	properties?: string[];
+};
 
 const median = (values: number[]): number | null => {
 	if (!values.length) return null;
 	const sorted = values.slice().sort((a, b) => a - b);
 	return sorted[Math.floor(sorted.length / 2)];
+};
+
+const hasPageSpreadLeft = (section: unknown): boolean => {
+	return Boolean(
+		section &&
+		typeof section === "object" &&
+		Array.isArray((section as ContentsFitSection).properties) &&
+		(section as ContentsFitSection).properties!.includes("page-spread-left")
+	);
 };
 
 const cssPixelValue = (value: string): number => {
@@ -2117,7 +2129,7 @@ class Contents {
 	 * @param {number} width
 	 * @param {number} height
 	 */
-	fit(width: number, height: number, section?: any): void {
+	fit(width: number, height: number, section?: unknown): void {
 		var viewport = this.viewport();
 		var viewportWidth = parseInt(String(viewport.width));
 		var viewportHeight = parseInt(String(viewport.height));
@@ -2147,7 +2159,7 @@ class Contents {
 		this.css("background-size", viewportWidth * scale + "px " + viewportHeight * scale + "px");
 
 		this.css("background-color", "transparent");
-		if (section && section.properties.includes("page-spread-left")) {
+		if (hasPageSpreadLeft(section)) {
 			// set margin since scale is weird
 			var marginLeft = width - (viewportWidth * scale);
 			this.css("margin-left", marginLeft + "px");

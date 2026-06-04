@@ -73,7 +73,7 @@ export default class Contents {
 
     direction(dir?: string): void;
 
-    fit(width: number, height: number, section?: any): void;
+    fit(width: number, height: number, section?: unknown): void;
 
     forceWritingMode(mode?: string): string;
 
