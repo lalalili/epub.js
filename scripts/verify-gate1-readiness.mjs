@@ -603,6 +603,7 @@ assert(
 assert(typeTests.includes("new Annotations(annotationsRendition)"), "type tests must cover Annotations construction typing");
 assert(typeTests.includes("annotations.highlight(\"epubcfi"), "type tests must cover Annotations highlight typing");
 assert(typeTests.includes("annotations.remove(\"epubcfi"), "type tests must cover Annotations removal typing");
+assert(typeTests.includes("AnnotationData, Record<string, unknown>"), "type tests must assert AnnotationData unknown payload typing");
 assert(typeTests.includes("ReturnType<Annotation[\"emit\"]>, void"), "type tests must assert Annotation emit return typing");
 assert(typeTests.includes("ReturnType<Annotation[\"on\"]>, unknown"), "type tests must assert Annotation on return typing");
 assert(typeTests.includes("ReturnType<Annotation[\"off\"]>, unknown"), "type tests must assert Annotation off return typing");
@@ -612,6 +613,7 @@ assert(typeTests.includes("const annotationOn: unknown = markAnnotation.on"), "t
 assert(typeTests.includes("const annotationOff: unknown = markAnnotation.off"), "type tests must cover Annotation off usage");
 assert(typeTests.includes("const annotationOnce: unknown = markAnnotation.once"), "type tests must cover Annotation once usage");
 assert(
+	annotationsSource.includes("export type AnnotationData = Record<string, unknown>") &&
 	annotationsSource.includes("emit(type: string, ...args: any[]): void") &&
 	annotationsSource.includes("on(type: string, listener: (...args: any[]) => void): unknown") &&
 	annotationsSource.includes("off(type: string, listener: (...args: any[]) => void): unknown") &&

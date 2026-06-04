@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0368
+- Why:
+  - `AnnotationData` is a package-root exported payload type, but source, declarations, and TypeDoc still exposed it as `Record<string, any>`.
+  - Annotation data is stored and forwarded to views without requiring arbitrary property reads, so the public payload surface can use `unknown` values instead of leaking `any`.
+  - Tightening this alias keeps Annotation source/.d.ts/TypeDoc parity enforceable without changing highlight, underline, mark, attach, detach, callbacks, or runtime data forwarding.
+- Diff Scope:
+  - `src/annotations.ts`: type `AnnotationData` as `Record<string, unknown>`.
+  - `types/annotations.d.ts`: mirror `AnnotationData` as `Record<string, unknown>`.
+  - `types/epubjs-tests.ts`: assert the root AnnotationData payload alias and keep annotation usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require AnnotationData unknown payload parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/annotations.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Annotation consumers intentionally rely on `AnnotationData` values being typed as `any`.
+
 ### P-0367
 - Why:
   - `Layout` already exposes `emit`, `on`, `off`, and `once` in source and declarations, but Gate 1 only guarded the layout construction, formatting, counting, and update surface.

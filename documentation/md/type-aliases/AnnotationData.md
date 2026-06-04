@@ -6,4 +6,4 @@
 
 # Type Alias: AnnotationData
 
-> **AnnotationData** = `Record`\<`string`, `any`\>
+> **AnnotationData** = `Record`\<`string`, `unknown`\>

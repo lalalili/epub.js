@@ -952,6 +952,7 @@ type AnnotationsAssertions = [
   Assert<IsExact<Annotations["marks"], Annotation[]>>,
   Assert<IsExact<Annotations["_annotations"], Record<string, Annotation>>>,
   Assert<IsExact<Annotations["_annotationsBySectionIndex"], SectionAnnotationMap>>,
+  Assert<IsExact<AnnotationData, Record<string, unknown>>>,
   Assert<IsExact<ReturnType<Annotations["add"]>, Annotation>>,
   Assert<IsExact<ReturnType<Annotations["remove"]>, void>>,
   Assert<IsExact<ReturnType<Annotations["_removeFromAnnotationBySectionIndex"]>, void>>,

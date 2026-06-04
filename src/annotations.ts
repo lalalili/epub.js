@@ -6,7 +6,7 @@ export type AnnotationType = "highlight" | "underline" | "mark" | string;
 
 export type AnnotationCallback = (...args: any[]) => void;
 
-export type AnnotationData = Record<string, any>;
+export type AnnotationData = Record<string, unknown>;
 
 export type AnnotationStyles = Record<string, string>;
 
