@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0398
+- Why:
+  - `Book.renderTo()` is a package-root rendering helper, and the public declaration already accepts `RenditionOptions`.
+  - The source still accepted `any`, so callers could lose the same render option checks that `new Rendition(book, options)` exposes.
+  - Tightening the source parameter keeps render helper options aligned without changing rendition construction or attachment behavior.
+- Diff Scope:
+  - `src/book.ts`: type `renderTo()` options as `RenditionOptions`.
+  - `types/epubjs-tests.ts`: assert and exercise `Book.renderTo()` options typing.
+  - `scripts/verify-gate1-readiness.mjs`: require Book render helper source/declaration/type-test parity.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `Book.renderTo()` must intentionally accept non-rendition option payloads.
+
 ### P-0397
 - Why:
   - `Book.section()` is the package-root alias for `book.spine.get()`, and the public declaration already exposes `Section | undefined`.

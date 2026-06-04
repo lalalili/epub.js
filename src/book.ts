@@ -10,7 +10,7 @@ import Packaging, { type PackagingJsonManifest, type PackagingManifest, type Pac
 import Navigation from "./navigation";
 import Resources from "./resources";
 import PageList from "./pagelist";
-import Rendition from "./rendition";
+import Rendition, { type RenditionOptions } from "./rendition";
 import Archive from "./archive";
 import type Section from "./section";
 import request, {
@@ -662,7 +662,7 @@ class Book {
 	 * @param  {object} [options]
 	 * @return {Rendition}
 	 */
-	renderTo(element: Element | string, options?: any): Rendition {
+	renderTo(element: Element | string, options?: RenditionOptions): Rendition {
 		this.rendition = new Rendition(this, options);
 		this.rendition.attachTo(element);
 

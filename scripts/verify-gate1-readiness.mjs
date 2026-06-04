@@ -816,6 +816,8 @@ assert(typeTests.includes("book.loaded?.spine"), "type tests must cover Book loa
 assert(typeTests.includes("book.resolve()"), "type tests must cover Book optional resolve path typing");
 assert(typeTests.includes("book.unarchive(bookInput)"), "type tests must cover Book unarchive zip typing");
 assert(typeTests.includes("ReturnType<Book[\"load\"]>, Promise<RequestResponse>"), "type tests must cover Book load request response typing");
+assert(typeTests.includes("Parameters<Book[\"renderTo\"]>[1], RenditionOptions | undefined"), "type tests must assert Book renderTo options typing");
+assert(typeTests.includes("const bookRendition: Rendition = book.renderTo"), "type tests must cover Book renderTo RenditionOptions usage");
 assert(typeTests.includes("book.load(\"OPS/package.opf\", \"opf\")"), "type tests must cover Book load XML overload typing");
 assert(typeTests.includes("book.load(\"manifest.json\", \"json\")"), "type tests must cover Book load JSON overload typing");
 assert(typeTests.includes("Parameters<Book[\"emit\"]>, [type: string, ...args: unknown[]]"), "type tests must assert Book EventEmitter emit unknown argument typing");
@@ -844,6 +846,12 @@ assert(
 		bookTypes.includes("section(target: string): Section | undefined") &&
 		bookTypes.includes("section(target: number): Section | undefined"),
 	"Book source and declarations must keep section return type parity"
+);
+assert(
+	bookSource.includes("renderTo(element: Element | string, options?: RenditionOptions): Rendition") &&
+		bookTypes.includes("renderTo(element: Element, options?: RenditionOptions): Rendition") &&
+		bookTypes.includes("renderTo(element: string, options?: RenditionOptions): Rendition"),
+	"Book source and declarations must keep renderTo options type parity"
 );
 assert(typeTests.includes("rendition.determineLayoutProperties"), "type tests must cover Rendition layout property typing");
 assert(typeTests.includes("ReturnType<Rendition[\"getContents\"]>, Contents[]"), "type tests must assert Rendition getContents return typing");
