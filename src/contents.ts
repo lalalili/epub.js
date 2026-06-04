@@ -4,7 +4,7 @@ import { defaults } from "./core/collections";
 import { isNumber } from "./core/types";
 import { borders } from "./platform/layout";
 import EpubCFI from "./epubcfi";
-import Mapping from "./mapping";
+import Mapping, { type EpubCFIPair, type MappingLayout } from "./mapping";
 import { RangeObject } from "./compat/range";
 import {replaceLinks} from "./utils/replacements";
 import { EPUBJS_VERSION, EVENTS, DOM_EVENTS } from "./utils/constants";
@@ -2221,7 +2221,7 @@ class Contents {
 		}
 	}
 
-	mapPage(cfiBase: string, layout: any, start: number, end: number, dev?: boolean): any {
+	mapPage(cfiBase: string, layout: MappingLayout, start: number, end: number, dev?: boolean): EpubCFIPair | undefined {
 		var mapping = new Mapping(layout, undefined, undefined, dev);
 
 		return mapping.page(this as any, cfiBase, start, end);

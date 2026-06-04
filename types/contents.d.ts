@@ -1,5 +1,6 @@
 import EpubCFI from "./epubcfi";
 import { RangeObject } from "./compat/range";
+import { EpubCFIPair, MappingLayout } from "./mapping";
 
 export interface ViewportSettings {
   width?: string | number,
@@ -135,7 +136,7 @@ export default class Contents {
 
     map(layout: any): any;
 
-    mapPage(cfiBase: string, layout: object, start: number, end: number, dev?: boolean): any;
+    mapPage(cfiBase: string, layout: MappingLayout, start: number, end: number, dev?: boolean): EpubCFIPair | undefined;
 
     measureVerticalRlRect(): {
       left: number,

@@ -958,9 +958,12 @@ assert(typeTests.includes("VerticalRlPageMetricsCache[\"metrics\"], VerticalRlPa
 assert(typeTests.includes("ReturnType<Contents[\"verticalRlPageMetrics\"]>, VerticalRlPageMetrics"), "type tests must assert Contents vertical-rl page metrics return typing");
 assert(typeTests.includes("ReturnType<Contents[\"debugVerticalRlMetrics\"]>, VerticalRlDebugMetrics"), "type tests must assert Contents vertical-rl debug metrics return typing");
 assert(typeTests.includes("Parameters<Contents[\"fit\"]>, [width: number, height: number, section?: unknown]"), "type tests must assert Contents fit optional section typing");
+assert(typeTests.includes("Parameters<Contents[\"mapPage\"]>, [cfiBase: string, layout: MappingLayout, start: number, end: number, dev?: boolean | undefined]"), "type tests must assert Contents mapPage MappingLayout parameter typing");
+assert(typeTests.includes("ReturnType<Contents[\"mapPage\"]>, EpubCFIPair | undefined"), "type tests must assert Contents mapPage CFI pair return typing");
 assert(typeTests.includes("Parameters<Contents[\"addClass\"]>, [className: string]"), "type tests must assert Contents addClass string parameter typing");
 assert(typeTests.includes("Parameters<Contents[\"removeClass\"]>, [className: string]"), "type tests must assert Contents removeClass string parameter typing");
 assert(typeTests.includes("typedContents.fit(320, 480"), "type tests must cover Contents fit optional section usage");
+assert(typeTests.includes("const contentsMapPage: EpubCFIPair | undefined = typedContents.mapPage"), "type tests must cover Contents mapPage usage");
 assert(typeTests.includes("ReturnType<Contents[\"on\"]>, unknown"), "type tests must assert Contents EventEmitter listener typing");
 assert(typeTests.includes("const contentsOn: unknown = typedContents.on"), "type tests must cover Contents on listener usage");
 assert(typeTests.includes("const contentsOff: unknown = typedContents.off"), "type tests must cover Contents off listener usage");
@@ -989,6 +992,11 @@ assert(
 		contentsTypes.includes("addClass(className: string): void") &&
 		contentsTypes.includes("removeClass(className: string): void"),
 	"Contents source and declarations must keep class mutation parameter type parity"
+);
+assert(
+	contentsSource.includes("mapPage(cfiBase: string, layout: MappingLayout, start: number, end: number, dev?: boolean): EpubCFIPair | undefined") &&
+		contentsTypes.includes("mapPage(cfiBase: string, layout: MappingLayout, start: number, end: number, dev?: boolean): EpubCFIPair | undefined"),
+	"Contents source and declarations must keep mapPage MappingLayout return type parity"
 );
 assert(contentsSource.includes("fit(width: number, height: number, section?: unknown): void"), "source Contents must keep fit optional section typed as unknown");
 assert(

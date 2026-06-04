@@ -560,7 +560,7 @@
 
 ### mapPage()
 
-> **mapPage**(`cfiBase`, `layout`, `start`, `end`, `dev?`): `any`
+> **mapPage**(`cfiBase`, `layout`, `start`, `end`, `dev?`): [`EpubCFIPair`](../interfaces/EpubCFIPair.md)
 
 #### Parameters
 
@@ -570,7 +570,7 @@
 
 ##### layout
 
-`object`
+[`MappingLayout`](../interfaces/MappingLayout.md)
 
 ##### start
 
@@ -586,7 +586,7 @@
 
 #### Returns
 
-`any`
+[`EpubCFIPair`](../interfaces/EpubCFIPair.md)
 
 ***
 

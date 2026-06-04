@@ -565,6 +565,8 @@ type CoreClassAssertions = [
   Assert<IsExact<ReturnType<Contents["css"]>, string>>,
   Assert<IsExact<Parameters<Contents["fit"]>, [width: number, height: number, section?: unknown]>>,
   Assert<IsExact<ReturnType<Contents["locationOf"]>, { top: number, left: number }>>,
+  Assert<IsExact<Parameters<Contents["mapPage"]>, [cfiBase: string, layout: MappingLayout, start: number, end: number, dev?: boolean | undefined]>>,
+  Assert<IsExact<ReturnType<Contents["mapPage"]>, EpubCFIPair | undefined>>,
   Assert<IsExact<ReturnType<Contents["measureVerticalRlRect"]>, {
     left: number,
     right: number,
@@ -1285,6 +1287,13 @@ function testEpub() {
   const contentsOff: unknown = typedContents.off("resize", contentsListener);
   const contentsOnce: unknown = typedContents.once("selected", contentsListener);
   const contentsFit: void = typedContents.fit(320, 480, { href: "OPS/chapter.xhtml" });
+  const contentsMappingLayout: MappingLayout = {
+    spreadWidth: 640,
+    columnWidth: 320,
+    gap: 0,
+    divisor: 1,
+  };
+  const contentsMapPage: EpubCFIPair | undefined = typedContents.mapPage("/6/2[chap]", contentsMappingLayout, 0, 320);
   const animationFrame: AnimationFrameRequest | false = ePub.utils.requestAnimationFrame;
   const coreBounds: SizeBounds = ePub.utils.bounds(parsedDocument.documentElement);
   const coreBorders: SizeBounds = ePub.utils.borders(parsedDocument.documentElement);
@@ -1808,6 +1817,7 @@ function testEpub() {
   void contentsOff;
   void contentsOnce;
   void contentsFit;
+  void contentsMapPage;
   void animationFrame;
   void coreBounds;
   void coreBorders;

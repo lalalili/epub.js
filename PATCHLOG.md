@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0396
+- Why:
+  - `Contents.mapPage()` delegates directly to `Mapping.page()`, whose public surface already exposes `MappingLayout` input and `EpubCFIPair | undefined` output.
+  - The source still accepted `any` and the declaration accepted `object` with an `any` return, hiding the same CFI pair contract that TypeDoc and mapping declarations describe.
+  - Tightening only `mapPage()` keeps the page-mapping API aligned without changing the older TODO-marked `map()` helper.
+- Diff Scope:
+  - `src/contents.ts`: type `mapPage()` with `MappingLayout` and `EpubCFIPair | undefined`.
+  - `types/contents.d.ts`: mirror the same `mapPage()` signature.
+  - `types/epubjs-tests.ts`: assert and exercise `Contents.mapPage()` public typing.
+  - `scripts/verify-gate1-readiness.mjs`: require source/declaration/type-test parity for `mapPage()`.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `Contents.mapPage()` must intentionally accept non-mapping layout objects or erase CFI pair results.
+
 ### P-0395
 - Why:
   - `Contents.removeClass()` mutates the rendered content container by class name, and the source signature already requires a `string`.
