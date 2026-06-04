@@ -18,6 +18,7 @@ const pageListTypes = readFileSync(path.join(root, "types/pagelist.d.ts"), "utf8
 const resourcesSource = readFileSync(path.join(root, "src/resources.ts"), "utf8");
 const resourcesTypes = readFileSync(path.join(root, "types/resources.d.ts"), "utf8");
 const storeTypes = readFileSync(path.join(root, "types/store.d.ts"), "utf8");
+const annotationsSource = readFileSync(path.join(root, "src/annotations.ts"), "utf8");
 const locationsSource = readFileSync(path.join(root, "src/locations.ts"), "utf8");
 const mappingSource = readFileSync(path.join(root, "src/mapping.ts"), "utf8");
 const mappingTypes = readFileSync(path.join(root, "types/mapping.d.ts"), "utf8");
@@ -586,6 +587,21 @@ assert(
 assert(typeTests.includes("new Annotations(annotationsRendition)"), "type tests must cover Annotations construction typing");
 assert(typeTests.includes("annotations.highlight(\"epubcfi"), "type tests must cover Annotations highlight typing");
 assert(typeTests.includes("annotations.remove(\"epubcfi"), "type tests must cover Annotations removal typing");
+assert(typeTests.includes("ReturnType<Annotation[\"emit\"]>, void"), "type tests must assert Annotation emit return typing");
+assert(typeTests.includes("ReturnType<Annotation[\"on\"]>, unknown"), "type tests must assert Annotation on return typing");
+assert(typeTests.includes("ReturnType<Annotation[\"off\"]>, unknown"), "type tests must assert Annotation off return typing");
+assert(typeTests.includes("ReturnType<Annotation[\"once\"]>, unknown"), "type tests must assert Annotation once return typing");
+assert(typeTests.includes("const annotationEmit: void = markAnnotation.emit"), "type tests must cover Annotation emit usage");
+assert(typeTests.includes("const annotationOn: unknown = markAnnotation.on"), "type tests must cover Annotation on usage");
+assert(typeTests.includes("const annotationOff: unknown = markAnnotation.off"), "type tests must cover Annotation off usage");
+assert(typeTests.includes("const annotationOnce: unknown = markAnnotation.once"), "type tests must cover Annotation once usage");
+assert(
+	annotationsSource.includes("emit(type: string, ...args: any[]): void") &&
+	annotationsSource.includes("on(type: string, listener: (...args: any[]) => void): unknown") &&
+	annotationsSource.includes("off(type: string, listener: (...args: any[]) => void): unknown") &&
+	annotationsSource.includes("once(type: string, listener: (...args: any[]) => void): unknown"),
+	"source Annotation must keep EventEmitter method type parity"
+);
 assert(
 	sourceRoot.includes("default as Annotations") &&
 	sourceRoot.includes("Annotation") &&

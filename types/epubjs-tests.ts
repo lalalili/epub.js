@@ -965,6 +965,10 @@ type AnnotationsAssertions = [
   Assert<IsExact<ReturnType<Annotation["update"]>, void>>,
   Assert<IsExact<ReturnType<Annotation["attach"]>, any>>,
   Assert<IsExact<ReturnType<Annotation["detach"]>, any>>,
+  Assert<IsExact<ReturnType<Annotation["emit"]>, void>>,
+  Assert<IsExact<ReturnType<Annotation["on"]>, unknown>>,
+  Assert<IsExact<ReturnType<Annotation["off"]>, unknown>>,
+  Assert<IsExact<ReturnType<Annotation["once"]>, unknown>>,
   Assert<IsExact<ReturnType<Annotation["text"]>, void>>
 ];
 
@@ -1501,9 +1505,13 @@ function testEpub() {
   annotations.clear(annotationView);
   annotations.remove("epubcfi(/6/4[chapter-1]!/4/2,/1:0,/1:10)", "mark");
   markAnnotation.update({ newer: true });
-  markAnnotation.on("attach", () => undefined);
+  const annotationListener = (...args: unknown[]): void => { void args; };
   const attachedMark: any = highlightAnnotation.attach(annotationView);
   const detachedMark: any = underlineAnnotation.detach(annotationView);
+  const annotationEmit: void = markAnnotation.emit("attach", attachedMark);
+  const annotationOn: unknown = markAnnotation.on("attach", annotationListener);
+  const annotationOff: unknown = markAnnotation.off("attach", annotationListener);
+  const annotationOnce: unknown = markAnnotation.once("detach", annotationListener);
   const resourceManifest: ResourceManifest = {
     chapter: {
       href: "Text/chapter.xhtml",

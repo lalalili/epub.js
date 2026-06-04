@@ -46,10 +46,6 @@ export interface AnnotationOptions {
 	styles?: AnnotationStyles;
 }
 
-type EventedAnnotation = Annotation & {
-	emit(type: string, ...args: any[]): void;
-};
-
 /**
 	* Handles managing adding & removing Annotations
 	* @param {Rendition} rendition
@@ -320,7 +316,7 @@ export class Annotation {
 		}
 
 		this.mark = result;
-		(this as unknown as EventedAnnotation).emit(EVENTS.ANNOTATION.ATTACH, result);
+		this.emit(EVENTS.ANNOTATION.ATTACH, result);
 		return result;
 	}
 
@@ -343,7 +339,7 @@ export class Annotation {
 		}
 
 		this.mark = undefined;
-		(this as unknown as EventedAnnotation).emit(EVENTS.ANNOTATION.DETACH, result);
+		this.emit(EVENTS.ANNOTATION.DETACH, result);
 		return result;
 	}
 
@@ -355,6 +351,13 @@ export class Annotation {
 
 	}
 
+}
+
+export interface Annotation {
+	emit(type: string, ...args: any[]): void;
+	on(type: string, listener: (...args: any[]) => void): unknown;
+	off(type: string, listener: (...args: any[]) => void): unknown;
+	once(type: string, listener: (...args: any[]) => void): unknown;
 }
 
 EventEmitter(Annotation.prototype);

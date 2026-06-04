@@ -12,6 +12,25 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0366
+- Why:
+  - `Annotation` is wired with `EventEmitter(Annotation.prototype)`, but the source only exposed event emission through a local cast that declared `emit` alone.
+  - The declaration file already exposes `emit`, `on`, `off`, and `once`, so source, package-root types, and generated docs should keep the same Annotation EventEmitter contract.
+  - Tightening the source surface keeps Annotation source/.d.ts/TypeDoc parity enforceable without changing highlight, underline, mark, attach, detach, removal, or runtime event wiring.
+- Diff Scope:
+  - `src/annotations.ts`: declare `emit`, `on`, `off`, and `once` on the merged `Annotation` interface after the class and remove the narrow local event cast.
+  - `types/epubjs-tests.ts`: assert Annotation EventEmitter method return types and add `emit` / `on` / `off` / `once` usage smoke.
+  - `scripts/verify-gate1-readiness.mjs`: require Annotation EventEmitter method parity and type-smoke assertions.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js test/browser/book.test.js test/browser/annotations.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if Annotation stops using EventEmitter prototype augmentation or intentionally narrows its listener methods in declarations.
+
 ### P-0365
 - Why:
   - `LayoutContent.fit()` and `Layout.format()` already treat the optional section bridge argument as `unknown`, but `Contents.fit()` still exposed it as `any` in both source and declarations.
