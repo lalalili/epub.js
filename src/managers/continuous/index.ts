@@ -103,7 +103,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		return {top, left};
 	}
 
-	display(section: any, target?: string | number){
+	display(section: unknown, target?: string | number){
 		return DefaultViewManager.prototype.display.call(this, section, target)
 			.then(function () {
 				return this.fill();
@@ -156,7 +156,7 @@ class ContinuousViewManager extends DefaultViewManager {
 
 	}
 
-	add(section: any){
+	add(section: unknown){
 		var view = this.createView(section, undefined);
 
 		this.views.append(view);
@@ -180,7 +180,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		return view.display(this.request);
 	}
 
-	append(section: any){
+	append(section: unknown){
 		var view = this.createView(section, undefined);
 
 		view.on(EVENTS.VIEWS.RESIZED, (bounds: ViewBounds) => {
@@ -202,7 +202,7 @@ class ContinuousViewManager extends DefaultViewManager {
 		return view;
 	}
 
-	prepend(section: any){
+	prepend(section: unknown){
 		var view = this.createView(section, undefined);
 
 		view.on(EVENTS.VIEWS.RESIZED, (bounds: ViewBounds) => {

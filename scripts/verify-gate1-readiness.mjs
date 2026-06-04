@@ -1488,6 +1488,17 @@ assert(
 	"Continuous manager must use the typed Snap manager bridge"
 );
 assert(
+	continuousManagerSource.includes("display(section: unknown, target?: string | number)") &&
+		continuousManagerSource.includes("add(section: unknown)") &&
+		continuousManagerSource.includes("append(section: unknown)") &&
+		continuousManagerSource.includes("prepend(section: unknown)") &&
+		!continuousManagerSource.includes("display(section: any") &&
+		!continuousManagerSource.includes("add(section: any") &&
+		!continuousManagerSource.includes("append(section: any") &&
+		!continuousManagerSource.includes("prepend(section: any"),
+	"Continuous manager section input bridge must keep unknown typing"
+);
+assert(
 	typeTests.includes("Parameters<View[\"emit\"]>, [type: string, ...args: unknown[]]") &&
 		typeTests.includes("Parameters<View[\"on\"]>, [type: string, listener: (...args: unknown[]) => void]") &&
 		typeTests.includes("Parameters<View[\"off\"]>, [type: string, listener: (...args: unknown[]) => void]") &&
