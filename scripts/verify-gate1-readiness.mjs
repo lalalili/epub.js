@@ -530,12 +530,22 @@ assert(typeTests.includes("book.load(\"manifest.json\", \"json\")"), "type tests
 assert(typeTests.includes("rendition.determineLayoutProperties"), "type tests must cover Rendition layout property typing");
 assert(typeTests.includes("rendition.located([managerLocationItem])"), "type tests must cover Rendition manager location typing");
 assert(typeTests.includes("rendition.resolveLinkHref(\"#note\""), "type tests must cover Rendition link resolution typing");
-assert(typeTests.includes("RootContentsSize"), "type tests must assert root Contents type exports");
+assert(
+	typeTests.includes("RootContentsSize") &&
+	typeTests.includes("RootVerticalRlMetricsCache") &&
+	typeTests.includes("RootVerticalRlPageMetricsCache") &&
+	typeTests.includes("RootViewportSettings"),
+	"type tests must assert root Contents type exports"
+);
 assert(typeTests.includes("typedContents._size"), "type tests must cover Contents runtime size state typing");
 assert(typeTests.includes("typedContents.sectionHref"), "type tests must cover Contents sectionHref state typing");
 assert(typeTests.includes("typedContents._verticalRlMetricsCache"), "type tests must cover Contents vertical-rl metrics cache typing");
 assert(
-	sourceRoot.includes("ContentsSize") && sourceRoot.includes("VerticalRlPageMetricsCache") && sourceRoot.includes("ViewportSettings"),
+	sourceRoot.includes("\tContents,") &&
+	sourceRoot.includes("ContentsSize") &&
+	sourceRoot.includes("VerticalRlMetricsCache") &&
+	sourceRoot.includes("VerticalRlPageMetricsCache") &&
+	sourceRoot.includes("ViewportSettings"),
 	"source root must export Contents public types"
 );
 assert(typeTests.includes("type CoreUtilsAssertions"), "type tests must assert the utils/core public surface");
