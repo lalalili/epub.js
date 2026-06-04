@@ -48,7 +48,7 @@
 
 ### displaying?
 
-> `optional` **displaying?**: [`Deferred`](../interfaces/Deferred.md)\<`any`\>
+> `optional` **displaying?**: [`Deferred`](../interfaces/Deferred.md)\<[`Section`](../interfaces/Section.md)\>
 
 ***
 

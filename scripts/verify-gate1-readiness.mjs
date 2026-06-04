@@ -928,6 +928,8 @@ assert(typeTests.includes("ReturnType<Rendition[\"reportLocation\"]>, Promise<vo
 assert(typeTests.includes("ReturnType<Rendition[\"remeasure\"]>, Promise<void>"), "type tests must assert Rendition remeasure void promise typing");
 assert(typeTests.includes("ReturnType<Rendition[\"requireManager\"]>, string | Function | object"), "type tests must assert Rendition requireManager return typing");
 assert(typeTests.includes("ReturnType<Rendition[\"requireView\"]>, string | Function | object"), "type tests must assert Rendition requireView return typing");
+assert(typeTests.includes("Rendition[\"displaying\"], Deferred<Section | undefined> | undefined"), "type tests must assert Rendition displaying section promise typing");
+assert(typeTests.includes("const renditionDisplaying: Deferred<Section | undefined> | undefined = rendition.displaying"), "type tests must cover Rendition displaying usage");
 assert(typeTests.includes("const renditionRemeasure: Promise<void> = rendition.remeasure"), "type tests must cover Rendition remeasure void promise usage");
 assert(typeTests.includes("const requiredManager: string | Function | object = rendition.requireManager"), "type tests must cover Rendition requireManager usage");
 assert(typeTests.includes("const requiredView: string | Function | object = rendition.requireView"), "type tests must cover Rendition requireView usage");
@@ -937,6 +939,12 @@ assert(
 		renditionTypes.includes("requireManager(manager: string | Function | object): string | Function | object") &&
 		renditionTypes.includes("requireView(view: string | Function | object): string | Function | object"),
 	"Rendition source and declarations must keep manager/view resolver return type parity"
+);
+assert(
+	renditionSource.includes("displaying?: CoreDeferred<Section | undefined>") &&
+		renditionSource.includes("var displaying = new Defer<Section | undefined>()") &&
+		renditionTypes.includes("displaying?: Deferred<Section | undefined>"),
+	"Rendition source and declarations must keep displaying deferred value type parity"
 );
 assert(
 	renditionSource.includes("reportLocation(): Promise<void>") &&

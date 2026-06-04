@@ -12,6 +12,26 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0407
+- Why:
+  - `Rendition.displaying` is a public state promise used while a display request is active, but it still exposed `Deferred<any>` in source, declarations, docs, and type smoke tests.
+  - `_display()` resolves that deferred with the displayed `Section`, while an interrupted display resolves `undefined`, so `Section | undefined` matches the actual runtime values without changing display behavior.
+  - This removes another package-root `Rendition` `any` leak and gives Gate 1 a concrete parity guard for the display lifecycle state.
+- Diff Scope:
+  - `src/rendition.ts`: type `displaying`, its local deferred, and the resolved section variable as `Section | undefined` / `Section | null`.
+  - `types/rendition.d.ts`: mirror `displaying?: Deferred<Section | undefined>`.
+  - `types/epubjs-tests.ts`: assert the narrowed `Rendition["displaying"]` type.
+  - `scripts/verify-gate1-readiness.mjs`: require source/declaration/type-test parity for `displaying`.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npm run docs:md`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/public-api.test.js`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if `Rendition.displaying` must intentionally remain untyped for downstream monkey patches.
+
 ### P-0406
 - Why:
   - `Rendition.requireManager()` and `Rendition.requireView()` resolve known string names to built-in classes or return the supplied custom manager/view value, but their source and declarations still returned `any`.

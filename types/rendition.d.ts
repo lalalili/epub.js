@@ -121,7 +121,7 @@ export default class Rendition {
     location?: Location;
     starting?: Deferred<void>;
     started?: Promise<void>;
-    displaying?: Deferred<any>;
+    displaying?: Deferred<Section | undefined>;
 
     adjustImages(contents: Contents): Promise<void>;
 

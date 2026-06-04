@@ -13,6 +13,7 @@ import { EVENTS, DOM_EVENTS } from "./utils/constants";
 import type Contents from "./contents";
 import type { VerticalRlDebugMetrics } from "./contents";
 import type { PackagingMetadata } from "./packaging";
+import type Section from "./section";
 
 // Default Views
 import IframeView from "./managers/views/iframe";
@@ -143,7 +144,7 @@ class Rendition {
 	location?: Location;
 	starting?: CoreDeferred<void>;
 	started?: Promise<void>;
-	displaying?: CoreDeferred<any>;
+	displaying?: CoreDeferred<Section | undefined>;
 
 	constructor(book: any, options?: RenditionOptions) {
 
@@ -423,9 +424,9 @@ class Rendition {
 		if (!this.book) {
 			return;
 		}
-		var displaying = new Defer<any>();
+		var displaying = new Defer<Section | undefined>();
 		var displayed = displaying.promise;
-		var section: any;
+		var section: Section | null;
 
 		this.displaying = displaying;
 
