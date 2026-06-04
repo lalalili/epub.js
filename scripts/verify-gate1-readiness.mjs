@@ -321,6 +321,14 @@ assert(
 	"LocationsRequest source, declarations, and type tests must keep unknown argument and result parity"
 );
 assert(
+	locationsSource.includes('import type { EpubCFIStep } from "./epubcfi"') &&
+		locationsSource.includes("findNode(steps: EpubCFIStep[], doc: Document): Node") &&
+		locationsSource.includes("steps: EpubCFIStep[]") &&
+		!locationsSource.includes("findNode(steps: any[], doc: Document): Node") &&
+		!locationsSource.includes("steps: any[]"),
+	"Locations source must keep EpubCFIStart CFI steps typed"
+);
+assert(
 	typeTests.includes("RootThemes") &&
 	typeTests.includes("RootInjectedThemes") &&
 	typeTests.includes("RootTheme") &&

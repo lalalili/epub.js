@@ -12,6 +12,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-06-04
 
+### P-0431
+- Why:
+  - `Locations.parseWords()` uses parsed `EpubCFI` path/start steps to resume word-location generation from a requested CFI, but the private `EpubCFIStart` bridge still typed those steps as `any[]`.
+  - Reusing `EpubCFIStep` keeps the resume path aligned with the source CFI parser model without changing the public `Locations` declaration surface.
+  - Gate 1 now prevents this source-only CFI step bridge from regressing to `any[]`.
+- Diff Scope:
+  - `src/locations.ts`: type `EpubCFIStart.findNode()` and path/start steps with `EpubCFIStep`.
+  - `scripts/verify-gate1-readiness.mjs`: require the typed CFI step bridge and reject the old `any[]` form.
+- Test:
+  - `npm run typecheck`
+  - `npm run verify:gate1-readiness`
+  - `npx vitest run --config vitest.browser.config.mjs test/browser/locations.test.js`
+  - `npm run docs:md`
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch if the private word-location resume bridge must accept non-CFI step arrays.
+
 ### P-0430
 - Why:
   - `Contents.addStylesheet()` and `addScript()` share the same legacy load/readyState bridge, but both handlers still used `any` casts for `onreadystatechange` and handler `this`.

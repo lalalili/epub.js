@@ -9,6 +9,7 @@ import EventEmitter from "event-emitter";
 import type Section from "./section";
 import type { SectionRequest } from "./section";
 import type Spine from "./spine";
+import type { EpubCFIStep } from "./epubcfi";
 
 export interface LocationRange {
 	startContainer?: Node;
@@ -26,13 +27,13 @@ export interface WordLocation {
 
 type EpubCFIStart = EpubCFI & {
 	spinePos: number;
-	findNode(steps: any[], doc: Document): Node;
+	findNode(steps: EpubCFIStep[], doc: Document): Node;
 	range: boolean;
 	path: {
-		steps: any[];
+		steps: EpubCFIStep[];
 	};
 	start: {
-		steps: any[];
+		steps: EpubCFIStep[];
 	};
 };
 
