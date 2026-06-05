@@ -206,6 +206,33 @@ describe("Rendition", () => {
 		expect(rendition.resolveLinkHref("chapter.xhtml#anchor")).toBe("chapter.xhtml#anchor");
 	});
 
+	it("injects the package identifier when metadata is available", () => {
+		let rendition = createRendition();
+		let doc = new DOMParser().parseFromString("<html><head></head><body></body></html>", "text/html");
+
+		rendition.book.packaging = {
+			metadata: {
+				identifier: "book-id"
+			}
+		};
+
+		rendition.injectIdentifier(doc);
+
+		let meta = doc.querySelector("meta[name='dc.relation.ispartof']");
+		expect(meta).not.toBeNull();
+		expect(meta.getAttribute("content")).toBe("book-id");
+	});
+
+	it("skips identifier injection when package metadata is not hydrated yet", () => {
+		let rendition = createRendition();
+		let doc = new DOMParser().parseFromString("<html><head></head><body></body></html>", "text/html");
+
+		rendition.book.packaging = undefined;
+
+		expect(() => rendition.injectIdentifier(doc)).not.toThrow();
+		expect(doc.querySelector("meta[name='dc.relation.ispartof']")).toBeNull();
+	});
+
 	it("ignores empty manager location entries", () => {
 		let rendition = createRendition();
 

@@ -9865,7 +9865,9 @@ var ei = class {
 		n.setAttribute("type", "text/javascript"), n.setAttribute("src", this.settings.script), n.textContent = " ", e.getElementsByTagName("head")[0].appendChild(n);
 	}
 	injectIdentifier(e, t) {
-		let n = this.book.packaging.metadata.identifier, r = e.createElement("meta");
+		let n = this.book.packaging?.metadata?.identifier;
+		if (!this.book.packaging?.metadata) return;
+		let r = e.createElement("meta");
 		r.setAttribute("name", "dc.relation.ispartof"), n && r.setAttribute("content", n), e.getElementsByTagName("head")[0].appendChild(r);
 	}
 };

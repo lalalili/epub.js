@@ -17399,7 +17399,8 @@
 		* @private
 		*/
 		injectIdentifier(doc, _section) {
-			let ident = this.book.packaging.metadata.identifier;
+			let ident = this.book.packaging?.metadata?.identifier;
+			if (!this.book.packaging?.metadata) return;
 			let meta = doc.createElement("meta");
 			meta.setAttribute("name", "dc.relation.ispartof");
 			if (ident) meta.setAttribute("content", ident);
