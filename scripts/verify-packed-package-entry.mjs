@@ -29,15 +29,74 @@ function parseNpmPackJson(stdout) {
 	try {
 		return JSON.parse(output);
 	} catch {
-		const jsonStart = output.indexOf("[");
-		const jsonEnd = output.lastIndexOf("]");
+		for (const jsonStart of findJsonArrayStarts(output)) {
+			const jsonEnd = findJsonArrayEnd(output, jsonStart);
 
-		if (jsonStart === -1 || jsonEnd <= jsonStart) {
-			throw new Error("npm pack JSON payload was not found.");
+			if (jsonEnd === -1) {
+				continue;
+			}
+
+			try {
+				const candidate = JSON.parse(output.slice(jsonStart, jsonEnd + 1));
+
+				if (Array.isArray(candidate)) {
+					return candidate;
+				}
+			} catch {
+				// Keep searching for the first parseable JSON array in noisy npm output.
+			}
 		}
 
-		return JSON.parse(output.slice(jsonStart, jsonEnd + 1));
+		throw new Error("npm pack JSON payload was not found.");
 	}
+}
+
+function findJsonArrayStarts(output) {
+	const starts = [];
+
+	for (let index = 0; index < output.length; index += 1) {
+		if (output[index] === "[") {
+			starts.push(index);
+		}
+	}
+
+	return starts;
+}
+
+function findJsonArrayEnd(output, start) {
+	let depth = 0;
+	let inString = false;
+	let escaped = false;
+
+	for (let index = start; index < output.length; index += 1) {
+		const character = output[index];
+
+		if (inString) {
+			if (escaped) {
+				escaped = false;
+			} else if (character === "\\") {
+				escaped = true;
+			} else if (character === "\"") {
+				inString = false;
+			}
+
+			continue;
+		}
+
+		if (character === "\"") {
+			inString = true;
+		} else if (character === "[") {
+			depth += 1;
+		} else if (character === "]") {
+			depth -= 1;
+
+			if (depth === 0) {
+				return index;
+			}
+		}
+	}
+
+	return -1;
 }
 
 const result = spawnSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], {
