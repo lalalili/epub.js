@@ -58,7 +58,7 @@
 
 ### processingTimeout?
 
-> `optional` **processingTimeout?**: `Timeout`
+> `optional` **processingTimeout?**: `number`
 
 ***
 

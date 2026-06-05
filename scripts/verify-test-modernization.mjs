@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -7,6 +7,18 @@ const packageJson = JSON.parse(readFileSync(path.join(root, "package.json"), "ut
 const browserConfig = readFileSync(path.join(root, "vitest.browser.config.mjs"), "utf8");
 const forbiddenDependencyPattern = /^(karma|karma-|mocha$|raw-loader$)/;
 const forbiddenScriptPattern = /\bkarma\b|\bmocha\b/;
+const forbiddenWebpackOnlyDevDependencies = [
+	"babel-loader",
+	"terser-webpack-plugin",
+	"webpack",
+	"webpack-cli",
+	"webpack-dev-server"
+];
+const forbiddenLegacyScripts = [
+	"build:webpack",
+	"legacy",
+	"productionLegacy"
+];
 
 function assert(condition, message) {
 	if (!condition) {
@@ -31,9 +43,28 @@ function assertScripts() {
 		);
 	}
 
+	for (const scriptName of forbiddenLegacyScripts) {
+		assert(
+			!(scriptName in (packageJson.scripts || {})),
+			`script "${scriptName}" must stay removed with the legacy webpack build path`
+		);
+	}
+
 	assert(packageJson.scripts.test === "npm run test:browser", "npm test must run the Vitest Browser gate");
 	assert(packageJson.scripts["test:browser"], "test:browser script must exist");
 	assert(packageJson.scripts["test:legacy"], "test:legacy compatibility script must exist");
+}
+
+function assertNoLegacyWebpackPath() {
+	for (const dependencyName of forbiddenWebpackOnlyDevDependencies) {
+		assert(
+			!(dependencyName in (packageJson.devDependencies || {})),
+			`devDependencies must not include legacy webpack-only dependency ${dependencyName}`
+		);
+	}
+
+	assert(!existsSync(path.join(root, "webpack.config.js")), "legacy webpack.config.js must stay removed");
+	assert(!existsSync(path.join(root, "examples", "legacy.html")), "legacy webpack example must stay removed");
 }
 
 function assertTestLayout() {
@@ -55,6 +86,7 @@ function assertTestLayout() {
 assertNoForbiddenPackageEntries(packageJson.dependencies, "dependencies");
 assertNoForbiddenPackageEntries(packageJson.devDependencies, "devDependencies");
 assertScripts();
+assertNoLegacyWebpackPath();
 assertTestLayout();
 
 console.log("Vitest-only test modernization contract verified.");

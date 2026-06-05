@@ -47,6 +47,8 @@ const forbiddenPatterns = [
 	/^test\//,
 	/^\.vitest-attachments\//,
 	/^test\/browser\/__screenshots__\//,
+	/^webpack\.config\.js$/,
+	/^examples\/legacy\.html$/,
 	/\.tgz$/
 ];
 const requiredNpmIgnoreEntries = [

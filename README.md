@@ -214,9 +214,8 @@ For development rebuilds:
 npm run build
 ```
 
-Legacy webpack builds remain available through `npm run build:webpack`,
-`npm run legacy`, and `npm run productionLegacy` while the Vite/Rollup path is
-rolled out.
+Legacy webpack builds have been removed. Vite/Rollup is the supported
+distribution build path.
 
 ## Documentation
 
