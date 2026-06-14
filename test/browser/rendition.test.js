@@ -274,4 +274,73 @@ describe("Rendition", () => {
 		expect(located.end.displayed.page).toBe(2);
 		expect(located.atEnd).toBe(true);
 	});
+
+	// Backport gate 01KG4FH5A0EPT3SJ65SYTT8MYC: prove epub.js core located() / currentLocation()
+	// absorbs empty, null and malformed manager entries without throwing. This locks in the core
+	// filtering so the reader adapter guard's pre-filter (normalizeRenditionLocatedInput in
+	// epub-reader Libs/epubjs_runtime_guards.js) is provably redundant with core. The reader guard
+	// is retained only for the spine-boundary TypeError fallback, which core does not cover.
+	describe("empty manager located() core fixture", () => {
+		function managerRendition(currentLocation) {
+			let rendition = createRendition();
+			rendition.manager = { currentLocation };
+			return rendition;
+		}
+
+		it("returns an empty location for empty, null or undefined input", () => {
+			let rendition = createRendition();
+
+			expect(rendition.located([])).toEqual({});
+			expect(rendition.located(null)).toEqual({});
+			expect(rendition.located(undefined)).toEqual({});
+			expect(rendition.located([undefined, null])).toEqual({});
+		});
+
+		it("filters malformed entries missing mapping or pages", () => {
+			let rendition = createRendition();
+
+			expect(rendition.located([{ index: 1, href: "chapter-1.xhtml" }])).toEqual({});
+			expect(rendition.located([{
+				index: 1,
+				href: "chapter-1.xhtml",
+				mapping: { start: "epubcfi(/6/2!/4/2/1:0)" },
+				pages: [1]
+			}])).toEqual({});
+			expect(rendition.located([{
+				index: 1,
+				href: "chapter-1.xhtml",
+				mapping: { start: "epubcfi(/6/2!/4/2/1:0)", end: "epubcfi(/6/2!/4/2/1:10)" },
+				pages: "not-an-array"
+			}])).toEqual({});
+		});
+
+		it("does not throw from currentLocation() when the manager reports no valid entries", () => {
+			expect(managerRendition(() => []).currentLocation()).toEqual({});
+			expect(managerRendition(() => [undefined]).currentLocation()).toEqual({});
+			expect(managerRendition(() => [{ index: 1, href: "chapter-1.xhtml" }]).currentLocation()).toEqual({});
+		});
+
+		it("resolves currentLocation() to an empty location for async empty manager output", async () => {
+			let rendition = managerRendition(() => Promise.resolve([undefined]));
+
+			await expect(rendition.currentLocation()).resolves.toEqual({});
+		});
+
+		it("still flows valid manager entries through currentLocation()", () => {
+			let located = managerRendition(() => [{
+				index: 1,
+				href: "chapter-1.xhtml",
+				mapping: {
+					start: "epubcfi(/6/2[chapter-1]!/4/2/1:0)",
+					end: "epubcfi(/6/2[chapter-1]!/4/2/1:10)"
+				},
+				pages: [2],
+				totalPages: 3
+			}]).currentLocation();
+
+			expect(located.start.index).toBe(1);
+			expect(located.start.href).toBe("chapter-1.xhtml");
+			expect(located.start.displayed.page).toBe(2);
+		});
+	});
 });
