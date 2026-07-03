@@ -6,6 +6,11 @@ import Layout from "./layout";
 import ePub from "./epub";
 import request from "./utils/request";
 import {
+	parseSmilClock,
+	parseSmilDocument,
+	resolveSmilHref
+} from "./media-overlay";
+import {
 	replaceBase,
 	replaceCanonical,
 	replaceLinks,
@@ -21,6 +26,9 @@ export {
 	Contents,
 	Layout,
 	request,
+	parseSmilClock,
+	parseSmilDocument,
+	resolveSmilHref,
 	replaceBase,
 	replaceCanonical,
 	replaceLinks,
@@ -102,6 +110,15 @@ export type {
 	LayoutProps,
 	LayoutSettings
 } from "./layout";
+
+export type {
+	ParseSmilOptions,
+	SmilAudioNode,
+	SmilDocument,
+	SmilFragment,
+	SmilSequence,
+	SmilTextNode
+} from "./media-overlay";
 
 export type {
 	default as DisplayOptions

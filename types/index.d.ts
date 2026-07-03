@@ -28,6 +28,8 @@ export type { AnimationFrameRequest, BlobContent, Deferred, RectBounds, SizeBoun
 export type { default as Navigation, LandmarkItem, NavItem, NavigationDocument, NavigationInput, NavigationInputItem } from './navigation';
 export type { default as Packaging, PackagingJsonManifest, PackagingJsonManifestBase, PackagingManifest, PackagingManifestItem, PackagingManifestObject, PackagingMetadata, PackagingMetadataObject, PackagingObject, PackagingSpineItem, PackagingTocItem } from './packaging';
 export type { default as PageList, PageListDocument, PageListItem, PageLookup, PageReverseLookup, PageValue } from './pagelist';
+export type { ParseSmilOptions, SmilAudioNode, SmilDocument, SmilFragment, SmilSequence, SmilTextNode } from './media-overlay';
+export { parseSmilClock, parseSmilDocument, resolveSmilHref } from './media-overlay';
 export type { default as Path, ParsedPath } from './utils/path';
 export type { default as Queue, QueuedItem, QueueTask } from './utils/queue';
 export type { default as Hook, HookRegistration, HooksObject, HookTask } from './utils/hook';

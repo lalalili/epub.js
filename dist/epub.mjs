@@ -15026,9 +15026,140 @@ var Zi = class extends fe {}, Qi = function(e, t) {
 };
 Qi.VERSION = "0.3", globalThis.EPUBJS_VERSION = "0.3", Qi.Book = ui, Qi.Rendition = ei, Qi.Contents = It, Qi.CFI = X, Qi.utils = di;
 //#endregion
-//#region src/index.ts
-var $i = Qi;
+//#region src/media-overlay.ts
+var $i = (e) => typeof e == "string" ? e.trim() : "", ea = (e) => /^[a-z][a-z0-9+.-]*:/i.test(e) || e.startsWith("//"), ta = (e = "", t = "") => {
+	let n = $i(t);
+	if (!n || ea(n)) return n;
+	let [r, i = ""] = n.split("#"), a = $i(e).split("#")[0].split("?")[0], o = `${a.includes("/") ? a.slice(0, a.lastIndexOf("/") + 1) : ""}${r}`.split("/"), s = [];
+	for (let e of o) if (!(!e || e === ".")) {
+		if (e === "..") {
+			s.pop();
+			continue;
+		}
+		s.push(e);
+	}
+	return `${s.join("/")}${i ? `#${i}` : ""}`;
+}, na = (e = "") => $i(e).split(":").pop()?.toLowerCase() ?? "", ra = (e = "") => {
+	let t = {}, n = /([\w:.-]+)\s*=\s*("([^"]*)"|'([^']*)')/g, r = n.exec(e);
+	for (; r;) t[r[1]] = r[3] ?? r[4] ?? "", r = n.exec(e);
+	return t;
+}, ia = (e = "") => {
+	let t = {
+		name: "root",
+		attributes: {},
+		children: []
+	}, n = [t], r = /<\s*(\/)?\s*([\w:.-]+)([^>]*?)(\/)?\s*>/g, i = r.exec(e);
+	for (; i;) {
+		let [, t, a, o, s] = i, c = na(a);
+		if (t) {
+			for (; n.length > 1 && n[n.length - 1].name !== c;) n.pop();
+			n.length > 1 && n.pop(), i = r.exec(e);
+			continue;
+		}
+		let l = {
+			name: c,
+			attributes: ra(o),
+			children: []
+		};
+		n[n.length - 1].children.push(l), s || n.push(l), i = r.exec(e);
+	}
+	return t;
+}, aa = (e) => {
+	if (!e) return null;
+	let t = {};
+	for (let n of Array.from(e.attributes ?? [])) t[n.name] = n.value;
+	return {
+		name: na(e.localName || e.nodeName),
+		attributes: t,
+		children: Array.from(e.children ?? []).map(aa).filter((e) => !!e)
+	};
+}, oa = (e = "") => {
+	if (typeof DOMParser == "function") {
+		let t = new DOMParser().parseFromString(e, "application/xml"), n = t.querySelector("parsererror") ? null : aa(t.documentElement);
+		if (n) return n;
+	}
+	return ia(e);
+}, sa = (e, t) => {
+	if (!e) return null;
+	if (e.name === t) return e;
+	for (let n of e.children) {
+		let e = sa(n, t);
+		if (e) return e;
+	}
+	return null;
+}, ca = (e, t) => (e?.children ?? []).filter((e) => e.name === t), la = (e, t) => {
+	if (!e) return null;
+	let n = $i(e.attributes.src);
+	return {
+		src: n,
+		href: ta(t, n)
+	};
+}, ua = (e, t) => {
+	if (!e) return null;
+	let n = $i(e.attributes.src);
+	return {
+		src: n,
+		href: ta(t, n),
+		clipBegin: $i(e.attributes.clipBegin),
+		clipEnd: $i(e.attributes.clipEnd)
+	};
+}, da = (e, t, n) => {
+	let r = la(ca(e, "text")[0], t), i = ua(ca(e, "audio")[0], t);
+	return {
+		id: $i(e.attributes.id),
+		text: r,
+		audio: i,
+		sequencePath: n
+	};
+}, fa = (e, t, n = []) => {
+	let r = [...n, $i(e.attributes.id)].filter(Boolean), i = $i(e.attributes["epub:textref"] ?? e.attributes.textref), a = [], o = [];
+	for (let n of e.children) {
+		if (n.name === "seq") {
+			let e = fa(n, t, r);
+			a.push(e), o.push(...e.fragments);
+			continue;
+		}
+		if (n.name === "par") {
+			let e = da(n, t, r);
+			a.push(e), o.push(e);
+		}
+	}
+	return {
+		id: $i(e.attributes.id),
+		textref: i,
+		textrefHref: ta(t, i),
+		children: a,
+		fragments: o
+	};
+}, pa = (e = "", t = {}) => {
+	let n = $i(t.href), r = oa(e), i = sa(r, "body") ?? r, a = ca(i, "seq").map((e) => fa(e, n)), o = ca(i, "par").map((e) => da(e, n, []));
+	return {
+		href: n,
+		sequences: a,
+		fragments: [...a.flatMap((e) => e.fragments), ...o]
+	};
+}, ma = (e) => {
+	let t = $i(e).replace(/^npt=/i, "");
+	if (!t) return null;
+	let n = t.match(/^([0-9]+(?:\.[0-9]+)?)(h|min|s|ms)$/i);
+	if (n) {
+		let e = Number(n[1]);
+		if (!Number.isFinite(e)) return null;
+		let t = n[2].toLowerCase();
+		return t === "h" ? e * 3600 : t === "min" ? e * 60 : t === "ms" ? e / 1e3 : e;
+	}
+	if (/^[0-9]+(?:\.[0-9]+)?$/.test(t)) {
+		let e = Number(t);
+		return Number.isFinite(e) ? e : null;
+	}
+	let r = t.split(":");
+	if (r.length < 2 || r.length > 3) return null;
+	let i = r.map((e) => Number(e));
+	if (i.some((e) => !Number.isFinite(e))) return null;
+	let [a, o, s] = r.length === 3 ? i : [0, ...i];
+	return a * 3600 + o * 60 + s;
+}, ha = Qi;
 //#endregion
-export { ui as Book, It as Contents, X as EpubCFI, ot as Layout, ei as Rendition, $i as default, ye as replaceBase, be as replaceCanonical, Se as replaceLinks, xe as replaceMeta, Ue as request, Ce as substitute };
+export { ui as Book, It as Contents, X as EpubCFI, ot as Layout, ei as Rendition, ha as default, ma as parseSmilClock, pa as parseSmilDocument, ye as replaceBase, be as replaceCanonical, Se as replaceLinks, xe as replaceMeta, Ue as request, ta as resolveSmilHref, Ce as substitute };
 
 //# sourceMappingURL=epub.mjs.map
