@@ -13,11 +13,14 @@ const expectedExports = [
 	"Layout",
 	"Rendition",
 	"default",
+	"parseSmilClock",
+	"parseSmilDocument",
 	"replaceBase",
 	"replaceCanonical",
 	"replaceLinks",
 	"replaceMeta",
 	"request",
+	"resolveSmilHref",
 	"substitute"
 ];
 
@@ -51,11 +54,14 @@ function assertEntrySurface(entryName, moduleExports) {
 	assert(moduleExports.default.CFI === moduleExports.EpubCFI, `${entryName} default.CFI must match named EpubCFI`);
 	assert(typeof moduleExports.default.VERSION === "string", `${entryName} default.VERSION must be exposed`);
 	assert(typeof moduleExports.default.utils.uuid === "function", `${entryName} default.utils must expose legacy core helpers`);
+	assert(typeof moduleExports.parseSmilClock === "function", `${entryName} named parseSmilClock must be exposed`);
+	assert(typeof moduleExports.parseSmilDocument === "function", `${entryName} named parseSmilDocument must be exposed`);
 	assert(typeof moduleExports.replaceBase === "function", `${entryName} named replaceBase must be exposed`);
 	assert(typeof moduleExports.replaceCanonical === "function", `${entryName} named replaceCanonical must be exposed`);
 	assert(typeof moduleExports.replaceLinks === "function", `${entryName} named replaceLinks must be exposed`);
 	assert(typeof moduleExports.replaceMeta === "function", `${entryName} named replaceMeta must be exposed`);
 	assert(typeof moduleExports.request === "function", `${entryName} named request must be exposed`);
+	assert(typeof moduleExports.resolveSmilHref === "function", `${entryName} named resolveSmilHref must be exposed`);
 	assert(typeof moduleExports.substitute === "function", `${entryName} named substitute must be exposed`);
 }
 

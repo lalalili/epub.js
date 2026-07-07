@@ -19,9 +19,8 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 	if (typeof require < "u") return require.apply(this, arguments);
 	throw Error("Calling `require` for \"" + e + "\" in an environment that doesn't expose the `require` function. See https://rolldown.rs/in-depth/bundling-cjs#require-external-modules for more details.");
 }), d = /* @__PURE__ */ o(((e, t) => {
-	var n = void 0;
 	t.exports = function(e) {
-		return e !== n && e !== null;
+		return e != null;
 	};
 })), f = /* @__PURE__ */ o(((e, t) => {
 	var n = d(), r = {
@@ -10524,7 +10523,7 @@ var ti = /* @__PURE__ */ l((/* @__PURE__ */ o(((e, t) => {
 					r.call(this, e);
 				}
 				i.inherits(a, r), a.prototype.readData = function(e) {
-					if (this.checkOffset(e), e === 0) return new Uint8Array();
+					if (this.checkOffset(e), e === 0) return /* @__PURE__ */ new Uint8Array();
 					var t = this.data.subarray(this.zero + this.index, this.zero + this.index + e);
 					return this.index += e, t;
 				}, t.exports = a;
@@ -10941,7 +10940,7 @@ var ti = /* @__PURE__ */ l((/* @__PURE__ */ o(((e, t) => {
 					applyCanBeUsed: {
 						uint8array: (function() {
 							try {
-								return r.uint8array && String.fromCharCode.apply(null, new Uint8Array(1)).length === 1;
+								return r.uint8array && String.fromCharCode.apply(null, /* @__PURE__ */ new Uint8Array(1)).length === 1;
 							} catch {
 								return !1;
 							}
@@ -11645,7 +11644,7 @@ var ti = /* @__PURE__ */ l((/* @__PURE__ */ o(((e, t) => {
 					i = !1;
 				}
 				try {
-					String.fromCharCode.apply(null, new Uint8Array(1));
+					String.fromCharCode.apply(null, /* @__PURE__ */ new Uint8Array(1));
 				} catch {
 					a = !1;
 				}
@@ -12009,88 +12008,87 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 				t.exports = r;
 			}, {}],
 			48: [function(e, t, n) {
-				var r = 30, i = 12;
 				t.exports = function(e, t) {
-					var n = e.state, a = e.next_in, o, s, c, l, u, d, f, p, m, h, g, _, v, y, b, x, S, C, w, T, E, D = e.input, O;
-					o = a + (e.avail_in - 5), s = e.next_out, O = e.output, c = s - (t - e.avail_out), l = s + (e.avail_out - 257), u = n.dmax, d = n.wsize, f = n.whave, p = n.wnext, m = n.window, h = n.hold, g = n.bits, _ = n.lencode, v = n.distcode, y = (1 << n.lenbits) - 1, b = (1 << n.distbits) - 1;
+					var n = e.state, r = e.next_in, i, a, o, s, c, l, u, d, f, p, m, h, g, _, v, y, b, x, S, C, w, T = e.input, E;
+					i = r + (e.avail_in - 5), a = e.next_out, E = e.output, o = a - (t - e.avail_out), s = a + (e.avail_out - 257), c = n.dmax, l = n.wsize, u = n.whave, d = n.wnext, f = n.window, p = n.hold, m = n.bits, h = n.lencode, g = n.distcode, _ = (1 << n.lenbits) - 1, v = (1 << n.distbits) - 1;
 					top: do {
-						g < 15 && (h += D[a++] << g, g += 8, h += D[a++] << g, g += 8), x = _[h & y];
+						m < 15 && (p += T[r++] << m, m += 8, p += T[r++] << m, m += 8), y = h[p & _];
 						dolen: for (;;) {
-							if (S = x >>> 24, h >>>= S, g -= S, S = x >>> 16 & 255, S === 0) O[s++] = x & 65535;
-							else if (S & 16) {
-								C = x & 65535, S &= 15, S && (g < S && (h += D[a++] << g, g += 8), C += h & (1 << S) - 1, h >>>= S, g -= S), g < 15 && (h += D[a++] << g, g += 8, h += D[a++] << g, g += 8), x = v[h & b];
+							if (b = y >>> 24, p >>>= b, m -= b, b = y >>> 16 & 255, b === 0) E[a++] = y & 65535;
+							else if (b & 16) {
+								x = y & 65535, b &= 15, b && (m < b && (p += T[r++] << m, m += 8), x += p & (1 << b) - 1, p >>>= b, m -= b), m < 15 && (p += T[r++] << m, m += 8, p += T[r++] << m, m += 8), y = g[p & v];
 								dodist: for (;;) {
-									if (S = x >>> 24, h >>>= S, g -= S, S = x >>> 16 & 255, S & 16) {
-										if (w = x & 65535, S &= 15, g < S && (h += D[a++] << g, g += 8, g < S && (h += D[a++] << g, g += 8)), w += h & (1 << S) - 1, w > u) {
-											e.msg = "invalid distance too far back", n.mode = r;
+									if (b = y >>> 24, p >>>= b, m -= b, b = y >>> 16 & 255, b & 16) {
+										if (S = y & 65535, b &= 15, m < b && (p += T[r++] << m, m += 8, m < b && (p += T[r++] << m, m += 8)), S += p & (1 << b) - 1, S > c) {
+											e.msg = "invalid distance too far back", n.mode = 30;
 											break top;
 										}
-										if (h >>>= S, g -= S, S = s - c, w > S) {
-											if (S = w - S, S > f && n.sane) {
-												e.msg = "invalid distance too far back", n.mode = r;
+										if (p >>>= b, m -= b, b = a - o, S > b) {
+											if (b = S - b, b > u && n.sane) {
+												e.msg = "invalid distance too far back", n.mode = 30;
 												break top;
 											}
-											if (T = 0, E = m, p === 0) {
-												if (T += d - S, S < C) {
-													C -= S;
+											if (C = 0, w = f, d === 0) {
+												if (C += l - b, b < x) {
+													x -= b;
 													do
-														O[s++] = m[T++];
-													while (--S);
-													T = s - w, E = O;
+														E[a++] = f[C++];
+													while (--b);
+													C = a - S, w = E;
 												}
-											} else if (p < S) {
-												if (T += d + p - S, S -= p, S < C) {
-													C -= S;
+											} else if (d < b) {
+												if (C += l + d - b, b -= d, b < x) {
+													x -= b;
 													do
-														O[s++] = m[T++];
-													while (--S);
-													if (T = 0, p < C) {
-														S = p, C -= S;
+														E[a++] = f[C++];
+													while (--b);
+													if (C = 0, d < x) {
+														b = d, x -= b;
 														do
-															O[s++] = m[T++];
-														while (--S);
-														T = s - w, E = O;
+															E[a++] = f[C++];
+														while (--b);
+														C = a - S, w = E;
 													}
 												}
-											} else if (T += p - S, S < C) {
-												C -= S;
+											} else if (C += d - b, b < x) {
+												x -= b;
 												do
-													O[s++] = m[T++];
-												while (--S);
-												T = s - w, E = O;
+													E[a++] = f[C++];
+												while (--b);
+												C = a - S, w = E;
 											}
-											for (; C > 2;) O[s++] = E[T++], O[s++] = E[T++], O[s++] = E[T++], C -= 3;
-											C && (O[s++] = E[T++], C > 1 && (O[s++] = E[T++]));
+											for (; x > 2;) E[a++] = w[C++], E[a++] = w[C++], E[a++] = w[C++], x -= 3;
+											x && (E[a++] = w[C++], x > 1 && (E[a++] = w[C++]));
 										} else {
-											T = s - w;
+											C = a - S;
 											do
-												O[s++] = O[T++], O[s++] = O[T++], O[s++] = O[T++], C -= 3;
-											while (C > 2);
-											C && (O[s++] = O[T++], C > 1 && (O[s++] = O[T++]));
+												E[a++] = E[C++], E[a++] = E[C++], E[a++] = E[C++], x -= 3;
+											while (x > 2);
+											x && (E[a++] = E[C++], x > 1 && (E[a++] = E[C++]));
 										}
-									} else if (S & 64) {
-										e.msg = "invalid distance code", n.mode = r;
+									} else if (b & 64) {
+										e.msg = "invalid distance code", n.mode = 30;
 										break top;
 									} else {
-										x = v[(x & 65535) + (h & (1 << S) - 1)];
+										y = g[(y & 65535) + (p & (1 << b) - 1)];
 										continue dodist;
 									}
 									break;
 								}
-							} else if (!(S & 64)) {
-								x = _[(x & 65535) + (h & (1 << S) - 1)];
+							} else if (!(b & 64)) {
+								y = h[(y & 65535) + (p & (1 << b) - 1)];
 								continue dolen;
-							} else if (S & 32) {
-								n.mode = i;
+							} else if (b & 32) {
+								n.mode = 12;
 								break top;
 							} else {
-								e.msg = "invalid literal/length code", n.mode = r;
+								e.msg = "invalid literal/length code", n.mode = 30;
 								break top;
 							}
 							break;
 						}
-					} while (a < o && s < l);
-					C = g >> 3, a -= C, g -= C << 3, h &= (1 << g) - 1, e.next_in = a, e.next_out = s, e.avail_in = a < o ? 5 + (o - a) : 5 - (a - o), e.avail_out = s < l ? 257 + (l - s) : 257 - (s - l), n.hold = h, n.bits = g;
+					} while (r < i && a < s);
+					x = m >> 3, r -= x, m -= x << 3, p &= (1 << m) - 1, e.next_in = r, e.next_out = a, e.avail_in = r < i ? 5 + (i - r) : 5 - (r - i), e.avail_out = a < s ? 257 + (s - a) : 257 - (a - s), n.hold = p, n.bits = m;
 				};
 			}, {}],
 			49: [function(e, t, n) {

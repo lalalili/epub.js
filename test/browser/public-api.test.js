@@ -11,11 +11,14 @@ import ePub, {
 	EpubCFI,
 	Layout,
 	Rendition,
+	parseSmilClock,
+	parseSmilDocument,
 	replaceBase,
 	replaceCanonical,
 	replaceLinks,
 	replaceMeta,
 	request,
+	resolveSmilHref,
 	substitute
 } from "../../src/index";
 
@@ -34,10 +37,13 @@ describe("browser public api", () => {
 		expect(typeof EpubCFI).toBe("function");
 		expect(typeof Layout).toBe("function");
 		expect(typeof request).toBe("function");
+		expect(typeof parseSmilClock).toBe("function");
+		expect(typeof parseSmilDocument).toBe("function");
 		expect(typeof replaceBase).toBe("function");
 		expect(typeof replaceCanonical).toBe("function");
 		expect(typeof replaceLinks).toBe("function");
 		expect(typeof replaceMeta).toBe("function");
+		expect(typeof resolveSmilHref).toBe("function");
 		expect(typeof substitute).toBe("function");
 	});
 

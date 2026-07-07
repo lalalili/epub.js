@@ -129,7 +129,7 @@ try {
 
 	writeFileSync(consumerScript, `
 import { createRequire } from "node:module";
-import epubDefault, { Book, Contents, EpubCFI, Layout, Rendition, replaceBase, replaceCanonical, replaceLinks, replaceMeta, request, substitute } from "epubjs";
+import epubDefault, { Book, Contents, EpubCFI, Layout, Rendition, parseSmilClock, parseSmilDocument, replaceBase, replaceCanonical, replaceLinks, replaceMeta, request, resolveSmilHref, substitute } from "epubjs";
 
 const require = createRequire(import.meta.url);
 const cjsExports = require("epubjs");
@@ -142,7 +142,7 @@ function assert(condition, message) {
 }
 
 function assertSurface(entryName, moduleExports) {
-\tconst expectedExports = ["Book", "Contents", "EpubCFI", "Layout", "Rendition", "default", "replaceBase", "replaceCanonical", "replaceLinks", "replaceMeta", "request", "substitute"];
+\tconst expectedExports = ["Book", "Contents", "EpubCFI", "Layout", "Rendition", "default", "parseSmilClock", "parseSmilDocument", "replaceBase", "replaceCanonical", "replaceLinks", "replaceMeta", "request", "resolveSmilHref", "substitute"];
 \tassert(
 \t\tJSON.stringify(Object.keys(moduleExports).sort()) === JSON.stringify(expectedExports),
 \t\tentryName + " exports must match the public root surface"
@@ -154,11 +154,14 @@ function assertSurface(entryName, moduleExports) {
 \tassert(moduleExports.default.CFI === moduleExports.EpubCFI, entryName + " default.CFI must match named EpubCFI");
 \tassert(typeof moduleExports.default.VERSION === "string", entryName + " default.VERSION must be exposed");
 \tassert(typeof moduleExports.default.utils.uuid === "function", entryName + " default.utils must expose legacy core helpers");
+\tassert(typeof moduleExports.parseSmilClock === "function", entryName + " named parseSmilClock must be exposed");
+\tassert(typeof moduleExports.parseSmilDocument === "function", entryName + " named parseSmilDocument must be exposed");
 \tassert(typeof moduleExports.replaceBase === "function", entryName + " named replaceBase must be exposed");
 \tassert(typeof moduleExports.replaceCanonical === "function", entryName + " named replaceCanonical must be exposed");
 \tassert(typeof moduleExports.replaceLinks === "function", entryName + " named replaceLinks must be exposed");
 \tassert(typeof moduleExports.replaceMeta === "function", entryName + " named replaceMeta must be exposed");
 \tassert(typeof moduleExports.request === "function", entryName + " named request must be exposed");
+\tassert(typeof moduleExports.resolveSmilHref === "function", entryName + " named resolveSmilHref must be exposed");
 \tassert(typeof moduleExports.substitute === "function", entryName + " named substitute must be exposed");
 }
 
@@ -170,11 +173,14 @@ assert(epubDefault.Rendition === Rendition, "bare ESM default.Rendition must mat
 assert(epubDefault.Contents === Contents, "bare ESM default.Contents must match named Contents");
 assert(epubDefault.CFI === EpubCFI, "bare ESM default.CFI must match named EpubCFI");
 assert(typeof Layout === "function", "bare ESM named Layout must be constructable");
+assert(typeof parseSmilClock === "function", "bare ESM named parseSmilClock must be exposed");
+assert(typeof parseSmilDocument === "function", "bare ESM named parseSmilDocument must be exposed");
 assert(typeof replaceBase === "function", "bare ESM named replaceBase must be exposed");
 assert(typeof replaceCanonical === "function", "bare ESM named replaceCanonical must be exposed");
 assert(typeof replaceLinks === "function", "bare ESM named replaceLinks must be exposed");
 assert(typeof replaceMeta === "function", "bare ESM named replaceMeta must be exposed");
 assert(typeof request === "function", "bare ESM named request must be exposed");
+assert(typeof resolveSmilHref === "function", "bare ESM named resolveSmilHref must be exposed");
 assert(typeof substitute === "function", "bare ESM named substitute must be exposed");
 
 assertSurface("bare CJS", cjsExports);
