@@ -8908,6 +8908,7 @@
 			return substitute(content, relUrls, this.replacementUrls);
 		}
 		destroy() {
+			this.replacementUrls?.filter((url) => url.startsWith("blob:")).forEach((url) => revokeBlobUrl$1(url));
 			this.settings = void 0;
 			this.manifest = void 0;
 			this.resources = void 0;
@@ -16892,7 +16893,7 @@
 		}
 		destroy() {
 			var _URL = window.URL || window.webkitURL || window.mozURL;
-			for (let fromCache in this.urlCache) _URL.revokeObjectURL(fromCache);
+			for (const fromCache of Object.values(this.urlCache)) _URL.revokeObjectURL(fromCache);
 			this.zip = void 0;
 			this.urlCache = {};
 		}
@@ -18938,7 +18939,7 @@
 		}
 		destroy() {
 			var _URL = window.URL || window.webkitURL || window.mozURL;
-			for (let fromCache in this.urlCache) _URL.revokeObjectURL(fromCache);
+			for (const fromCache of Object.values(this.urlCache)) _URL.revokeObjectURL(fromCache);
 			this.urlCache = {};
 			this.removeListeners();
 		}

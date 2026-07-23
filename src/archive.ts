@@ -280,7 +280,7 @@ class Archive {
 
 	destroy(): void {
 		var _URL = (window.URL || (window as unknown as UrlFactory).webkitURL || (window as unknown as UrlFactory).mozURL) as typeof URL;
-		for (let fromCache in this.urlCache) {
+		for (const fromCache of Object.values(this.urlCache)) {
 			_URL.revokeObjectURL(fromCache);
 		}
 		this.zip = undefined;

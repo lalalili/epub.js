@@ -128,4 +128,26 @@ describe("Archive", () => {
 				expect(archive.urlCache).toEqual({});
 			});
 	});
+
+	it("revokes cached object URL values when destroyed", function() {
+		var archive = new Archive();
+		var originalRevokeObjectURL = window.URL.revokeObjectURL;
+		var revoked = [];
+
+		archive.urlCache = {
+			"/OPS/images/cover.jpg": "blob:archive-cover",
+			"/OPS/styles/main.css": "blob:archive-style"
+		};
+		window.URL.revokeObjectURL = function(url) {
+			revoked.push(url);
+		};
+
+		try {
+			archive.destroy();
+			expect(revoked).toEqual(["blob:archive-cover", "blob:archive-style"]);
+			expect(archive.urlCache).toEqual({});
+		} finally {
+			window.URL.revokeObjectURL = originalRevokeObjectURL;
+		}
+	});
 });

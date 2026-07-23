@@ -202,4 +202,27 @@ describe("Store", function() {
 				});
 			});
 	});
+
+	it("revokes cached object URL values when destroyed", function() {
+		var store = createStoreWithItems({});
+		var originalRevokeObjectURL = window.URL.revokeObjectURL;
+		var revoked = [];
+
+		store.urlCache = {
+			"/OPS/images/cover.jpg": "blob:store-cover",
+			"/OPS/styles/main.css": "blob:store-style"
+		};
+		store.removeListeners = function() {};
+		window.URL.revokeObjectURL = function(url) {
+			revoked.push(url);
+		};
+
+		try {
+			store.destroy();
+			expect(revoked).toEqual(["blob:store-cover", "blob:store-style"]);
+			expect(store.urlCache).toEqual({});
+		} finally {
+			window.URL.revokeObjectURL = originalRevokeObjectURL;
+		}
+	});
 });

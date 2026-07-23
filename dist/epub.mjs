@@ -5406,7 +5406,7 @@ var ut = class {
 		return ke(e, t ? this.relativeTo(t) : this.urls, this.replacementUrls);
 	}
 	destroy() {
-		this.settings = void 0, this.manifest = void 0, this.resources = void 0, this.replacementUrls = void 0, this.html = void 0, this.assets = void 0, this.css = void 0, this.urls = void 0, this.cssUrls = void 0;
+		this.replacementUrls?.filter((e) => e.startsWith("blob:")).forEach((e) => st(e)), this.settings = void 0, this.manifest = void 0, this.resources = void 0, this.replacementUrls = void 0, this.html = void 0, this.assets = void 0, this.css = void 0, this.urls = void 0, this.cssUrls = void 0;
 	}
 }, dt = class {
 	pages;
@@ -12937,7 +12937,7 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 	}
 	destroy() {
 		var e = window.URL || window.webkitURL || window.mozURL;
-		for (let t in this.urlCache) e.revokeObjectURL(t);
+		for (let t of Object.values(this.urlCache)) e.revokeObjectURL(t);
 		this.zip = void 0, this.urlCache = {};
 	}
 }, Yr = /* @__PURE__ */ l((/* @__PURE__ */ o(((e, t) => {
@@ -14391,7 +14391,7 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 	}
 	destroy() {
 		var e = window.URL || window.webkitURL || window.mozURL;
-		for (let t in this.urlCache) e.revokeObjectURL(t);
+		for (let t of Object.values(this.urlCache)) e.revokeObjectURL(t);
 		this.urlCache = {}, this.removeListeners();
 	}
 };

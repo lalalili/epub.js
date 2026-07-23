@@ -1,5 +1,5 @@
 import {substitute} from "./utils/replacements";
-import { createBase64Url, createBlobUrl, blobToBase64 as blob2base64 } from "./platform/blob";
+import { createBase64Url, createBlobUrl, blobToBase64 as blob2base64, revokeBlobUrl } from "./platform/blob";
 import Url from "./utils/url";
 import mime from "./utils/mime";
 import Path from "./utils/path";
@@ -346,6 +346,10 @@ class Resources {
 	}
 
 	destroy(): void {
+		this.replacementUrls
+			?.filter((url) => url.startsWith("blob:"))
+			.forEach((url) => revokeBlobUrl(url));
+
 		this.settings = undefined;
 		this.manifest = undefined;
 		this.resources = undefined;

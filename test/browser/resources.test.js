@@ -165,4 +165,27 @@ describe("Resources", function() {
 			expect(resources.urls).toBeUndefined();
 		});
 	});
+
+	it("revokes blob replacement URLs when destroyed", function() {
+		var resources = createResources();
+		var originalRevokeObjectURL = window.URL.revokeObjectURL;
+		var revoked = [];
+
+		resources.replacementUrls = [
+			"blob:replacement-style",
+			"data:image/jpeg;base64,Y292ZXI=",
+			"blob:replacement-cover"
+		];
+		window.URL.revokeObjectURL = function(url) {
+			revoked.push(url);
+		};
+
+		try {
+			resources.destroy();
+			expect(revoked).toEqual(["blob:replacement-style", "blob:replacement-cover"]);
+			expect(resources.replacementUrls).toBeUndefined();
+		} finally {
+			window.URL.revokeObjectURL = originalRevokeObjectURL;
+		}
+	});
 });
