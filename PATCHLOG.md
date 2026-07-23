@@ -21,7 +21,7 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
   - Replace lodash debounce/throttle with typed internal timing helpers and browser characterization.
   - Replace `path-webpack` with an internal POSIX path utility covered by path, URL, container, resource, and full browser tests.
   - Remove the four legacy runtime dependencies and obsolete ambient declarations.
-  - Limit npm pack to runtime bundles, generated modules, declarations, license, README, patchlog, and package metadata.
+  - Limit npm pack to runtime bundles, generated modules, source used by reader fork-marker diagnostics, declarations, license, README, patchlog, and package metadata.
   - Run release CI on Node 22 and Node 24.
 - Test:
   - `npm run typecheck`
@@ -30,6 +30,21 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
   - `npm run verify:release`
 - Rollback:
   - Revert this patch and rebuild `dist/` if an external consumer depends on the removed dependency bridges or unpublished package files.
+
+### P-0446
+- Why:
+  - The first `v0.3.93.134` package whitelist excluded `src/`, but `epub-reader` intentionally reads fork source markers from its installed dependency to enforce vertical-rl invariants.
+  - The release tarball could build, while the downstream reader contract correctly failed because those diagnostic sources were absent.
+- Diff Scope:
+  - Include `src/` in npm pack while continuing to exclude tests, generated documentation, examples, and release scripts.
+  - Require the source package entry files in the pack-contents contract.
+- Test:
+  - `npm run verify:pack-contents`
+  - `npm run verify:packed-package-entry`
+  - `npm run verify:release`
+  - downstream `epub-reader` Vitest and package contract
+- Rollback:
+  - Revert only after downstream fork-marker diagnostics stop reading installed source files.
 
 ## 2026-06-04
 

@@ -23,13 +23,14 @@ const requiredPaths = [
 	"dist/epub.mjs.map",
 	"lib/epub.js",
 	"lib/index.js",
+	"src/epub.ts",
+	"src/index.ts",
 	"types/index.d.ts"
 ];
 const forbiddenPatterns = [
 	/^books\//,
 	/^node_modules\//,
 	/^test\//,
-	/^src\//,
 	/^scripts\//,
 	/^documentation\//,
 	/^examples\//,

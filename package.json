@@ -18,6 +18,7 @@
   "files": [
     "dist",
     "lib",
+    "src",
     "types",
     "!types/epubjs-tests.ts",
     "!types/global-namespace-tests.ts",
