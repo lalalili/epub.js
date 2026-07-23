@@ -2,3 +2,6 @@ books
 test
 .babelrc
 .vitest-attachments
+types/epubjs-tests.ts
+types/global-namespace-tests.ts
+types/tsconfig.json

@@ -3,7 +3,7 @@ import { createBase64Url, createBlobUrl, blobToBase64 as blob2base64 } from "./p
 import Url from "./utils/url";
 import mime from "./utils/mime";
 import Path from "./utils/path";
-import path from "path-webpack";
+import { isAbsolutePath } from "./utils/path-posix";
 import type Archive from "./archive";
 import type { PackagingManifest } from "./packaging";
 
@@ -243,7 +243,7 @@ class Resources {
 	createCssFile(href: string, archive?: ResourceArchiveInput, resolver?: ResourceResolver): Promise<string | undefined> {
 		var newUrl;
 
-		if (path.isAbsolute(href)) {
+		if (isAbsolutePath(href)) {
 			return Promise.resolve(undefined);
 		}
 

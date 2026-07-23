@@ -2,7 +2,7 @@ import { uuid } from "../../core/async";
 import { extend } from "../../core/collections";
 import { isElement, isNumber } from "../../core/types";
 import { windowBounds } from "../../platform/layout";
-import throttle from "lodash/throttle";
+import { throttle } from "../../utils/timing";
 
 type StageAxis = "horizontal" | "vertical" | string;
 

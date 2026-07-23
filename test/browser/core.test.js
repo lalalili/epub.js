@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import Url from "../../src/utils/url";
 import Path from "../../src/utils/path";
+import {
+	dirnamePath,
+	isAbsolutePath,
+	parsePath,
+	relativePath,
+	resolvePath
+} from "../../src/utils/path-posix";
 
 describe("core url and path helpers", () => {
 	describe("Url", () => {
@@ -150,6 +157,28 @@ describe("core url and path helpers", () => {
 
 				expect(relative).toBe("../derf.html");
 			});
+		});
+	});
+
+	describe("POSIX path compatibility", () => {
+		it("normalizes dot segments and root-relative paths", () => {
+			expect(resolvePath("/OPS/Text", "../Images/cover.jpg")).toBe("/OPS/Images/cover.jpg");
+			expect(resolvePath("OPS/Text", "./chapter.xhtml")).toBe("/OPS/Text/chapter.xhtml");
+			expect(relativePath("/OPS/Text", "/OPS/Images/cover.jpg")).toBe("../Images/cover.jpg");
+		});
+
+		it("preserves parse and dirname behavior used by EPUB containers", () => {
+			expect(parsePath("/OPS/package.opf")).toEqual({
+				root: "/",
+				dir: "/OPS",
+				base: "package.opf",
+				ext: ".opf",
+				name: "package"
+			});
+			expect(dirnamePath("OPS/package.opf")).toBe("OPS");
+			expect(dirnamePath("/package.opf")).toBe("/");
+			expect(isAbsolutePath("/OPS/package.opf")).toBe(true);
+			expect(isAbsolutePath("OPS/package.opf")).toBe(false);
 		});
 	});
 });

@@ -4,7 +4,7 @@ import { requestAnimationFrame } from "../../platform/browser";
 import DefaultViewManager, { type ManagerSettings, type ManagerViewConstructor } from "../default";
 import Snap, { type ManagerLike as SnapManagerLike } from "../helpers/snap";
 import { EVENTS } from "../../utils/constants";
-import debounce from "lodash/debounce";
+import { debounce } from "../../utils/timing";
 
 type ContinuousManagerOptions = {
 	settings: ManagerSettings;

@@ -1,19 +1,12 @@
-import path from "path-webpack";
+import {
+	isAbsolutePath,
+	parsePath,
+	relativePath,
+	resolvePath,
+	type ParsedPosixPath
+} from "./path-posix";
 
-export type ParsedPath = {
-	base: string;
-	dir: string;
-	ext: string;
-	name: string;
-	root: string;
-};
-
-type PathWebpack = {
-	isAbsolute(value: string): boolean;
-	parse(value: string): ParsedPath;
-	relative(from: string, to: string): string;
-	resolve(...paths: string[]): string;
-};
+export type ParsedPath = ParsedPosixPath;
 
 /**
  * Creates a Path object for parsing and manipulation of a path strings
@@ -59,7 +52,7 @@ class Path {
 	 * @returns {object}
 	 */
 	parse (what: string): ParsedPath {
-		return (path as PathWebpack).parse(what);
+		return parsePath(what);
 	}
 
 	/**
@@ -67,7 +60,7 @@ class Path {
 	 * @returns {boolean}
 	 */
 	isAbsolute (what?: string): boolean {
-		return (path as PathWebpack).isAbsolute(what || this.path);
+		return isAbsolutePath(what || this.path);
 	}
 
 	/**
@@ -87,7 +80,7 @@ class Path {
 	 * @returns {string} resolved
 	 */
 	resolve (what: string): string {
-		return (path as PathWebpack).resolve(this.directory, what);
+		return resolvePath(this.directory, what);
 	}
 
 	/**
@@ -104,7 +97,7 @@ class Path {
 			return what;
 		}
 
-		return (path as PathWebpack).relative(this.directory, what);
+		return relativePath(this.directory, what);
 	}
 
 	splitPath(filename: string): string[] {

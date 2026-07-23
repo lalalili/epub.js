@@ -12,6 +12,7 @@ const npmIgnore = readFileSync(path.join(root, ".npmignore"), "utf8")
 const requiredPaths = [
 	"README.md",
 	"PATCHLOG.md",
+	"license",
 	"package.json",
 	"dist/epub.cjs",
 	"dist/epub.cjs.map",
@@ -20,31 +21,18 @@ const requiredPaths = [
 	"dist/epub.min.js",
 	"dist/epub.mjs",
 	"dist/epub.mjs.map",
-	"documentation/md/API.md",
 	"lib/epub.js",
 	"lib/index.js",
-	"scripts/verify-docs-modernization.mjs",
-	"scripts/verify-gate1-readiness.mjs",
-	"scripts/verify-internal-boundaries.mjs",
-	"scripts/verify-pack-contents.mjs",
-	"scripts/verify-package-entry.mjs",
-	"scripts/verify-packed-package-entry.mjs",
-	"scripts/verify-release-gate.mjs",
-	"scripts/verify-test-modernization.mjs",
-	"scripts/verify-typescript-source-pipeline.mjs",
-	"src/epub.ts",
-	"src/index.ts",
-	"types/index.d.ts",
-	"typedoc.json",
-	"typedoc.html.json",
-	"vite.config.mjs",
-	"vite.umd.config.mjs",
-	"vitest.browser.config.mjs"
+	"types/index.d.ts"
 ];
 const forbiddenPatterns = [
 	/^books\//,
 	/^node_modules\//,
 	/^test\//,
+	/^src\//,
+	/^scripts\//,
+	/^documentation\//,
+	/^examples\//,
 	/^\.vitest-attachments\//,
 	/^test\/browser\/__screenshots__\//,
 	/^webpack\.config\.js$/,
@@ -200,5 +188,6 @@ assert(pack.name === packageJson.name, "npm pack package name must match package
 assert(pack.version === packageJson.version, "npm pack package version must match package.json");
 assert(pack.entryCount === packedPaths.size, "npm pack entry count must match the reported file list");
 assert(packedPaths.size > 0, "npm pack contents must not be empty");
+assert(packedPaths.size < 200, "npm pack contents must stay below 200 files");
 
 console.log(`Package tarball contents verified (${packedPaths.size} files).`);

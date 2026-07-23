@@ -15,6 +15,17 @@
     },
     "./package.json": "./package.json"
   },
+  "files": [
+    "dist",
+    "lib",
+    "types",
+    "!types/epubjs-tests.ts",
+    "!types/global-namespace-tests.ts",
+    "!types/tsconfig.json",
+    "README.md",
+    "PATCHLOG.md",
+    "license"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lalalili/epub.js.git"
@@ -82,13 +93,9 @@
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.8.13",
-    "core-js": "^3.49.0",
     "event-emitter": "^0.3.5",
     "jszip": "^3.10.1",
     "localforage": "^1.10.0",
-    "lodash": "^4.17.21",
-    "marks-pane": "^1.0.9",
-    "path-webpack": "0.0.3",
-    "process": "^0.11.10"
+    "marks-pane": "^1.0.9"
   }
 }

@@ -57,6 +57,8 @@ const queueSource = readFileSync(path.join(root, "src/utils/queue.ts"), "utf8");
 const queueTypes = readFileSync(path.join(root, "types/utils/queue.d.ts"), "utf8");
 const hookSource = readFileSync(path.join(root, "src/utils/hook.ts"), "utf8");
 const hookTypes = readFileSync(path.join(root, "types/utils/hook.d.ts"), "utf8");
+const pathPosixSource = readFileSync(path.join(root, "src/utils/path-posix.ts"), "utf8");
+const timingSource = readFileSync(path.join(root, "src/utils/timing.ts"), "utf8");
 const globalTypeTests = readFileSync(path.join(root, "types/global-namespace-tests.ts"), "utf8");
 const bookTests = readFileSync(path.join(root, "test/browser/book.test.js"), "utf8");
 const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.test.js"), "utf8");
@@ -64,8 +66,6 @@ const umdGlobalTests = readFileSync(path.join(root, "test/browser/umd-global.tes
 const viewsTests = readFileSync(path.join(root, "test/browser/views.test.js"), "utf8");
 const contentsTextWidthTests = readFileSync(path.join(root, "test/browser/contents-text-width.test.js"), "utf8");
 const renditionTests = readFileSync(path.join(root, "test/browser/rendition.test.js"), "utf8");
-const debounceTypes = readFileSync(path.join(root, "types/lodash-debounce.d.ts"), "utf8");
-const throttleTypes = readFileSync(path.join(root, "types/lodash-throttle.d.ts"), "utf8");
 
 const requiredScripts = {
 	"build:modules": "vite build --config vite.config.mjs",
@@ -289,20 +289,21 @@ assert(
 	"Snap helper must keep typed touch, event, settings, and promise bridges"
 );
 assert(
-	debounceTypes.includes("T extends (...args: unknown[]) => unknown") &&
-		debounceTypes.includes("flush(): ReturnType<T>") &&
-		!debounceTypes.includes("any[]") &&
-		!debounceTypes.includes("=> any") &&
-		throttleTypes.includes("T extends (...args: unknown[]) => unknown") &&
-		throttleTypes.includes("flush(): ReturnType<T>") &&
-		!throttleTypes.includes("any[]") &&
-		!throttleTypes.includes("=> any") &&
-		typeTests.includes("type LodashBridgeAssertions") &&
-		typeTests.includes("Parameters<typeof debounce<(...args: unknown[]) => unknown>>[0]") &&
-		typeTests.includes("Parameters<typeof throttle<(...args: unknown[]) => unknown>>[0]") &&
-		typeTests.includes("ReturnType<typeof debouncedCallback.flush>, string") &&
-		typeTests.includes("ReturnType<typeof throttledCallback.flush>, number"),
-	"lodash debounce/throttle declarations and type tests must keep unknown variadic and ReturnType parity"
+	timingSource.includes("T extends (...args: unknown[]) => unknown") &&
+		timingSource.includes("flush(): ReturnType<T>") &&
+		timingSource.includes("maxWait: wait") &&
+		!timingSource.includes("lodash/") &&
+		continuousManagerSource.includes('import { debounce } from "../../utils/timing"') &&
+		stageSource.includes('import { throttle } from "../../utils/timing"') &&
+		!("lodash" in (packageJson.dependencies || {})),
+	"internal debounce/throttle helpers must preserve typed controls without lodash"
+);
+assert(
+	pathPosixSource.includes("export function resolvePath") &&
+		pathPosixSource.includes("export function relativePath") &&
+		pathPosixSource.includes("export function dirnamePath") &&
+		!("path-webpack" in (packageJson.dependencies || {})),
+	"internal POSIX path helpers must replace path-webpack"
 );
 assert(
 	sectionSource.includes("type DeferConstructor = new <T = unknown>()") &&

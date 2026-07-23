@@ -10,6 +10,27 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 - Test:
 - Rollback:
 
+## 2026-07-23
+
+### P-0445
+- Why:
+  - `core-js` and `process` remained direct runtime dependencies without source imports.
+  - `lodash` only supplied one default debounce and throttle call, while `path-webpack` only supplied POSIX path operations in four source files.
+  - npm pack included source, tests, examples, documentation, and release tooling that consumers do not execute.
+- Diff Scope:
+  - Replace lodash debounce/throttle with typed internal timing helpers and browser characterization.
+  - Replace `path-webpack` with an internal POSIX path utility covered by path, URL, container, resource, and full browser tests.
+  - Remove the four legacy runtime dependencies and obsolete ambient declarations.
+  - Limit npm pack to runtime bundles, generated modules, declarations, license, README, patchlog, and package metadata.
+  - Run release CI on Node 22 and Node 24.
+- Test:
+  - `npm run typecheck`
+  - focused path, timing, manager, container, and resource browser tests
+  - `npm run verify:contracts`
+  - `npm run verify:release`
+- Rollback:
+  - Revert this patch and rebuild `dist/` if an external consumer depends on the removed dependency bridges or unpublished package files.
+
 ## 2026-06-04
 
 ### P-0444

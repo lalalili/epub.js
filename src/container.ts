@@ -1,12 +1,8 @@
-import path from "path-webpack";
 import { qs } from "./platform/dom";
+import { dirnamePath } from "./utils/path-posix";
 
 export type ContainerDocument = XMLDocument & {
 	xmlEncoding?: string | null;
-};
-
-type PathWebpack = {
-	dirname(value: string | null): string;
 };
 
 /**
@@ -48,7 +44,7 @@ class Container {
 		}
 
 		this.packagePath = rootfile.getAttribute("full-path");
-		this.directory = (path as PathWebpack).dirname(this.packagePath);
+		this.directory = dirnamePath(this.packagePath);
 		this.encoding = containerDocument.xmlEncoding;
 	}
 

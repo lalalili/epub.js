@@ -492,321 +492,80 @@
 		else return indexOfSorted$1(item, array, compareFunction, start, pivot);
 	}
 	//#endregion
-	//#region src/utils/path.ts
-	var import_path = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
-		if (!process) var process = { "cwd": function() {
-			return "/";
-		} };
-		function assertPath(path) {
-			if (typeof path !== "string") throw new TypeError("Path must be a string. Received " + path);
-		}
-		function normalizeStringPosix(path, allowAboveRoot) {
-			var res = "";
-			var lastSlash = -1;
-			var dots = 0;
-			var code;
-			for (var i = 0; i <= path.length; ++i) {
-				if (i < path.length) code = path.charCodeAt(i);
-				else if (code === 47) break;
-				else code = 47;
-				if (code === 47) {
-					if (lastSlash === i - 1 || dots === 1) {} else if (lastSlash !== i - 1 && dots === 2) {
-						if (res.length < 2 || res.charCodeAt(res.length - 1) !== 46 || res.charCodeAt(res.length - 2) !== 46) {
-							if (res.length > 2) {
-								var start = res.length - 1;
-								var j = start;
-								for (; j >= 0; --j) if (res.charCodeAt(j) === 47) break;
-								if (j !== start) {
-									if (j === -1) res = "";
-									else res = res.slice(0, j);
-									lastSlash = i;
-									dots = 0;
-									continue;
-								}
-							} else if (res.length === 2 || res.length === 1) {
-								res = "";
-								lastSlash = i;
-								dots = 0;
-								continue;
-							}
-						}
-						if (allowAboveRoot) if (res.length > 0) res += "/..";
-						else res = "..";
-					} else if (res.length > 0) res += "/" + path.slice(lastSlash + 1, i);
-					else res = path.slice(lastSlash + 1, i);
-					lastSlash = i;
-					dots = 0;
-				} else if (code === 46 && dots !== -1) ++dots;
-				else dots = -1;
+	//#region src/utils/path-posix.ts
+	function assertPath(value) {
+		if (typeof value !== "string") throw new TypeError(`Path must be a string. Received ${String(value)}`);
+	}
+	function normalizeSegments(value, allowAboveRoot) {
+		const output = [];
+		for (const segment of value.split("/")) {
+			if (!segment || segment === ".") continue;
+			if (segment === "..") {
+				if (output.length > 0 && output[output.length - 1] !== "..") output.pop();
+				else if (allowAboveRoot) output.push(segment);
+				continue;
 			}
-			return res;
+			output.push(segment);
 		}
-		function _format(sep, pathObject) {
-			var dir = pathObject.dir || pathObject.root;
-			var base = pathObject.base || (pathObject.name || "") + (pathObject.ext || "");
-			if (!dir) return base;
-			if (dir === pathObject.root) return dir + base;
-			return dir + sep + base;
+		return output;
+	}
+	function isAbsolutePath(value) {
+		assertPath(value);
+		return value.startsWith("/");
+	}
+	function resolvePath(...values) {
+		let resolved = "";
+		let absolute = false;
+		for (let index = values.length - 1; index >= -1 && !absolute; index -= 1) {
+			const value = index >= 0 ? values[index] : "/";
+			assertPath(value);
+			if (!value) continue;
+			resolved = `${value}/${resolved}`;
+			absolute = value.startsWith("/");
 		}
-		var posix = {
-			resolve: function resolve() {
-				var resolvedPath = "";
-				var resolvedAbsolute = false;
-				var cwd;
-				for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-					var path;
-					if (i >= 0) path = arguments[i];
-					else {
-						if (cwd === void 0) cwd = process.cwd();
-						path = cwd;
-					}
-					assertPath(path);
-					if (path.length === 0) continue;
-					resolvedPath = path + "/" + resolvedPath;
-					resolvedAbsolute = path.charCodeAt(0) === 47;
-				}
-				resolvedPath = normalizeStringPosix(resolvedPath, !resolvedAbsolute);
-				if (resolvedAbsolute) if (resolvedPath.length > 0) return "/" + resolvedPath;
-				else return "/";
-				else if (resolvedPath.length > 0) return resolvedPath;
-				else return ".";
-			},
-			normalize: function normalize(path) {
-				assertPath(path);
-				if (path.length === 0) return ".";
-				var isAbsolute = path.charCodeAt(0) === 47;
-				var trailingSeparator = path.charCodeAt(path.length - 1) === 47;
-				path = normalizeStringPosix(path, !isAbsolute);
-				if (path.length === 0 && !isAbsolute) path = ".";
-				if (path.length > 0 && trailingSeparator) path += "/";
-				if (isAbsolute) return "/" + path;
-				return path;
-			},
-			isAbsolute: function isAbsolute(path) {
-				assertPath(path);
-				return path.length > 0 && path.charCodeAt(0) === 47;
-			},
-			join: function join() {
-				if (arguments.length === 0) return ".";
-				var joined;
-				for (var i = 0; i < arguments.length; ++i) {
-					var arg = arguments[i];
-					assertPath(arg);
-					if (arg.length > 0) if (joined === void 0) joined = arg;
-					else joined += "/" + arg;
-				}
-				if (joined === void 0) return ".";
-				return posix.normalize(joined);
-			},
-			relative: function relative(from, to) {
-				assertPath(from);
-				assertPath(to);
-				if (from === to) return "";
-				from = posix.resolve(from);
-				to = posix.resolve(to);
-				if (from === to) return "";
-				var fromStart = 1;
-				for (; fromStart < from.length; ++fromStart) if (from.charCodeAt(fromStart) !== 47) break;
-				var fromEnd = from.length;
-				var fromLen = fromEnd - fromStart;
-				var toStart = 1;
-				for (; toStart < to.length; ++toStart) if (to.charCodeAt(toStart) !== 47) break;
-				var toLen = to.length - toStart;
-				var length = fromLen < toLen ? fromLen : toLen;
-				var lastCommonSep = -1;
-				var i = 0;
-				for (; i <= length; ++i) {
-					if (i === length) {
-						if (toLen > length) {
-							if (to.charCodeAt(toStart + i) === 47) return to.slice(toStart + i + 1);
-							else if (i === 0) return to.slice(toStart + i);
-						} else if (fromLen > length) {
-							if (from.charCodeAt(fromStart + i) === 47) lastCommonSep = i;
-							else if (i === 0) lastCommonSep = 0;
-						}
-						break;
-					}
-					var fromCode = from.charCodeAt(fromStart + i);
-					if (fromCode !== to.charCodeAt(toStart + i)) break;
-					else if (fromCode === 47) lastCommonSep = i;
-				}
-				var out = "";
-				for (i = fromStart + lastCommonSep + 1; i <= fromEnd; ++i) if (i === fromEnd || from.charCodeAt(i) === 47) if (out.length === 0) out += "..";
-				else out += "/..";
-				if (out.length > 0) return out + to.slice(toStart + lastCommonSep);
-				else {
-					toStart += lastCommonSep;
-					if (to.charCodeAt(toStart) === 47) ++toStart;
-					return to.slice(toStart);
-				}
-			},
-			_makeLong: function _makeLong(path) {
-				return path;
-			},
-			dirname: function dirname(path) {
-				assertPath(path);
-				if (path.length === 0) return ".";
-				var code = path.charCodeAt(0);
-				var hasRoot = code === 47;
-				var end = -1;
-				var matchedSlash = true;
-				for (var i = path.length - 1; i >= 1; --i) {
-					code = path.charCodeAt(i);
-					if (code === 47) {
-						if (!matchedSlash) {
-							end = i;
-							break;
-						}
-					} else matchedSlash = false;
-				}
-				if (end === -1) return hasRoot ? "/" : ".";
-				if (hasRoot && end === 1) return "//";
-				return path.slice(0, end);
-			},
-			basename: function basename(path, ext) {
-				if (ext !== void 0 && typeof ext !== "string") throw new TypeError("\"ext\" argument must be a string");
-				assertPath(path);
-				var start = 0;
-				var end = -1;
-				var matchedSlash = true;
-				var i;
-				if (ext !== void 0 && ext.length > 0 && ext.length <= path.length) {
-					if (ext.length === path.length && ext === path) return "";
-					var extIdx = ext.length - 1;
-					var firstNonSlashEnd = -1;
-					for (i = path.length - 1; i >= 0; --i) {
-						var code = path.charCodeAt(i);
-						if (code === 47) {
-							if (!matchedSlash) {
-								start = i + 1;
-								break;
-							}
-						} else {
-							if (firstNonSlashEnd === -1) {
-								matchedSlash = false;
-								firstNonSlashEnd = i + 1;
-							}
-							if (extIdx >= 0) if (code === ext.charCodeAt(extIdx)) {
-								if (--extIdx === -1) end = i;
-							} else {
-								extIdx = -1;
-								end = firstNonSlashEnd;
-							}
-						}
-					}
-					if (start === end) end = firstNonSlashEnd;
-					else if (end === -1) end = path.length;
-					return path.slice(start, end);
-				} else {
-					for (i = path.length - 1; i >= 0; --i) if (path.charCodeAt(i) === 47) {
-						if (!matchedSlash) {
-							start = i + 1;
-							break;
-						}
-					} else if (end === -1) {
-						matchedSlash = false;
-						end = i + 1;
-					}
-					if (end === -1) return "";
-					return path.slice(start, end);
-				}
-			},
-			extname: function extname(path) {
-				assertPath(path);
-				var startDot = -1;
-				var startPart = 0;
-				var end = -1;
-				var matchedSlash = true;
-				var preDotState = 0;
-				for (var i = path.length - 1; i >= 0; --i) {
-					var code = path.charCodeAt(i);
-					if (code === 47) {
-						if (!matchedSlash) {
-							startPart = i + 1;
-							break;
-						}
-						continue;
-					}
-					if (end === -1) {
-						matchedSlash = false;
-						end = i + 1;
-					}
-					if (code === 46) {
-						if (startDot === -1) startDot = i;
-						else if (preDotState !== 1) preDotState = 1;
-					} else if (startDot !== -1) preDotState = -1;
-				}
-				if (startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) return "";
-				return path.slice(startDot, end);
-			},
-			format: function format(pathObject) {
-				if (pathObject === null || typeof pathObject !== "object") throw new TypeError("Parameter \"pathObject\" must be an object, not " + typeof pathObject);
-				return _format("/", pathObject);
-			},
-			parse: function parse(path) {
-				assertPath(path);
-				var ret = {
-					root: "",
-					dir: "",
-					base: "",
-					ext: "",
-					name: ""
-				};
-				if (path.length === 0) return ret;
-				var code = path.charCodeAt(0);
-				var isAbsolute = code === 47;
-				var start;
-				if (isAbsolute) {
-					ret.root = "/";
-					start = 1;
-				} else start = 0;
-				var startDot = -1;
-				var startPart = 0;
-				var end = -1;
-				var matchedSlash = true;
-				var i = path.length - 1;
-				var preDotState = 0;
-				for (; i >= start; --i) {
-					code = path.charCodeAt(i);
-					if (code === 47) {
-						if (!matchedSlash) {
-							startPart = i + 1;
-							break;
-						}
-						continue;
-					}
-					if (end === -1) {
-						matchedSlash = false;
-						end = i + 1;
-					}
-					if (code === 46) {
-						if (startDot === -1) startDot = i;
-						else if (preDotState !== 1) preDotState = 1;
-					} else if (startDot !== -1) preDotState = -1;
-				}
-				if (startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
-					if (end !== -1) if (startPart === 0 && isAbsolute) ret.base = ret.name = path.slice(1, end);
-					else ret.base = ret.name = path.slice(startPart, end);
-				} else {
-					if (startPart === 0 && isAbsolute) {
-						ret.name = path.slice(1, startDot);
-						ret.base = path.slice(1, end);
-					} else {
-						ret.name = path.slice(startPart, startDot);
-						ret.base = path.slice(startPart, end);
-					}
-					ret.ext = path.slice(startDot, end);
-				}
-				if (startPart > 0) ret.dir = path.slice(0, startPart - 1);
-				else if (isAbsolute) ret.dir = "/";
-				return ret;
-			},
-			sep: "/",
-			delimiter: ":",
-			posix: null
+		const normalized = normalizeSegments(resolved, !absolute).join("/");
+		if (absolute) return normalized ? `/${normalized}` : "/";
+		return normalized || ".";
+	}
+	function relativePath(from, to) {
+		assertPath(from);
+		assertPath(to);
+		const fromSegments = normalizeSegments(resolvePath(from), false);
+		const toSegments = normalizeSegments(resolvePath(to), false);
+		let commonLength = 0;
+		while (commonLength < fromSegments.length && commonLength < toSegments.length && fromSegments[commonLength] === toSegments[commonLength]) commonLength += 1;
+		return [...Array.from({ length: fromSegments.length - commonLength }, () => ".."), ...toSegments.slice(commonLength)].join("/");
+	}
+	function dirnamePath(value) {
+		if (value === null) throw new TypeError("Path must be a string. Received null");
+		assertPath(value);
+		if (!value) return ".";
+		value.startsWith("/");
+		const trimmed = value.replace(/\/+$/, "");
+		const separatorIndex = trimmed.lastIndexOf("/");
+		if (separatorIndex < 0) return ".";
+		if (separatorIndex === 0) return "/";
+		return trimmed.slice(0, separatorIndex);
+	}
+	function parsePath(value) {
+		assertPath(value);
+		const root = value.startsWith("/") ? "/" : "";
+		const trimmed = value.replace(/\/+$/, "");
+		const separatorIndex = trimmed.lastIndexOf("/");
+		const base = separatorIndex >= 0 ? trimmed.slice(separatorIndex + 1) : trimmed;
+		const dir = separatorIndex < 0 ? "" : separatorIndex === 0 ? root : trimmed.slice(0, separatorIndex);
+		const dotIndex = base.lastIndexOf(".");
+		const hasExtension = dotIndex > 0;
+		return {
+			root,
+			dir,
+			base,
+			ext: hasExtension ? base.slice(dotIndex) : "",
+			name: hasExtension ? base.slice(0, dotIndex) : base
 		};
-		module.exports = posix;
-	})))());
+	}
+	//#endregion
+	//#region src/utils/path.ts
 	/**
 	* Creates a Path object for parsing and manipulation of a path strings
 	*
@@ -838,14 +597,14 @@
 		* @returns {object}
 		*/
 		parse(what) {
-			return import_path.default.parse(what);
+			return parsePath(what);
 		}
 		/**
 		* @param	{string} what
 		* @returns {boolean}
 		*/
 		isAbsolute(what) {
-			return import_path.default.isAbsolute(what || this.path);
+			return isAbsolutePath(what || this.path);
 		}
 		/**
 		* Check if path ends with a directory
@@ -863,7 +622,7 @@
 		* @returns {string} resolved
 		*/
 		resolve(what) {
-			return import_path.default.resolve(this.directory, what);
+			return resolvePath(this.directory, what);
 		}
 		/**
 		* Resolve a path relative to the directory of the Path
@@ -874,7 +633,7 @@
 		*/
 		relative(what) {
 			if (what && what.indexOf("://") > -1) return what;
-			return import_path.default.relative(this.directory, what);
+			return relativePath(this.directory, what);
 		}
 		splitPath(filename) {
 			return this.splitPathRe.exec(filename).slice(1);
@@ -956,7 +715,7 @@
 			var isAbsolute = what.indexOf("://") > -1;
 			var fullpath;
 			if (isAbsolute) return what;
-			fullpath = import_path.default.resolve(this.directory, what);
+			fullpath = resolvePath(this.directory, what);
 			return this.origin + fullpath;
 		}
 		/**
@@ -965,7 +724,7 @@
 		* @returns {string} path
 		*/
 		relative(what) {
-			return import_path.default.relative(what, this.directory);
+			return relativePath(what, this.directory);
 		}
 		/**
 		* @returns {string}
@@ -8357,7 +8116,7 @@
 			rootfile = qs$1(containerDocument, "rootfile");
 			if (!rootfile) throw new Error("No RootFile Found");
 			this.packagePath = rootfile.getAttribute("full-path");
-			this.directory = import_path.default.dirname(this.packagePath);
+			this.directory = dirnamePath(this.packagePath);
 			this.encoding = containerDocument.xmlEncoding;
 		}
 		destroy() {
@@ -9090,7 +8849,7 @@
 		*/
 		createCssFile(href, archive, resolver) {
 			var newUrl;
-			if (import_path.default.isAbsolute(href)) return Promise.resolve(void 0);
+			if (isAbsolutePath(href)) return Promise.resolve(void 0);
 			resolver = resolver || this.settings.resolver;
 			archive = archive || this.settings.archive;
 			var absolute = resolver(href);
@@ -13892,506 +13651,66 @@
 		return getVerticalRlBoundarySnapResult(cacheKey, getVerticalRlBoundarySnapDelta(measurementInputs.rects, logicalOffset, contentWidth, visibleWidth, maxScroll, measurementInputs.deltaInputs.edgeGuard, measurementInputs.deltaInputs.structuralMasks.left, measurementInputs.deltaInputs.structuralMasks.right, measurementInputs.deltaInputs.boundaryShift, measurementInputs.deltaInputs.edgeGuardPx, measurementInputs.deltaInputs.structuralBleed, maxRightBoundaryOptions), logicalOffset, maxScroll, contentWidth, rightBoundaryOptions);
 	}
 	//#endregion
-	//#region node_modules/lodash/isObject.js
-	var require_isObject = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		/**
-		* Checks if `value` is the
-		* [language type](http://www.ecma-international.org/ecma-262/7.0/#sec-ecmascript-language-types)
-		* of `Object`. (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
-		*
-		* @static
-		* @memberOf _
-		* @since 0.1.0
-		* @category Lang
-		* @param {*} value The value to check.
-		* @returns {boolean} Returns `true` if `value` is an object, else `false`.
-		* @example
-		*
-		* _.isObject({});
-		* // => true
-		*
-		* _.isObject([1, 2, 3]);
-		* // => true
-		*
-		* _.isObject(_.noop);
-		* // => true
-		*
-		* _.isObject(null);
-		* // => false
-		*/
-		function isObject(value) {
-			var type = typeof value;
-			return value != null && (type == "object" || type == "function");
-		}
-		module.exports = isObject;
-	}));
-	//#endregion
-	//#region node_modules/lodash/_freeGlobal.js
-	var require__freeGlobal = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		module.exports = typeof global == "object" && global && global.Object === Object && global;
-	}));
-	//#endregion
-	//#region node_modules/lodash/_root.js
-	var require__root = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		var freeGlobal = require__freeGlobal();
-		/** Detect free variable `self`. */
-		var freeSelf = typeof self == "object" && self && self.Object === Object && self;
-		module.exports = freeGlobal || freeSelf || Function("return this")();
-	}));
-	//#endregion
-	//#region node_modules/lodash/now.js
-	var require_now = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		var root = require__root();
-		/**
-		* Gets the timestamp of the number of milliseconds that have elapsed since
-		* the Unix epoch (1 January 1970 00:00:00 UTC).
-		*
-		* @static
-		* @memberOf _
-		* @since 2.4.0
-		* @category Date
-		* @returns {number} Returns the timestamp.
-		* @example
-		*
-		* _.defer(function(stamp) {
-		*   console.log(_.now() - stamp);
-		* }, _.now());
-		* // => Logs the number of milliseconds it took for the deferred invocation.
-		*/
-		var now = function() {
-			return root.Date.now();
-		};
-		module.exports = now;
-	}));
-	//#endregion
-	//#region node_modules/lodash/_trimmedEndIndex.js
-	var require__trimmedEndIndex = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		/** Used to match a single whitespace character. */
-		var reWhitespace = /\s/;
-		/**
-		* Used by `_.trim` and `_.trimEnd` to get the index of the last non-whitespace
-		* character of `string`.
-		*
-		* @private
-		* @param {string} string The string to inspect.
-		* @returns {number} Returns the index of the last non-whitespace character.
-		*/
-		function trimmedEndIndex(string) {
-			var index = string.length;
-			while (index-- && reWhitespace.test(string.charAt(index)));
-			return index;
-		}
-		module.exports = trimmedEndIndex;
-	}));
-	//#endregion
-	//#region node_modules/lodash/_baseTrim.js
-	var require__baseTrim = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		var trimmedEndIndex = require__trimmedEndIndex();
-		/** Used to match leading whitespace. */
-		var reTrimStart = /^\s+/;
-		/**
-		* The base implementation of `_.trim`.
-		*
-		* @private
-		* @param {string} string The string to trim.
-		* @returns {string} Returns the trimmed string.
-		*/
-		function baseTrim(string) {
-			return string ? string.slice(0, trimmedEndIndex(string) + 1).replace(reTrimStart, "") : string;
-		}
-		module.exports = baseTrim;
-	}));
-	//#endregion
-	//#region node_modules/lodash/_Symbol.js
-	var require__Symbol = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		module.exports = require__root().Symbol;
-	}));
-	//#endregion
-	//#region node_modules/lodash/_getRawTag.js
-	var require__getRawTag = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		var Symbol = require__Symbol();
-		/** Used for built-in method references. */
-		var objectProto = Object.prototype;
-		/** Used to check objects for own properties. */
-		var hasOwnProperty = objectProto.hasOwnProperty;
-		/**
-		* Used to resolve the
-		* [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
-		* of values.
-		*/
-		var nativeObjectToString = objectProto.toString;
-		/** Built-in value references. */
-		var symToStringTag = Symbol ? Symbol.toStringTag : void 0;
-		/**
-		* A specialized version of `baseGetTag` which ignores `Symbol.toStringTag` values.
-		*
-		* @private
-		* @param {*} value The value to query.
-		* @returns {string} Returns the raw `toStringTag`.
-		*/
-		function getRawTag(value) {
-			var isOwn = hasOwnProperty.call(value, symToStringTag), tag = value[symToStringTag];
-			try {
-				value[symToStringTag] = void 0;
-				var unmasked = true;
-			} catch (e) {}
-			var result = nativeObjectToString.call(value);
-			if (unmasked) if (isOwn) value[symToStringTag] = tag;
-			else delete value[symToStringTag];
+	//#region src/utils/timing.ts
+	function debounce(callback, wait = 0, options = {}) {
+		const leading = options.leading === true;
+		const trailing = options.trailing !== false;
+		const maxWait = Number.isFinite(options.maxWait) ? Math.max(Number(options.maxWait), wait) : null;
+		let timer;
+		let maxTimer;
+		let lastArguments;
+		let lastContext;
+		let result;
+		const invoke = () => {
+			const argumentsToUse = lastArguments;
+			const contextToUse = lastContext;
+			lastArguments = void 0;
+			lastContext = void 0;
+			if (argumentsToUse) result = callback.apply(contextToUse, argumentsToUse);
 			return result;
-		}
-		module.exports = getRawTag;
-	}));
-	//#endregion
-	//#region node_modules/lodash/_objectToString.js
-	var require__objectToString = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		/**
-		* Used to resolve the
-		* [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
-		* of values.
-		*/
-		var nativeObjectToString = Object.prototype.toString;
-		/**
-		* Converts `value` to a string using `Object.prototype.toString`.
-		*
-		* @private
-		* @param {*} value The value to convert.
-		* @returns {string} Returns the converted string.
-		*/
-		function objectToString(value) {
-			return nativeObjectToString.call(value);
-		}
-		module.exports = objectToString;
-	}));
-	//#endregion
-	//#region node_modules/lodash/_baseGetTag.js
-	var require__baseGetTag = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		var Symbol = require__Symbol(), getRawTag = require__getRawTag(), objectToString = require__objectToString();
-		/** `Object#toString` result references. */
-		var nullTag = "[object Null]", undefinedTag = "[object Undefined]";
-		/** Built-in value references. */
-		var symToStringTag = Symbol ? Symbol.toStringTag : void 0;
-		/**
-		* The base implementation of `getTag` without fallbacks for buggy environments.
-		*
-		* @private
-		* @param {*} value The value to query.
-		* @returns {string} Returns the `toStringTag`.
-		*/
-		function baseGetTag(value) {
-			if (value == null) return value === void 0 ? undefinedTag : nullTag;
-			return symToStringTag && symToStringTag in Object(value) ? getRawTag(value) : objectToString(value);
-		}
-		module.exports = baseGetTag;
-	}));
-	//#endregion
-	//#region node_modules/lodash/isObjectLike.js
-	var require_isObjectLike = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		/**
-		* Checks if `value` is object-like. A value is object-like if it's not `null`
-		* and has a `typeof` result of "object".
-		*
-		* @static
-		* @memberOf _
-		* @since 4.0.0
-		* @category Lang
-		* @param {*} value The value to check.
-		* @returns {boolean} Returns `true` if `value` is object-like, else `false`.
-		* @example
-		*
-		* _.isObjectLike({});
-		* // => true
-		*
-		* _.isObjectLike([1, 2, 3]);
-		* // => true
-		*
-		* _.isObjectLike(_.noop);
-		* // => false
-		*
-		* _.isObjectLike(null);
-		* // => false
-		*/
-		function isObjectLike(value) {
-			return value != null && typeof value == "object";
-		}
-		module.exports = isObjectLike;
-	}));
-	//#endregion
-	//#region node_modules/lodash/isSymbol.js
-	var require_isSymbol = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		var baseGetTag = require__baseGetTag(), isObjectLike = require_isObjectLike();
-		/** `Object#toString` result references. */
-		var symbolTag = "[object Symbol]";
-		/**
-		* Checks if `value` is classified as a `Symbol` primitive or object.
-		*
-		* @static
-		* @memberOf _
-		* @since 4.0.0
-		* @category Lang
-		* @param {*} value The value to check.
-		* @returns {boolean} Returns `true` if `value` is a symbol, else `false`.
-		* @example
-		*
-		* _.isSymbol(Symbol.iterator);
-		* // => true
-		*
-		* _.isSymbol('abc');
-		* // => false
-		*/
-		function isSymbol(value) {
-			return typeof value == "symbol" || isObjectLike(value) && baseGetTag(value) == symbolTag;
-		}
-		module.exports = isSymbol;
-	}));
-	//#endregion
-	//#region node_modules/lodash/toNumber.js
-	var require_toNumber = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		var baseTrim = require__baseTrim(), isObject = require_isObject(), isSymbol = require_isSymbol();
-		/** Used as references for various `Number` constants. */
-		var NAN = NaN;
-		/** Used to detect bad signed hexadecimal string values. */
-		var reIsBadHex = /^[-+]0x[0-9a-f]+$/i;
-		/** Used to detect binary string values. */
-		var reIsBinary = /^0b[01]+$/i;
-		/** Used to detect octal string values. */
-		var reIsOctal = /^0o[0-7]+$/i;
-		/** Built-in method references without a dependency on `root`. */
-		var freeParseInt = parseInt;
-		/**
-		* Converts `value` to a number.
-		*
-		* @static
-		* @memberOf _
-		* @since 4.0.0
-		* @category Lang
-		* @param {*} value The value to process.
-		* @returns {number} Returns the number.
-		* @example
-		*
-		* _.toNumber(3.2);
-		* // => 3.2
-		*
-		* _.toNumber(Number.MIN_VALUE);
-		* // => 5e-324
-		*
-		* _.toNumber(Infinity);
-		* // => Infinity
-		*
-		* _.toNumber('3.2');
-		* // => 3.2
-		*/
-		function toNumber(value) {
-			if (typeof value == "number") return value;
-			if (isSymbol(value)) return NAN;
-			if (isObject(value)) {
-				var other = typeof value.valueOf == "function" ? value.valueOf() : value;
-				value = isObject(other) ? other + "" : other;
+		};
+		const clearTimers = () => {
+			if (timer !== void 0) {
+				clearTimeout(timer);
+				timer = void 0;
 			}
-			if (typeof value != "string") return value === 0 ? value : +value;
-			value = baseTrim(value);
-			var isBinary = reIsBinary.test(value);
-			return isBinary || reIsOctal.test(value) ? freeParseInt(value.slice(2), isBinary ? 2 : 8) : reIsBadHex.test(value) ? NAN : +value;
-		}
-		module.exports = toNumber;
-	}));
-	//#endregion
-	//#region node_modules/lodash/debounce.js
-	var require_debounce = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		var isObject = require_isObject(), now = require_now(), toNumber = require_toNumber();
-		/** Error message constants. */
-		var FUNC_ERROR_TEXT = "Expected a function";
-		var nativeMax = Math.max, nativeMin = Math.min;
-		/**
-		* Creates a debounced function that delays invoking `func` until after `wait`
-		* milliseconds have elapsed since the last time the debounced function was
-		* invoked. The debounced function comes with a `cancel` method to cancel
-		* delayed `func` invocations and a `flush` method to immediately invoke them.
-		* Provide `options` to indicate whether `func` should be invoked on the
-		* leading and/or trailing edge of the `wait` timeout. The `func` is invoked
-		* with the last arguments provided to the debounced function. Subsequent
-		* calls to the debounced function return the result of the last `func`
-		* invocation.
-		*
-		* **Note:** If `leading` and `trailing` options are `true`, `func` is
-		* invoked on the trailing edge of the timeout only if the debounced function
-		* is invoked more than once during the `wait` timeout.
-		*
-		* If `wait` is `0` and `leading` is `false`, `func` invocation is deferred
-		* until to the next tick, similar to `setTimeout` with a timeout of `0`.
-		*
-		* See [David Corbacho's article](https://css-tricks.com/debouncing-throttling-explained-examples/)
-		* for details over the differences between `_.debounce` and `_.throttle`.
-		*
-		* @static
-		* @memberOf _
-		* @since 0.1.0
-		* @category Function
-		* @param {Function} func The function to debounce.
-		* @param {number} [wait=0] The number of milliseconds to delay.
-		* @param {Object} [options={}] The options object.
-		* @param {boolean} [options.leading=false]
-		*  Specify invoking on the leading edge of the timeout.
-		* @param {number} [options.maxWait]
-		*  The maximum time `func` is allowed to be delayed before it's invoked.
-		* @param {boolean} [options.trailing=true]
-		*  Specify invoking on the trailing edge of the timeout.
-		* @returns {Function} Returns the new debounced function.
-		* @example
-		*
-		* // Avoid costly calculations while the window size is in flux.
-		* jQuery(window).on('resize', _.debounce(calculateLayout, 150));
-		*
-		* // Invoke `sendMail` when clicked, debouncing subsequent calls.
-		* jQuery(element).on('click', _.debounce(sendMail, 300, {
-		*   'leading': true,
-		*   'trailing': false
-		* }));
-		*
-		* // Ensure `batchLog` is invoked once after 1 second of debounced calls.
-		* var debounced = _.debounce(batchLog, 250, { 'maxWait': 1000 });
-		* var source = new EventSource('/stream');
-		* jQuery(source).on('message', debounced);
-		*
-		* // Cancel the trailing debounced invocation.
-		* jQuery(window).on('popstate', debounced.cancel);
-		*/
-		function debounce(func, wait, options) {
-			var lastArgs, lastThis, maxWait, result, timerId, lastCallTime, lastInvokeTime = 0, leading = false, maxing = false, trailing = true;
-			if (typeof func != "function") throw new TypeError(FUNC_ERROR_TEXT);
-			wait = toNumber(wait) || 0;
-			if (isObject(options)) {
-				leading = !!options.leading;
-				maxing = "maxWait" in options;
-				maxWait = maxing ? nativeMax(toNumber(options.maxWait) || 0, wait) : maxWait;
-				trailing = "trailing" in options ? !!options.trailing : trailing;
+			if (maxTimer !== void 0) {
+				clearTimeout(maxTimer);
+				maxTimer = void 0;
 			}
-			function invokeFunc(time) {
-				var args = lastArgs, thisArg = lastThis;
-				lastArgs = lastThis = void 0;
-				lastInvokeTime = time;
-				result = func.apply(thisArg, args);
-				return result;
-			}
-			function leadingEdge(time) {
-				lastInvokeTime = time;
-				timerId = setTimeout(timerExpired, wait);
-				return leading ? invokeFunc(time) : result;
-			}
-			function remainingWait(time) {
-				var timeSinceLastCall = time - lastCallTime, timeSinceLastInvoke = time - lastInvokeTime, timeWaiting = wait - timeSinceLastCall;
-				return maxing ? nativeMin(timeWaiting, maxWait - timeSinceLastInvoke) : timeWaiting;
-			}
-			function shouldInvoke(time) {
-				var timeSinceLastCall = time - lastCallTime, timeSinceLastInvoke = time - lastInvokeTime;
-				return lastCallTime === void 0 || timeSinceLastCall >= wait || timeSinceLastCall < 0 || maxing && timeSinceLastInvoke >= maxWait;
-			}
-			function timerExpired() {
-				var time = now();
-				if (shouldInvoke(time)) return trailingEdge(time);
-				timerId = setTimeout(timerExpired, remainingWait(time));
-			}
-			function trailingEdge(time) {
-				timerId = void 0;
-				if (trailing && lastArgs) return invokeFunc(time);
-				lastArgs = lastThis = void 0;
-				return result;
-			}
-			function cancel() {
-				if (timerId !== void 0) clearTimeout(timerId);
-				lastInvokeTime = 0;
-				lastArgs = lastCallTime = lastThis = timerId = void 0;
-			}
-			function flush() {
-				return timerId === void 0 ? result : trailingEdge(now());
-			}
-			function debounced() {
-				var time = now(), isInvoking = shouldInvoke(time);
-				lastArgs = arguments;
-				lastThis = this;
-				lastCallTime = time;
-				if (isInvoking) {
-					if (timerId === void 0) return leadingEdge(lastCallTime);
-					if (maxing) {
-						clearTimeout(timerId);
-						timerId = setTimeout(timerExpired, wait);
-						return invokeFunc(lastCallTime);
-					}
-				}
-				if (timerId === void 0) timerId = setTimeout(timerExpired, wait);
-				return result;
-			}
-			debounced.cancel = cancel;
-			debounced.flush = flush;
-			return debounced;
-		}
-		module.exports = debounce;
-	}));
+		};
+		const complete = () => {
+			const shouldInvoke = trailing && lastArguments !== void 0;
+			clearTimers();
+			return shouldInvoke ? invoke() : result;
+		};
+		const debounced = function(...args) {
+			const shouldInvokeLeading = leading && timer === void 0;
+			lastArguments = args;
+			lastContext = this;
+			if (timer !== void 0) clearTimeout(timer);
+			timer = setTimeout(complete, Math.max(0, wait));
+			if (maxWait !== null && maxTimer === void 0) maxTimer = setTimeout(complete, Math.max(0, maxWait));
+			return shouldInvokeLeading ? invoke() : result;
+		};
+		const controlled = debounced;
+		controlled.cancel = () => {
+			clearTimers();
+			lastArguments = void 0;
+			lastContext = void 0;
+		};
+		controlled.flush = () => timer !== void 0 || maxTimer !== void 0 ? complete() : result;
+		return controlled;
+	}
+	function throttle(callback, wait = 0, options = {}) {
+		return debounce(callback, wait, {
+			leading: options.leading !== false,
+			maxWait: wait,
+			trailing: options.trailing !== false
+		});
+	}
 	//#endregion
 	//#region src/managers/helpers/stage.ts
-	var import_throttle = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
-		var debounce = require_debounce(), isObject = require_isObject();
-		/** Error message constants. */
-		var FUNC_ERROR_TEXT = "Expected a function";
-		/**
-		* Creates a throttled function that only invokes `func` at most once per
-		* every `wait` milliseconds. The throttled function comes with a `cancel`
-		* method to cancel delayed `func` invocations and a `flush` method to
-		* immediately invoke them. Provide `options` to indicate whether `func`
-		* should be invoked on the leading and/or trailing edge of the `wait`
-		* timeout. The `func` is invoked with the last arguments provided to the
-		* throttled function. Subsequent calls to the throttled function return the
-		* result of the last `func` invocation.
-		*
-		* **Note:** If `leading` and `trailing` options are `true`, `func` is
-		* invoked on the trailing edge of the timeout only if the throttled function
-		* is invoked more than once during the `wait` timeout.
-		*
-		* If `wait` is `0` and `leading` is `false`, `func` invocation is deferred
-		* until to the next tick, similar to `setTimeout` with a timeout of `0`.
-		*
-		* See [David Corbacho's article](https://css-tricks.com/debouncing-throttling-explained-examples/)
-		* for details over the differences between `_.throttle` and `_.debounce`.
-		*
-		* @static
-		* @memberOf _
-		* @since 0.1.0
-		* @category Function
-		* @param {Function} func The function to throttle.
-		* @param {number} [wait=0] The number of milliseconds to throttle invocations to.
-		* @param {Object} [options={}] The options object.
-		* @param {boolean} [options.leading=true]
-		*  Specify invoking on the leading edge of the timeout.
-		* @param {boolean} [options.trailing=true]
-		*  Specify invoking on the trailing edge of the timeout.
-		* @returns {Function} Returns the new throttled function.
-		* @example
-		*
-		* // Avoid excessively updating the position while scrolling.
-		* jQuery(window).on('scroll', _.throttle(updatePosition, 100));
-		*
-		* // Invoke `renewToken` when the click event is fired, but not more than once every 5 minutes.
-		* var throttled = _.throttle(renewToken, 300000, { 'trailing': false });
-		* jQuery(element).on('click', throttled);
-		*
-		* // Cancel the trailing throttled invocation.
-		* jQuery(window).on('popstate', throttled.cancel);
-		*/
-		function throttle(func, wait, options) {
-			var leading = true, trailing = true;
-			if (typeof func != "function") throw new TypeError(FUNC_ERROR_TEXT);
-			if (isObject(options)) {
-				leading = "leading" in options ? !!options.leading : leading;
-				trailing = "trailing" in options ? !!options.trailing : trailing;
-			}
-			return debounce(func, wait, {
-				"leading": leading,
-				"maxWait": wait,
-				"trailing": trailing
-			});
-		}
-		module.exports = throttle;
-	})))());
 	var Stage = class {
 		settings;
 		id;
@@ -14477,7 +13796,7 @@
 		}
 		onResize(func) {
 			if (!isNumber$1(this.settings.width) || !isNumber$1(this.settings.height)) {
-				this.resizeFunc = (0, import_throttle.default)(func, 50);
+				this.resizeFunc = throttle(func, 50);
 				window.addEventListener("resize", this.resizeFunc, false);
 			}
 		}
@@ -16209,7 +15528,6 @@
 	(0, import_event_emitter.default)(Snap.prototype);
 	//#endregion
 	//#region src/managers/continuous/index.ts
-	var import_debounce = /* @__PURE__ */ __toESM(require_debounce());
 	var Defer$2 = defer$1;
 	var ContinuousViewManager = class extends DefaultViewManager {
 		constructor(options) {
@@ -16493,7 +15811,7 @@
 			this.prevScrollLeft = left;
 			this._onScroll = this.onScroll.bind(this);
 			scroller.addEventListener("scroll", this._onScroll);
-			this._scrolled = (0, import_debounce.default)(this.scrolled.bind(this), 30);
+			this._scrolled = debounce(this.scrolled.bind(this), 30);
 			this.didScroll = false;
 		}
 		removeEventListeners() {

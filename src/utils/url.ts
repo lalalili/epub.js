@@ -1,5 +1,5 @@
 import Path from "./path";
-import path from "path-webpack";
+import { relativePath, resolvePath } from "./path-posix";
 
 export type UrlBase = string | false | undefined;
 
@@ -98,7 +98,7 @@ class Url {
 			return what;
 		}
 
-		fullpath = path.resolve(this.directory, what);
+		fullpath = resolvePath(this.directory, what);
 		return this.origin + fullpath;
 	}
 
@@ -108,7 +108,7 @@ class Url {
 	 * @returns {string} path
 	 */
 	relative (what: string): string {
-		return path.relative(what, this.directory);
+		return relativePath(what, this.directory);
 	}
 
 	/**
