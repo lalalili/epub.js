@@ -41,7 +41,7 @@ type IframeViewSection = {
 	cfiBase?: string;
 	href?: string;
 	index: number;
-	render: (request?: unknown) => Promise<string>;
+	render: (request?: unknown, signal?: AbortSignal) => Promise<string>;
 };
 
 type IframeViewSettings = {
@@ -164,6 +164,7 @@ class IframeView {
 	iframeBounds?: Bounds;
 	supportsSrcdoc = false;
 	sectionRender?: SectionRenderPromise;
+	_abortController?: AbortController;
 	document?: Document | null;
 	window?: Window | null;
 	contents?: Contents;
@@ -317,13 +318,21 @@ class IframeView {
 		// Fit to size of the container, apply padding
 		this.size();
 
+		if (typeof AbortController !== "undefined" && !this._abortController) {
+			this._abortController = new AbortController();
+		}
+		const signal = this._abortController?.signal;
+
 		if(!this.sectionRender) {
-			this.sectionRender = this.section.render(request);
+			this.sectionRender = this.section.render(request, signal);
 		}
 
 		// Render Chain
 		return this.sectionRender
 			.then(function(contents: string){
+				if (signal?.aborted) {
+					return Promise.reject(new DOMException("Aborted", "AbortError"));
+				}
 				return this.load(contents);
 			}.bind(this))
 			.then(function(){
@@ -380,6 +389,9 @@ class IframeView {
 				});
 
 			}.bind(this), function(e: unknown){
+				if (signal?.aborted || (e instanceof Error && e.name === "AbortError")) {
+					return Promise.reject(e);
+				}
 				this.emit(EVENTS.VIEWS.LOAD_ERROR, e);
 				return new Promise((resolve, reject) => {
 					reject(e);
@@ -1072,6 +1084,10 @@ class IframeView {
 	}
 
 	destroy() {
+		if (this._abortController) {
+			this._abortController.abort();
+			this._abortController = undefined;
+		}
 
 		for (let cfiRange in this.highlights) {
 			this.unhighlight(cfiRange);

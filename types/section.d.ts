@@ -1,4 +1,5 @@
 import Hook from "./utils/hook";
+import { RequestHeaders, RequestType } from "./utils/request";
 
 export interface GlobalLayout {
   layout: string,
@@ -40,7 +41,7 @@ export interface SectionSearchResult {
   excerpt: string
 }
 
-export type SectionRequest = (url: string) => Promise<Document>;
+export type SectionRequest = (url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal) => Promise<Document>;
 
 export default class Section {
   constructor(item: SpineItem, hooks?: SectionHookSet);
@@ -68,9 +69,9 @@ export default class Section {
 
   hooks?: SectionHookSet;
 
-  load(_request?: SectionRequest): Promise<Element>;
+  load(_request?: SectionRequest, signal?: AbortSignal): Promise<Element>;
 
-  render(_request?: SectionRequest): Promise<string>;
+  render(_request?: SectionRequest, signal?: AbortSignal): Promise<string>;
 
   find(_query: string): Array<SectionSearchResult>;
 

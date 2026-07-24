@@ -273,6 +273,44 @@ describe("Views", () => {
 		await expect(view.display()).rejects.toThrow("render failed");
 	});
 
+	it("aborts an in-flight section render without emitting loaderror or rendered", async () => {
+		let requester = function() {};
+		let loadErrors = [];
+		let rendered = [];
+		let view = new IframeView({
+			index: 0,
+			href: "chapter.xhtml",
+			render(request, signal) {
+				expect(request).toBe(requester);
+
+				return new Promise(function(_resolve, reject) {
+					signal.addEventListener("abort", function() {
+						reject(new DOMException("Aborted", "AbortError"));
+					});
+				});
+			}
+		}, {
+			width: 320,
+			height: 480,
+			layout: {
+				name: "reflowable"
+			}
+		});
+		view.on("loaderror", function(error) {
+			loadErrors.push(error);
+		});
+		view.on("rendered", function(section) {
+			rendered.push(section);
+		});
+
+		let renderPromise = view.render(requester);
+		view.destroy();
+
+		await expect(renderPromise).rejects.toMatchObject({ name: "AbortError" });
+		expect(loadErrors).toEqual([]);
+		expect(rendered).toEqual([]);
+	});
+
 	it("loads and revokes iframe blob URLs through the platform boundary", () => {
 		let originalCreateObjectURL = window.URL.createObjectURL;
 		let originalRevokeObjectURL = window.URL.revokeObjectURL;

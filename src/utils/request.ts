@@ -28,12 +28,12 @@ export type RequestHeaders = Record<string, string>;
 export type RequestResponse = ArrayBuffer | Blob | string | JsonValue | Document | XMLDocument;
 
 export interface RequestMethod {
-	(url: string, type: "binary", withCredentials?: boolean, headers?: RequestHeaders): Promise<ArrayBuffer>;
-	(url: string, type: "blob", withCredentials?: boolean, headers?: RequestHeaders): Promise<Blob>;
-	(url: string, type: "json", withCredentials?: boolean, headers?: RequestHeaders): Promise<JsonValue>;
-	(url: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm", withCredentials?: boolean, headers?: RequestHeaders): Promise<Document | XMLDocument>;
-	(url: string, type: "text", withCredentials?: boolean, headers?: RequestHeaders): Promise<string>;
-	(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders): Promise<RequestResponse>;
+	(url: string, type: "binary", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<ArrayBuffer>;
+	(url: string, type: "blob", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<Blob>;
+	(url: string, type: "json", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<JsonValue>;
+	(url: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<Document | XMLDocument>;
+	(url: string, type: "text", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<string>;
+	(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<RequestResponse>;
 }
 
 type DeferConstructor = new () => {
@@ -42,19 +42,25 @@ type DeferConstructor = new () => {
 	reject(error?: unknown): void;
 };
 
-function request(url: string, type: "binary", withCredentials?: boolean, headers?: RequestHeaders): Promise<ArrayBuffer>;
-function request(url: string, type: "blob", withCredentials?: boolean, headers?: RequestHeaders): Promise<Blob>;
-function request(url: string, type: "json", withCredentials?: boolean, headers?: RequestHeaders): Promise<JsonValue>;
-function request(url: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm", withCredentials?: boolean, headers?: RequestHeaders): Promise<Document | XMLDocument>;
-function request(url: string, type: "text", withCredentials?: boolean, headers?: RequestHeaders): Promise<string>;
-function request(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders): Promise<RequestResponse>;
-function request(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders): Promise<RequestResponse> {
+function request(url: string, type: "binary", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<ArrayBuffer>;
+function request(url: string, type: "blob", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<Blob>;
+function request(url: string, type: "json", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<JsonValue>;
+function request(url: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<Document | XMLDocument>;
+function request(url: string, type: "text", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<string>;
+function request(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<RequestResponse>;
+function request(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<RequestResponse> {
 	var supportsURL = (typeof window != "undefined") ? window.URL : false; // TODO: fallback for url if window isn't defined
 	var BLOB_RESPONSE: XMLHttpRequestResponseType = supportsURL ? "blob" : "arraybuffer";
 
 	var deferred = new (defer as unknown as DeferConstructor)();
 
+	if (signal?.aborted) {
+		deferred.reject(new DOMException("Aborted", "AbortError"));
+		return deferred.promise;
+	}
+
 	var xhr = new XMLHttpRequest();
+	var onSignalAbort: (() => void) | undefined;
 
 	//-- Check from PDF.js:
 	//   https://github.com/mozilla/pdf.js/blob/master/web/compatibility.js
@@ -75,6 +81,7 @@ function request(url: string, type?: RequestType | null, withCredentials?: boole
 
 	xhr.onreadystatechange = handler;
 	xhr.onerror = err;
+	xhr.onabort = aborted;
 
 	xhr.open("GET", url, true);
 
@@ -113,14 +120,38 @@ function request(url: string, type?: RequestType | null, withCredentials?: boole
 		xhr.responseType = "arraybuffer";
 	}
 
+	if (signal) {
+		onSignalAbort = () => {
+			xhr.abort();
+		};
+		signal.addEventListener("abort", onSignalAbort, { once: true });
+	}
+
 	xhr.send();
 
 	function err(e: ProgressEvent<XMLHttpRequestEventTarget>) {
+		cleanup();
 		deferred.reject(e);
+	}
+
+	function aborted() {
+		cleanup();
+		deferred.reject(new DOMException("Aborted", "AbortError"));
+	}
+
+	function cleanup() {
+		if (signal && onSignalAbort) {
+			signal.removeEventListener("abort", onSignalAbort);
+		}
 	}
 
 	function handler(this: XMLHttpRequest) {
 		if (this.readyState === XMLHttpRequest.DONE) {
+			if (signal?.aborted) {
+				return;
+			}
+
+			cleanup();
 			var responseXML: Document | false = false;
 
 			if(this.responseType === "" || this.responseType === "document") {

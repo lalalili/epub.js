@@ -3,7 +3,7 @@ import EpubCFI from "./epubcfi";
 import Hook from "./utils/hook";
 import { sprint } from "./platform/traversal";
 import { replaceBase } from "./utils/replacements";
-import Request from "./utils/request";
+import Request, { type RequestHeaders, type RequestType } from "./utils/request";
 import { DOMParser as XMLDOMSerializer } from "@xmldom/xmldom";
 
 export type SectionHookSet = {
@@ -42,7 +42,13 @@ export interface SectionSearchResult {
 	excerpt: string;
 }
 
-export type SectionRequest = (url: string) => Promise<Document>;
+export type SectionRequest = (
+	url: string,
+	type?: RequestType | null,
+	withCredentials?: boolean,
+	headers?: RequestHeaders,
+	signal?: AbortSignal
+) => Promise<Document>;
 type SerializerConstructor = new () => {
 	serializeToString(input: Node): string;
 };
@@ -129,7 +135,7 @@ class Section {
 	 * @param  {method} [_request] a request method to use for loading
 	 * @return {document} a promise with the xml document
 	 */
-	load(_request?: SectionRequest): Promise<Element> {
+	load(_request?: SectionRequest, signal?: AbortSignal): Promise<Element> {
 		var request = _request || this.request || Request;
 		var loading = new (defer as unknown as ElementDeferConstructor)();
 		var loaded = loading.promise;
@@ -137,7 +143,7 @@ class Section {
 		if(this.contents) {
 			loading.resolve(this.contents);
 		} else {
-			request(this.url!)
+			request(this.url!, undefined, undefined, undefined, signal)
 				.then((xml: Document) => {
 					// var directory = new Url(this.url).directory;
 
@@ -170,12 +176,12 @@ class Section {
 	 * @param  {method} [_request] a request method to use for loading
 	 * @return {string} output a serialized XML Document
 	 */
-	render(_request?: SectionRequest): Promise<string> {
+	render(_request?: SectionRequest, signal?: AbortSignal): Promise<string> {
 		var rendering = new (defer as unknown as StringDeferConstructor)();
 		var rendered = rendering.promise;
 		this.output; // TODO: better way to return this from hooks?
 
-		this.load(_request).
+		this.load(_request, signal).
 			then((contents) => {
 				var userAgent = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
 				var isIE = userAgent.indexOf('Trident') >= 0;

@@ -64,6 +64,8 @@ const bookTests = readFileSync(path.join(root, "test/browser/book.test.js"), "ut
 const publicApiTests = readFileSync(path.join(root, "test/browser/public-api.test.js"), "utf8");
 const umdGlobalTests = readFileSync(path.join(root, "test/browser/umd-global.test.js"), "utf8");
 const viewsTests = readFileSync(path.join(root, "test/browser/views.test.js"), "utf8");
+const requestTests = readFileSync(path.join(root, "test/browser/request.test.js"), "utf8");
+const sectionTests = readFileSync(path.join(root, "test/browser/section.test.js"), "utf8");
 const contentsTextWidthTests = readFileSync(path.join(root, "test/browser/contents-text-width.test.js"), "utf8");
 const renditionTests = readFileSync(path.join(root, "test/browser/rendition.test.js"), "utf8");
 
@@ -1050,11 +1052,27 @@ assert(
 assert(
 	requestSource.includes("promise: Promise<RequestResponse>") &&
 		requestSource.includes("resolve(value?: RequestResponse): void") &&
-		requestSource.includes("function request(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders): Promise<RequestResponse>") &&
+		requestSource.includes("function request(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<RequestResponse>") &&
 		requestSource.includes("var r: RequestResponse") &&
 		requestSource.includes("JSON.parse(this.response) as JsonValue") &&
-		!requestSource.includes("function request(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders): Promise<any>"),
+		!requestSource.includes("function request(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<any>"),
 	"source request implementation must keep typed RequestResponse deferred and fallback result handling"
+);
+assert(
+	requestSource.includes("if (signal?.aborted)") &&
+		requestSource.includes("xhr.onabort = aborted") &&
+		requestSource.includes("signal.addEventListener(\"abort\", onSignalAbort, { once: true })") &&
+		sectionSource.includes("load(_request?: SectionRequest, signal?: AbortSignal)") &&
+		sectionSource.includes("render(_request?: SectionRequest, signal?: AbortSignal)") &&
+		sectionSource.includes("request(this.url!, undefined, undefined, undefined, signal)") &&
+		iframeViewSource.includes("_abortController?: AbortController") &&
+		iframeViewSource.includes("this.section.render(request, signal)") &&
+		iframeViewSource.includes("this._abortController.abort()") &&
+		requestTests.includes("propagates view destruction through Section to the in-flight xhr") &&
+		sectionTests.includes("forwards the AbortSignal through section load and render") &&
+		viewsTests.includes("aborts an in-flight section render without emitting loaderror or rendered") &&
+		typeTests.includes("const abortableRequestTextLoad: Promise<string> = request"),
+	"request, Section, IframeView, tests, and public types must keep AbortSignal lifecycle parity"
 );
 assert(
 	bookSource.includes("type RequestMethod") &&
@@ -1118,9 +1136,9 @@ assert(
 	"Book source and declarations must keep unarchive ArchiveZip return type parity"
 );
 assert(
-	bookSource.includes("load(path: string, type: \"text\"): Promise<string>") &&
+		bookSource.includes("load(path: string, type: \"text\"): Promise<string>") &&
 		bookTypes.includes("load(path: string, type: \"text\"): Promise<string>") &&
-		requestSource.includes("(url: string, type: \"text\", withCredentials?: boolean, headers?: RequestHeaders): Promise<string>") &&
+		requestSource.includes("(url: string, type: \"text\", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<string>") &&
 		typeTests.includes("const requestTextLoad: Promise<string> = request"),
 	"Book source, declarations, and request helper must keep text load overload parity"
 );

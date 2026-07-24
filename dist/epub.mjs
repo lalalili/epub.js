@@ -4513,38 +4513,50 @@ function qe(e) {
 var Je = { lookup: Ke };
 //#endregion
 //#region src/utils/request.ts
-function Ye(e, t, n, r) {
-	var i = typeof window < "u" ? window.URL : !1, a = i ? "blob" : "arraybuffer", o = new N(), s = new XMLHttpRequest(), c = XMLHttpRequest.prototype, l;
-	for (l in "overrideMimeType" in c || Object.defineProperty(c, "overrideMimeType", { value: function() {} }), n && (s.withCredentials = !0), s.onreadystatechange = d, s.onerror = u, s.open("GET", e, !0), r || {}) s.setRequestHeader(l, r[l]);
-	t == "json" && s.setRequestHeader("Accept", "application/json"), t ||= new se(e).extension, t == "blob" && (s.responseType = a), qe(t) && s.overrideMimeType("text/xml"), t == "binary" && (s.responseType = "arraybuffer"), s.send();
-	function u(e) {
-		o.reject(e);
+function Ye(e, t, n, r, i) {
+	var a = typeof window < "u" ? window.URL : !1, o = a ? "blob" : "arraybuffer", s = new N();
+	if (i?.aborted) return s.reject(new DOMException("Aborted", "AbortError")), s.promise;
+	var c = new XMLHttpRequest(), l, u = XMLHttpRequest.prototype, d;
+	for (d in "overrideMimeType" in u || Object.defineProperty(u, "overrideMimeType", { value: function() {} }), n && (c.withCredentials = !0), c.onreadystatechange = h, c.onerror = f, c.onabort = p, c.open("GET", e, !0), r || {}) c.setRequestHeader(d, r[d]);
+	t == "json" && c.setRequestHeader("Accept", "application/json"), t ||= new se(e).extension, t == "blob" && (c.responseType = o), qe(t) && c.overrideMimeType("text/xml"), t == "binary" && (c.responseType = "arraybuffer"), i && (l = () => {
+		c.abort();
+	}, i.addEventListener("abort", l, { once: !0 })), c.send();
+	function f(e) {
+		m(), s.reject(e);
 	}
-	function d() {
+	function p() {
+		m(), s.reject(new DOMException("Aborted", "AbortError"));
+	}
+	function m() {
+		i && l && i.removeEventListener("abort", l);
+	}
+	function h() {
 		if (this.readyState === XMLHttpRequest.DONE) {
+			if (i?.aborted) return;
+			m();
 			var e = !1;
 			if ((this.responseType === "" || this.responseType === "document") && (e = this.responseXML), this.status === 200 || this.status === 0 || e) {
 				var n;
-				if (!this.response && !e) return o.reject({
+				if (!this.response && !e) return s.reject({
 					status: this.status,
 					message: "Empty Response",
 					stack: (/* @__PURE__ */ Error()).stack
-				}), o.promise;
-				if (this.status === 403) return o.reject({
+				}), s.promise;
+				if (this.status === 403) return s.reject({
 					status: this.status,
 					response: this.response,
 					message: "Forbidden",
 					stack: (/* @__PURE__ */ Error()).stack
-				}), o.promise;
-				n = e || (qe(t) ? He(this.response, "text/xml") : t == "xhtml" ? He(this.response, "application/xhtml+xml") : t == "html" || t == "htm" ? He(this.response, "text/html") : t == "json" ? JSON.parse(this.response) : t == "blob" ? i ? this.response : new Blob([this.response]) : this.response), o.resolve(n);
-			} else o.reject({
+				}), s.promise;
+				n = e || (qe(t) ? He(this.response, "text/xml") : t == "xhtml" ? He(this.response, "application/xhtml+xml") : t == "html" || t == "htm" ? He(this.response, "text/html") : t == "json" ? JSON.parse(this.response) : t == "blob" ? a ? this.response : new Blob([this.response]) : this.response), s.resolve(n);
+			} else s.reject({
 				status: this.status,
 				message: this.response,
 				stack: (/* @__PURE__ */ Error()).stack
 			});
 		}
 	}
-	return o.promise;
+	return s.promise;
 }
 //#endregion
 //#region src/section.ts
@@ -4575,27 +4587,27 @@ var Xe = class {
 			content: new xe(this)
 		}, this.document = void 0, this.contents = void 0, this.output = void 0;
 	}
-	load(e) {
-		var t = e || this.request || Ye, n = new N(), r = n.promise;
-		return this.contents ? n.resolve(this.contents) : t(this.url).then((e) => (this.document = e, this.contents = e.documentElement, this.hooks.content.trigger(this.document, this))).then(() => {
-			n.resolve(this.contents);
+	load(e, t) {
+		var n = e || this.request || Ye, r = new N(), i = r.promise;
+		return this.contents ? r.resolve(this.contents) : n(this.url, void 0, void 0, void 0, t).then((e) => (this.document = e, this.contents = e.documentElement, this.hooks.content.trigger(this.document, this))).then(() => {
+			r.resolve(this.contents);
 		}).catch((e) => {
-			n.reject(e);
-		}), r;
+			r.reject(e);
+		}), i;
 	}
 	base() {
 		return Te(this.document, this);
 	}
-	render(e) {
-		var t = new N(), n = t.promise;
-		return this.output, this.load(e).then((e) => {
+	render(e, t) {
+		var n = new N(), r = n.promise;
+		return this.output, this.load(e, t).then((e) => {
 			var t = (typeof navigator < "u" && navigator.userAgent || "").indexOf("Trident") >= 0, n = new (typeof XMLSerializer > "u" || t ? Fe.DOMParser : XMLSerializer)();
 			return this.output = n.serializeToString(e), this.output;
 		}).then(() => this.hooks.serialize.trigger(this.output, this)).then(() => {
-			t.resolve(this.output);
+			n.resolve(this.output);
 		}).catch((e) => {
-			t.reject(e);
-		}), n;
+			n.reject(e);
+		}), r;
 	}
 	find(e) {
 		var t = this, n = [], r = e.toLowerCase(), i = function(e) {
@@ -7014,6 +7026,7 @@ var Yt = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, Xt = cla
 	iframeBounds;
 	supportsSrcdoc = !1;
 	sectionRender;
+	_abortController;
 	document;
 	window;
 	contents;
@@ -7047,17 +7060,19 @@ var Yt = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, Xt = cla
 		return this.iframe ? this.iframe : (this.element ||= this.createContainer(), this.iframe = document.createElement("iframe"), this.iframe.id = this.id, this.iframe.scrolling = "no", this.iframe.style.overflow = "hidden", this.iframe.seamless = "seamless", this.iframe.style.border = "none", this.iframe.setAttribute("sandbox", "allow-same-origin"), this.settings.allowScriptedContent && this.iframe.sandbox.add("allow-scripts"), this.settings.allowPopups && this.iframe.sandbox.add("allow-popups"), this.iframe.setAttribute("enable-annotation", "true"), this.resizing = !0, this.element.style.visibility = "hidden", this.iframe.style.visibility = "hidden", this.iframe.style.width = "0", this.iframe.style.height = "0", this._width = 0, this._height = 0, this.element.setAttribute("ref", String(this.index)), this.added = !0, this.elementBounds = yt(this.element), "srcdoc" in this.iframe ? this.supportsSrcdoc = !0 : this.supportsSrcdoc = !1, this.settings.method || (this.settings.method = this.supportsSrcdoc ? "srcdoc" : "write"), this.iframe);
 	}
 	render(e, t) {
-		return this.create(), this.size(), this.sectionRender ||= this.section.render(e), this.sectionRender.then(function(e) {
-			return this.load(e);
+		this.create(), this.size(), typeof AbortController < "u" && !this._abortController && (this._abortController = new AbortController());
+		let n = this._abortController?.signal;
+		return this.sectionRender ||= this.section.render(e, n), this.sectionRender.then(function(e) {
+			return n?.aborted ? Promise.reject(new DOMException("Aborted", "AbortError")) : this.load(e);
 		}.bind(this)).then(function() {
 			let e = this.settings.writingMode ? this.contents.writingMode(this.settings.writingMode) : this.contents.writingMode(), t;
 			return t = this.settings.flow === "scrolled" ? e.indexOf("vertical") === 0 ? "horizontal" : "vertical" : e.indexOf("vertical") === 0 ? "vertical" : "horizontal", e === "vertical-rl" && this.settings.flow === "paginated" && (t = "horizontal"), e.indexOf("vertical") === 0 && e !== "vertical-rl" && this.settings.flow === "paginated" && (this.layout.delta = this.layout.height), this.setAxis(t), this.emit($.VIEWS.AXIS, t), this.setWritingMode(e), this.emit($.VIEWS.WRITING_MODE, e), this.layout.format(this.contents, this.section, this.axis), this.addListeners(), new Promise((e, t) => {
 				this.expand(), this.settings.forceRight && (this.element.style.marginLeft = this.width() + "px"), e();
 			});
 		}.bind(this), function(e) {
-			return this.emit($.VIEWS.LOAD_ERROR, e), new Promise((t, n) => {
+			return n?.aborted || e instanceof Error && e.name === "AbortError" ? Promise.reject(e) : (this.emit($.VIEWS.LOAD_ERROR, e), new Promise((t, n) => {
 				n(e);
-			});
+			}));
 		}.bind(this)).then(function() {
 			this.emit($.VIEWS.RENDERED, this.section);
 		}.bind(this));
@@ -7290,6 +7305,7 @@ var Yt = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, Xt = cla
 		}), delete this.marks[e]);
 	}
 	destroy() {
+		this._abortController &&= (this._abortController.abort(), void 0);
 		for (let e in this.highlights) this.unhighlight(e);
 		for (let e in this.underlines) this.ununderline(e);
 		for (let e in this.marks) this.unmark(e);

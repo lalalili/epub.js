@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import ePub from "../../src/epub";
 import Section from "../../src/section";
 import { fixtureUrl } from "./helpers/fixtures";
@@ -143,6 +143,28 @@ describe("section", () => {
 		});
 
 		expect(output).toContain("Hooked world");
+	});
+
+	it("forwards the AbortSignal through section load and render", async () => {
+		var loadSection = createMockSection();
+		var renderSection = createMockSection();
+		var signal = new AbortController().signal;
+		var loadRequest = vi.fn(function() {
+			return Promise.resolve(createSectionDocument());
+		});
+		var renderRequest = vi.fn(function() {
+			return Promise.resolve(createSectionDocument());
+		});
+
+		await loadSection.load(loadRequest, signal);
+		await renderSection.render(renderRequest, signal);
+
+		expect(loadRequest.mock.calls).toEqual([
+			["/OPS/chapter.xhtml", undefined, undefined, undefined, signal]
+		]);
+		expect(renderRequest.mock.calls).toEqual([
+			["/OPS/chapter.xhtml", undefined, undefined, undefined, signal]
+		]);
 	});
 
 	it("reconciles rendition layout properties and clears state on unload and destroy", async () => {

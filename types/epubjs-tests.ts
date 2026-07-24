@@ -1482,8 +1482,12 @@ function testEpub() {
     cfiBase: "/6/2",
   };
   const section = new Section(spineItem);
+  const sectionAbortSignal = new AbortController().signal;
+  const sectionRequest: SectionRequest = () => Promise.resolve(parsedDocument);
   const sectionLoad: Promise<Element> = section.load(() => Promise.resolve(parsedDocument));
   const sectionRender: Promise<string> = section.render(() => Promise.resolve(parsedDocument));
+  const abortableSectionLoad: Promise<Element> = section.load(sectionRequest, sectionAbortSignal);
+  const abortableSectionRender: Promise<string> = section.render(sectionRequest, sectionAbortSignal);
   const sectionFind: SectionSearchResult[] = section.find("Text");
   const sectionSearch: SectionSearchResult[] = section.search("Text");
   const sectionLayout: LayoutSettings = section.reconcileLayoutSettings({
@@ -1839,6 +1843,7 @@ function testEpub() {
   const epubAsBook: Book = epub;
   const rootBookAsBook: Book = rootBook;
   const requestMethod: RequestMethod = request;
+  const requestAbortSignal = new AbortController().signal;
 
   book.open(new Blob(), "binary");
   book.openEpub(new ArrayBuffer(0));
@@ -1847,6 +1852,13 @@ function testEpub() {
   const bookTextLoad: Promise<string> = book.load("OPS/chapter.xhtml", "text");
   const bookFallbackLoad: Promise<RequestResponse> = book.load("OPS/package.opf");
   const requestTextLoad: Promise<string> = request("OPS/chapter.xhtml", "text");
+  const abortableRequestTextLoad: Promise<string> = request(
+    "OPS/chapter.xhtml",
+    "text",
+    false,
+    undefined,
+    requestAbortSignal,
+  );
   rendition.attachTo("area");
   rendition.resize("100%", "100%", "epubcfi(/6/2)");
   const location = rendition.currentLocation();
@@ -1912,6 +1924,7 @@ function testEpub() {
   void bookJsonLoad;
   void bookFallbackLoad;
   void requestMethod;
+  void abortableRequestTextLoad;
   void binaryRequest;
   void blobRequest;
   void jsonRequest;
@@ -2007,6 +2020,8 @@ function testEpub() {
   void loadedNavigationItems;
   void sectionLoad;
   void sectionRender;
+  void abortableSectionLoad;
+  void abortableSectionRender;
   void sectionFind;
   void sectionSearch;
   void sectionLayout;

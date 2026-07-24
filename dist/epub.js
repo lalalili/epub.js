@@ -6888,17 +6888,23 @@
 	var mime_default = { lookup };
 	//#endregion
 	//#region src/utils/request.ts
-	function request(url, type, withCredentials, headers) {
+	function request(url, type, withCredentials, headers, signal) {
 		var supportsURL = typeof window != "undefined" ? window.URL : false;
 		var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
 		var deferred = new defer$1();
+		if (signal?.aborted) {
+			deferred.reject(new DOMException("Aborted", "AbortError"));
+			return deferred.promise;
+		}
 		var xhr = new XMLHttpRequest();
+		var onSignalAbort;
 		var xhrPrototype = XMLHttpRequest.prototype;
 		var header;
 		if (!("overrideMimeType" in xhrPrototype)) Object.defineProperty(xhrPrototype, "overrideMimeType", { value: function xmlHttpRequestOverrideMimeType() {} });
 		if (withCredentials) xhr.withCredentials = true;
 		xhr.onreadystatechange = handler;
 		xhr.onerror = err;
+		xhr.onabort = aborted;
 		xhr.open("GET", url, true);
 		for (header in headers || {}) xhr.setRequestHeader(header, headers[header]);
 		if (type == "json") xhr.setRequestHeader("Accept", "application/json");
@@ -6908,12 +6914,28 @@
 		if (type == "xhtml") {}
 		if (type == "html" || type == "htm") {}
 		if (type == "binary") xhr.responseType = "arraybuffer";
+		if (signal) {
+			onSignalAbort = () => {
+				xhr.abort();
+			};
+			signal.addEventListener("abort", onSignalAbort, { once: true });
+		}
 		xhr.send();
 		function err(e) {
+			cleanup();
 			deferred.reject(e);
+		}
+		function aborted() {
+			cleanup();
+			deferred.reject(new DOMException("Aborted", "AbortError"));
+		}
+		function cleanup() {
+			if (signal && onSignalAbort) signal.removeEventListener("abort", onSignalAbort);
 		}
 		function handler() {
 			if (this.readyState === XMLHttpRequest.DONE) {
+				if (signal?.aborted) return;
+				cleanup();
 				var responseXML = false;
 				if (this.responseType === "" || this.responseType === "document") responseXML = this.responseXML;
 				if (this.status === 200 || this.status === 0 || responseXML) {
@@ -7013,12 +7035,12 @@
 		* @param  {method} [_request] a request method to use for loading
 		* @return {document} a promise with the xml document
 		*/
-		load(_request) {
+		load(_request, signal) {
 			var request$1 = _request || this.request || request;
 			var loading = new defer$1();
 			var loaded = loading.promise;
 			if (this.contents) loading.resolve(this.contents);
-			else request$1(this.url).then((xml) => {
+			else request$1(this.url, void 0, void 0, void 0, signal).then((xml) => {
 				this.document = xml;
 				this.contents = xml.documentElement;
 				return this.hooks.content.trigger(this.document, this);
@@ -7041,11 +7063,11 @@
 		* @param  {method} [_request] a request method to use for loading
 		* @return {string} output a serialized XML Document
 		*/
-		render(_request) {
+		render(_request, signal) {
 			var rendering = new defer$1();
 			var rendered = rendering.promise;
 			this.output;
-			this.load(_request).then((contents) => {
+			this.load(_request, signal).then((contents) => {
 				var isIE = (typeof navigator !== "undefined" && navigator.userAgent || "").indexOf("Trident") >= 0;
 				var Serializer;
 				if (typeof XMLSerializer === "undefined" || isIE) Serializer = import_lib.DOMParser;
@@ -12101,6 +12123,7 @@
 		iframeBounds;
 		supportsSrcdoc = false;
 		sectionRender;
+		_abortController;
 		document;
 		window;
 		contents;
@@ -12184,8 +12207,11 @@
 		render(request, show) {
 			this.create();
 			this.size();
-			if (!this.sectionRender) this.sectionRender = this.section.render(request);
+			if (typeof AbortController !== "undefined" && !this._abortController) this._abortController = new AbortController();
+			const signal = this._abortController?.signal;
+			if (!this.sectionRender) this.sectionRender = this.section.render(request, signal);
 			return this.sectionRender.then(function(contents) {
+				if (signal?.aborted) return Promise.reject(new DOMException("Aborted", "AbortError"));
 				return this.load(contents);
 			}.bind(this)).then(function() {
 				let writingMode = this.settings.writingMode ? this.contents.writingMode(this.settings.writingMode) : this.contents.writingMode();
@@ -12206,6 +12232,7 @@
 					resolve();
 				});
 			}.bind(this), function(e) {
+				if (signal?.aborted || e instanceof Error && e.name === "AbortError") return Promise.reject(e);
 				this.emit(EVENTS.VIEWS.LOAD_ERROR, e);
 				return new Promise((resolve, reject) => {
 					reject(e);
@@ -12663,6 +12690,10 @@
 			}
 		}
 		destroy() {
+			if (this._abortController) {
+				this._abortController.abort();
+				this._abortController = void 0;
+			}
 			for (let cfiRange in this.highlights) this.unhighlight(cfiRange);
 			for (let cfiRange in this.underlines) this.ununderline(cfiRange);
 			for (let cfiRange in this.marks) this.unmark(cfiRange);

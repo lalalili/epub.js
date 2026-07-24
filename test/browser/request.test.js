@@ -1,10 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import request from "../../src/utils/request";
+import Section from "../../src/section";
+import IframeView from "../../src/managers/views/iframe";
 
 var originalXMLHttpRequest = window.XMLHttpRequest;
 
 function FakeXMLHttpRequest() {
 	this.headers = {};
+	this.aborted = false;
 	this.readyState = 0;
 	this.response = null;
 	this.responseText = "";
@@ -45,6 +48,10 @@ FakeXMLHttpRequest.prototype.send = function() {
 		return;
 	}
 
+	if (response.pending) {
+		return;
+	}
+
 	this.status = typeof response.status === "number" ? response.status : 200;
 	this.responseType = response.responseType || this.responseType;
 	this.response = Object.prototype.hasOwnProperty.call(response, "response") ? response.response : "";
@@ -52,6 +59,14 @@ FakeXMLHttpRequest.prototype.send = function() {
 	this.responseXML = response.responseXML || null;
 	this.readyState = FakeXMLHttpRequest.DONE;
 	this.onreadystatechange();
+};
+
+FakeXMLHttpRequest.prototype.abort = function() {
+	this.aborted = true;
+	this.status = 0;
+	this.readyState = FakeXMLHttpRequest.DONE;
+	this.onreadystatechange();
+	this.onabort();
 };
 
 describe("request", function() {
@@ -92,6 +107,68 @@ describe("request", function() {
 			expect(xhr.headers.Accept).toBe("application/json");
 			expect(data.ok).toBe(true);
 		});
+	});
+
+	it("rejects an already-aborted request without creating an xhr", async function() {
+		var controller = new AbortController();
+		controller.abort();
+
+		await expect(
+			request("/already-aborted.txt", "text", false, undefined, controller.signal)
+		).rejects.toMatchObject({ name: "AbortError" });
+
+		expect(FakeXMLHttpRequest.instances).toHaveLength(0);
+	});
+
+	it("aborts an in-flight xhr and preserves AbortError identity", async function() {
+		var controller = new AbortController();
+		FakeXMLHttpRequest.responses.push({ pending: true });
+
+		var pendingRequest = request("/slow.xhtml", "xhtml", false, undefined, controller.signal);
+		var xhr = FakeXMLHttpRequest.instances[0];
+		controller.abort();
+
+		await expect(pendingRequest).rejects.toMatchObject({ name: "AbortError" });
+		expect(xhr.aborted).toBe(true);
+	});
+
+	it("propagates view destruction through Section to the in-flight xhr", async function() {
+		var section = new Section({
+			idref: "slow-chapter",
+			linear: "yes",
+			properties: [],
+			index: 0,
+			href: "slow.xhtml",
+			url: "/slow.xhtml",
+			canonical: "/slow.xhtml",
+			mediaType: "application/xhtml+xml",
+			cfiBase: "/6/2"
+		});
+		var view = new IframeView(section, {
+			width: 320,
+			height: 480,
+			layout: {
+				name: "reflowable"
+			}
+		});
+		var loadErrors = [];
+		var rendered = [];
+		view.on("loaderror", function(error) {
+			loadErrors.push(error);
+		});
+		view.on("rendered", function(renderedSection) {
+			rendered.push(renderedSection);
+		});
+		FakeXMLHttpRequest.responses.push({ pending: true });
+
+		var renderPromise = view.render(request);
+		var xhr = FakeXMLHttpRequest.instances[0];
+		view.destroy();
+
+		await expect(renderPromise).rejects.toMatchObject({ name: "AbortError" });
+		expect(xhr.aborted).toBe(true);
+		expect(loadErrors).toEqual([]);
+		expect(rendered).toEqual([]);
 	});
 
 	it("returns blob responses without parsing", function() {
