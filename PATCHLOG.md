@@ -10,6 +10,24 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 - Test:
 - Rollback:
 
+## 2026-07-27
+
+### P-0447
+- Why:
+  - A vertical-rl book with a narrow author-defined body (`252px`) was rendered inside a right-aligned iframe canvas.
+  - Range `right` included the iframe reframe offset, so repeated measurements expanded one painted page into 15, then 21 empty logical pages.
+- Diff Scope:
+  - Preserve the range paint width separately from its right-edge offset.
+  - When the author canvas is narrower than one viewport and its range is shifted by a right-aligned iframe offset, derive content width from paint/body width instead of that offset.
+  - Keep existing wide multi-page and Section0006 frame-overhang behavior unchanged.
+- Test:
+  - focused one-page and legitimate multi-page narrow-author-canvas regressions in `vertical-rl-manager.test.js`
+  - full Chromium browser suite
+  - downstream reader focused and full Vitest
+  - desktop/mobile RTL gates and cptw true-book `9789570535556`
+- Rollback:
+  - Revert this patch and rebuild `lib/` and `dist/` if a narrow vertical-rl author canvas intentionally relies on blank iframe-offset pages.
+
 ## 2026-07-23
 
 ### P-0445

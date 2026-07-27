@@ -11306,6 +11306,7 @@
 				right: 0,
 				top: 0,
 				bottom: 0,
+				paintWidth: 0,
 				rawWidth: 0,
 				rawHeight: 0
 			};
@@ -11319,6 +11320,7 @@
 					right: rect.right,
 					top: rect.top,
 					bottom: rect.bottom,
+					paintWidth: rect.width || 0,
 					rawWidth,
 					rawHeight: Math.max(rect.height || 0, rect.bottom - Math.min(rect.top, 0))
 				};
@@ -11328,6 +11330,7 @@
 					right: 0,
 					top: 0,
 					bottom: 0,
+					paintWidth: 0,
 					rawWidth: 0,
 					rawHeight: 0
 				};
@@ -11435,6 +11438,10 @@
 			const contentScrollWidth = content ? content.scrollWidth || 0 : 0;
 			const contentClientWidth = content ? content.clientWidth || content.offsetWidth || 0 : 0;
 			const documentScrollWidth = this.documentElement ? this.documentElement.scrollWidth || 0 : 0;
+			const paintWidth = Number(rect.paintWidth);
+			const narrowContentPaintWidth = Math.max(contentScrollWidth, contentClientWidth, Number.isFinite(paintWidth) ? paintWidth : 0);
+			const hasRightAlignedFrameOffset = Boolean(Number.isFinite(rect.left) && Number.isFinite(rect.right) && Number.isFinite(rect.rawWidth) && rect.left > VERTICAL_RL_WIDTH_GUARD && rect.right >= rect.rawWidth - VERTICAL_RL_WIDTH_GUARD && documentScrollWidth >= rect.rawWidth - VERTICAL_RL_WIDTH_GUARD);
+			if (Boolean(Number.isFinite(safePageWidth) && safePageWidth > 0 && contentClientWidth > 0 && contentClientWidth < safePageWidth - VERTICAL_RL_WIDTH_GUARD && narrowContentPaintWidth > 0 && hasRightAlignedFrameOffset && rawWidth > narrowContentPaintWidth + VERTICAL_RL_WIDTH_GUARD)) rawWidth = narrowContentPaintWidth;
 			const contentCoversDocumentCanvas = Boolean(documentScrollWidth > 0 && contentClientWidth > 0 && contentClientWidth >= documentScrollWidth - VERTICAL_RL_WIDTH_GUARD);
 			const scrollWidthLimit = Boolean(Number.isFinite(rect.left) && Number.isFinite(rect.right) && Number.isFinite(rect.rawWidth) && contentCoversDocumentCanvas && rect.left > VERTICAL_RL_WIDTH_GUARD && rect.right >= rect.rawWidth - VERTICAL_RL_WIDTH_GUARD && rect.rawWidth > contentScrollWidth + VERTICAL_RL_WIDTH_GUARD && documentScrollWidth >= rect.rawWidth - VERTICAL_RL_WIDTH_GUARD) ? Math.max(contentScrollWidth, documentScrollWidth) : contentScrollWidth;
 			if (!Number.isFinite(rawWidth) || rawWidth <= 0) rawWidth = Math.max(contentScrollWidth, documentScrollWidth);
@@ -11483,7 +11490,7 @@
 			const pageBoundaryShift = edgeGuardPx;
 			const result = {
 				rawWidth,
-				rawPaintWidth: rawWidth,
+				rawPaintWidth: Math.ceil(Math.max(0, Number.isFinite(paintWidth) ? paintWidth : 0)),
 				rawHeight,
 				pageWidth: viewportPageWidth || pageLength,
 				viewportPageWidth,
@@ -11537,6 +11544,7 @@
 				rangeRectLeft: rangeRect ? rangeRect.left : null,
 				rangeRectRight: rangeRect ? rangeRect.right : null,
 				rangeRectWidth: rangeRect ? rangeRect.width : null,
+				rawPaintWidth: pageMetrics.rawPaintWidth,
 				rawContentWidth,
 				rawContentHeight: pageMetrics.rawHeight,
 				snappedContentWidth,

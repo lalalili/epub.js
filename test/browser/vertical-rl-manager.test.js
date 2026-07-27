@@ -5996,7 +5996,138 @@ describe("Vertical RL manager pagination", function() {
 
 		let rect = contents.measureVerticalRlRect();
 
+		assert.equal(rect.paintWidth, 19738);
 		assert.equal(rect.rawWidth, 27195.008);
+	});
+
+	it("ignores iframe reframe offsets for a narrow vertical-rl author canvas", function() {
+		let contents = Object.create(Contents.prototype);
+		contents._verticalRlPageMetricsCache = null;
+		contents._verticalRlStableSnappedContentWidth = null;
+		contents.content = {
+			clientWidth: 252,
+			offsetWidth: 252,
+			clientHeight: 808,
+			childElementCount: 5,
+			scrollWidth: 252,
+			scrollHeight: 808
+		};
+		contents.documentElement = {
+			clientWidth: 19440,
+			clientHeight: 808,
+			scrollWidth: 19440,
+			scrollHeight: 808
+		};
+		contents.document = {
+			body: contents.content,
+			fonts: null
+		};
+		contents.window = {
+			getComputedStyle: function() {
+				return {
+					columnGap: "normal",
+					fontSize: "18px",
+					lineHeight: "18px",
+					letterSpacing: "0px",
+					fontFamily: "serif"
+				};
+			}
+		};
+		contents.measureVerticalRlRect = function() {
+			return {
+				left: 19116,
+				right: 19298,
+				paintWidth: 182,
+				rawWidth: 19298,
+				rawHeight: 808
+			};
+		};
+		contents.estimateVerticalRlLineMetrics = function() {
+			return {
+				linePitch: null,
+				lineWidth: null,
+				lineLefts: [],
+				lineBoxes: [],
+				sampleCount: 0,
+				gapMad: null,
+				stable: false
+			};
+		};
+		contents.isViewportFillingSingleMediaPage = function() {
+			return false;
+		};
+
+		let metrics = contents.verticalRlPageMetrics(1296, 808);
+
+		assert.equal(metrics.rawWidth, 254);
+		assert.equal(metrics.rawPaintWidth, 182);
+		assert.equal(metrics.totalPages, 1);
+		assert.equal(metrics.snappedContentWidth, 1296);
+	});
+
+	it("preserves painted multi-page text on a narrow vertical-rl author canvas", function() {
+		let contents = Object.create(Contents.prototype);
+		contents._verticalRlPageMetricsCache = null;
+		contents._verticalRlStableSnappedContentWidth = null;
+		contents.content = {
+			clientWidth: 252,
+			offsetWidth: 252,
+			clientHeight: 808,
+			childElementCount: 20,
+			scrollWidth: 252,
+			scrollHeight: 808
+		};
+		contents.documentElement = {
+			clientWidth: 19440,
+			clientHeight: 808,
+			scrollWidth: 19440,
+			scrollHeight: 808
+		};
+		contents.document = {
+			body: contents.content,
+			fonts: null
+		};
+		contents.window = {
+			getComputedStyle: function() {
+				return {
+					columnGap: "normal",
+					fontSize: "18px",
+					lineHeight: "18px",
+					letterSpacing: "0px",
+					fontFamily: "serif"
+				};
+			}
+		};
+		contents.measureVerticalRlRect = function() {
+			return {
+				left: 16900,
+				right: 19300,
+				paintWidth: 2400,
+				rawWidth: 19300,
+				rawHeight: 808
+			};
+		};
+		contents.estimateVerticalRlLineMetrics = function() {
+			return {
+				linePitch: null,
+				lineWidth: null,
+				lineLefts: [],
+				lineBoxes: [],
+				sampleCount: 0,
+				gapMad: null,
+				stable: false
+			};
+		};
+		contents.isViewportFillingSingleMediaPage = function() {
+			return false;
+		};
+
+		let metrics = contents.verticalRlPageMetrics(1296, 808);
+
+		assert.equal(metrics.rawWidth, 2402);
+		assert.equal(metrics.rawPaintWidth, 2400);
+		assert.equal(metrics.totalPages, 2);
+		assert.equal(metrics.snappedContentWidth, 2592);
 	});
 
 	it("allows Section0006 frame overhang to snap boundaries between text columns", function() {

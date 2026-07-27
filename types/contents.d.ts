@@ -55,6 +55,7 @@ export interface VerticalRlDebugMetrics {
   rangeRectLeft: number | null,
   rangeRectRight: number | null,
   rangeRectWidth: number | null,
+  rawPaintWidth: number,
   rawContentWidth: number,
   rawContentHeight: number,
   snappedContentWidth: number,

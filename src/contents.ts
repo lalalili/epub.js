@@ -59,6 +59,7 @@ export interface VerticalRlDebugMetrics {
 	rangeRectLeft: number | null;
 	rangeRectRight: number | null;
 	rangeRectWidth: number | null;
+	rawPaintWidth: number;
 	rawContentWidth: number;
 	rawContentHeight: number;
 	snappedContentWidth: number;
@@ -1812,7 +1813,7 @@ class Contents {
 
 	}
 
-	measureVerticalRlRect(): { left: number; right: number; top: number; bottom: number; rawWidth: number; rawHeight: number } {
+	measureVerticalRlRect(): { left: number; right: number; top: number; bottom: number; paintWidth: number; rawWidth: number; rawHeight: number } {
 		const content = this.content || this.document.body;
 		if (!content || !this.document) {
 			return {
@@ -1820,6 +1821,7 @@ class Contents {
 				right: 0,
 				top: 0,
 				bottom: 0,
+				paintWidth: 0,
 				rawWidth: 0,
 				rawHeight: 0
 			};
@@ -1835,6 +1837,7 @@ class Contents {
 				right: rect.right,
 				top: rect.top,
 				bottom: rect.bottom,
+				paintWidth: rect.width || 0,
 				rawWidth,
 				rawHeight: Math.max(rect.height || 0, rect.bottom - Math.min(rect.top, 0))
 			};
@@ -1844,6 +1847,7 @@ class Contents {
 				right: 0,
 				top: 0,
 				bottom: 0,
+				paintWidth: 0,
 				rawWidth: 0,
 				rawHeight: 0
 			};
@@ -1989,6 +1993,32 @@ class Contents {
 		const contentScrollWidth = content ? content.scrollWidth || 0 : 0;
 		const contentClientWidth = content ? content.clientWidth || content.offsetWidth || 0 : 0;
 		const documentScrollWidth = this.documentElement ? this.documentElement.scrollWidth || 0 : 0;
+		const paintWidth = Number(rect.paintWidth);
+		const narrowContentPaintWidth = Math.max(
+			contentScrollWidth,
+			contentClientWidth,
+			Number.isFinite(paintWidth) ? paintWidth : 0
+		);
+		const hasRightAlignedFrameOffset = Boolean(
+			Number.isFinite(rect.left) &&
+			Number.isFinite(rect.right) &&
+			Number.isFinite(rect.rawWidth) &&
+			rect.left > VERTICAL_RL_WIDTH_GUARD &&
+			rect.right >= rect.rawWidth - VERTICAL_RL_WIDTH_GUARD &&
+			documentScrollWidth >= rect.rawWidth - VERTICAL_RL_WIDTH_GUARD
+		);
+		const hasNarrowAuthorCanvas = Boolean(
+			Number.isFinite(safePageWidth) &&
+			safePageWidth > 0 &&
+			contentClientWidth > 0 &&
+			contentClientWidth < safePageWidth - VERTICAL_RL_WIDTH_GUARD &&
+			narrowContentPaintWidth > 0 &&
+			hasRightAlignedFrameOffset &&
+			rawWidth > narrowContentPaintWidth + VERTICAL_RL_WIDTH_GUARD
+		);
+		if (hasNarrowAuthorCanvas) {
+			rawWidth = narrowContentPaintWidth;
+		}
 		const contentCoversDocumentCanvas = Boolean(
 			documentScrollWidth > 0 &&
 			contentClientWidth > 0 &&
@@ -2098,7 +2128,10 @@ class Contents {
 		const pageBoundaryShift = edgeGuardPx;
 		const result = {
 			rawWidth,
-			rawPaintWidth: rawWidth,
+			rawPaintWidth: Math.ceil(Math.max(
+				0,
+				Number.isFinite(paintWidth) ? paintWidth : 0
+			)),
 			rawHeight,
 			pageWidth: viewportPageWidth || pageLength,
 			viewportPageWidth,
@@ -2156,6 +2189,7 @@ class Contents {
 			rangeRectLeft: rangeRect ? rangeRect.left : null,
 			rangeRectRight: rangeRect ? rangeRect.right : null,
 			rangeRectWidth: rangeRect ? rangeRect.width : null,
+			rawPaintWidth: pageMetrics.rawPaintWidth,
 			rawContentWidth,
 			rawContentHeight: pageMetrics.rawHeight,
 			snappedContentWidth,
