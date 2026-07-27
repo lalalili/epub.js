@@ -1999,6 +1999,20 @@ class Contents {
 			contentClientWidth,
 			Number.isFinite(paintWidth) ? paintWidth : 0
 		);
+		const hasViewportSizedPaint = Boolean(
+			Number.isFinite(safePageWidth) &&
+			safePageWidth > 0 &&
+			contentClientWidth > 0 &&
+			contentClientWidth <= safePageWidth + VERTICAL_RL_WIDTH_GUARD &&
+			narrowContentPaintWidth > 0 &&
+			narrowContentPaintWidth <= safePageWidth + VERTICAL_RL_WIDTH_GUARD
+		);
+		const measuredCanvasFitsViewport = Boolean(
+			Number.isFinite(rawWidth) &&
+			rawWidth > 0 &&
+			Number.isFinite(safePageWidth) &&
+			rawWidth <= safePageWidth + VERTICAL_RL_WIDTH_GUARD
+		);
 		const hasRightAlignedFrameOffset = Boolean(
 			Number.isFinite(rect.left) &&
 			Number.isFinite(rect.right) &&
@@ -2011,7 +2025,7 @@ class Contents {
 			Number.isFinite(safePageWidth) &&
 			safePageWidth > 0 &&
 			contentClientWidth > 0 &&
-			contentClientWidth < safePageWidth - VERTICAL_RL_WIDTH_GUARD &&
+			contentClientWidth <= safePageWidth + VERTICAL_RL_WIDTH_GUARD &&
 			narrowContentPaintWidth > 0 &&
 			hasRightAlignedFrameOffset &&
 			rawWidth > narrowContentPaintWidth + VERTICAL_RL_WIDTH_GUARD
@@ -2019,6 +2033,10 @@ class Contents {
 		if (hasNarrowAuthorCanvas) {
 			rawWidth = narrowContentPaintWidth;
 		}
+		const shouldClampViewportSizedCanvas = Boolean(
+			hasViewportSizedPaint &&
+			(hasNarrowAuthorCanvas || measuredCanvasFitsViewport)
+		);
 		const contentCoversDocumentCanvas = Boolean(
 			documentScrollWidth > 0 &&
 			contentClientWidth > 0 &&
@@ -2056,6 +2074,9 @@ class Contents {
 			);
 		}
 		rawWidth = Math.ceil(rawWidth + VERTICAL_RL_WIDTH_GUARD);
+		if (shouldClampViewportSizedCanvas) {
+			rawWidth = Math.min(rawWidth, safePageWidth);
+		}
 		rawHeight = Math.ceil(rawHeight);
 
 		const metrics = this.estimateVerticalRlLineMetrics(safePageWidth);

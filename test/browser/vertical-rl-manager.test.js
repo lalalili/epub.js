@@ -6065,6 +6065,145 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(metrics.snappedContentWidth, 1296);
 	});
 
+	it("keeps a fractional viewport-sized reframe canvas on one vertical-rl page", function() {
+		const pageWidth = 411.4285888671875;
+		const frameWidth = 17280;
+		let contents = Object.create(Contents.prototype);
+		contents._verticalRlPageMetricsCache = null;
+		contents._verticalRlStableSnappedContentWidth = null;
+		contents.content = {
+			clientWidth: 411,
+			offsetWidth: 411,
+			clientHeight: 742,
+			childElementCount: 5,
+			scrollWidth: 411,
+			scrollHeight: 742
+		};
+		contents.documentElement = {
+			clientWidth: frameWidth,
+			clientHeight: 742,
+			scrollWidth: frameWidth,
+			scrollHeight: 742
+		};
+		contents.document = {
+			body: contents.content,
+			fonts: null
+		};
+		contents.window = {
+			getComputedStyle: function() {
+				return {
+					columnGap: "normal",
+					fontSize: "20px",
+					lineHeight: "20px",
+					letterSpacing: "0px",
+					fontFamily: "serif"
+				};
+			}
+		};
+		contents.measureVerticalRlRect = function() {
+			return {
+				left: frameWidth - 411,
+				right: frameWidth,
+				paintWidth: 411,
+				rawWidth: frameWidth,
+				rawHeight: 742
+			};
+		};
+		contents.estimateVerticalRlLineMetrics = function() {
+			return {
+				linePitch: null,
+				lineWidth: null,
+				lineLefts: [],
+				lineBoxes: [],
+				sampleCount: 0,
+				gapMad: null,
+				stable: false
+			};
+		};
+		contents.isViewportFillingSingleMediaPage = function() {
+			return false;
+		};
+
+		const metrics = contents.verticalRlPageMetrics(pageWidth, 742);
+
+		assert.ok(metrics.rawWidth <= pageWidth);
+		assert.equal(metrics.rawPaintWidth, 411);
+		assert.equal(metrics.totalPages, 1);
+		assert.equal(metrics.snappedContentWidth, pageWidth);
+	});
+
+	it("collapses repeated viewport-sized vertical-rl reframes instead of growing each frame", function() {
+		const pageWidth = 288;
+		let frameWidth = 20736;
+		let contents = Object.create(Contents.prototype);
+		contents.content = {
+			clientWidth: pageWidth,
+			offsetWidth: pageWidth,
+			clientHeight: 575,
+			childElementCount: 5,
+			scrollWidth: pageWidth,
+			scrollHeight: 575
+		};
+		contents.documentElement = {
+			clientWidth: frameWidth,
+			clientHeight: 575,
+			scrollWidth: frameWidth,
+			scrollHeight: 575
+		};
+		contents.document = {
+			body: contents.content,
+			fonts: null
+		};
+		contents.window = {
+			getComputedStyle: function() {
+				return {
+					columnGap: "normal",
+					fontSize: "18px",
+					lineHeight: "18px",
+					letterSpacing: "0px",
+					fontFamily: "serif"
+				};
+			}
+		};
+		contents.measureVerticalRlRect = function() {
+			return {
+				left: frameWidth - pageWidth,
+				right: frameWidth,
+				paintWidth: pageWidth,
+				rawWidth: frameWidth,
+				rawHeight: 575
+			};
+		};
+		contents.estimateVerticalRlLineMetrics = function() {
+			return {
+				linePitch: null,
+				lineWidth: null,
+				lineLefts: [],
+				lineBoxes: [],
+				sampleCount: 0,
+				gapMad: null,
+				stable: false
+			};
+		};
+		contents.isViewportFillingSingleMediaPage = function() {
+			return false;
+		};
+
+		const snappedWidths = [];
+		for (let index = 0; index < 4; index += 1) {
+			contents._verticalRlPageMetricsCache = null;
+			contents._verticalRlStableSnappedContentWidth = null;
+			contents.documentElement.clientWidth = frameWidth;
+			contents.documentElement.scrollWidth = frameWidth;
+
+			const metrics = contents.verticalRlPageMetrics(pageWidth, 575);
+			snappedWidths.push(metrics.snappedContentWidth);
+			frameWidth = metrics.snappedContentWidth;
+		}
+
+		assert.deepEqual(snappedWidths, [pageWidth, pageWidth, pageWidth, pageWidth]);
+	});
+
 	it("preserves painted multi-page text on a narrow vertical-rl author canvas", function() {
 		let contents = Object.create(Contents.prototype);
 		contents._verticalRlPageMetricsCache = null;

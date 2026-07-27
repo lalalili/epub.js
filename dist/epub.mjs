@@ -6555,60 +6555,60 @@ var Ct = class {
 				width: e
 			}, t;
 		}
-		let l = c && c.scrollWidth || 0, u = c && (c.clientWidth || c.offsetWidth) || 0, d = this.documentElement && this.documentElement.scrollWidth || 0, f = Number(a.paintWidth), p = Math.max(l, u, Number.isFinite(f) ? f : 0), m = !!(Number.isFinite(a.left) && Number.isFinite(a.right) && Number.isFinite(a.rawWidth) && a.left > kt && a.right >= a.rawWidth - kt && d >= a.rawWidth - kt);
-		Number.isFinite(n) && n > 0 && u > 0 && u < n - kt && p > 0 && m && o > p + kt && (o = p);
-		let h = d > 0 && u > 0 && u >= d - kt, g = Number.isFinite(a.left) && Number.isFinite(a.right) && Number.isFinite(a.rawWidth) && h && a.left > kt && a.right >= a.rawWidth - kt && a.rawWidth > l + kt && d >= a.rawWidth - kt ? Math.max(l, d) : l;
-		!Number.isFinite(o) || o <= 0 ? o = Math.max(l, d) : Number.isFinite(g) && g > n && o > g + kt && (o = g), (!Number.isFinite(s) || s <= 0) && (s = Math.max(c && c.scrollHeight || 0, this.documentElement && this.documentElement.scrollHeight || 0)), o = Math.ceil(o + kt), s = Math.ceil(s);
-		let _ = this.estimateVerticalRlLineMetrics(n), v = Number.isFinite(n) && n > 0 ? n : null, y = _.stable ? zt({
-			viewportPageWidth: v,
-			linePitch: _.linePitch,
-			lineBoxes: _.lineBoxes
-		}) : v, b = v && y ? Math.max(0, v - y) : 0, x = _.stable && Number.isFinite(_.lineWidth) && _.lineWidth > 0 && b > At ? Math.min(Math.floor(b / 2), Math.max(At, Math.ceil(_.lineWidth / 2) + 1)) : 0, S = y || v || 1, C = Math.max(1, v && y && v > y ? Math.ceil(Math.max(0, o - v) / y) + 1 : Math.ceil(o / S)), w = 1;
-		if (C <= 1 && Number.isFinite(r) && r > 0 && Number.isFinite(s) && s > r + At) {
+		let l = c && c.scrollWidth || 0, u = c && (c.clientWidth || c.offsetWidth) || 0, d = this.documentElement && this.documentElement.scrollWidth || 0, f = Number(a.paintWidth), p = Math.max(l, u, Number.isFinite(f) ? f : 0), m = !!(Number.isFinite(n) && n > 0 && u > 0 && u <= n + kt && p > 0 && p <= n + kt), h = !!(Number.isFinite(o) && o > 0 && Number.isFinite(n) && o <= n + kt), g = !!(Number.isFinite(a.left) && Number.isFinite(a.right) && Number.isFinite(a.rawWidth) && a.left > kt && a.right >= a.rawWidth - kt && d >= a.rawWidth - kt), _ = !!(Number.isFinite(n) && n > 0 && u > 0 && u <= n + kt && p > 0 && g && o > p + kt);
+		_ && (o = p);
+		let v = !!(m && (_ || h)), y = d > 0 && u > 0 && u >= d - kt, b = Number.isFinite(a.left) && Number.isFinite(a.right) && Number.isFinite(a.rawWidth) && y && a.left > kt && a.right >= a.rawWidth - kt && a.rawWidth > l + kt && d >= a.rawWidth - kt ? Math.max(l, d) : l;
+		!Number.isFinite(o) || o <= 0 ? o = Math.max(l, d) : Number.isFinite(b) && b > n && o > b + kt && (o = b), (!Number.isFinite(s) || s <= 0) && (s = Math.max(c && c.scrollHeight || 0, this.documentElement && this.documentElement.scrollHeight || 0)), o = Math.ceil(o + kt), v && (o = Math.min(o, n)), s = Math.ceil(s);
+		let x = this.estimateVerticalRlLineMetrics(n), S = Number.isFinite(n) && n > 0 ? n : null, C = x.stable ? zt({
+			viewportPageWidth: S,
+			linePitch: x.linePitch,
+			lineBoxes: x.lineBoxes
+		}) : S, w = S && C ? Math.max(0, S - C) : 0, T = x.stable && Number.isFinite(x.lineWidth) && x.lineWidth > 0 && w > At ? Math.min(Math.floor(w / 2), Math.max(At, Math.ceil(x.lineWidth / 2) + 1)) : 0, E = C || S || 1, D = Math.max(1, S && C && S > C ? Math.ceil(Math.max(0, o - S) / C) + 1 : Math.ceil(o / E)), O = 1;
+		if (D <= 1 && Number.isFinite(r) && r > 0 && Number.isFinite(s) && s > r + At) {
 			let e = c && this.window ? this.window.getComputedStyle(c) : null, t = e ? Ft(e.columnGap) : 0, n = Math.max(1, r + Math.max(0, t));
-			w = Math.max(1, Math.ceil(Math.max(0, s - r) / n) + 1), C = Math.max(C, w);
+			O = Math.max(1, Math.ceil(Math.max(0, s - r) / n) + 1), D = Math.max(D, O);
 		}
-		let T = Lt({
-			snappedContentWidth: v && y && v > y ? (C - 1) * y + v : C * S,
-			pageLength: S,
-			totalPages: C,
+		let k = Lt({
+			snappedContentWidth: S && C && S > C ? (D - 1) * C + S : D * E,
+			pageLength: E,
+			totalPages: D,
 			rawWidth: o,
-			lineBoxes: _.lineBoxes
+			lineBoxes: x.lineBoxes
 		});
-		T = Rt({
+		k = Rt({
 			previous: this._verticalRlStableSnappedContentWidth,
-			snappedContentWidth: T,
-			pageLength: S,
-			totalPages: C,
-			lineWidth: _.lineWidth
+			snappedContentWidth: k,
+			pageLength: E,
+			totalPages: D,
+			lineWidth: x.lineWidth
 		}), this._verticalRlStableSnappedContentWidth = {
-			pageLength: S,
-			totalPages: C,
-			width: T
+			pageLength: E,
+			totalPages: D,
+			width: k
 		};
-		let E = x, D = {
+		let A = T, j = {
 			rawWidth: o,
 			rawPaintWidth: Math.ceil(Math.max(0, Number.isFinite(f) ? f : 0)),
 			rawHeight: s,
-			pageWidth: v || S,
-			viewportPageWidth: v,
-			effectivePageAdvance: y,
-			linePitch: _.linePitch,
-			lineWidth: _.lineWidth,
-			edgeGuardPx: x,
-			edgeGuard: x,
-			pageBoundaryShift: E,
-			sampleCount: _.sampleCount,
-			gapMad: _.gapMad,
-			stable: _.stable,
-			verticalFragmentPages: w,
-			totalPages: C,
-			snappedContentWidth: T
+			pageWidth: S || E,
+			viewportPageWidth: S,
+			effectivePageAdvance: C,
+			linePitch: x.linePitch,
+			lineWidth: x.lineWidth,
+			edgeGuardPx: T,
+			edgeGuard: T,
+			pageBoundaryShift: A,
+			sampleCount: x.sampleCount,
+			gapMad: x.gapMad,
+			stable: x.stable,
+			verticalFragmentPages: O,
+			totalPages: D,
+			snappedContentWidth: k
 		};
 		return this._verticalRlPageMetricsCache = {
 			key: i,
-			metrics: D
-		}, D;
+			metrics: j
+		}, j;
 	}
 	debugVerticalRlMetrics(e) {
 		let t = this.content || this.document.body, n = this.documentElement ? this.window.getComputedStyle(this.documentElement) : null, r = t ? this.window.getComputedStyle(t) : null, i = null;
