@@ -1235,9 +1235,10 @@ class Contents {
 
 			if(range) {
 				try {
-					if (!range.endContainer ||
-						(range.startContainer == range.endContainer
-						&& range.startOffset == range.endOffset)) {
+					if (range.startContainer.nodeType === TEXT_NODE &&
+						(!range.endContainer ||
+							(range.startContainer == range.endContainer
+								&& range.startOffset == range.endOffset))) {
 						// If the end for the range is not set, it results in collapsed becoming
 						// true. This in turn leads to inconsistent behaviour when calling
 						// getBoundingRect. Wrong bounds lead to the wrong page being displayed.
