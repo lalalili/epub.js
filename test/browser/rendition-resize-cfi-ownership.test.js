@@ -337,4 +337,91 @@ describe("rendition resize CFI ownership characterization", () => {
 			}
 		});
 	});
+
+	it("characterizes a center-point visible fragment as an explicit resize target", async () => {
+		const host = document.createElement("div");
+		document.body.appendChild(host);
+		const book = ePub(fixtureUrl("alice.epub"));
+		fixtures.push({ book, host });
+
+		await book.ready;
+		book.package.metadata.direction = "rtl";
+		const rendition = book.renderTo(host, {
+			width: 393,
+			height: 600,
+			spread: "none",
+			flow: "paginated",
+			resizeSettleTrace: true
+		});
+		await rendition.display(3);
+		await nextFrames();
+
+		const manager = rendition.manager;
+		manager.scrollToLogicalPage(3);
+		await nextFrames(4);
+		const view = manager.views.first();
+		const maxPhysicalStart = Math.max(
+			0,
+			manager.container.scrollWidth - manager.container.clientWidth
+		);
+		const physicalStart = maxPhysicalStart + manager.container.scrollLeft;
+		const viewportEnd = physicalStart + manager.container.clientWidth;
+		const center = physicalStart + (manager.container.clientWidth / 2);
+		const centerMapping = manager.mapping.page(
+			view.contents,
+			view.section.cfiBase,
+			center - 1,
+			center + 1
+		);
+		const position = view.contents.document.caretPositionFromPoint(
+			center,
+			manager.container.clientHeight / 2
+		);
+		const range = view.contents.document.createRange();
+		range.setStart(position.offsetNode, position.offset);
+		range.collapse(true);
+		const pointCfi = view.contents.cfiFromRange(range);
+		const portrait = snapshot(rendition, pointCfi);
+
+		expect(portrait.target.left).toBeGreaterThanOrEqual(physicalStart);
+		expect(portrait.target.left).toBeLessThan(viewportEnd);
+		expect(portrait.ownsTargetPage).toBe(true);
+
+		const automaticResizeDisplayed = waitForDisplayed(rendition);
+		rendition.resize(802, 345);
+		await automaticResizeDisplayed;
+		await nextFrames(4);
+		rendition.debugResizeSettleTrace({ clear: true });
+
+		const explicitHandoffDisplayed = waitForDisplayed(rendition);
+		rendition.resize(802, 345, pointCfi);
+		await explicitHandoffDisplayed;
+		await nextFrames(4);
+		const landscape = snapshot(rendition, pointCfi);
+		const resizeTrace = rendition.debugResizeSettleTrace();
+
+		console.info("visible-fragment-resize-ownership", JSON.stringify({
+			pointCfi,
+			mappedCenterCfi: centerMapping.start,
+			physicalStart,
+			viewportEnd,
+			portrait,
+			landscape,
+			resizeTrace
+		}));
+		expect(resizeTrace.find((entry) => entry.event === "resize:location-handoff")).toMatchObject({
+			detail: {
+				epubcfi: pointCfi
+			}
+		});
+		expect(resizeTrace.find((entry) => entry.event === "rendition:resize-resolved")).toMatchObject({
+			detail: {
+				inputCfi: pointCfi,
+				resolvedCfi: pointCfi
+			}
+		});
+		expect(landscape.ownsTargetPage).toBe(true);
+		expect(landscape.range.startOffset).toBe(portrait.range.startOffset);
+	});
+
 });

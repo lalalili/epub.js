@@ -14275,7 +14275,20 @@
 				this._stageSize = void 0;
 				return;
 			}
-			if (this._stageSize && this._stageSize.width === stageSize.width && this._stageSize.height === stageSize.height) return;
+			if (this._stageSize && this._stageSize.width === stageSize.width && this._stageSize.height === stageSize.height) {
+				if (epubcfi) {
+					this.recordResizeSettleTrace("resize:location-handoff", {
+						epubcfi,
+						stageSize: Object.assign({}, stageSize),
+						container: this.resizeSettleContainerSnapshot()
+					});
+					this.emit(EVENTS.MANAGERS.RESIZED, {
+						width: stageSize.width,
+						height: stageSize.height
+					}, epubcfi);
+				}
+				return;
+			}
 			this._resizeSettleTraceGeneration = (this._resizeSettleTraceGeneration || 0) + 1;
 			this.recordResizeSettleTrace("resize:capture", {
 				input: {

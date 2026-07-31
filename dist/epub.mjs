@@ -8371,7 +8371,18 @@ var Nr = class {
 			this._stageSize = void 0;
 			return;
 		}
-		this._stageSize && this._stageSize.width === r.width && this._stageSize.height === r.height || (this._resizeSettleTraceGeneration = (this._resizeSettleTraceGeneration || 0) + 1, this.recordResizeSettleTrace("resize:capture", {
+		if (this._stageSize && this._stageSize.width === r.width && this._stageSize.height === r.height) {
+			n && (this.recordResizeSettleTrace("resize:location-handoff", {
+				epubcfi: n,
+				stageSize: Object.assign({}, r),
+				container: this.resizeSettleContainerSnapshot()
+			}), this.emit($.MANAGERS.RESIZED, {
+				width: r.width,
+				height: r.height
+			}, n));
+			return;
+		}
+		this._resizeSettleTraceGeneration = (this._resizeSettleTraceGeneration || 0) + 1, this.recordResizeSettleTrace("resize:capture", {
 			input: {
 				width: e ?? null,
 				height: t ?? null,
@@ -8393,7 +8404,7 @@ var Nr = class {
 		}), this.emit($.MANAGERS.RESIZED, {
 			width: this._stageSize.width,
 			height: this._stageSize.height
-		}, n || this.target));
+		}, n || this.target);
 	}
 	createView(e, t) {
 		return new this.View(e, I(this.viewSettings, { forceRight: t }));
