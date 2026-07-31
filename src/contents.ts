@@ -1239,15 +1239,31 @@ class Contents {
 						(!range.endContainer ||
 							(range.startContainer == range.endContainer
 								&& range.startOffset == range.endOffset))) {
-						// If the end for the range is not set, it results in collapsed becoming
-						// true. This in turn leads to inconsistent behaviour when calling
-						// getBoundingRect. Wrong bounds lead to the wrong page being displayed.
-						// https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/15684911/
-						let pos = range.startContainer.textContent.indexOf(" ", range.startOffset);
-						if (pos == -1) {
-							pos = range.startContainer.textContent.length;
+						let text = range.startContainer.textContent || "";
+						let offset = Math.min(range.startOffset, text.length);
+
+						if (offset < text.length) {
+							let codePoint = text.codePointAt(offset);
+							let codePointLength = codePoint && codePoint > 0xFFFF ? 2 : 1;
+							range.setEnd(
+								range.startContainer,
+								Math.min(text.length, offset + codePointLength)
+							);
+						} else if (offset > 0) {
+							let start = offset - 1;
+							let trailingCodeUnit = text.charCodeAt(start);
+							if (
+								trailingCodeUnit >= 0xDC00 &&
+								trailingCodeUnit <= 0xDFFF &&
+								start > 0
+							) {
+								let leadingCodeUnit = text.charCodeAt(start - 1);
+								if (leadingCodeUnit >= 0xD800 && leadingCodeUnit <= 0xDBFF) {
+									start -= 1;
+								}
+							}
+							range.setStart(range.startContainer, start);
 						}
-						range.setEnd(range.startContainer, pos);
 					}
 				} catch (e) {
 					console.error("setting end offset to start container length failed", e);

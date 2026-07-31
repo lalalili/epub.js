@@ -7,6 +7,7 @@ import { collectVisibleTextClientRects } from "../../platform/traversal";
 import scrollType from "../../utils/scrolltype";
 import Mapping from "../../mapping";
 import Queue from "../../utils/queue";
+import EpubCFI from "../../epubcfi";
 import type Contents from "../../contents";
 import type Layout from "../../layout";
 import type { ManagerLocationItem } from "../../rendition";
@@ -130,6 +131,15 @@ export type ManagerSettings = {
 	afterScrolledTimeout?: number;
 	verticalRlFontReadyTimeout?: number;
 	verticalRlBoundarySnapRetryDelays?: number[];
+	resizeSettleTrace?: boolean;
+};
+export type ResizeSettleTraceEntry = {
+	sequence: number;
+	generation: number;
+	event: string;
+	detail: Record<string, unknown>;
+	detailJson?: string;
+	elapsedMs?: number | null;
 };
 export type ManagerViewSettings = {
 	[key: string]: unknown;
@@ -254,6 +264,9 @@ class DefaultViewManager {
 	declare _verticalRlBoundarySnapRetryToken?: number;
 	declare _verticalRlBoundarySnapApplying?: boolean;
 	declare _verticalRlViewportClipOverlay?: HTMLDivElement;
+	declare _resizeSettleTrace?: ResizeSettleTraceEntry[];
+	declare _resizeSettleTraceSequence?: number;
+	declare _resizeSettleTraceGeneration?: number;
 	declare _verticalRlPreviousParentPosition?: string;
 	declare location: Array<ManagerLocationItem | null | undefined>;
 	declare name: string;
@@ -314,7 +327,104 @@ class DefaultViewManager {
 		this.rendered = false;
 		this._layoutDirty = true;
 		this._lastLayoutStageSize = null;
+		this._resizeSettleTrace = [];
+		this._resizeSettleTraceSequence = 0;
+		this._resizeSettleTraceGeneration = 0;
 
+	}
+
+	recordResizeSettleTrace(event: string, detail: Record<string, unknown> = {}): void {
+		if (!this.settings.resizeSettleTrace) {
+			return;
+		}
+
+		let trace = this._resizeSettleTrace || [];
+		let entry = {
+			sequence: (this._resizeSettleTraceSequence || 0) + 1,
+			generation: this._resizeSettleTraceGeneration || 0,
+			event,
+			detail,
+			detailJson: JSON.stringify(detail),
+			elapsedMs: typeof performance !== "undefined" && performance.now
+				? Math.round(performance.now() * 100) / 100
+				: null
+		};
+		this._resizeSettleTraceSequence = entry.sequence;
+		trace.push(entry);
+		if (trace.length > 200) {
+			trace.splice(0, trace.length - 200);
+		}
+		this._resizeSettleTrace = trace;
+	}
+
+	getResizeSettleTrace(): ResizeSettleTraceEntry[] {
+		return (this._resizeSettleTrace || []).map(function(entry){
+			return {
+				sequence: entry.sequence,
+				generation: entry.generation,
+				event: entry.event,
+				detail: Object.assign({}, entry.detail),
+				detailJson: entry.detailJson,
+				elapsedMs: entry.elapsedMs
+			};
+		});
+	}
+
+	clearResizeSettleTrace(): void {
+		this._resizeSettleTrace = [];
+		this._resizeSettleTraceSequence = 0;
+	}
+
+	traceTargetOwnership(view: ManagerView, target: string | number, offset: ManagerOffset): void {
+		let rangeDetail: Record<string, unknown> = {};
+		if (typeof target === "string" && this.epubcfiTarget(target)) {
+			try {
+				let range = new EpubCFI(target).toRange(view.contents.document, this.settings.ignoreClass);
+				let rect = range && "getBoundingClientRect" in range
+					? range.getBoundingClientRect()
+					: null;
+				rangeDetail = {
+					startOffset: range ? range.startOffset : null,
+					endOffset: range ? range.endOffset : null,
+					collapsed: range ? range.collapsed : null,
+					left: rect ? rect.left : null,
+					right: rect ? rect.right : null,
+					top: rect ? rect.top : null,
+					bottom: rect ? rect.bottom : null
+				};
+			} catch (error) {
+				rangeDetail = {
+					error: error instanceof Error ? error.message : String(error)
+				};
+			}
+		}
+		this.recordResizeSettleTrace("display:target-mapped", {
+			target,
+			href: view.section.href || null,
+			offset: {
+				left: offset.left,
+				top: offset.top
+			},
+			range: rangeDetail,
+			pageAdvance: this.getPageAdvance(),
+			viewWidth: view.width(),
+			container: this.resizeSettleContainerSnapshot()
+		});
+	}
+
+	epubcfiTarget(target: string): boolean {
+		return target.indexOf("epubcfi(") === 0;
+	}
+
+	resizeSettleContainerSnapshot(): Record<string, number | null> {
+		return {
+			clientWidth: this.container ? this.container.clientWidth : null,
+			clientHeight: this.container ? this.container.clientHeight : null,
+			scrollLeft: this.container ? this.container.scrollLeft : null,
+			scrollTop: this.container ? this.container.scrollTop : null,
+			scrollWidth: this.container ? this.container.scrollWidth : null,
+			scrollHeight: this.container ? this.container.scrollHeight : null
+		};
 	}
 
 	render(element: HTMLElement, size: ManagerRenderSize): void {
@@ -491,6 +601,19 @@ class DefaultViewManager {
 			return;
 		}
 
+		this._resizeSettleTraceGeneration = (this._resizeSettleTraceGeneration || 0) + 1;
+		this.recordResizeSettleTrace("resize:capture", {
+			input: {
+				width: width ?? null,
+				height: height ?? null,
+				epubcfi: epubcfi || null,
+				managerTarget: this.target || null
+			},
+			previousStageSize: this._stageSize ? Object.assign({}, this._stageSize) : null,
+			nextStageSize: Object.assign({}, stageSize),
+			container: this.resizeSettleContainerSnapshot()
+		});
+
 		this._stageSize = stageSize;
 
 		this._bounds = this.bounds();
@@ -503,6 +626,16 @@ class DefaultViewManager {
 		this.viewSettings.height = this._stageSize.height;
 
 		this.updateLayout();
+		this.recordResizeSettleTrace("resize:layout-updated", {
+			stageSize: Object.assign({}, this._stageSize),
+			layout: {
+				width: this.layout.width,
+				height: this.layout.height,
+				delta: this.layout.delta,
+				pageWidth: this.layout.pageWidth
+			},
+			container: this.resizeSettleContainerSnapshot()
+		});
 
 		this.emit(EVENTS.MANAGERS.RESIZED, {
 			width: this._stageSize.width,
@@ -545,6 +678,15 @@ class DefaultViewManager {
 
 		// If the window is resized before rendered, call resize with original target
 		this.target = target;
+		this.recordResizeSettleTrace("display:start", {
+			href: section.href || null,
+			target: target || null,
+			caller: new Error().stack
+				?.split("\n")
+				.slice(1, 6)
+				.join("\n") || null,
+			container: this.resizeSettleContainerSnapshot()
+		});
 
 		// Check to make sure the section we want isn't already shown
 		var visible: ManagerView | undefined = this.views.find(section);
@@ -563,6 +705,7 @@ class DefaultViewManager {
 			if(target) {
 				let offset = visible.locationOf(target);
 				let width = visible.width();
+				this.traceTargetOwnership(visible, target, offset);
 				this.moveTo(offset, width);
 			}
 
@@ -585,6 +728,7 @@ class DefaultViewManager {
 				if(target) {
 					let offset = view.locationOf(target);
 					let width = view.width();
+					this.traceTargetOwnership(view, target, offset);
 					this.moveTo(offset, width);
 				}
 
@@ -714,6 +858,21 @@ class DefaultViewManager {
 			distX = distX + this.getPageAdvance();
 			distX = distX - width;
 		}
+		this.recordResizeSettleTrace("display:scroll-target", {
+			offset: {
+				left: offset.left,
+				top: offset.top
+			},
+			viewWidth: width ?? null,
+			pageAdvance: this.getPageAdvance(),
+			direction: this.settings.direction || null,
+			axis: this.settings.axis || null,
+			target: {
+				left: distX,
+				top: distY
+			},
+			container: this.resizeSettleContainerSnapshot()
+		});
 		this.scrollTo(distX, distY, true);
 	}
 
@@ -2120,6 +2279,18 @@ class DefaultViewManager {
 		} else {
 			this.location = this.scrolledLocation();
 		}
+		this.recordResizeSettleTrace("location:mapped", {
+			location: this.location.map(function(item){
+				return item ? {
+					href: item.href,
+					pages: item.pages,
+					totalPages: item.totalPages,
+					start: item.mapping && item.mapping.start,
+					end: item.mapping && item.mapping.end
+				} : null;
+			}),
+			container: this.resizeSettleContainerSnapshot()
+		});
 		return this.location;
 	}
 
@@ -2350,6 +2521,7 @@ class DefaultViewManager {
 	}
 
 	scrollTo(x: number, y: number, silent?: boolean): void {
+		let before = this.resizeSettleContainerSnapshot();
 		if(silent) {
 			this.ignore = true;
 		}
@@ -2361,6 +2533,15 @@ class DefaultViewManager {
 			window.scrollTo(x,y);
 		}
 		(this as unknown as ManagerScrollState).scrolled = true;
+		this.recordResizeSettleTrace("scroll:applied", {
+			requested: {
+				left: x,
+				top: y,
+				silent: Boolean(silent)
+			},
+			before,
+			after: this.resizeSettleContainerSnapshot()
+		});
 
 		if (!this._verticalRlBoundarySnapApplying && this.isRtlVerticalPaginated()) {
 			this.queueVerticalRlBoundarySnapRetryForCurrentOffset();

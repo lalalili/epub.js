@@ -49,7 +49,7 @@ describe("Contents locationOf", () => {
 		}
 	});
 
-	it("expands a collapsed text range without a range error", () => {
+	it("expands a collapsed text range by one code point without a range error", () => {
 		let container = document.createElement("div");
 		container.textContent = "Text range has a valid UTF-16 offset.";
 		document.body.appendChild(container);
@@ -60,7 +60,7 @@ describe("Contents locationOf", () => {
 			let range = locateCollapsedRange(text, 0);
 
 			expect(range.startContainer.nodeType).toBe(Node.TEXT_NODE);
-			expect(range.endOffset).toBe(4);
+			expect(range.endOffset).toBe(1);
 			expect(consoleError).not.toHaveBeenCalled();
 		} finally {
 			container.remove();

@@ -6254,9 +6254,19 @@ var Ct = class {
 			let i = new Z(e).toRange(this.document, t);
 			if (i) {
 				try {
-					if (!i.endContainer || i.startContainer == i.endContainer && i.startOffset == i.endOffset) {
-						let e = i.startContainer.textContent.indexOf(" ", i.startOffset);
-						e == -1 && (e = i.startContainer.textContent.length), i.setEnd(i.startContainer, e);
+					if (i.startContainer.nodeType === Ot && (!i.endContainer || i.startContainer == i.endContainer && i.startOffset == i.endOffset)) {
+						let e = i.startContainer.textContent || "", t = Math.min(i.startOffset, e.length);
+						if (t < e.length) {
+							let n = e.codePointAt(t), r = n && n > 65535 ? 2 : 1;
+							i.setEnd(i.startContainer, Math.min(e.length, t + r));
+						} else if (t > 0) {
+							let n = t - 1, r = e.charCodeAt(n);
+							if (r >= 56320 && r <= 57343 && n > 0) {
+								let t = e.charCodeAt(n - 1);
+								t >= 55296 && t <= 56319 && --n;
+							}
+							i.setStart(i.startContainer, n);
+						}
 					}
 				} catch (e) {
 					console.error("setting end offset to start container length failed", e);
@@ -8251,7 +8261,76 @@ var Nr = class {
 			forceEvenPages: !0,
 			allowScriptedContent: this.settings.allowScriptedContent,
 			allowPopups: this.settings.allowPopups
-		}, this.rendered = !1, this._layoutDirty = !0, this._lastLayoutStageSize = null;
+		}, this.rendered = !1, this._layoutDirty = !0, this._lastLayoutStageSize = null, this._resizeSettleTrace = [], this._resizeSettleTraceSequence = 0, this._resizeSettleTraceGeneration = 0;
+	}
+	recordResizeSettleTrace(e, t = {}) {
+		if (!this.settings.resizeSettleTrace) return;
+		let n = this._resizeSettleTrace || [], r = {
+			sequence: (this._resizeSettleTraceSequence || 0) + 1,
+			generation: this._resizeSettleTraceGeneration || 0,
+			event: e,
+			detail: t,
+			detailJson: JSON.stringify(t),
+			elapsedMs: typeof performance < "u" && performance.now ? Math.round(performance.now() * 100) / 100 : null
+		};
+		this._resizeSettleTraceSequence = r.sequence, n.push(r), n.length > 200 && n.splice(0, n.length - 200), this._resizeSettleTrace = n;
+	}
+	getResizeSettleTrace() {
+		return (this._resizeSettleTrace || []).map(function(e) {
+			return {
+				sequence: e.sequence,
+				generation: e.generation,
+				event: e.event,
+				detail: Object.assign({}, e.detail),
+				detailJson: e.detailJson,
+				elapsedMs: e.elapsedMs
+			};
+		});
+	}
+	clearResizeSettleTrace() {
+		this._resizeSettleTrace = [], this._resizeSettleTraceSequence = 0;
+	}
+	traceTargetOwnership(e, t, n) {
+		let r = {};
+		if (typeof t == "string" && this.epubcfiTarget(t)) try {
+			let n = new Z(t).toRange(e.contents.document, this.settings.ignoreClass), i = n && "getBoundingClientRect" in n ? n.getBoundingClientRect() : null;
+			r = {
+				startOffset: n ? n.startOffset : null,
+				endOffset: n ? n.endOffset : null,
+				collapsed: n ? n.collapsed : null,
+				left: i ? i.left : null,
+				right: i ? i.right : null,
+				top: i ? i.top : null,
+				bottom: i ? i.bottom : null
+			};
+		} catch (e) {
+			r = { error: e instanceof Error ? e.message : String(e) };
+		}
+		this.recordResizeSettleTrace("display:target-mapped", {
+			target: t,
+			href: e.section.href || null,
+			offset: {
+				left: n.left,
+				top: n.top
+			},
+			range: r,
+			pageAdvance: this.getPageAdvance(),
+			viewWidth: e.width(),
+			container: this.resizeSettleContainerSnapshot()
+		});
+	}
+	epubcfiTarget(e) {
+		return e.indexOf("epubcfi(") === 0;
+	}
+	resizeSettleContainerSnapshot() {
+		return {
+			clientWidth: this.container ? this.container.clientWidth : null,
+			clientHeight: this.container ? this.container.clientHeight : null,
+			scrollLeft: this.container ? this.container.scrollLeft : null,
+			scrollTop: this.container ? this.container.scrollTop : null,
+			scrollWidth: this.container ? this.container.scrollWidth : null,
+			scrollHeight: this.container ? this.container.scrollHeight : null
+		};
 	}
 	render(e, t) {
 		let n = e.tagName;
@@ -8292,7 +8371,26 @@ var Nr = class {
 			this._stageSize = void 0;
 			return;
 		}
-		this._stageSize && this._stageSize.width === r.width && this._stageSize.height === r.height || (this._stageSize = r, this._bounds = this.bounds(), this.clear(), this.viewSettings.width = this._stageSize.width, this.viewSettings.height = this._stageSize.height, this.updateLayout(), this.emit($.MANAGERS.RESIZED, {
+		this._stageSize && this._stageSize.width === r.width && this._stageSize.height === r.height || (this._resizeSettleTraceGeneration = (this._resizeSettleTraceGeneration || 0) + 1, this.recordResizeSettleTrace("resize:capture", {
+			input: {
+				width: e ?? null,
+				height: t ?? null,
+				epubcfi: n || null,
+				managerTarget: this.target || null
+			},
+			previousStageSize: this._stageSize ? Object.assign({}, this._stageSize) : null,
+			nextStageSize: Object.assign({}, r),
+			container: this.resizeSettleContainerSnapshot()
+		}), this._stageSize = r, this._bounds = this.bounds(), this.clear(), this.viewSettings.width = this._stageSize.width, this.viewSettings.height = this._stageSize.height, this.updateLayout(), this.recordResizeSettleTrace("resize:layout-updated", {
+			stageSize: Object.assign({}, this._stageSize),
+			layout: {
+				width: this.layout.width,
+				height: this.layout.height,
+				delta: this.layout.delta,
+				pageWidth: this.layout.pageWidth
+			},
+			container: this.resizeSettleContainerSnapshot()
+		}), this.emit($.MANAGERS.RESIZED, {
 			width: this._stageSize.width,
 			height: this._stageSize.height
 		}, n || this.target));
@@ -8309,7 +8407,12 @@ var Nr = class {
 	}
 	display(e, t) {
 		var n = new Fr(), r = n.promise;
-		(t === e.href || Y(t)) && (t = void 0), this.target = t;
+		(t === e.href || Y(t)) && (t = void 0), this.target = t, this.recordResizeSettleTrace("display:start", {
+			href: e.href || null,
+			target: t || null,
+			caller: (/* @__PURE__ */ Error()).stack?.split("\n").slice(1, 6).join("\n") || null,
+			container: this.resizeSettleContainerSnapshot()
+		});
 		var i = this.views.find(e);
 		if (i && e && this.layout.name !== "pre-paginated") {
 			let e = i.offset();
@@ -8320,7 +8423,7 @@ var Nr = class {
 			}
 			if (t) {
 				let e = i.locationOf(t), n = i.width();
-				this.moveTo(e, n);
+				this.traceTargetOwnership(i, t, e), this.moveTo(e, n);
 			}
 			return n.resolve(), r;
 		}
@@ -8329,7 +8432,7 @@ var Nr = class {
 		return this.layout.name === "pre-paginated" && this.layout.divisor === 2 && e.properties.includes("page-spread-right") && (a = !0), this.add(e, a).then(function(e) {
 			if (t) {
 				let n = e.locationOf(t), r = e.width();
-				this.moveTo(n, r);
+				this.traceTargetOwnership(e, t, n), this.moveTo(n, r);
 			}
 		}.bind(this), (e) => {
 			n.reject(e);
@@ -8367,7 +8470,21 @@ var Nr = class {
 			}
 			n = Math.floor(e.left / i) * i, n + i > this.container.scrollWidth && (n = Math.max(0, this.container.scrollWidth - i)), this.settings.axis === "vertical" ? (r = Math.floor(e.top / this.layout.height) * this.layout.height, r + this.layout.height > this.container.scrollHeight && (r = Math.max(0, this.container.scrollHeight - this.layout.height))) : (r = Math.floor(e.top / i) * i, r + i > this.container.scrollHeight && (r = Math.max(0, this.container.scrollHeight - i)));
 		}
-		this.settings.direction === "rtl" && (n += this.getPageAdvance(), n -= t), this.scrollTo(n, r, !0);
+		this.settings.direction === "rtl" && (n += this.getPageAdvance(), n -= t), this.recordResizeSettleTrace("display:scroll-target", {
+			offset: {
+				left: e.left,
+				top: e.top
+			},
+			viewWidth: t ?? null,
+			pageAdvance: this.getPageAdvance(),
+			direction: this.settings.direction || null,
+			axis: this.settings.axis || null,
+			target: {
+				left: n,
+				top: r
+			},
+			container: this.resizeSettleContainerSnapshot()
+		}), this.scrollTo(n, r, !0);
 	}
 	add(e, t) {
 		var n = this.createView(e, t);
@@ -8836,7 +8953,18 @@ var Nr = class {
 		this.views && (this.views.hide(), this.scrollTo(0, 0, !0), this.views.clear());
 	}
 	currentLocation() {
-		return this.shouldUpdateLayoutForLocation() && this.updateLayout(), this.isPaginated && this.settings.axis === "horizontal" ? this.location = this.paginatedLocation() : this.location = this.scrolledLocation(), this.location;
+		return this.shouldUpdateLayoutForLocation() && this.updateLayout(), this.isPaginated && this.settings.axis === "horizontal" ? this.location = this.paginatedLocation() : this.location = this.scrolledLocation(), this.recordResizeSettleTrace("location:mapped", {
+			location: this.location.map(function(e) {
+				return e ? {
+					href: e.href,
+					pages: e.pages,
+					totalPages: e.totalPages,
+					start: e.mapping && e.mapping.start,
+					end: e.mapping && e.mapping.end
+				} : null;
+			}),
+			container: this.resizeSettleContainerSnapshot()
+		}), this.location;
 	}
 	scrolledLocation() {
 		let e = this.visible(), t = this.container.getBoundingClientRect(), n = t.height < window.innerHeight ? t.height : window.innerHeight, r = t.width < window.innerWidth ? t.width : window.innerWidth, i = this.settings.axis === "vertical", a = 0;
@@ -8909,7 +9037,16 @@ var Nr = class {
 		n && (this.ignore = !0), this.settings.fullsize ? window.scrollBy(e * r, t * r) : (e && (this.container.scrollLeft += e * r), t && (this.container.scrollTop += t)), this.scrolled = !0;
 	}
 	scrollTo(e, t, n) {
-		n && (this.ignore = !0), this.settings.fullsize ? window.scrollTo(e, t) : (this.container.scrollLeft = e, this.container.scrollTop = t), this.scrolled = !0, !this._verticalRlBoundarySnapApplying && this.isRtlVerticalPaginated() && this.queueVerticalRlBoundarySnapRetryForCurrentOffset();
+		let r = this.resizeSettleContainerSnapshot();
+		n && (this.ignore = !0), this.settings.fullsize ? window.scrollTo(e, t) : (this.container.scrollLeft = e, this.container.scrollTop = t), this.scrolled = !0, this.recordResizeSettleTrace("scroll:applied", {
+			requested: {
+				left: e,
+				top: t,
+				silent: !!n
+			},
+			before: r,
+			after: this.resizeSettleContainerSnapshot()
+		}), !this._verticalRlBoundarySnapApplying && this.isRtlVerticalPaginated() && this.queueVerticalRlBoundarySnapRetryForCurrentOffset();
 	}
 	onScroll() {
 		let e, t, n = this.ignore;
@@ -9434,7 +9571,13 @@ var Kr = class {
 		this.emit($.RENDITION.RESIZED, {
 			width: e.width,
 			height: e.height
-		}, t), t ? this.display(t) : this.location && this.location.start && this.display(this.location.start.cfi);
+		}, t);
+		let n = t || (this.location && this.location.start ? this.location.start.cfi : null);
+		this.manager.recordResizeSettleTrace?.("rendition:resize-resolved", {
+			inputCfi: t || null,
+			locationCfi: this.location && this.location.start ? this.location.start.cfi : null,
+			resolvedCfi: n
+		}), t ? this.display(t) : this.location && this.location.start && this.display(this.location.start.cfi);
 	}
 	onOrientationChange(e) {
 		this.emit($.RENDITION.ORIENTATION_CHANGE, e);
@@ -9444,6 +9587,10 @@ var Kr = class {
 	}
 	resize(e, t, n) {
 		e && (this.settings.width = e), t && (this.settings.height = t), this.manager.resize(e, t, n);
+	}
+	debugResizeSettleTrace({ clear: e = !1 } = {}) {
+		let t = this.manager && this.manager.getResizeSettleTrace ? this.manager.getResizeSettleTrace() : [];
+		return e && this.manager && this.manager.clearResizeSettleTrace && this.manager.clearResizeSettleTrace(), t;
 	}
 	clear() {
 		this.manager.clear();

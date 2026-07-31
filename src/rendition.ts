@@ -21,7 +21,7 @@ import type Section from "./section";
 import IframeView from "./managers/views/iframe";
 
 // Default View Managers
-import DefaultViewManager from "./managers/default/index";
+import DefaultViewManager, { type ResizeSettleTraceEntry } from "./managers/default/index";
 import ContinuousViewManager from "./managers/continuous/index";
 
 export interface RenditionOptions {
@@ -43,6 +43,7 @@ export interface RenditionOptions {
 	allowPopups?: boolean;
 	orientation?: string | null;
 	direction?: string;
+	resizeSettleTrace?: boolean;
 	globalLayoutProperties?: LayoutProperties;
 }
 
@@ -116,6 +117,9 @@ export interface RenditionManager {
 	getTotalPagesForCurrentView?(): number;
 	getCurrentPageIndex?(): number;
 	getNormalizedLogicalScrollLeft?(): number;
+	recordResizeSettleTrace?(event: string, detail?: Record<string, unknown>): void;
+	getResizeSettleTrace?(): ResizeSettleTraceEntry[];
+	clearResizeSettleTrace?(): void;
 	applyLayout(layout: Layout): void;
 	updateFlow(flow: string): void;
 	updateLayout(): void;
@@ -654,6 +658,15 @@ class Rendition {
 			height: size.height
 		}, epubcfi);
 
+		let resolvedCfi = epubcfi || (this.location && this.location.start
+			? this.location.start.cfi
+			: null);
+		this.manager.recordResizeSettleTrace?.("rendition:resize-resolved", {
+			inputCfi: epubcfi || null,
+			locationCfi: this.location && this.location.start ? this.location.start.cfi : null,
+			resolvedCfi
+		});
+
 		if (epubcfi) {
 			this.display(epubcfi);
 		} else if (this.location && this.location.start) {
@@ -699,6 +712,16 @@ class Rendition {
 			this.settings.height = height;
 		}
 		this.manager.resize(width, height, epubcfi);
+	}
+
+	debugResizeSettleTrace({ clear = false }: { clear?: boolean } = {}): ResizeSettleTraceEntry[] {
+		let trace = this.manager && this.manager.getResizeSettleTrace
+			? this.manager.getResizeSettleTrace()
+			: [];
+		if (clear && this.manager && this.manager.clearResizeSettleTrace) {
+			this.manager.clearResizeSettleTrace();
+		}
+		return trace;
 	}
 
 	/**

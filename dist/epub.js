@@ -10884,10 +10884,22 @@
 				let range = new EpubCFI(target).toRange(this.document, ignoreClass);
 				if (range) {
 					try {
-						if (!range.endContainer || range.startContainer == range.endContainer && range.startOffset == range.endOffset) {
-							let pos = range.startContainer.textContent.indexOf(" ", range.startOffset);
-							if (pos == -1) pos = range.startContainer.textContent.length;
-							range.setEnd(range.startContainer, pos);
+						if (range.startContainer.nodeType === TEXT_NODE && (!range.endContainer || range.startContainer == range.endContainer && range.startOffset == range.endOffset)) {
+							let text = range.startContainer.textContent || "";
+							let offset = Math.min(range.startOffset, text.length);
+							if (offset < text.length) {
+								let codePoint = text.codePointAt(offset);
+								let codePointLength = codePoint && codePoint > 65535 ? 2 : 1;
+								range.setEnd(range.startContainer, Math.min(text.length, offset + codePointLength));
+							} else if (offset > 0) {
+								let start = offset - 1;
+								let trailingCodeUnit = text.charCodeAt(start);
+								if (trailingCodeUnit >= 56320 && trailingCodeUnit <= 57343 && start > 0) {
+									let leadingCodeUnit = text.charCodeAt(start - 1);
+									if (leadingCodeUnit >= 55296 && leadingCodeUnit <= 56319) start -= 1;
+								}
+								range.setStart(range.startContainer, start);
+							}
 						}
 					} catch (e) {
 						console.error("setting end offset to start container length failed", e);
@@ -14103,6 +14115,84 @@
 			this.rendered = false;
 			this._layoutDirty = true;
 			this._lastLayoutStageSize = null;
+			this._resizeSettleTrace = [];
+			this._resizeSettleTraceSequence = 0;
+			this._resizeSettleTraceGeneration = 0;
+		}
+		recordResizeSettleTrace(event, detail = {}) {
+			if (!this.settings.resizeSettleTrace) return;
+			let trace = this._resizeSettleTrace || [];
+			let entry = {
+				sequence: (this._resizeSettleTraceSequence || 0) + 1,
+				generation: this._resizeSettleTraceGeneration || 0,
+				event,
+				detail,
+				detailJson: JSON.stringify(detail),
+				elapsedMs: typeof performance !== "undefined" && performance.now ? Math.round(performance.now() * 100) / 100 : null
+			};
+			this._resizeSettleTraceSequence = entry.sequence;
+			trace.push(entry);
+			if (trace.length > 200) trace.splice(0, trace.length - 200);
+			this._resizeSettleTrace = trace;
+		}
+		getResizeSettleTrace() {
+			return (this._resizeSettleTrace || []).map(function(entry) {
+				return {
+					sequence: entry.sequence,
+					generation: entry.generation,
+					event: entry.event,
+					detail: Object.assign({}, entry.detail),
+					detailJson: entry.detailJson,
+					elapsedMs: entry.elapsedMs
+				};
+			});
+		}
+		clearResizeSettleTrace() {
+			this._resizeSettleTrace = [];
+			this._resizeSettleTraceSequence = 0;
+		}
+		traceTargetOwnership(view, target, offset) {
+			let rangeDetail = {};
+			if (typeof target === "string" && this.epubcfiTarget(target)) try {
+				let range = new EpubCFI(target).toRange(view.contents.document, this.settings.ignoreClass);
+				let rect = range && "getBoundingClientRect" in range ? range.getBoundingClientRect() : null;
+				rangeDetail = {
+					startOffset: range ? range.startOffset : null,
+					endOffset: range ? range.endOffset : null,
+					collapsed: range ? range.collapsed : null,
+					left: rect ? rect.left : null,
+					right: rect ? rect.right : null,
+					top: rect ? rect.top : null,
+					bottom: rect ? rect.bottom : null
+				};
+			} catch (error) {
+				rangeDetail = { error: error instanceof Error ? error.message : String(error) };
+			}
+			this.recordResizeSettleTrace("display:target-mapped", {
+				target,
+				href: view.section.href || null,
+				offset: {
+					left: offset.left,
+					top: offset.top
+				},
+				range: rangeDetail,
+				pageAdvance: this.getPageAdvance(),
+				viewWidth: view.width(),
+				container: this.resizeSettleContainerSnapshot()
+			});
+		}
+		epubcfiTarget(target) {
+			return target.indexOf("epubcfi(") === 0;
+		}
+		resizeSettleContainerSnapshot() {
+			return {
+				clientWidth: this.container ? this.container.clientWidth : null,
+				clientHeight: this.container ? this.container.clientHeight : null,
+				scrollLeft: this.container ? this.container.scrollLeft : null,
+				scrollTop: this.container ? this.container.scrollTop : null,
+				scrollWidth: this.container ? this.container.scrollWidth : null,
+				scrollHeight: this.container ? this.container.scrollHeight : null
+			};
 		}
 		render(element, size) {
 			let tag = element.tagName;
@@ -14186,12 +14276,34 @@
 				return;
 			}
 			if (this._stageSize && this._stageSize.width === stageSize.width && this._stageSize.height === stageSize.height) return;
+			this._resizeSettleTraceGeneration = (this._resizeSettleTraceGeneration || 0) + 1;
+			this.recordResizeSettleTrace("resize:capture", {
+				input: {
+					width: width ?? null,
+					height: height ?? null,
+					epubcfi: epubcfi || null,
+					managerTarget: this.target || null
+				},
+				previousStageSize: this._stageSize ? Object.assign({}, this._stageSize) : null,
+				nextStageSize: Object.assign({}, stageSize),
+				container: this.resizeSettleContainerSnapshot()
+			});
 			this._stageSize = stageSize;
 			this._bounds = this.bounds();
 			this.clear();
 			this.viewSettings.width = this._stageSize.width;
 			this.viewSettings.height = this._stageSize.height;
 			this.updateLayout();
+			this.recordResizeSettleTrace("resize:layout-updated", {
+				stageSize: Object.assign({}, this._stageSize),
+				layout: {
+					width: this.layout.width,
+					height: this.layout.height,
+					delta: this.layout.delta,
+					pageWidth: this.layout.pageWidth
+				},
+				container: this.resizeSettleContainerSnapshot()
+			});
 			this.emit(EVENTS.MANAGERS.RESIZED, {
 				width: this._stageSize.width,
 				height: this._stageSize.height
@@ -14213,6 +14325,12 @@
 			var displayed = displaying.promise;
 			if (target === section.href || isNumber$1(target)) target = void 0;
 			this.target = target;
+			this.recordResizeSettleTrace("display:start", {
+				href: section.href || null,
+				target: target || null,
+				caller: (/* @__PURE__ */ new Error()).stack?.split("\n").slice(1, 6).join("\n") || null,
+				container: this.resizeSettleContainerSnapshot()
+			});
 			var visible = this.views.find(section);
 			if (visible && section && this.layout.name !== "pre-paginated") {
 				let offset = visible.offset();
@@ -14224,6 +14342,7 @@
 				if (target) {
 					let offset = visible.locationOf(target);
 					let width = visible.width();
+					this.traceTargetOwnership(visible, target, offset);
 					this.moveTo(offset, width);
 				}
 				displaying.resolve();
@@ -14236,6 +14355,7 @@
 				if (target) {
 					let offset = view.locationOf(target);
 					let width = view.width();
+					this.traceTargetOwnership(view, target, offset);
 					this.moveTo(offset, width);
 				}
 			}.bind(this), (err) => {
@@ -14313,6 +14433,21 @@
 				distX = distX + this.getPageAdvance();
 				distX = distX - width;
 			}
+			this.recordResizeSettleTrace("display:scroll-target", {
+				offset: {
+					left: offset.left,
+					top: offset.top
+				},
+				viewWidth: width ?? null,
+				pageAdvance: this.getPageAdvance(),
+				direction: this.settings.direction || null,
+				axis: this.settings.axis || null,
+				target: {
+					left: distX,
+					top: distY
+				},
+				container: this.resizeSettleContainerSnapshot()
+			});
 			this.scrollTo(distX, distY, true);
 		}
 		add(section, forceRight) {
@@ -15039,6 +15174,18 @@
 			if (this.shouldUpdateLayoutForLocation()) this.updateLayout();
 			if (this.isPaginated && this.settings.axis === "horizontal") this.location = this.paginatedLocation();
 			else this.location = this.scrolledLocation();
+			this.recordResizeSettleTrace("location:mapped", {
+				location: this.location.map(function(item) {
+					return item ? {
+						href: item.href,
+						pages: item.pages,
+						totalPages: item.totalPages,
+						start: item.mapping && item.mapping.start,
+						end: item.mapping && item.mapping.end
+					} : null;
+				}),
+				container: this.resizeSettleContainerSnapshot()
+			});
 			return this.location;
 		}
 		scrolledLocation() {
@@ -15199,12 +15346,22 @@
 			this.scrolled = true;
 		}
 		scrollTo(x, y, silent) {
+			let before = this.resizeSettleContainerSnapshot();
 			if (silent) this.ignore = true;
 			if (!this.settings.fullsize) {
 				this.container.scrollLeft = x;
 				this.container.scrollTop = y;
 			} else window.scrollTo(x, y);
 			this.scrolled = true;
+			this.recordResizeSettleTrace("scroll:applied", {
+				requested: {
+					left: x,
+					top: y,
+					silent: Boolean(silent)
+				},
+				before,
+				after: this.resizeSettleContainerSnapshot()
+			});
 			if (!this._verticalRlBoundarySnapApplying && this.isRtlVerticalPaginated()) this.queueVerticalRlBoundarySnapRetryForCurrentOffset();
 		}
 		onScroll() {
@@ -16278,6 +16435,12 @@
 				width: size.width,
 				height: size.height
 			}, epubcfi);
+			let resolvedCfi = epubcfi || (this.location && this.location.start ? this.location.start.cfi : null);
+			this.manager.recordResizeSettleTrace?.("rendition:resize-resolved", {
+				inputCfi: epubcfi || null,
+				locationCfi: this.location && this.location.start ? this.location.start.cfi : null,
+				resolvedCfi
+			});
 			if (epubcfi) this.display(epubcfi);
 			else if (this.location && this.location.start) this.display(this.location.start.cfi);
 		}
@@ -16312,6 +16475,11 @@
 			if (width) this.settings.width = width;
 			if (height) this.settings.height = height;
 			this.manager.resize(width, height, epubcfi);
+		}
+		debugResizeSettleTrace({ clear = false } = {}) {
+			let trace = this.manager && this.manager.getResizeSettleTrace ? this.manager.getResizeSettleTrace() : [];
+			if (clear && this.manager && this.manager.clearResizeSettleTrace) this.manager.clearResizeSettleTrace();
+			return trace;
 		}
 		/**
 		* Clear all rendered views
