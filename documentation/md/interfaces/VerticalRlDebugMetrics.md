@@ -128,6 +128,12 @@
 
 ***
 
+### rawPaintWidth
+
+> **rawPaintWidth**: `number`
+
+***
+
 ### sampleCount
 
 > **sampleCount**: `number`

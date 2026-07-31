@@ -8,7 +8,7 @@
 
 ## Call Signature
 
-> **RequestMethod**(`url`, `type`, `withCredentials?`, `headers?`): `Promise`\<`ArrayBuffer`\>
+> **RequestMethod**(`url`, `type`, `withCredentials?`, `headers?`, `signal?`): `Promise`\<`ArrayBuffer`\>
 
 ### Parameters
 
@@ -28,13 +28,17 @@
 
 [`RequestHeaders`](../type-aliases/RequestHeaders.md)
 
+#### signal?
+
+`AbortSignal`
+
 ### Returns
 
 `Promise`\<`ArrayBuffer`\>
 
 ## Call Signature
 
-> **RequestMethod**(`url`, `type`, `withCredentials?`, `headers?`): `Promise`\<`Blob`\>
+> **RequestMethod**(`url`, `type`, `withCredentials?`, `headers?`, `signal?`): `Promise`\<`Blob`\>
 
 ### Parameters
 
@@ -54,13 +58,17 @@
 
 [`RequestHeaders`](../type-aliases/RequestHeaders.md)
 
+#### signal?
+
+`AbortSignal`
+
 ### Returns
 
 `Promise`\<`Blob`\>
 
 ## Call Signature
 
-> **RequestMethod**(`url`, `type`, `withCredentials?`, `headers?`): `Promise`\<[`JsonValue`](../type-aliases/JsonValue.md)\>
+> **RequestMethod**(`url`, `type`, `withCredentials?`, `headers?`, `signal?`): `Promise`\<[`JsonValue`](../type-aliases/JsonValue.md)\>
 
 ### Parameters
 
@@ -80,13 +88,17 @@
 
 [`RequestHeaders`](../type-aliases/RequestHeaders.md)
 
+#### signal?
+
+`AbortSignal`
+
 ### Returns
 
 `Promise`\<[`JsonValue`](../type-aliases/JsonValue.md)\>
 
 ## Call Signature
 
-> **RequestMethod**(`url`, `type`, `withCredentials?`, `headers?`): `Promise`\<`Document` \| `XMLDocument`\>
+> **RequestMethod**(`url`, `type`, `withCredentials?`, `headers?`, `signal?`): `Promise`\<`Document` \| `XMLDocument`\>
 
 ### Parameters
 
@@ -106,13 +118,17 @@
 
 [`RequestHeaders`](../type-aliases/RequestHeaders.md)
 
+#### signal?
+
+`AbortSignal`
+
 ### Returns
 
 `Promise`\<`Document` \| `XMLDocument`\>
 
 ## Call Signature
 
-> **RequestMethod**(`url`, `type`, `withCredentials?`, `headers?`): `Promise`\<`string`\>
+> **RequestMethod**(`url`, `type`, `withCredentials?`, `headers?`, `signal?`): `Promise`\<`string`\>
 
 ### Parameters
 
@@ -132,13 +148,17 @@
 
 [`RequestHeaders`](../type-aliases/RequestHeaders.md)
 
+#### signal?
+
+`AbortSignal`
+
 ### Returns
 
 `Promise`\<`string`\>
 
 ## Call Signature
 
-> **RequestMethod**(`url`, `type?`, `withCredentials?`, `headers?`): `Promise`\<[`RequestResponse`](../type-aliases/RequestResponse.md)\>
+> **RequestMethod**(`url`, `type?`, `withCredentials?`, `headers?`, `signal?`): `Promise`\<[`RequestResponse`](../type-aliases/RequestResponse.md)\>
 
 ### Parameters
 
@@ -157,6 +177,10 @@
 #### headers?
 
 [`RequestHeaders`](../type-aliases/RequestHeaders.md)
+
+#### signal?
+
+`AbortSignal`
 
 ### Returns
 

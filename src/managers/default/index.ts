@@ -334,7 +334,7 @@ class DefaultViewManager {
 	}
 
 	recordResizeSettleTrace(event: string, detail: Record<string, unknown> = {}): void {
-		if (!this.settings.resizeSettleTrace) {
+		if (!this.settings?.resizeSettleTrace) {
 			return;
 		}
 
@@ -629,10 +629,10 @@ class DefaultViewManager {
 		this.recordResizeSettleTrace("resize:layout-updated", {
 			stageSize: Object.assign({}, this._stageSize),
 			layout: {
-				width: this.layout.width,
-				height: this.layout.height,
-				delta: this.layout.delta,
-				pageWidth: this.layout.pageWidth
+				width: this.layout?.width ?? null,
+				height: this.layout?.height ?? null,
+				delta: this.layout?.delta ?? null,
+				pageWidth: this.layout?.pageWidth ?? null
 			},
 			container: this.resizeSettleContainerSnapshot()
 		});

@@ -661,7 +661,7 @@ class Rendition {
 		let resolvedCfi = epubcfi || (this.location && this.location.start
 			? this.location.start.cfi
 			: null);
-		this.manager.recordResizeSettleTrace?.("rendition:resize-resolved", {
+		this.manager?.recordResizeSettleTrace?.("rendition:resize-resolved", {
 			inputCfi: epubcfi || null,
 			locationCfi: this.location && this.location.start ? this.location.start.cfi : null,
 			resolvedCfi

@@ -196,13 +196,17 @@
 
 ### load()
 
-> **load**(`_request?`): `Promise`\<`Element`\>
+> **load**(`_request?`, `signal?`): `Promise`\<`Element`\>
 
 #### Parameters
 
 ##### \_request?
 
 [`SectionRequest`](../type-aliases/SectionRequest.md)
+
+##### signal?
+
+`AbortSignal`
 
 #### Returns
 
@@ -228,13 +232,17 @@
 
 ### render()
 
-> **render**(`_request?`): `Promise`\<`string`\>
+> **render**(`_request?`, `signal?`): `Promise`\<`string`\>
 
 #### Parameters
 
 ##### \_request?
 
 [`SectionRequest`](../type-aliases/SectionRequest.md)
+
+##### signal?
+
+`AbortSignal`
 
 #### Returns
 

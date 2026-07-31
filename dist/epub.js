@@ -14120,7 +14120,7 @@
 			this._resizeSettleTraceGeneration = 0;
 		}
 		recordResizeSettleTrace(event, detail = {}) {
-			if (!this.settings.resizeSettleTrace) return;
+			if (!this.settings?.resizeSettleTrace) return;
 			let trace = this._resizeSettleTrace || [];
 			let entry = {
 				sequence: (this._resizeSettleTraceSequence || 0) + 1,
@@ -14297,10 +14297,10 @@
 			this.recordResizeSettleTrace("resize:layout-updated", {
 				stageSize: Object.assign({}, this._stageSize),
 				layout: {
-					width: this.layout.width,
-					height: this.layout.height,
-					delta: this.layout.delta,
-					pageWidth: this.layout.pageWidth
+					width: this.layout?.width ?? null,
+					height: this.layout?.height ?? null,
+					delta: this.layout?.delta ?? null,
+					pageWidth: this.layout?.pageWidth ?? null
 				},
 				container: this.resizeSettleContainerSnapshot()
 			});
@@ -16436,7 +16436,7 @@
 				height: size.height
 			}, epubcfi);
 			let resolvedCfi = epubcfi || (this.location && this.location.start ? this.location.start.cfi : null);
-			this.manager.recordResizeSettleTrace?.("rendition:resize-resolved", {
+			this.manager?.recordResizeSettleTrace?.("rendition:resize-resolved", {
 				inputCfi: epubcfi || null,
 				locationCfi: this.location && this.location.start ? this.location.start.cfi : null,
 				resolvedCfi

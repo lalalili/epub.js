@@ -8264,7 +8264,7 @@ var Nr = class {
 		}, this.rendered = !1, this._layoutDirty = !0, this._lastLayoutStageSize = null, this._resizeSettleTrace = [], this._resizeSettleTraceSequence = 0, this._resizeSettleTraceGeneration = 0;
 	}
 	recordResizeSettleTrace(e, t = {}) {
-		if (!this.settings.resizeSettleTrace) return;
+		if (!this.settings?.resizeSettleTrace) return;
 		let n = this._resizeSettleTrace || [], r = {
 			sequence: (this._resizeSettleTraceSequence || 0) + 1,
 			generation: this._resizeSettleTraceGeneration || 0,
@@ -8384,10 +8384,10 @@ var Nr = class {
 		}), this._stageSize = r, this._bounds = this.bounds(), this.clear(), this.viewSettings.width = this._stageSize.width, this.viewSettings.height = this._stageSize.height, this.updateLayout(), this.recordResizeSettleTrace("resize:layout-updated", {
 			stageSize: Object.assign({}, this._stageSize),
 			layout: {
-				width: this.layout.width,
-				height: this.layout.height,
-				delta: this.layout.delta,
-				pageWidth: this.layout.pageWidth
+				width: this.layout?.width ?? null,
+				height: this.layout?.height ?? null,
+				delta: this.layout?.delta ?? null,
+				pageWidth: this.layout?.pageWidth ?? null
 			},
 			container: this.resizeSettleContainerSnapshot()
 		}), this.emit($.MANAGERS.RESIZED, {
@@ -9573,7 +9573,7 @@ var Kr = class {
 			height: e.height
 		}, t);
 		let n = t || (this.location && this.location.start ? this.location.start.cfi : null);
-		this.manager.recordResizeSettleTrace?.("rendition:resize-resolved", {
+		this.manager?.recordResizeSettleTrace?.("rendition:resize-resolved", {
 			inputCfi: t || null,
 			locationCfi: this.location && this.location.start ? this.location.start.cfi : null,
 			resolvedCfi: n
