@@ -222,4 +222,64 @@ describe("rendition resize CFI ownership characterization", () => {
 			}
 		});
 	});
+
+	it("characterizes resize preferring stale rendition location over the current manager page", async () => {
+		const host = document.createElement("div");
+		document.body.appendChild(host);
+		const book = ePub(fixtureUrl("alice.epub"));
+		fixtures.push({ book, host });
+
+		await book.ready;
+		book.package.metadata.direction = "rtl";
+		const rendition = book.renderTo(host, {
+			width: 393,
+			height: 600,
+			spread: "none",
+			flow: "paginated",
+			resizeSettleTrace: true
+		});
+		await rendition.display(3);
+		await nextFrames();
+
+		const manager = rendition.manager;
+		const staleLocation = rendition.currentLocation();
+		rendition.location = staleLocation;
+		const staleCfi = rendition.location.start.cfi;
+		manager.scrollToLogicalPage(3);
+		await nextFrames();
+		const managerLocation = rendition.currentLocation();
+		const freshCfi = managerLocation.start.cfi;
+		rendition.location = staleLocation;
+		const beforeResize = snapshot(rendition, freshCfi);
+
+		expect(manager.getCurrentPageIndex()).toBe(3);
+		expect(freshCfi).not.toBe(staleCfi);
+		expect(rendition.location.start.cfi).toBe(staleCfi);
+		expect(beforeResize.ownsTargetPage).toBe(true);
+
+		rendition.debugResizeSettleTrace({ clear: true });
+		const displayed = waitForDisplayed(rendition);
+		rendition.resize(802, 345);
+		await displayed;
+		await nextFrames(4);
+
+		const afterResize = snapshot(rendition, freshCfi);
+		const resizeTrace = rendition.debugResizeSettleTrace();
+		const resolved = resizeTrace.find((entry) => entry.event === "rendition:resize-resolved");
+		const displayStart = resizeTrace.find((entry) => entry.event === "display:start");
+
+		expect(resolved).toMatchObject({
+			detail: {
+				inputCfi: null,
+				locationCfi: staleCfi,
+				resolvedCfi: staleCfi
+			}
+		});
+		expect(displayStart).toMatchObject({
+			detail: {
+				target: staleCfi
+			}
+		});
+		expect(afterResize.ownsTargetPage).toBe(false);
+	});
 });
