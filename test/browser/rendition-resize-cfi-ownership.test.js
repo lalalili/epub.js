@@ -282,4 +282,59 @@ describe("rendition resize CFI ownership characterization", () => {
 		});
 		expect(afterResize.ownsTargetPage).toBe(false);
 	});
+
+	it("characterizes manager target as display-transaction state instead of settled visual ownership", async () => {
+		const host = document.createElement("div");
+		document.body.appendChild(host);
+		const book = ePub(fixtureUrl("alice.epub"));
+		fixtures.push({ book, host });
+
+		await book.ready;
+		book.package.metadata.direction = "rtl";
+		const rendition = book.renderTo(host, {
+			width: 393,
+			height: 600,
+			spread: "none",
+			flow: "paginated",
+			resizeSettleTrace: true
+		});
+		await rendition.display(3);
+		await nextFrames();
+
+		const manager = rendition.manager;
+		const target = findPreciseTarget(manager.views.first());
+		rendition.debugResizeSettleTrace({ clear: true });
+		await rendition.display(target.cfi);
+		await nextFrames(4);
+
+		const displayTrace = rendition.debugResizeSettleTrace();
+		const displayStart = displayTrace.find((entry) => entry.event === "display:start");
+		const settledTarget = manager.target ?? null;
+		const settledLocation = rendition.currentLocation();
+
+		expect(displayStart).toMatchObject({
+			detail: {
+				target: target.cfi
+			}
+		});
+		expect(settledTarget).toBeNull();
+		expect(settledLocation.start.cfi).toBeTruthy();
+
+		rendition.debugResizeSettleTrace({ clear: true });
+		const displayed = waitForDisplayed(rendition);
+		rendition.resize(802, 345);
+		await displayed;
+		await nextFrames(4);
+
+		const resizeCapture = rendition.debugResizeSettleTrace()
+			.find((entry) => entry.event === "resize:capture");
+		expect(resizeCapture).toMatchObject({
+			detail: {
+				input: {
+					epubcfi: null,
+					managerTarget: null
+				}
+			}
+		});
+	});
 });
