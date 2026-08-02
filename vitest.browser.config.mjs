@@ -1,7 +1,8 @@
 import { playwright } from "@vitest/browser-playwright";
+import { chromium } from "playwright";
 import { defineConfig } from "vitest/config";
 
-const chromeExecutablePath = process.env.CHROME_BIN || "/usr/bin/google-chrome";
+const chromeExecutablePath = process.env.CHROME_BIN || chromium.executablePath();
 const browserName = process.env.EPUBJS_BROWSER || "chromium";
 
 export default defineConfig({
