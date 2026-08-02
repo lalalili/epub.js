@@ -1284,6 +1284,10 @@ class Contents {
 						try {
 							if (container.nodeType === ELEMENT_NODE) {
 								position = (container as Element).getBoundingClientRect();
+							} else if (range.startOffset < range.endOffset) {
+								newRange.setStart(container, range.startOffset);
+								newRange.setEnd(container, range.endOffset);
+								position = newRange.getBoundingClientRect();
 							} else if (range.startOffset + 2 < (container.length || 0)) {
 								newRange.setStart(container, range.startOffset);
 								newRange.setEnd(container, range.startOffset + 2);
