@@ -2024,9 +2024,26 @@ class DefaultViewManager {
 				)
 					? this._verticalRlSequentialBoundaryConstraint
 					: {};
-				let snappedOffset = shouldUseCachedLogicalOffset
-					? logicalOffset
-					: this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll, sequentialBoundaryConstraint);
+				let view = this.views && (this.views.first() || this.views.last());
+				let canMeasureCachedLogicalOffset = Boolean(
+					view &&
+					view.iframe &&
+					view.contents &&
+					view.contents.document &&
+					view.contents.document.body &&
+					view.contents.window
+				);
+				let shouldMeasureBoundary = !shouldUseCachedLogicalOffset || canMeasureCachedLogicalOffset;
+				let snappedOffset = shouldMeasureBoundary
+					? this.snapVerticalRlLogicalOffsetToTextBoundary(
+						logicalOffset,
+						maxScroll,
+						sequentialBoundaryConstraint
+					)
+					: logicalOffset;
+				if (!Number.isFinite(Number(snappedOffset))) {
+					snappedOffset = logicalOffset;
+				}
 
 				if (!shouldUseCachedLogicalOffset && Math.abs(snappedOffset - logicalOffset) <= 1) {
 					snappedOffset = this.snapVerticalRlLogicalOffsetFromEdgeMask(logicalOffset, maxScroll);
