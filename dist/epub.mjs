@@ -6275,7 +6275,7 @@ var Ct = class {
 				else if (Et) {
 					let e = i.startContainer, t = new Range();
 					try {
-						e.nodeType === Dt ? n = e.getBoundingClientRect() : i.startOffset + 2 < (e.length || 0) ? (t.setStart(e, i.startOffset), t.setEnd(e, i.startOffset + 2), n = t.getBoundingClientRect()) : i.startOffset - 2 > 0 ? (t.setStart(e, i.startOffset - 2), t.setEnd(e, i.startOffset), n = t.getBoundingClientRect()) : n = e.parentNode.getBoundingClientRect();
+						e.nodeType === Dt ? n = e.getBoundingClientRect() : i.startOffset < i.endOffset ? (t.setStart(e, i.startOffset), t.setEnd(e, i.endOffset), n = t.getBoundingClientRect()) : i.startOffset + 2 < (e.length || 0) ? (t.setStart(e, i.startOffset), t.setEnd(e, i.startOffset + 2), n = t.getBoundingClientRect()) : i.startOffset - 2 > 0 ? (t.setStart(e, i.startOffset - 2), t.setEnd(e, i.startOffset), n = t.getBoundingClientRect()) : n = e.parentNode.getBoundingClientRect();
 					} catch (e) {
 						console.error(e, e.stack);
 					}
