@@ -1324,8 +1324,8 @@ class Contents {
 								newRange.setStart(container, range.startOffset);
 								newRange.setEnd(container, range.startOffset + 2);
 								position = newRange.getBoundingClientRect();
-							} else if (range.startOffset - 2 > 0) {
-								newRange.setStart(container, range.startOffset - 2);
+							} else if (range.startOffset - 1 > 0) {
+								newRange.setStart(container, range.startOffset - 1);
 								newRange.setEnd(container, range.startOffset);
 								position = newRange.getBoundingClientRect();
 							} else { // empty, return the parent element
