@@ -1312,7 +1312,7 @@ class Contents {
 					// Construct a new non-collapsed range
 					if (isWebkit) {
 						let container = range.startContainer as Node & { length?: number };
-						let newRange = new Range();
+						let newRange = this.document.createRange();
 						try {
 							if (container.nodeType === ELEMENT_NODE) {
 								position = (container as Element).getBoundingClientRect();
@@ -1348,7 +1348,7 @@ class Contents {
 			if(el) {
 				if (isWebkit) {
 					// Webkit reports incorrect bounding rects in Columns
-					let newRange = new Range();
+					let newRange = this.document.createRange();
 					newRange.selectNode(el);
 					position = newRange.getBoundingClientRect();
 				} else {
