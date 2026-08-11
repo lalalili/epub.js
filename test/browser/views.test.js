@@ -167,6 +167,43 @@ describe("Views", () => {
 		expect(view._viewportFillingSingleMediaPage).toBe(true);
 	});
 
+	it("records force-even pages separately from navigable reflowable content", () => {
+		let view = new IframeView({ index: 0, href: "chapter.xhtml" }, {
+			axis: "horizontal",
+			flow: "paginated",
+			width: 1296,
+			height: 761,
+			layout: {
+				name: "reflowable",
+				pageWidth: 1296,
+				viewportPageWidth: 1296,
+				width: 1296,
+				columnWidth: 1296,
+				divisor: 2,
+				update: () => {}
+			},
+			forceEvenPages: true
+		});
+
+		view.iframe = document.createElement("iframe");
+		view.element.appendChild(view.iframe);
+		view.lockedWidth = 1296;
+		view.lockedHeight = 761;
+		view._width = 0;
+		view._height = 0;
+		view.contents = {
+			textWidth: () => 1190,
+			isViewportFillingSingleMediaPage: () => false,
+			writingMode: () => "horizontal-tb"
+		};
+
+		view.expand();
+
+		expect(view.width()).toBe(2592);
+		expect(view._contentWidth).toBe(1296);
+		expect(view._forceEvenPageAdded).toBe(true);
+	});
+
 	it("locks iframe views through direct layout and type helpers", () => {
 		let view = new IframeView({ index: 0, href: "chapter.xhtml" }, {
 			axis: "vertical",

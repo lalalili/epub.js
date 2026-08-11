@@ -7033,6 +7033,7 @@ var Yt = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, Xt = cla
 	_contentWidth;
 	_contentHeight;
 	_viewportFillingSingleMediaPage;
+	_forceEvenPageAdded;
 	_needsReframe;
 	_expanding;
 	lockedWidth;
@@ -7112,7 +7113,7 @@ var Yt = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, Xt = cla
 		if (!(!this.iframe || this._expanding)) {
 			if (this._expanding = !0, this.layout.name === "pre-paginated") t = this.layout.columnWidth, n = this.layout.height;
 			else if (this.settings.axis === "horizontal") {
-				t = this.contents.textWidth();
+				this._forceEvenPageAdded = !1, t = this.contents.textWidth();
 				let e = this.layout.pageWidth, i = this.layout.viewportPageWidth || this.lockedWidth || this.layout.width || this.layout.pageWidth, a = (this.element && this.element.parentElement ? this.element.parentElement.clientWidth : 0) || this.lockedWidth || this.layout.columnWidth || this.layout.pageWidth || this.settings.width || i, o = null, s = !1;
 				if (this.settings.flow === "paginated" && this.contents.isViewportFillingSingleMediaPage && this.contents.isViewportFillingSingleMediaPage(a) && (s = !0, i = a, e = a, t = Math.ceil(a)), this._viewportFillingSingleMediaPage = s, !s && this.settings.flow === "paginated" && this.contents.writingMode && this.contents.writingMode() === "vertical-rl" && this.contents.verticalRlPageMetrics && (o = this.contents.verticalRlPageMetrics(i, n), t = o.rawWidth, o.effectivePageAdvance > 0)) {
 					e = o.effectivePageAdvance;
@@ -7126,7 +7127,7 @@ var Yt = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, Xt = cla
 						edgeGuardPx: this.layout.edgeGuardPx
 					}));
 				}
-				o && o.snappedContentWidth > 0 ? t = o.snappedContentWidth : e > 0 && i > 0 ? t = (Math.max(1, Math.ceil(Math.max(0, t - i) / e) + 1) - 1) * e + i : t % this.layout.pageWidth > 0 && (t = Math.ceil(t / this.layout.pageWidth) * this.layout.pageWidth), this._contentWidth = t, this.settings.forceEvenPages && !s && (r = this.layout.effectivePageAdvance && this.layout.effectivePageAdvance !== this.layout.pageWidth ? this.layout.count(t).pages : t / this.layout.pageWidth, this.layout.divisor > 1 && this.layout.name === "reflowable" && r % 2 > 0 && (t += this.layout.effectivePageAdvance || this.layout.pageWidth)), o && Yt() && window.console && window.console.debug && window.console.debug("[epubjs:vertical-rl:expand]", {
+				o && o.snappedContentWidth > 0 ? t = o.snappedContentWidth : e > 0 && i > 0 ? t = (Math.max(1, Math.ceil(Math.max(0, t - i) / e) + 1) - 1) * e + i : t % this.layout.pageWidth > 0 && (t = Math.ceil(t / this.layout.pageWidth) * this.layout.pageWidth), this._contentWidth = t, this.settings.forceEvenPages && !s && (r = this.layout.effectivePageAdvance && this.layout.effectivePageAdvance !== this.layout.pageWidth ? this.layout.count(t).pages : t / this.layout.pageWidth, this.layout.divisor > 1 && this.layout.name === "reflowable" && r % 2 > 0 && (t += this.layout.effectivePageAdvance || this.layout.pageWidth, this._forceEvenPageAdded = !0)), o && Yt() && window.console && window.console.debug && window.console.debug("[epubjs:vertical-rl:expand]", {
 					href: this.section && this.section.href,
 					rawWidth: o.rawWidth,
 					rawPaintWidth: o.rawPaintWidth,
@@ -8782,7 +8783,17 @@ var Nr = class {
 	}
 	getNavigableWidthForView(e) {
 		let t = e && e.width ? e.width() : 0;
-		return e && this.isRtlVerticalPaginated() ? Math.max(t || 0, this.getVerticalRlVisualContentWidth(e)) : e && !this.isRtlVerticalPaginated() && this.isPaginated && this.settings.axis === "horizontal" && this.layout && this.layout.name === "reflowable" && Number.isFinite(e._contentWidth) && e._contentWidth > 0 ? e._contentWidth : t;
+		if (e && this.isRtlVerticalPaginated()) return Math.max(t || 0, this.getVerticalRlVisualContentWidth(e));
+		if (e && this.isPaginated && this.settings.axis === "horizontal" && this.settings.direction === "rtl" && this.layout && this.layout.name === "reflowable") {
+			let n = this.getPageAdvance() || this.layout.pageWidth || this.layout.width || 0, r = Number(e.contents && e.contents.textWidth ? e.contents.textWidth() : 0), i = Number(e.contents && e.contents.document && e.contents.document.body ? e.contents.document.body.scrollWidth : 0);
+			if (n > 0 && t > n + 1 && r > 0 && r <= n + 1 && i > 0 && i <= n + 1) return n;
+		}
+		if (e && !this.isRtlVerticalPaginated() && this.isPaginated && this.settings.axis === "horizontal" && this.layout && this.layout.name === "reflowable" && Number.isFinite(e._contentWidth) && e._contentWidth > 0) return e._contentWidth;
+		if (e && !this.isRtlVerticalPaginated() && this.isPaginated && this.settings.axis === "horizontal" && this.layout && this.layout.name === "reflowable" && e._forceEvenPageAdded) {
+			let e = this.getPageAdvance() || this.layout.pageWidth || this.layout.width || 0;
+			return Math.max(e, t - e);
+		}
+		return t;
 	}
 	getPageSnapTolerance() {
 		return en(this.getPageAdvance() || 0, this.layout && this.layout.edgeGuardPx ? this.layout.edgeGuardPx : 0);
@@ -8897,14 +8908,14 @@ var Nr = class {
 		}.bind(this)).then(function() {
 			if (this.isPaginated && this.settings.axis === "horizontal") {
 				let e = this.getPageAdvance();
-				this.isRtlVerticalPaginated() ? this.scrollToLogicalPage(this.getTotalPagesForCurrentView() - 1) : this.settings.direction === "rtl" ? this.settings.rtlScrollType === "default" ? this.scrollTo(0, 0, !0) : this.scrollTo(this.container.scrollWidth * -1 + e, 0, !0) : this.scrollTo(this.container.scrollWidth - e, 0, !0);
+				this.settings.direction === "rtl" ? this.scrollToLogicalPage(this.getTotalPagesForCurrentView() - 1) : this.scrollTo(this.container.scrollWidth - e, 0, !0);
 			}
 			this.views.show();
 		}.bind(this));
 	}
 	next() {
-		var e, t;
-		let n = this.settings.direction;
+		var e;
+		let t = this.settings.direction;
 		if (this.views.length) {
 			if (this.isRtlVerticalPaginated()) {
 				let t = this.getCurrentPageIndex();
@@ -8913,12 +8924,12 @@ var Nr = class {
 					return;
 				} else e = this.views.last().section.next();
 			}
-			if (!e && this.isPaginated && this.settings.axis === "horizontal" && (!n || n === "ltr")) {
+			if (!e && this.isPaginated && this.settings.axis === "horizontal" && (!t || t === "ltr")) {
 				let t = this.getCurrentPageIndex(), n = this.getTotalPagesForCurrentView();
 				this.scrollLeft = this.container.scrollLeft, t < n - 1 ? this.scrollToLogicalPage(t + 1) : e = this.views.last().section.next();
-			} else if (!e && this.isPaginated && this.settings.axis === "horizontal" && n === "rtl") {
-				let n = this.getPageAdvance();
-				this.scrollLeft = this.container.scrollLeft, this.settings.rtlScrollType === "default" ? (t = this.container.scrollLeft, t > 0 ? this.scrollBy(n, 0, !0) : e = this.views.last().section.next()) : (t = this.container.scrollLeft + n * -1, t > this.container.scrollWidth * -1 ? this.scrollBy(n, 0, !0) : e = this.views.last().section.next());
+			} else if (!e && this.isPaginated && this.settings.axis === "horizontal" && t === "rtl") {
+				let t = this.getCurrentPageIndex();
+				t < this.getTotalPagesForCurrentView() - 1 ? this.scrollToLogicalPage(t + 1) : e = this.views.last().section.next();
 			} else !e && this.isPaginated && this.settings.axis === "vertical" ? (this.scrollTop = this.container.scrollTop, Math.abs(this.container.scrollHeight - this.container.clientHeight - this.container.scrollTop) < 1 ? e = this.views.last().section.next() : this.scrollBy(0, this.layout.height, !0)) : e ||= this.views.last().section.next();
 			if (e) {
 				this.clear(), this.updateLayout();

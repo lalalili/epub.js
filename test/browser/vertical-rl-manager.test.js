@@ -96,6 +96,38 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getCurrentPageIndex(), 0);
 	});
 
+	it("does not count a recorded force-even page after content width state is reset", function() {
+		let manager = createHorizontalManager({
+			contentWidth: undefined,
+			iframeWidth: 2124
+		});
+		let view = manager.views.first();
+		view._forceEvenPageAdded = true;
+
+		assert.equal(manager.getTotalPagesForCurrentView(), 1);
+		assert.equal(manager.getCurrentPageIndex(), 0);
+	});
+
+	it("reconciles a stale two-page width after horizontal RTL content settles to one page", function() {
+		let manager = createHorizontalManager({
+			contentWidth: 2124,
+			iframeWidth: 2124
+		});
+		let view = manager.views.first();
+		manager.settings.direction = "rtl";
+		view.contents.textWidth = function() {
+			return 1062;
+		};
+		view.contents.document = {
+			body: {
+				scrollWidth: 1062
+			}
+		};
+
+		assert.equal(manager.getTotalPagesForCurrentView(), 1);
+		assert.equal(manager.getCurrentPageIndex(), 0);
+	});
+
 	it("counts viewport-filling single media pages as one navigable page", function() {
 		let manager = createHorizontalManager({
 			contentWidth: 1296,
@@ -177,6 +209,72 @@ describe("Vertical RL manager pagination", function() {
 
 		assert.equal(manager.container.scrollLeft, 0);
 		assert.equal(appended, true);
+	});
+
+	it("moves horizontal RTL navigation to the next spine instead of a recorded force-even page", async function() {
+		let appended = false;
+		let manager = createHorizontalManager({
+			contentWidth: undefined,
+			iframeWidth: 2124,
+			nextSection: {
+				properties: []
+			}
+		});
+		let view = manager.views.first();
+		view._forceEvenPageAdded = true;
+		manager.settings.direction = "rtl";
+		manager.settings.rtlScrollType = "negative";
+		manager.clear = function() {};
+		manager.updateLayout = function() {};
+		manager.append = function() {
+			appended = true;
+			return Promise.resolve();
+		};
+		manager.handleNextPrePaginated = function() {
+			return Promise.resolve();
+		};
+
+		await manager.next();
+
+		assert.equal(manager.container.scrollLeft, 0);
+		assert.equal(appended, true);
+	});
+
+	it("keeps a real second horizontal RTL content page navigable", async function() {
+		let manager = createHorizontalManager({
+			contentWidth: 2124,
+			iframeWidth: 2124,
+			nextSection: {
+				properties: []
+			}
+		});
+		manager.settings.direction = "rtl";
+		manager.settings.rtlScrollType = "negative";
+		manager.scrollBy = function(amount) {
+			manager.container.scrollLeft -= amount;
+		};
+
+		await manager.next();
+
+		assert.equal(manager.container.scrollLeft, -1062);
+	});
+
+	it("positions reverse horizontal RTL entry on the last navigable page instead of a recorded force-even page", async function() {
+		let manager = createHorizontalManager({
+			contentWidth: undefined,
+			iframeWidth: 2124
+		});
+		let view = manager.views.first();
+		view._forceEvenPageAdded = true;
+		manager.settings.direction = "rtl";
+		manager.settings.rtlScrollType = "negative";
+		manager.prepend = function() {
+			return Promise.resolve(view);
+		};
+
+		await manager.displaySpineItemAtEnd(view.section);
+
+		assert.equal(manager.container.scrollLeft, 0);
 	});
 
 	it("moves to the next spine item from a viewport-filling single media page", async function() {

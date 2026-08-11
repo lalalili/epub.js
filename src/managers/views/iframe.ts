@@ -155,6 +155,7 @@ class IframeView {
 	_contentWidth?: number;
 	_contentHeight?: number;
 	_viewportFillingSingleMediaPage?: boolean;
+	_forceEvenPageAdded?: boolean;
 	_needsReframe?: boolean;
 	_expanding?: boolean;
 	lockedWidth?: number;
@@ -490,6 +491,7 @@ class IframeView {
 		}
 		// Expand Horizontally
 		else if(this.settings.axis === "horizontal") {
+			this._forceEvenPageAdded = false;
 			// Get the width of the text
 			width = this.contents.textWidth();
 			let pageAdvance = this.layout.pageWidth;
@@ -572,6 +574,7 @@ class IframeView {
 						(columns % 2 > 0)) {
 					// add a blank page
 					width += this.layout.effectivePageAdvance || this.layout.pageWidth;
+					this._forceEvenPageAdded = true;
 				}
 			}
 

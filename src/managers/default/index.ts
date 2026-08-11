@@ -194,6 +194,7 @@ type ManagerView = {
 	iframe?: HTMLIFrameElement;
 	_contentWidth?: number;
 	_viewportFillingSingleMediaPage?: boolean;
+	_forceEvenPageAdded?: boolean;
 	offset(): ManagerOffset;
 	width(): number;
 	height(): number;
@@ -1721,6 +1722,33 @@ class DefaultViewManager {
 
 		if (
 			view &&
+			this.isPaginated &&
+			this.settings.axis === "horizontal" &&
+			this.settings.direction === "rtl" &&
+			this.layout &&
+			this.layout.name === "reflowable"
+		) {
+			let pageWidth = this.getPageAdvance() || this.layout.pageWidth || this.layout.width || 0;
+			let liveTextWidth = Number(view.contents && view.contents.textWidth ? view.contents.textWidth() : 0);
+			let bodyScrollWidth = Number(view.contents && view.contents.document && view.contents.document.body
+				? view.contents.document.body.scrollWidth
+				: 0);
+			let tolerance = 1;
+
+			if (
+				pageWidth > 0 &&
+				width > pageWidth + tolerance &&
+				liveTextWidth > 0 &&
+				liveTextWidth <= pageWidth + tolerance &&
+				bodyScrollWidth > 0 &&
+				bodyScrollWidth <= pageWidth + tolerance
+			) {
+				return pageWidth;
+			}
+		}
+
+		if (
+			view &&
 			!this.isRtlVerticalPaginated() &&
 			this.isPaginated &&
 			this.settings.axis === "horizontal" &&
@@ -1730,6 +1758,19 @@ class DefaultViewManager {
 			view._contentWidth > 0
 		) {
 			return view._contentWidth;
+		}
+
+		if (
+			view &&
+			!this.isRtlVerticalPaginated() &&
+			this.isPaginated &&
+			this.settings.axis === "horizontal" &&
+			this.layout &&
+			this.layout.name === "reflowable" &&
+			view._forceEvenPageAdded
+		) {
+			let pageAdvance = this.getPageAdvance() || this.layout.pageWidth || this.layout.width || 0;
+			return Math.max(pageAdvance, width - pageAdvance);
 		}
 
 		return width;
@@ -2045,15 +2086,8 @@ class DefaultViewManager {
 			.then(function(){
 				if(this.isPaginated && this.settings.axis === "horizontal") {
 					let pageAdvance = this.getPageAdvance();
-					if (this.isRtlVerticalPaginated()) {
+					if (this.settings.direction === "rtl") {
 						this.scrollToLogicalPage(this.getTotalPagesForCurrentView() - 1);
-					} else if (this.settings.direction === "rtl") {
-						if (this.settings.rtlScrollType === "default"){
-							this.scrollTo(0, 0, true);
-						}
-						else{
-							this.scrollTo((this.container.scrollWidth * -1) + pageAdvance, 0, true);
-						}
 					} else {
 						this.scrollTo(this.container.scrollWidth - pageAdvance, 0, true);
 					}
@@ -2096,26 +2130,13 @@ class DefaultViewManager {
 				next = this.views.last().section.next();
 			}
 		} else if (!next && this.isPaginated && this.settings.axis === "horizontal" && dir === "rtl") {
-			let pageAdvance = this.getPageAdvance();
+			let pageIndex = this.getCurrentPageIndex();
+			let totalPages = this.getTotalPagesForCurrentView();
 
-			this.scrollLeft = this.container.scrollLeft;
-
-			if (this.settings.rtlScrollType === "default"){
-				left = this.container.scrollLeft;
-
-				if (left > 0) {
-					this.scrollBy(pageAdvance, 0, true);
-				} else {
-					next = this.views.last().section.next();
-				}
+			if (pageIndex < totalPages - 1) {
+				this.scrollToLogicalPage(pageIndex + 1);
 			} else {
-				left = this.container.scrollLeft + ( pageAdvance * -1 );
-
-				if (left > this.container.scrollWidth * -1){
-					this.scrollBy(pageAdvance, 0, true);
-				} else {
-					next = this.views.last().section.next();
-				}
+				next = this.views.last().section.next();
 			}
 
 		} else if (!next && this.isPaginated && this.settings.axis === "vertical") {
