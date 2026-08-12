@@ -97,6 +97,22 @@ describe("manager viewport snap pipeline", () => {
 		})).toEqual({ left: 24, right: 0 });
 	});
 
+	it("expands the left mask from mapped iframe viewport geometry", () => {
+		const manager = createManager(createTextRectView([
+			{
+				left: 4,
+				right: 30,
+				width: 26,
+				height: 600
+			}
+		], 200));
+
+		expect(manager.expandVerticalRlLeftMaskToVisibleLine({
+			left: 0,
+			right: 0
+		})).toEqual({ left: 18, right: 0 });
+	});
+
 	it("keeps prior mask widths when the manager DOM geometry is unavailable", () => {
 		const manager = Object.create(DefaultViewManager.prototype);
 		const widths = { left: 9, right: 7 };

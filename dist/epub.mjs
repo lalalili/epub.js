@@ -6022,11 +6022,13 @@ var Ct = class {
 		});
 	}
 	return d.crossings < o ? Math.ceil(d.width) : e;
-}, Rt = ({ previous: e, snappedContentWidth: t, pageLength: n, totalPages: r, lineWidth: i }) => {
-	let a = Number(t), o = Number(e && e.width);
-	if (!Number.isFinite(a) || a <= 0 || !e || !Number.isFinite(o) || o <= 0 || e.totalPages !== r || Math.abs(Number(e.pageLength || 0) - Number(n || 0)) > 1) return t;
-	let s = Math.max(24, Math.min(48, Math.ceil(Number(i || 0) + kt)));
-	return Math.abs(a - o) > s ? t : Math.min(a, o);
+}, Rt = ({ previous: e, snappedContentWidth: t, pageLength: n, totalPages: r, lineWidth: i, rawWidth: a }) => {
+	let o = Number(t), s = Number(e && e.width), c = Number(a), l = Math.max(4, kt);
+	if (!Number.isFinite(o) || o <= 0 || !e || !Number.isFinite(s) || s <= 0 || Math.abs(Number(e.pageLength || 0) - Number(n || 0)) > 1) return t;
+	if (r > Number(e.totalPages || 0) && o > s && Number.isFinite(c) && c > 0 && c <= s + l) return s;
+	if (e.totalPages !== r) return t;
+	let u = Math.max(24, Math.min(48, Math.ceil(Number(i || 0) + kt)));
+	return Math.abs(o - s) > u ? t : Math.min(o, s);
 }, zt = ({ viewportPageWidth: e, linePitch: t, lineBoxes: n }) => {
 	let r = Number(e), i = Number(t);
 	if (!Number.isFinite(r) || r <= 0 || !Number.isFinite(i) || i <= 1 || !Array.isArray(n) || !n.length) return r;
@@ -6143,8 +6145,8 @@ var Ct = class {
 			a ? a.status : ""
 		].join(":");
 	}
-	invalidateVerticalRlMetricsCache() {
-		this._verticalRlMetricsCache = null, this._verticalRlPageMetricsCache = null, this._verticalRlStableSnappedContentWidth = null;
+	invalidateVerticalRlMetricsCache(e = !1) {
+		this._verticalRlMetricsCache = null, this._verticalRlPageMetricsCache = null, e || (this._verticalRlStableSnappedContentWidth = null);
 	}
 	overflow(e) {
 		return e && (this.documentElement.style.overflow = e), this.window.getComputedStyle(this.documentElement).overflow;
@@ -6157,7 +6159,11 @@ var Ct = class {
 	}
 	css(e, t, n) {
 		var r = this.content || this.document.body;
-		return this.invalidateVerticalRlMetricsCache(), t ? r.style.setProperty(e, t, n ? "important" : "") : r.style.removeProperty(e), this.window.getComputedStyle(r).getPropertyValue(e);
+		let i = `${t || ""}:${t && n ? "important" : ""}`, a = this._verticalRlCssValues?.[e] === i;
+		return this._verticalRlCssValues = {
+			...this._verticalRlCssValues,
+			[e]: i
+		}, this.invalidateVerticalRlMetricsCache(a), t ? r.style.setProperty(e, t, n ? "important" : "") : r.style.removeProperty(e), this.window.getComputedStyle(r).getPropertyValue(e);
 	}
 	viewport(e) {
 		var t = this.document.querySelector("meta[name='viewport']"), n = {
@@ -6185,7 +6191,7 @@ var Ct = class {
 	}
 	resizeCheck() {
 		if (!this.document) return;
-		this.invalidateVerticalRlMetricsCache();
+		this.invalidateVerticalRlMetricsCache(!0);
 		let e = this.textWidth(), t = this.textHeight();
 		(e != this._size.width || t != this._size.height) && (this._size = {
 			width: e,
@@ -6273,9 +6279,9 @@ var Ct = class {
 				}
 				if (i.startContainer.nodeType === Node.ELEMENT_NODE) n = i.startContainer.getBoundingClientRect(), r.left = n.left, r.top = n.top;
 				else if (Et) {
-					let e = i.startContainer, t = new Range();
+					let e = i.startContainer, t = this.document.createRange();
 					try {
-						e.nodeType === Dt ? n = e.getBoundingClientRect() : i.startOffset < i.endOffset ? (t.setStart(e, i.startOffset), t.setEnd(e, i.endOffset), n = t.getBoundingClientRect()) : i.startOffset + 2 < (e.length || 0) ? (t.setStart(e, i.startOffset), t.setEnd(e, i.startOffset + 2), n = t.getBoundingClientRect()) : i.startOffset - 2 > 0 ? (t.setStart(e, i.startOffset - 2), t.setEnd(e, i.startOffset), n = t.getBoundingClientRect()) : n = e.parentNode.getBoundingClientRect();
+						e.nodeType === Dt ? n = e.getBoundingClientRect() : i.startOffset < i.endOffset ? (t.setStart(e, i.startOffset), t.setEnd(e, i.endOffset), n = t.getBoundingClientRect()) : i.startOffset + 2 < (e.length || 0) ? (t.setStart(e, i.startOffset), t.setEnd(e, i.startOffset + 2), n = t.getBoundingClientRect()) : i.startOffset - 1 > 0 ? (t.setStart(e, i.startOffset - 1), t.setEnd(e, i.startOffset), n = t.getBoundingClientRect()) : n = e.parentNode.getBoundingClientRect();
 					} catch (e) {
 						console.error(e, e.stack);
 					}
@@ -6285,7 +6291,7 @@ var Ct = class {
 			let t = e.substring(e.indexOf("#") + 1), r = this.document.getElementById(t);
 			if (r) {
 				if (Et) {
-					let e = new Range();
+					let e = this.document.createRange();
 					e.selectNode(r), n = e.getBoundingClientRect();
 				} else n = r.getBoundingClientRect();
 				(!n || !n.width && !n.height) && (n = this.locationOfElement(r));
@@ -6325,25 +6331,29 @@ var Ct = class {
 	}
 	addStylesheetCss(e, t) {
 		if (!this.document || !e) return !1;
-		this.invalidateVerticalRlMetricsCache();
 		var n = this._getStylesheetNode(t);
-		return n ? (n.innerHTML = e, !0) : !1;
+		return n ? (this.invalidateVerticalRlMetricsCache(n.innerHTML === e), n.innerHTML = e, !0) : !1;
 	}
 	addStylesheetRules(e, t) {
 		var n;
 		if (!this.document || !e || e.length === 0) return;
-		this.invalidateVerticalRlMetricsCache();
-		let r = this._getStylesheetNode(t);
-		if (!(!r || !r.sheet)) if (n = r.sheet, Object.prototype.toString.call(e) === "[object Array]") {
+		let r = t || "", i = JSON.stringify(e), a = this._verticalRlStylesheetRuleSignatures?.[r] === i;
+		if (this.invalidateVerticalRlMetricsCache(a), a) return;
+		this._verticalRlStylesheetRuleSignatures = {
+			...this._verticalRlStylesheetRuleSignatures,
+			[r]: i
+		};
+		let o = this._getStylesheetNode(t);
+		if (!(!o || !o.sheet)) if (n = o.sheet, Object.prototype.toString.call(e) === "[object Array]") {
 			let t = e;
-			for (var i = 0, a = t.length; i < a; i++) {
-				var o = 1, s = t[i], c = t[i][0], l = "";
-				Object.prototype.toString.call(s[1][0]) === "[object Array]" && (s = s[1], o = 0);
-				for (var u = s.length; o < u; o++) {
-					var d = s[o];
-					l += d[0] + ":" + d[1] + (d[2] ? " !important" : "") + ";\n";
+			for (var s = 0, c = t.length; s < c; s++) {
+				var l = 1, u = t[s], d = t[s][0], f = "";
+				Object.prototype.toString.call(u[1][0]) === "[object Array]" && (u = u[1], l = 0);
+				for (var p = u.length; l < p; l++) {
+					var m = u[l];
+					f += m[0] + ":" + m[1] + (m[2] ? " !important" : "") + ";\n";
 				}
-				n.insertRule(c + "{" + l + "}", n.cssRules.length);
+				n.insertRule(d + "{" + f + "}", n.cssRules.length);
 			}
 		} else {
 			let t = e;
@@ -6437,18 +6447,25 @@ var Ct = class {
 		this.layoutStyle("scrolling"), e >= 0 && (this.width(e), n.width = e, this.css("padding", "0 " + e / 12 + "px")), t >= 0 && (this.height(t), n.height = t), this.css("margin", "0"), this.css("box-sizing", "border-box"), this.viewport(n);
 	}
 	columns(e, t, n, r, i) {
-		this.invalidateVerticalRlMetricsCache();
-		let a = gt("column-axis"), o = gt("column-gap"), s = gt("column-width"), c = gt("column-fill"), l = this.writingMode(), u = l.indexOf("vertical") === 0 ? "vertical" : "horizontal";
-		if (this.layoutStyle("paginated"), i === "rtl" && u === "horizontal" && this.direction(i), l !== "vertical-rl" && this.width(e), this.height(t), this.viewport({
+		let a = [
+			e,
+			t,
+			n,
+			r,
+			i || ""
+		].join(":");
+		this.invalidateVerticalRlMetricsCache(this._verticalRlColumnsSignature === a), this._verticalRlColumnsSignature = a;
+		let o = gt("column-axis"), s = gt("column-gap"), c = gt("column-width"), l = gt("column-fill"), u = this.writingMode(), d = u.indexOf("vertical") === 0 ? "vertical" : "horizontal";
+		if (this.layoutStyle("paginated"), i === "rtl" && d === "horizontal" && this.direction(i), u !== "vertical-rl" && this.width(e), this.height(t), this.viewport({
 			width: e,
 			height: t,
 			scale: 1,
 			scalable: "no"
-		}), l === "vertical-rl") {
+		}), u === "vertical-rl") {
 			this.documentElement && (this.documentElement.style.setProperty("overflow", "hidden", "important"), this.documentElement.style.setProperty("margin", "0", ""), this.documentElement.style.setProperty("padding", "0", ""));
 			let e = this.content || this.document.body;
-			e.style.margin = "0", e.style.padding = "0", e.style.width = "", e.style.height = t + "px", e.style.overflow = "visible", e.style.maxWidth = "none", e.style.minWidth = "", e.style.boxSizing = "border-box", e.style.removeProperty(s), e.style.removeProperty(o), e.style.removeProperty(c), e.style.removeProperty(a);
-		} else this.css("overflow-y", "hidden"), this.css("margin", "0", !0), u === "vertical" ? (this.css("padding-top", r / 2 + "px", !0), this.css("padding-bottom", r / 2 + "px", !0), this.css("padding-left", "20px"), this.css("padding-right", "20px"), this.css(a, "vertical")) : (this.css("padding-top", "20px"), this.css("padding-bottom", "20px"), this.css("padding-left", r / 2 + "px", !0), this.css("padding-right", r / 2 + "px", !0), this.css(a, "horizontal")), this.css("box-sizing", "border-box"), this.css("max-width", "inherit"), this.css(c, "auto"), this.css(o, r + "px"), this.css(s, n + "px");
+			e.style.margin = "0", e.style.padding = "0", e.style.width = "", e.style.height = t + "px", e.style.overflow = "visible", e.style.maxWidth = "none", e.style.minWidth = "", e.style.boxSizing = "border-box", e.style.removeProperty(c), e.style.removeProperty(s), e.style.removeProperty(l), e.style.removeProperty(o);
+		} else this.css("overflow-y", "hidden"), this.css("margin", "0", !0), d === "vertical" ? (this.css("padding-top", r / 2 + "px", !0), this.css("padding-bottom", r / 2 + "px", !0), this.css("padding-left", "20px"), this.css("padding-right", "20px"), this.css(o, "vertical")) : (this.css("padding-top", "20px"), this.css("padding-bottom", "20px"), this.css("padding-left", r / 2 + "px", !0), this.css("padding-right", r / 2 + "px", !0), this.css(o, "horizontal")), this.css("box-sizing", "border-box"), this.css("max-width", "inherit"), this.css(l, "auto"), this.css(s, r + "px"), this.css(c, n + "px");
 		this.css("-webkit-line-box-contain", "block glyphs replaced");
 	}
 	measureVerticalRlRect() {
@@ -6590,7 +6607,8 @@ var Ct = class {
 			snappedContentWidth: k,
 			pageLength: E,
 			totalPages: D,
-			lineWidth: x.lineWidth
+			lineWidth: x.lineWidth,
+			rawWidth: o
 		}), this._verticalRlStableSnappedContentWidth = {
 			pageLength: E,
 			totalPages: D,
@@ -7110,6 +7128,7 @@ var Yt = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, Xt = cla
 	}
 	expand(e) {
 		var t = this.lockedWidth, n = this.lockedHeight, r;
+		let i = Number(this._contentWidth || 0);
 		if (!(!this.iframe || this._expanding)) {
 			if (this._expanding = !0, this.layout.name === "pre-paginated") t = this.layout.columnWidth, n = this.layout.height;
 			else if (this.settings.axis === "horizontal") {
@@ -7129,15 +7148,15 @@ var Yt = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, Xt = cla
 				}
 				o && o.snappedContentWidth > 0 ? t = o.snappedContentWidth : e > 0 && i > 0 ? t = (Math.max(1, Math.ceil(Math.max(0, t - i) / e) + 1) - 1) * e + i : t % this.layout.pageWidth > 0 && (t = Math.ceil(t / this.layout.pageWidth) * this.layout.pageWidth), this._contentWidth = t, this.settings.forceEvenPages && !s && (r = this.layout.effectivePageAdvance && this.layout.effectivePageAdvance !== this.layout.pageWidth ? this.layout.count(t).pages : t / this.layout.pageWidth, this.layout.divisor > 1 && this.layout.name === "reflowable" && r % 2 > 0 && (t += this.layout.effectivePageAdvance || this.layout.pageWidth, this._forceEvenPageAdded = !0)), o && Yt() && window.console && window.console.debug && window.console.debug("[epubjs:vertical-rl:expand]", {
 					href: this.section && this.section.href,
-					rawWidth: o.rawWidth,
-					rawPaintWidth: o.rawPaintWidth,
-					snappedContentWidth: o.snappedContentWidth,
+					rawWidth: s.rawWidth,
+					rawPaintWidth: s.rawPaintWidth,
+					snappedContentWidth: s.snappedContentWidth,
 					pageAdvance: e,
-					viewportPageWidth: o.viewportPageWidth,
-					pageCount: o.totalPages,
-					linePitch: o.linePitch,
-					edgeGuardPx: o.edgeGuardPx,
-					pageBoundaryShift: o.pageBoundaryShift
+					viewportPageWidth: s.viewportPageWidth,
+					pageCount: s.totalPages,
+					linePitch: s.linePitch,
+					edgeGuardPx: s.edgeGuardPx,
+					pageBoundaryShift: s.pageBoundaryShift
 				});
 			} else this.settings.axis === "vertical" && (n = this.contents.textHeight(), this.settings.flow === "paginated" && n % this.layout.height > 0 && (n = Math.ceil(n / this.layout.height) * this.layout.height));
 			(this._needsReframe || t != this._width || n != this._height) && this.reframe(t, n), this._expanding = !1;
@@ -8641,23 +8660,23 @@ var Nr = class {
 		return _n(this.getVerticalRlEdgeMaskWidths());
 	}
 	expandVerticalRlLeftMaskToVisibleLine(e) {
-		if (!e || !e.left || !this.container || !this.views) return e;
+		if (!e || !this.container || !this.views) return e;
 		let t = this.views.first() || this.views.last(), n = t && t.iframe, r = t && t.contents && t.contents.document, i = t && t.contents && t.contents.window, a = r && r.body;
 		if (!n || !r || !i || !a) return e;
 		let o = un(this.getPageAdvance() || 0);
 		if (!o) return e;
-		let s = this.container.getBoundingClientRect(), c = n.getBoundingClientRect(), l = s.left - c.left, u = s.right - c.left, d = Math.max(0, Number(e.left) || 0), f = V(r, i, a, {
+		let s = this.container.getBoundingClientRect(), c = n.getBoundingClientRect(), l = s.left - c.left, u = s.right - c.left, d = Math.max(0, Number(e.left) || 0), f = Math.max(0, Number(e.right) || 0), p = V(r, i, a, {
 			limit: 1e3,
 			countInvalidRects: !0
 		});
-		if (!f) return e;
-		for (let e of f) {
-			let t = hr(e, l, u, c.left), n = t.left, r = t.right;
-			n < l && r > l && (d = Math.max(d, Math.ceil(r - l + 1)));
+		if (!p) return e;
+		for (let e of p) {
+			let t = hr(e, l, u, c.left), n = t.left, r = t.right, i = c.left + e.left, a = c.left + e.right;
+			(n < l && r > l || i < s.left && a > s.left) && (d = Math.max(d, Math.ceil(Math.max(r - l, a - s.left) + 1))), (n < u && r > u || i < s.right && a > s.right) && (f = Math.max(f, Math.ceil(Math.max(u - n, s.right - i) + 1)));
 		}
 		return {
 			left: Math.min(d, o),
-			right: e.right
+			right: Math.min(f, o)
 		};
 	}
 	getLogicalPageStepToNextPage() {
@@ -8873,19 +8892,19 @@ var Nr = class {
 					let e = this.getCurrentPageIndex(), t = this.getLogicalOffsetForPageIndex(e, n, s);
 					Math.abs(c - t) <= this.getPageSnapTolerance() && (f = t);
 				}
-				let p = this._verticalRlSequentialBoundaryConstraint && this._verticalRlSequentialBoundaryConstraint.pageIndex === r ? this._verticalRlSequentialBoundaryConstraint : {}, m = d ? f : this.snapVerticalRlLogicalOffsetToTextBoundary(f, s, p);
-				if (!d && Math.abs(m - f) <= 1 && (m = this.snapVerticalRlLogicalOffsetFromEdgeMask(f, s)), Math.abs(m - f) <= 1 && (m = f), Math.abs(m - c) <= 1) {
+				let p = this._verticalRlSequentialBoundaryConstraint && this._verticalRlSequentialBoundaryConstraint.pageIndex === r ? this._verticalRlSequentialBoundaryConstraint : {}, m = this.views && (this.views.first() || this.views.last()), h = !!(m && m.iframe && m.contents && m.contents.document && m.contents.document.body && m.contents.window), g = !d || h ? this.snapVerticalRlLogicalOffsetToTextBoundary(f, s, p) : f;
+				if (Number.isFinite(Number(g)) || (g = f), !d && Math.abs(g - f) <= 1 && (g = this.snapVerticalRlLogicalOffsetFromEdgeMask(f, s)), Math.abs(g - f) <= 1 && (g = f), Math.abs(g - c) <= 1) {
 					let t = Number(a[e]);
 					Number.isFinite(t) && t >= 0 && setTimeout(function() {
 						o(e + 1);
 					}, t);
 					return;
 				}
-				this.cacheVerticalRlLogicalPageOffset(r, m, l);
-				let h = m;
-				this.settings.direction === "rtl" && (this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0 ? h = -m : this.settings.rtlScrollType === "default" && (h = Math.max(0, s - m))), this._verticalRlBoundarySnapApplying = !0;
+				this.cacheVerticalRlLogicalPageOffset(r, g, l);
+				let _ = g;
+				this.settings.direction === "rtl" && (this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0 ? _ = -g : this.settings.rtlScrollType === "default" && (_ = Math.max(0, s - g))), this._verticalRlBoundarySnapApplying = !0;
 				try {
-					this.scrollTo(h, 0, !0);
+					this.scrollTo(_, 0, !0);
 				} finally {
 					this._verticalRlBoundarySnapApplying = !1;
 				}

@@ -62,6 +62,15 @@ describe("Contents textWidth", () => {
 			expect(contents.css("color", "red")).toMatch(/red|rgb\(255, 0, 0\)/);
 			expect(contents._verticalRlMetricsCache).toBeNull();
 			expect(contents._verticalRlPageMetricsCache).toBeNull();
+
+			const stableWidth = { pageLength: 384, totalPages: 11, width: 4227 };
+			contents._verticalRlStableSnappedContentWidth = stableWidth;
+			contents._verticalRlMetricsCache = { key: "repeat", width: 4227 };
+			contents._verticalRlPageMetricsCache = { key: "repeat", metrics: {} };
+			contents.css("color", "red");
+			expect(contents._verticalRlStableSnappedContentWidth).toBe(stableWidth);
+			expect(contents._verticalRlMetricsCache).toBeNull();
+			expect(contents._verticalRlPageMetricsCache).toBeNull();
 		} finally {
 			contents.destroy();
 		}
@@ -100,6 +109,16 @@ describe("Contents textWidth", () => {
 				["p", ["color", "black", true]]
 			], "rules-array");
 			expect(doc.getElementById("epubjs-inserted-css-rules-array").sheet.cssRules[0].cssText).toContain("color");
+
+			const stableWidth = { pageLength: 384, totalPages: 11, width: 4227 };
+			contents._verticalRlStableSnappedContentWidth = stableWidth;
+			contents.addStylesheetCss("body { color: red; }", "reader");
+			contents.addStylesheetRules({
+				body: {
+					background: "white"
+				}
+			}, "rules-object");
+			expect(contents._verticalRlStableSnappedContentWidth).toBe(stableWidth);
 
 			contents.addClass("reader-content");
 			expect(content.classList.contains("reader-content")).toBe(true);

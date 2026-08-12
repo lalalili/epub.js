@@ -258,25 +258,43 @@ const stabilizeVerticalRlSnappedContentWidth = ({
 	snappedContentWidth,
 	pageLength,
 	totalPages,
-	lineWidth
+	lineWidth,
+	rawWidth
 }: {
 	previous?: { width?: number; totalPages?: number; pageLength?: number } | null;
 	snappedContentWidth: number;
 	pageLength: number;
 	totalPages: number;
 	lineWidth?: number | null;
+	rawWidth?: number | null;
 }): number => {
 	const width = Number(snappedContentWidth);
 	const previousWidth = Number(previous && previous.width);
+	const measuredRawWidth = Number(rawWidth);
+	const frameMeasurementTolerance = Math.max(4, VERTICAL_RL_WIDTH_GUARD);
 	if (
 		!Number.isFinite(width) ||
 		width <= 0 ||
 		!previous ||
 		!Number.isFinite(previousWidth) ||
 		previousWidth <= 0 ||
-		previous.totalPages !== totalPages ||
 		Math.abs(Number(previous.pageLength || 0) - Number(pageLength || 0)) > 1
 	) {
+		return snappedContentWidth;
+	}
+
+	const frameWidthIsBeingRemeasuredAsContent = Boolean(
+		totalPages > Number(previous.totalPages || 0) &&
+		width > previousWidth &&
+		Number.isFinite(measuredRawWidth) &&
+		measuredRawWidth > 0 &&
+		measuredRawWidth <= previousWidth + frameMeasurementTolerance
+	);
+	if (frameWidthIsBeingRemeasuredAsContent) {
+		return previousWidth;
+	}
+
+	if (previous.totalPages !== totalPages) {
 		return snappedContentWidth;
 	}
 
@@ -461,6 +479,9 @@ class Contents {
 	declare _verticalRlMetricsCache: VerticalRlMetricsCache | null;
 	declare _verticalRlPageMetricsCache: VerticalRlPageMetricsCache | null;
 	declare _verticalRlStableSnappedContentWidth?: { pageLength: number; totalPages: number; width: number } | null;
+	declare _verticalRlColumnsSignature?: string;
+	declare _verticalRlCssValues?: Record<string, string>;
+	declare _verticalRlStylesheetRuleSignatures?: Record<string, string>;
 	declare _forcedWritingMode: string;
 	declare _layoutStyle?: string;
 	declare called: number;
@@ -821,10 +842,12 @@ class Contents {
 		].join(":");
 	}
 
-	invalidateVerticalRlMetricsCache() {
+	invalidateVerticalRlMetricsCache(preserveStableWidth = false) {
 		this._verticalRlMetricsCache = null;
 		this._verticalRlPageMetricsCache = null;
-		this._verticalRlStableSnappedContentWidth = null;
+		if (!preserveStableWidth) {
+			this._verticalRlStableSnappedContentWidth = null;
+		}
 	}
 
 	/**
@@ -874,8 +897,17 @@ class Contents {
 		*/
 	css(property: string, value?: string, priority?: boolean): string {
 		var content = this.content || this.document.body;
+		const nextValue = value || "";
+		const nextPriority = value && priority ? "important" : "";
+		const nextSignature = `${nextValue}:${nextPriority}`;
+		const preservesVerticalRlStableWidth =
+			this._verticalRlCssValues?.[property] === nextSignature;
+		this._verticalRlCssValues = {
+			...this._verticalRlCssValues,
+			[property]: nextSignature
+		};
 
-		this.invalidateVerticalRlMetricsCache();
+		this.invalidateVerticalRlMetricsCache(preservesVerticalRlStableWidth);
 
 		if (value) {
 			content.style.setProperty(property, value, priority ? "important" : "");
@@ -1054,7 +1086,7 @@ class Contents {
 	resizeCheck() {
 		// P-AITEHUB-0008: Guard against null document (contents destroyed before rAF fires)
 		if (!this.document) return;
-		this.invalidateVerticalRlMetricsCache();
+		this.invalidateVerticalRlMetricsCache(true);
 		let width = this.textWidth();
 		let height = this.textHeight();
 
@@ -1420,11 +1452,10 @@ class Contents {
 	addStylesheetCss(serializedCss: string, key?: string): boolean {
 		if(!this.document || !serializedCss) return false;
 
-		this.invalidateVerticalRlMetricsCache();
-
 		var styleEl: HTMLStyleElement | false;
 		styleEl = this._getStylesheetNode(key);
 		if (!styleEl) return false;
+		this.invalidateVerticalRlMetricsCache(styleEl.innerHTML === serializedCss);
 		styleEl.innerHTML = serializedCss;
 
 		return true;
@@ -1441,8 +1472,16 @@ class Contents {
 		var styleSheet: CSSStyleSheet;
 
 		if(!this.document || !rules || rules.length === 0) return;
-
-		this.invalidateVerticalRlMetricsCache();
+		const signatureKey = key || "";
+		const rulesSignature = JSON.stringify(rules);
+		const repeatsExistingRules =
+			this._verticalRlStylesheetRuleSignatures?.[signatureKey] === rulesSignature;
+		this.invalidateVerticalRlMetricsCache(repeatsExistingRules);
+		if (repeatsExistingRules) return;
+		this._verticalRlStylesheetRuleSignatures = {
+			...this._verticalRlStylesheetRuleSignatures,
+			[signatureKey]: rulesSignature
+		};
 
 		// Grab style sheet
 		const styleEl = this._getStylesheetNode(key);
@@ -1738,7 +1777,9 @@ class Contents {
 	 * @param {number} gap
 	 */
 	columns(width: number, height: number, columnWidth: number, gap: number, dir?: string): void {
-		this.invalidateVerticalRlMetricsCache();
+		const columnsSignature = [width, height, columnWidth, gap, dir || ""].join(":");
+		this.invalidateVerticalRlMetricsCache(this._verticalRlColumnsSignature === columnsSignature);
+		this._verticalRlColumnsSignature = columnsSignature;
 
 		let COLUMN_AXIS = prefixed("column-axis");
 		let COLUMN_GAP = prefixed("column-gap");
@@ -2160,7 +2201,8 @@ class Contents {
 			snappedContentWidth,
 			pageLength,
 			totalPages,
-			lineWidth: metrics.lineWidth
+			lineWidth: metrics.lineWidth,
+			rawWidth
 		});
 		this._verticalRlStableSnappedContentWidth = {
 			pageLength,

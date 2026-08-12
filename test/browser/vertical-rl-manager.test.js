@@ -4255,10 +4255,10 @@ describe("Vertical RL manager pagination", function() {
 										selectNodeContents: function() {},
 										getClientRects: function() {
 											return [{
-												left: 6502.088,
-												right: 6524.815,
-												width: 22.727,
-												height: 460
+									left: 6489.088,
+									right: 6524.815,
+									width: 22.727,
+									height: 460
 											}];
 										},
 										detach: function() {}
@@ -4272,15 +4272,13 @@ describe("Vertical RL manager pagination", function() {
 					return this.first();
 				}
 			};
-			manager.getLogicalPageStepToNextPage = function() {
+			manager.getPageAdvance = function() {
 				return 1296.363;
 			};
 
-			let maskWidths = manager.snapVerticalRlEdgeMaskWidths({
-				left: 24,
+			let maskWidths = manager.expandVerticalRlLeftMaskToVisibleLine({
+				left: 0,
 				right: 0
-			}, 120, {
-				rightMaxMask: 0
 			});
 
 			assert.equal(maskWidths.left, 28);
@@ -4925,10 +4923,10 @@ describe("Vertical RL manager pagination", function() {
 									selectNodeContents: function() {},
 									getClientRects: function() {
 										return [{
-											left: 6502.088,
-											right: 6524.815,
-											width: 22.727,
-											height: 680
+										left: 6502.088,
+										right: 6524.815,
+										width: 22.727,
+										height: 680
 										}];
 									},
 									detach: function() {}
@@ -5698,6 +5696,61 @@ describe("Vertical RL manager pagination", function() {
 			width: 18480,
 			height: 761
 		});
+	});
+
+	it("does not expand a vertical-rl iframe when metrics remeasure its previous frame width", function() {
+		let view = Object.create(IframeView.prototype);
+		let reframed = null;
+
+		view.lockedWidth = 393;
+		view.lockedHeight = 654;
+		view._contentWidth = 4227;
+		view._expanding = false;
+		view._needsReframe = true;
+		view.iframe = {};
+		view.settings = {
+			axis: "horizontal",
+			flow: "paginated",
+			forceEvenPages: false
+		};
+		view.layout = {
+			pageWidth: 393,
+			viewportPageWidth: 393,
+			effectivePageAdvance: 384,
+			delta: 384,
+			pageBoundaryShift: 4,
+			edgeGuardPx: 4,
+			update: function() {}
+		};
+		view.contents = {
+			textWidth: function() {
+				return 4230;
+			},
+			writingMode: function() {
+				return "vertical-rl";
+			},
+			verticalRlPageMetrics: function() {
+				return {
+					rawWidth: 4230,
+					rawPaintWidth: 4228,
+					snappedContentWidth: 4611,
+					pageWidth: 393,
+					viewportPageWidth: 393,
+					effectivePageAdvance: 384,
+					pageBoundaryShift: 4,
+					edgeGuardPx: 4,
+					totalPages: 12
+				};
+			}
+		};
+		view.reframe = function(width, height) {
+			reframed = { width, height };
+		};
+
+		view.expand();
+
+		assert.deepEqual(reframed, { width: 4227, height: 654 });
+		assert.equal(view._contentWidth, 4227);
 	});
 
 	it("keeps vertical-rl page advance equal to the visible page width", function() {
@@ -6506,6 +6559,74 @@ describe("Vertical RL manager pagination", function() {
 		contents.documentElement.clientWidth = 18144;
 		metrics = contents.verticalRlPageMetrics(pageWidth, 761);
 		assert.equal(metrics.snappedContentWidth, 18136);
+	});
+
+	it("does not treat the reframed vertical-rl iframe width as an extra content page", function() {
+		let contents = Object.create(Contents.prototype);
+		let measuredWidth = 8837;
+		const pageWidth = 393;
+		contents._verticalRlPageMetricsCache = null;
+		contents._verticalRlStableSnappedContentWidth = null;
+		contents.content = {
+			clientWidth: 8837,
+			clientHeight: 654,
+			childElementCount: 1,
+			scrollWidth: 8837,
+			scrollHeight: 654
+		};
+		contents.documentElement = {
+			clientWidth: 8837,
+			clientHeight: 654,
+			scrollWidth: 8837,
+			scrollHeight: 654
+		};
+		contents.document = {
+			body: contents.content,
+			fonts: null
+		};
+		contents.window = {
+			getComputedStyle: function() {
+				return {
+					fontSize: "24px",
+					lineHeight: "48px",
+					letterSpacing: "0px",
+					fontFamily: "serif"
+				};
+			}
+		};
+		contents.measureVerticalRlRect = function() {
+			return {
+				rawWidth: measuredWidth,
+				rawHeight: 654,
+				paintWidth: measuredWidth
+			};
+		};
+		contents.estimateVerticalRlLineMetrics = function() {
+			return {
+				linePitch: 48,
+				lineWidth: 24,
+				lineLefts: [],
+				lineBoxes: [],
+				sampleCount: 8,
+				gapMad: 0,
+				stable: true
+			};
+		};
+
+		let metrics = contents.verticalRlPageMetrics(pageWidth, 654);
+		const stableWidth = metrics.snappedContentWidth;
+		assert.ok(stableWidth > pageWidth);
+
+		contents.invalidateVerticalRlMetricsCache(true);
+		measuredWidth = stableWidth;
+		contents.content.clientWidth = stableWidth;
+		contents.content.scrollWidth = stableWidth;
+		contents.documentElement.clientWidth = stableWidth;
+		contents.documentElement.scrollWidth = stableWidth;
+		metrics = contents.verticalRlPageMetrics(pageWidth, 654);
+
+		assert.equal(metrics.rawWidth, stableWidth + 2);
+		assert.equal(metrics.snappedContentWidth, stableWidth);
 	});
 
 	it("materializes pages when vertical-rl content overflows along the block axis", function() {

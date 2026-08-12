@@ -1242,7 +1242,7 @@ class DefaultViewManager {
 	}
 
 	expandVerticalRlLeftMaskToVisibleLine(maskWidths: EdgeMaskWidths): EdgeMaskWidths {
-		if (!maskWidths || !maskWidths.left || !this.container || !this.views) {
+		if (!maskWidths || !this.container || !this.views) {
 			return maskWidths;
 		}
 
@@ -1267,6 +1267,7 @@ class DefaultViewManager {
 		let rawLeft = containerRect.left - iframeRect.left;
 		let rawRight = containerRect.right - iframeRect.left;
 		let left = Math.max(0, Number(maskWidths.left) || 0);
+		let right = Math.max(0, Number(maskWidths.right) || 0);
 		let textRects = collectVisibleTextClientRects(doc, win, body, {
 			limit: 1000,
 			countInvalidRects: true
@@ -1279,15 +1280,33 @@ class DefaultViewManager {
 			let logicalRect = getVerticalRlViewportRectHelper(rect, rawLeft, rawRight, iframeRect.left);
 			let rectLeft = logicalRect.left;
 			let rectRight = logicalRect.right;
+			let viewportRectLeft = iframeRect.left + rect.left;
+			let viewportRectRight = iframeRect.left + rect.right;
 
-			if (rectLeft < rawLeft && rectRight > rawLeft) {
-				left = Math.max(left, Math.ceil(rectRight - rawLeft + 1));
+			if (
+				(rectLeft < rawLeft && rectRight > rawLeft) ||
+				(viewportRectLeft < containerRect.left && viewportRectRight > containerRect.left)
+			) {
+				left = Math.max(
+					left,
+					Math.ceil(Math.max(rectRight - rawLeft, viewportRectRight - containerRect.left) + 1)
+				);
+			}
+
+			if (
+				(rectLeft < rawRight && rectRight > rawRight) ||
+				(viewportRectLeft < containerRect.right && viewportRectRight > containerRect.right)
+			) {
+				right = Math.max(
+					right,
+					Math.ceil(Math.max(rawRight - rectLeft, containerRect.right - viewportRectLeft) + 1)
+				);
 			}
 		}
 
 		return {
 			left: Math.min(left, maxMask),
-			right: maskWidths.right
+			right: Math.min(right, maxMask)
 		};
 	}
 

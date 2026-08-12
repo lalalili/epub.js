@@ -10337,10 +10337,14 @@
 		}
 		return best.crossings < initialCrossings ? Math.ceil(best.width) : snappedContentWidth;
 	};
-	var stabilizeVerticalRlSnappedContentWidth = ({ previous, snappedContentWidth, pageLength, totalPages, lineWidth }) => {
+	var stabilizeVerticalRlSnappedContentWidth = ({ previous, snappedContentWidth, pageLength, totalPages, lineWidth, rawWidth }) => {
 		const width = Number(snappedContentWidth);
 		const previousWidth = Number(previous && previous.width);
-		if (!Number.isFinite(width) || width <= 0 || !previous || !Number.isFinite(previousWidth) || previousWidth <= 0 || previous.totalPages !== totalPages || Math.abs(Number(previous.pageLength || 0) - Number(pageLength || 0)) > 1) return snappedContentWidth;
+		const measuredRawWidth = Number(rawWidth);
+		const frameMeasurementTolerance = Math.max(4, VERTICAL_RL_WIDTH_GUARD);
+		if (!Number.isFinite(width) || width <= 0 || !previous || !Number.isFinite(previousWidth) || previousWidth <= 0 || Math.abs(Number(previous.pageLength || 0) - Number(pageLength || 0)) > 1) return snappedContentWidth;
+		if (Boolean(totalPages > Number(previous.totalPages || 0) && width > previousWidth && Number.isFinite(measuredRawWidth) && measuredRawWidth > 0 && measuredRawWidth <= previousWidth + frameMeasurementTolerance)) return previousWidth;
+		if (previous.totalPages !== totalPages) return snappedContentWidth;
 		const maxReframeDrift = Math.max(24, Math.min(48, Math.ceil(Number(lineWidth || 0) + VERTICAL_RL_WIDTH_GUARD)));
 		if (Math.abs(width - previousWidth) > maxReframeDrift) return snappedContentWidth;
 		return Math.min(width, previousWidth);
@@ -10600,10 +10604,10 @@
 				docFonts ? docFonts.status : ""
 			].join(":");
 		}
-		invalidateVerticalRlMetricsCache() {
+		invalidateVerticalRlMetricsCache(preserveStableWidth = false) {
 			this._verticalRlMetricsCache = null;
 			this._verticalRlPageMetricsCache = null;
-			this._verticalRlStableSnappedContentWidth = null;
+			if (!preserveStableWidth) this._verticalRlStableSnappedContentWidth = null;
 		}
 		/**
 		* Set overflow css style of the contents
@@ -10637,7 +10641,13 @@
 		*/
 		css(property, value, priority) {
 			var content = this.content || this.document.body;
-			this.invalidateVerticalRlMetricsCache();
+			const nextSignature = `${value || ""}:${value && priority ? "important" : ""}`;
+			const preservesVerticalRlStableWidth = this._verticalRlCssValues?.[property] === nextSignature;
+			this._verticalRlCssValues = {
+				...this._verticalRlCssValues,
+				[property]: nextSignature
+			};
+			this.invalidateVerticalRlMetricsCache(preservesVerticalRlStableWidth);
 			if (value) content.style.setProperty(property, value, priority ? "important" : "");
 			else content.style.removeProperty(property);
 			return this.window.getComputedStyle(content).getPropertyValue(property);
@@ -10742,7 +10752,7 @@
 		*/
 		resizeCheck() {
 			if (!this.document) return;
-			this.invalidateVerticalRlMetricsCache();
+			this.invalidateVerticalRlMetricsCache(true);
 			let width = this.textWidth();
 			let height = this.textHeight();
 			if (width != this._size.width || height != this._size.height) {
@@ -10910,7 +10920,7 @@
 						targetPos.top = position.top;
 					} else if (isWebkit) {
 						let container = range.startContainer;
-						let newRange = new Range();
+						let newRange = this.document.createRange();
 						try {
 							if (container.nodeType === ELEMENT_NODE) position = container.getBoundingClientRect();
 							else if (range.startOffset < range.endOffset) {
@@ -10921,8 +10931,8 @@
 								newRange.setStart(container, range.startOffset);
 								newRange.setEnd(container, range.startOffset + 2);
 								position = newRange.getBoundingClientRect();
-							} else if (range.startOffset - 2 > 0) {
-								newRange.setStart(container, range.startOffset - 2);
+							} else if (range.startOffset - 1 > 0) {
+								newRange.setStart(container, range.startOffset - 1);
 								newRange.setEnd(container, range.startOffset);
 								position = newRange.getBoundingClientRect();
 							} else position = container.parentNode.getBoundingClientRect();
@@ -10936,7 +10946,7 @@
 				let el = this.document.getElementById(id);
 				if (el) {
 					if (isWebkit) {
-						let newRange = new Range();
+						let newRange = this.document.createRange();
 						newRange.selectNode(el);
 						position = newRange.getBoundingClientRect();
 					} else position = el.getBoundingClientRect();
@@ -11012,9 +11022,9 @@
 		*/
 		addStylesheetCss(serializedCss, key) {
 			if (!this.document || !serializedCss) return false;
-			this.invalidateVerticalRlMetricsCache();
 			var styleEl = this._getStylesheetNode(key);
 			if (!styleEl) return false;
+			this.invalidateVerticalRlMetricsCache(styleEl.innerHTML === serializedCss);
 			styleEl.innerHTML = serializedCss;
 			return true;
 		}
@@ -11028,7 +11038,15 @@
 		addStylesheetRules(rules, key) {
 			var styleSheet;
 			if (!this.document || !rules || rules.length === 0) return;
-			this.invalidateVerticalRlMetricsCache();
+			const signatureKey = key || "";
+			const rulesSignature = JSON.stringify(rules);
+			const repeatsExistingRules = this._verticalRlStylesheetRuleSignatures?.[signatureKey] === rulesSignature;
+			this.invalidateVerticalRlMetricsCache(repeatsExistingRules);
+			if (repeatsExistingRules) return;
+			this._verticalRlStylesheetRuleSignatures = {
+				...this._verticalRlStylesheetRuleSignatures,
+				[signatureKey]: rulesSignature
+			};
 			const styleEl = this._getStylesheetNode(key);
 			if (!styleEl || !styleEl.sheet) return;
 			styleSheet = styleEl.sheet;
@@ -11255,7 +11273,15 @@
 		* @param {number} gap
 		*/
 		columns(width, height, columnWidth, gap, dir) {
-			this.invalidateVerticalRlMetricsCache();
+			const columnsSignature = [
+				width,
+				height,
+				columnWidth,
+				gap,
+				dir || ""
+			].join(":");
+			this.invalidateVerticalRlMetricsCache(this._verticalRlColumnsSignature === columnsSignature);
+			this._verticalRlColumnsSignature = columnsSignature;
 			let COLUMN_AXIS = prefixed$1("column-axis");
 			let COLUMN_GAP = prefixed$1("column-gap");
 			let COLUMN_WIDTH = prefixed$1("column-width");
@@ -11501,7 +11527,8 @@
 				snappedContentWidth,
 				pageLength,
 				totalPages,
-				lineWidth: metrics.lineWidth
+				lineWidth: metrics.lineWidth,
+				rawWidth
 			});
 			this._verticalRlStableSnappedContentWidth = {
 				pageLength,
@@ -12313,6 +12340,7 @@
 			var width = this.lockedWidth;
 			var height = this.lockedHeight;
 			var columns;
+			const previousContentWidth = Number(this._contentWidth || 0);
 			if (!this.iframe || this._expanding) return;
 			this._expanding = true;
 			if (this.layout.name === "pre-paginated") {
@@ -12360,7 +12388,7 @@
 						}
 					}
 				}
-				if (pageMetrics && pageMetrics.snappedContentWidth > 0) width = pageMetrics.snappedContentWidth;
+				if (pageMetrics && pageMetrics.snappedContentWidth > 0) width = previousContentWidth > visiblePageWidth && pageMetrics.snappedContentWidth > previousContentWidth && pageMetrics.rawWidth <= previousContentWidth + 4 ? previousContentWidth : pageMetrics.snappedContentWidth;
 				else if (pageAdvance > 0 && visiblePageWidth > 0) width = (Math.max(1, Math.ceil(Math.max(0, width - visiblePageWidth) / pageAdvance) + 1) - 1) * pageAdvance + visiblePageWidth;
 				else if (width % this.layout.pageWidth > 0) width = Math.ceil(width / this.layout.pageWidth) * this.layout.pageWidth;
 				this._contentWidth = width;
@@ -14665,7 +14693,7 @@
 			return getVerticalRlEdgeMaskWidth(this.getVerticalRlEdgeMaskWidths());
 		}
 		expandVerticalRlLeftMaskToVisibleLine(maskWidths) {
-			if (!maskWidths || !maskWidths.left || !this.container || !this.views) return maskWidths;
+			if (!maskWidths || !this.container || !this.views) return maskWidths;
 			let view = this.views.first() || this.views.last();
 			let iframe = view && view.iframe;
 			let doc = view && view.contents && view.contents.document;
@@ -14679,6 +14707,7 @@
 			let rawLeft = containerRect.left - iframeRect.left;
 			let rawRight = containerRect.right - iframeRect.left;
 			let left = Math.max(0, Number(maskWidths.left) || 0);
+			let right = Math.max(0, Number(maskWidths.right) || 0);
 			let textRects = collectVisibleTextClientRects(doc, win, body, {
 				limit: 1e3,
 				countInvalidRects: true
@@ -14688,11 +14717,14 @@
 				let logicalRect = getVerticalRlViewportRect(rect, rawLeft, rawRight, iframeRect.left);
 				let rectLeft = logicalRect.left;
 				let rectRight = logicalRect.right;
-				if (rectLeft < rawLeft && rectRight > rawLeft) left = Math.max(left, Math.ceil(rectRight - rawLeft + 1));
+				let viewportRectLeft = iframeRect.left + rect.left;
+				let viewportRectRight = iframeRect.left + rect.right;
+				if (rectLeft < rawLeft && rectRight > rawLeft || viewportRectLeft < containerRect.left && viewportRectRight > containerRect.left) left = Math.max(left, Math.ceil(Math.max(rectRight - rawLeft, viewportRectRight - containerRect.left) + 1));
+				if (rectLeft < rawRight && rectRight > rawRight || viewportRectLeft < containerRect.right && viewportRectRight > containerRect.right) right = Math.max(right, Math.ceil(Math.max(rawRight - rectLeft, containerRect.right - viewportRectLeft) + 1));
 			}
 			return {
 				left: Math.min(left, maxMask),
-				right: maskWidths.right
+				right: Math.min(right, maxMask)
 			};
 		}
 		getLogicalPageStepToNextPage() {
@@ -15041,7 +15073,10 @@
 						if (Math.abs(currentOffset - pageOffset) <= this.getPageSnapTolerance()) logicalOffset = pageOffset;
 					}
 					let sequentialBoundaryConstraint = this._verticalRlSequentialBoundaryConstraint && this._verticalRlSequentialBoundaryConstraint.pageIndex === targetIndex ? this._verticalRlSequentialBoundaryConstraint : {};
-					let snappedOffset = shouldUseCachedLogicalOffset ? logicalOffset : this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll, sequentialBoundaryConstraint);
+					let view = this.views && (this.views.first() || this.views.last());
+					let canMeasureCachedLogicalOffset = Boolean(view && view.iframe && view.contents && view.contents.document && view.contents.document.body && view.contents.window);
+					let snappedOffset = !shouldUseCachedLogicalOffset || canMeasureCachedLogicalOffset ? this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll, sequentialBoundaryConstraint) : logicalOffset;
+					if (!Number.isFinite(Number(snappedOffset))) snappedOffset = logicalOffset;
 					if (!shouldUseCachedLogicalOffset && Math.abs(snappedOffset - logicalOffset) <= 1) snappedOffset = this.snapVerticalRlLogicalOffsetFromEdgeMask(logicalOffset, maxScroll);
 					if (Math.abs(snappedOffset - logicalOffset) <= 1) snappedOffset = logicalOffset;
 					if (Math.abs(snappedOffset - currentOffset) <= 1) {
