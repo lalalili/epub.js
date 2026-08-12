@@ -6279,9 +6279,9 @@ var Ct = class {
 				}
 				if (i.startContainer.nodeType === Node.ELEMENT_NODE) n = i.startContainer.getBoundingClientRect(), r.left = n.left, r.top = n.top;
 				else if (Et) {
-					let e = i.startContainer, t = this.document.createRange();
+					let e = i.startContainer, t = new Range();
 					try {
-						e.nodeType === Dt ? n = e.getBoundingClientRect() : i.startOffset < i.endOffset ? (t.setStart(e, i.startOffset), t.setEnd(e, i.endOffset), n = t.getBoundingClientRect()) : i.startOffset + 2 < (e.length || 0) ? (t.setStart(e, i.startOffset), t.setEnd(e, i.startOffset + 2), n = t.getBoundingClientRect()) : i.startOffset - 1 > 0 ? (t.setStart(e, i.startOffset - 1), t.setEnd(e, i.startOffset), n = t.getBoundingClientRect()) : n = e.parentNode.getBoundingClientRect();
+						e.nodeType === Dt ? n = e.getBoundingClientRect() : i.startOffset < i.endOffset ? (t.setStart(e, i.startOffset), t.setEnd(e, i.endOffset), n = t.getBoundingClientRect()) : i.startOffset + 2 < (e.length || 0) ? (t.setStart(e, i.startOffset), t.setEnd(e, i.startOffset + 2), n = t.getBoundingClientRect()) : i.startOffset - 2 > 0 ? (t.setStart(e, i.startOffset - 2), t.setEnd(e, i.startOffset), n = t.getBoundingClientRect()) : n = e.parentNode.getBoundingClientRect();
 					} catch (e) {
 						console.error(e, e.stack);
 					}
@@ -6291,7 +6291,7 @@ var Ct = class {
 			let t = e.substring(e.indexOf("#") + 1), r = this.document.getElementById(t);
 			if (r) {
 				if (Et) {
-					let e = this.document.createRange();
+					let e = new Range();
 					e.selectNode(r), n = e.getBoundingClientRect();
 				} else n = r.getBoundingClientRect();
 				(!n || !n.width && !n.height) && (n = this.locationOfElement(r));
@@ -7133,11 +7133,11 @@ var Yt = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, Xt = cla
 			if (this._expanding = !0, this.layout.name === "pre-paginated") t = this.layout.columnWidth, n = this.layout.height;
 			else if (this.settings.axis === "horizontal") {
 				this._forceEvenPageAdded = !1, t = this.contents.textWidth();
-				let e = this.layout.pageWidth, i = this.layout.viewportPageWidth || this.lockedWidth || this.layout.width || this.layout.pageWidth, a = (this.element && this.element.parentElement ? this.element.parentElement.clientWidth : 0) || this.lockedWidth || this.layout.columnWidth || this.layout.pageWidth || this.settings.width || i, o = null, s = !1;
-				if (this.settings.flow === "paginated" && this.contents.isViewportFillingSingleMediaPage && this.contents.isViewportFillingSingleMediaPage(a) && (s = !0, i = a, e = a, t = Math.ceil(a)), this._viewportFillingSingleMediaPage = s, !s && this.settings.flow === "paginated" && this.contents.writingMode && this.contents.writingMode() === "vertical-rl" && this.contents.verticalRlPageMetrics && (o = this.contents.verticalRlPageMetrics(i, n), t = o.rawWidth, o.effectivePageAdvance > 0)) {
-					e = o.effectivePageAdvance;
-					let t = o.pageWidth || this.layout.pageWidth, n = o.viewportPageWidth || i, r = o.pageBoundaryShift || 0, a = o.edgeGuardPx || 0;
-					(this.layout.pageWidth !== t || this.layout.viewportPageWidth !== n || this.layout.effectivePageAdvance !== e || this.layout.delta !== e || this.layout.pageBoundaryShift !== r || this.layout.edgeGuardPx !== a) && (this.layout.pageWidth = t, this.layout.viewportPageWidth = n, this.layout.effectivePageAdvance = e, this.layout.delta = e, this.layout.pageBoundaryShift = r, this.layout.edgeGuardPx = a, this.layout.update({
+				let e = this.layout.pageWidth, a = this.layout.viewportPageWidth || this.lockedWidth || this.layout.width || this.layout.pageWidth, o = (this.element && this.element.parentElement ? this.element.parentElement.clientWidth : 0) || this.lockedWidth || this.layout.columnWidth || this.layout.pageWidth || this.settings.width || a, s = null, c = !1;
+				if (Math.max(Number(this.iframe.clientWidth || 0), Number(this.iframe.getBoundingClientRect && this.iframe.getBoundingClientRect().width || 0), Number.parseFloat(this.iframe.style && this.iframe.style.width || "") || 0) <= 0 && a > 0 && this.iframe.style && this.element && this.element.style && (this.element.style.width = a + "px", this.iframe.style.width = a + "px"), this.settings.flow === "paginated" && this.contents.isViewportFillingSingleMediaPage && this.contents.isViewportFillingSingleMediaPage(o) && (c = !0, a = o, e = o, t = Math.ceil(o)), this._viewportFillingSingleMediaPage = c, !c && this.settings.flow === "paginated" && this.contents.writingMode && this.contents.writingMode() === "vertical-rl" && this.contents.verticalRlPageMetrics && (this.iframe.style && this.element && this.element.style && a > 0 && (this.element.style.width = a + "px", this.iframe.style.width = a + "px"), s = this.contents.verticalRlPageMetrics(a, n), t = s.rawWidth, s.effectivePageAdvance > 0)) {
+					e = s.effectivePageAdvance;
+					let t = s.pageWidth || this.layout.pageWidth, n = s.viewportPageWidth || a, r = s.pageBoundaryShift || 0, i = s.edgeGuardPx || 0;
+					(this.layout.pageWidth !== t || this.layout.viewportPageWidth !== n || this.layout.effectivePageAdvance !== e || this.layout.delta !== e || this.layout.pageBoundaryShift !== r || this.layout.edgeGuardPx !== i) && (this.layout.pageWidth = t, this.layout.viewportPageWidth = n, this.layout.effectivePageAdvance = e, this.layout.delta = e, this.layout.pageBoundaryShift = r, this.layout.edgeGuardPx = i, this.layout.update({
 						pageWidth: t,
 						viewportPageWidth: n,
 						delta: e,
@@ -7146,7 +7146,11 @@ var Yt = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, Xt = cla
 						edgeGuardPx: this.layout.edgeGuardPx
 					}));
 				}
-				o && o.snappedContentWidth > 0 ? t = o.snappedContentWidth : e > 0 && i > 0 ? t = (Math.max(1, Math.ceil(Math.max(0, t - i) / e) + 1) - 1) * e + i : t % this.layout.pageWidth > 0 && (t = Math.ceil(t / this.layout.pageWidth) * this.layout.pageWidth), this._contentWidth = t, this.settings.forceEvenPages && !s && (r = this.layout.effectivePageAdvance && this.layout.effectivePageAdvance !== this.layout.pageWidth ? this.layout.count(t).pages : t / this.layout.pageWidth, this.layout.divisor > 1 && this.layout.name === "reflowable" && r % 2 > 0 && (t += this.layout.effectivePageAdvance || this.layout.pageWidth, this._forceEvenPageAdded = !0)), o && Yt() && window.console && window.console.debug && window.console.debug("[epubjs:vertical-rl:expand]", {
+				if (s && s.snappedContentWidth > 0) {
+					let e = i > a && s.snappedContentWidth > i && s.rawWidth <= i + 4, n = i > a && s.snappedContentWidth > i * 4;
+					t = e || n ? i : s.snappedContentWidth;
+				} else e > 0 && a > 0 ? t = (Math.max(1, Math.ceil(Math.max(0, t - a) / e) + 1) - 1) * e + a : t % this.layout.pageWidth > 0 && (t = Math.ceil(t / this.layout.pageWidth) * this.layout.pageWidth);
+				this._contentWidth = t, this.settings.forceEvenPages && !c && (r = this.layout.effectivePageAdvance && this.layout.effectivePageAdvance !== this.layout.pageWidth ? this.layout.count(t).pages : t / this.layout.pageWidth, this.layout.divisor > 1 && this.layout.name === "reflowable" && r % 2 > 0 && (t += this.layout.effectivePageAdvance || this.layout.pageWidth, this._forceEvenPageAdded = !0)), s && Yt() && window.console && window.console.debug && window.console.debug("[epubjs:vertical-rl:expand]", {
 					href: this.section && this.section.href,
 					rawWidth: s.rawWidth,
 					rawPaintWidth: s.rawPaintWidth,
@@ -8892,19 +8896,19 @@ var Nr = class {
 					let e = this.getCurrentPageIndex(), t = this.getLogicalOffsetForPageIndex(e, n, s);
 					Math.abs(c - t) <= this.getPageSnapTolerance() && (f = t);
 				}
-				let p = this._verticalRlSequentialBoundaryConstraint && this._verticalRlSequentialBoundaryConstraint.pageIndex === r ? this._verticalRlSequentialBoundaryConstraint : {}, m = this.views && (this.views.first() || this.views.last()), h = !!(m && m.iframe && m.contents && m.contents.document && m.contents.document.body && m.contents.window), g = !d || h ? this.snapVerticalRlLogicalOffsetToTextBoundary(f, s, p) : f;
-				if (Number.isFinite(Number(g)) || (g = f), !d && Math.abs(g - f) <= 1 && (g = this.snapVerticalRlLogicalOffsetFromEdgeMask(f, s)), Math.abs(g - f) <= 1 && (g = f), Math.abs(g - c) <= 1) {
+				let p = this._verticalRlSequentialBoundaryConstraint && this._verticalRlSequentialBoundaryConstraint.pageIndex === r ? this._verticalRlSequentialBoundaryConstraint : {}, m = d ? f : this.snapVerticalRlLogicalOffsetToTextBoundary(f, s, p);
+				if (!d && Math.abs(m - f) <= 1 && (m = this.snapVerticalRlLogicalOffsetFromEdgeMask(f, s)), Math.abs(m - f) <= 1 && (m = f), Math.abs(m - c) <= 1) {
 					let t = Number(a[e]);
 					Number.isFinite(t) && t >= 0 && setTimeout(function() {
 						o(e + 1);
 					}, t);
 					return;
 				}
-				this.cacheVerticalRlLogicalPageOffset(r, g, l);
-				let _ = g;
-				this.settings.direction === "rtl" && (this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0 ? _ = -g : this.settings.rtlScrollType === "default" && (_ = Math.max(0, s - g))), this._verticalRlBoundarySnapApplying = !0;
+				this.cacheVerticalRlLogicalPageOffset(r, m, l);
+				let h = m;
+				this.settings.direction === "rtl" && (this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0 ? h = -m : this.settings.rtlScrollType === "default" && (h = Math.max(0, s - m))), this._verticalRlBoundarySnapApplying = !0;
 				try {
-					this.scrollTo(_, 0, !0);
+					this.scrollTo(h, 0, !0);
 				} finally {
 					this._verticalRlBoundarySnapApplying = !1;
 				}

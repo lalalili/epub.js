@@ -10920,7 +10920,7 @@
 						targetPos.top = position.top;
 					} else if (isWebkit) {
 						let container = range.startContainer;
-						let newRange = this.document.createRange();
+						let newRange = new Range();
 						try {
 							if (container.nodeType === ELEMENT_NODE) position = container.getBoundingClientRect();
 							else if (range.startOffset < range.endOffset) {
@@ -10931,8 +10931,8 @@
 								newRange.setStart(container, range.startOffset);
 								newRange.setEnd(container, range.startOffset + 2);
 								position = newRange.getBoundingClientRect();
-							} else if (range.startOffset - 1 > 0) {
-								newRange.setStart(container, range.startOffset - 1);
+							} else if (range.startOffset - 2 > 0) {
+								newRange.setStart(container, range.startOffset - 2);
 								newRange.setEnd(container, range.startOffset);
 								position = newRange.getBoundingClientRect();
 							} else position = container.parentNode.getBoundingClientRect();
@@ -10946,7 +10946,7 @@
 				let el = this.document.getElementById(id);
 				if (el) {
 					if (isWebkit) {
-						let newRange = this.document.createRange();
+						let newRange = new Range();
 						newRange.selectNode(el);
 						position = newRange.getBoundingClientRect();
 					} else position = el.getBoundingClientRect();
@@ -12354,6 +12354,10 @@
 				let singleMediaPageWidth = (this.element && this.element.parentElement ? this.element.parentElement.clientWidth : 0) || this.lockedWidth || this.layout.columnWidth || this.layout.pageWidth || this.settings.width || visiblePageWidth;
 				let pageMetrics = null;
 				let viewportFillingSingleMediaPage = false;
+				if (Math.max(Number(this.iframe.clientWidth || 0), Number(this.iframe.getBoundingClientRect && this.iframe.getBoundingClientRect().width || 0), Number.parseFloat(this.iframe.style && this.iframe.style.width || "") || 0) <= 0 && visiblePageWidth > 0 && this.iframe.style && this.element && this.element.style) {
+					this.element.style.width = visiblePageWidth + "px";
+					this.iframe.style.width = visiblePageWidth + "px";
+				}
 				if (this.settings.flow === "paginated" && this.contents.isViewportFillingSingleMediaPage && this.contents.isViewportFillingSingleMediaPage(singleMediaPageWidth)) {
 					viewportFillingSingleMediaPage = true;
 					visiblePageWidth = singleMediaPageWidth;
@@ -12362,6 +12366,10 @@
 				}
 				this._viewportFillingSingleMediaPage = viewportFillingSingleMediaPage;
 				if (!viewportFillingSingleMediaPage && this.settings.flow === "paginated" && this.contents.writingMode && this.contents.writingMode() === "vertical-rl" && this.contents.verticalRlPageMetrics) {
+					if (this.iframe.style && this.element && this.element.style && visiblePageWidth > 0) {
+						this.element.style.width = visiblePageWidth + "px";
+						this.iframe.style.width = visiblePageWidth + "px";
+					}
 					pageMetrics = this.contents.verticalRlPageMetrics(visiblePageWidth, height);
 					width = pageMetrics.rawWidth;
 					if (pageMetrics.effectivePageAdvance > 0) {
@@ -12388,8 +12396,11 @@
 						}
 					}
 				}
-				if (pageMetrics && pageMetrics.snappedContentWidth > 0) width = previousContentWidth > visiblePageWidth && pageMetrics.snappedContentWidth > previousContentWidth && pageMetrics.rawWidth <= previousContentWidth + 4 ? previousContentWidth : pageMetrics.snappedContentWidth;
-				else if (pageAdvance > 0 && visiblePageWidth > 0) width = (Math.max(1, Math.ceil(Math.max(0, width - visiblePageWidth) / pageAdvance) + 1) - 1) * pageAdvance + visiblePageWidth;
+				if (pageMetrics && pageMetrics.snappedContentWidth > 0) {
+					const rawWidthTracksPreviousFrame = previousContentWidth > visiblePageWidth && pageMetrics.snappedContentWidth > previousContentWidth && pageMetrics.rawWidth <= previousContentWidth + 4;
+					const repeatedMeasurementHasRunawayGrowth = previousContentWidth > visiblePageWidth && pageMetrics.snappedContentWidth > previousContentWidth * 4;
+					width = rawWidthTracksPreviousFrame || repeatedMeasurementHasRunawayGrowth ? previousContentWidth : pageMetrics.snappedContentWidth;
+				} else if (pageAdvance > 0 && visiblePageWidth > 0) width = (Math.max(1, Math.ceil(Math.max(0, width - visiblePageWidth) / pageAdvance) + 1) - 1) * pageAdvance + visiblePageWidth;
 				else if (width % this.layout.pageWidth > 0) width = Math.ceil(width / this.layout.pageWidth) * this.layout.pageWidth;
 				this._contentWidth = width;
 				if (this.settings.forceEvenPages && !viewportFillingSingleMediaPage) {
@@ -15073,10 +15084,7 @@
 						if (Math.abs(currentOffset - pageOffset) <= this.getPageSnapTolerance()) logicalOffset = pageOffset;
 					}
 					let sequentialBoundaryConstraint = this._verticalRlSequentialBoundaryConstraint && this._verticalRlSequentialBoundaryConstraint.pageIndex === targetIndex ? this._verticalRlSequentialBoundaryConstraint : {};
-					let view = this.views && (this.views.first() || this.views.last());
-					let canMeasureCachedLogicalOffset = Boolean(view && view.iframe && view.contents && view.contents.document && view.contents.document.body && view.contents.window);
-					let snappedOffset = !shouldUseCachedLogicalOffset || canMeasureCachedLogicalOffset ? this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll, sequentialBoundaryConstraint) : logicalOffset;
-					if (!Number.isFinite(Number(snappedOffset))) snappedOffset = logicalOffset;
+					let snappedOffset = shouldUseCachedLogicalOffset ? logicalOffset : this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll, sequentialBoundaryConstraint);
 					if (!shouldUseCachedLogicalOffset && Math.abs(snappedOffset - logicalOffset) <= 1) snappedOffset = this.snapVerticalRlLogicalOffsetFromEdgeMask(logicalOffset, maxScroll);
 					if (Math.abs(snappedOffset - logicalOffset) <= 1) snappedOffset = logicalOffset;
 					if (Math.abs(snappedOffset - currentOffset) <= 1) {
