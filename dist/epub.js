@@ -10920,7 +10920,7 @@
 						targetPos.top = position.top;
 					} else if (isWebkit) {
 						let container = range.startContainer;
-						let newRange = new Range();
+						let newRange = this.document.createRange();
 						try {
 							if (container.nodeType === ELEMENT_NODE) position = container.getBoundingClientRect();
 							else if (range.startOffset < range.endOffset) {
@@ -10931,8 +10931,8 @@
 								newRange.setStart(container, range.startOffset);
 								newRange.setEnd(container, range.startOffset + 2);
 								position = newRange.getBoundingClientRect();
-							} else if (range.startOffset - 2 > 0) {
-								newRange.setStart(container, range.startOffset - 2);
+							} else if (range.startOffset - 1 > 0) {
+								newRange.setStart(container, range.startOffset - 1);
 								newRange.setEnd(container, range.startOffset);
 								position = newRange.getBoundingClientRect();
 							} else position = container.parentNode.getBoundingClientRect();
@@ -10946,7 +10946,7 @@
 				let el = this.document.getElementById(id);
 				if (el) {
 					if (isWebkit) {
-						let newRange = new Range();
+						let newRange = this.document.createRange();
 						newRange.selectNode(el);
 						position = newRange.getBoundingClientRect();
 					} else position = el.getBoundingClientRect();
@@ -15084,7 +15084,10 @@
 						if (Math.abs(currentOffset - pageOffset) <= this.getPageSnapTolerance()) logicalOffset = pageOffset;
 					}
 					let sequentialBoundaryConstraint = this._verticalRlSequentialBoundaryConstraint && this._verticalRlSequentialBoundaryConstraint.pageIndex === targetIndex ? this._verticalRlSequentialBoundaryConstraint : {};
-					let snappedOffset = shouldUseCachedLogicalOffset ? logicalOffset : this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll, sequentialBoundaryConstraint);
+					let view = this.views && (this.views.first() || this.views.last());
+					let canMeasureCachedLogicalOffset = Boolean(view && view.iframe && view.contents && view.contents.document && view.contents.document.body && view.contents.window);
+					let snappedOffset = !shouldUseCachedLogicalOffset || canMeasureCachedLogicalOffset ? this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll, sequentialBoundaryConstraint) : logicalOffset;
+					if (!Number.isFinite(Number(snappedOffset))) snappedOffset = logicalOffset;
 					if (!shouldUseCachedLogicalOffset && Math.abs(snappedOffset - logicalOffset) <= 1) snappedOffset = this.snapVerticalRlLogicalOffsetFromEdgeMask(logicalOffset, maxScroll);
 					if (Math.abs(snappedOffset - logicalOffset) <= 1) snappedOffset = logicalOffset;
 					if (Math.abs(snappedOffset - currentOffset) <= 1) {

@@ -6279,9 +6279,9 @@ var Ct = class {
 				}
 				if (i.startContainer.nodeType === Node.ELEMENT_NODE) n = i.startContainer.getBoundingClientRect(), r.left = n.left, r.top = n.top;
 				else if (Et) {
-					let e = i.startContainer, t = new Range();
+					let e = i.startContainer, t = this.document.createRange();
 					try {
-						e.nodeType === Dt ? n = e.getBoundingClientRect() : i.startOffset < i.endOffset ? (t.setStart(e, i.startOffset), t.setEnd(e, i.endOffset), n = t.getBoundingClientRect()) : i.startOffset + 2 < (e.length || 0) ? (t.setStart(e, i.startOffset), t.setEnd(e, i.startOffset + 2), n = t.getBoundingClientRect()) : i.startOffset - 2 > 0 ? (t.setStart(e, i.startOffset - 2), t.setEnd(e, i.startOffset), n = t.getBoundingClientRect()) : n = e.parentNode.getBoundingClientRect();
+						e.nodeType === Dt ? n = e.getBoundingClientRect() : i.startOffset < i.endOffset ? (t.setStart(e, i.startOffset), t.setEnd(e, i.endOffset), n = t.getBoundingClientRect()) : i.startOffset + 2 < (e.length || 0) ? (t.setStart(e, i.startOffset), t.setEnd(e, i.startOffset + 2), n = t.getBoundingClientRect()) : i.startOffset - 1 > 0 ? (t.setStart(e, i.startOffset - 1), t.setEnd(e, i.startOffset), n = t.getBoundingClientRect()) : n = e.parentNode.getBoundingClientRect();
 					} catch (e) {
 						console.error(e, e.stack);
 					}
@@ -6291,7 +6291,7 @@ var Ct = class {
 			let t = e.substring(e.indexOf("#") + 1), r = this.document.getElementById(t);
 			if (r) {
 				if (Et) {
-					let e = new Range();
+					let e = this.document.createRange();
 					e.selectNode(r), n = e.getBoundingClientRect();
 				} else n = r.getBoundingClientRect();
 				(!n || !n.width && !n.height) && (n = this.locationOfElement(r));
@@ -8896,19 +8896,19 @@ var Nr = class {
 					let e = this.getCurrentPageIndex(), t = this.getLogicalOffsetForPageIndex(e, n, s);
 					Math.abs(c - t) <= this.getPageSnapTolerance() && (f = t);
 				}
-				let p = this._verticalRlSequentialBoundaryConstraint && this._verticalRlSequentialBoundaryConstraint.pageIndex === r ? this._verticalRlSequentialBoundaryConstraint : {}, m = d ? f : this.snapVerticalRlLogicalOffsetToTextBoundary(f, s, p);
-				if (!d && Math.abs(m - f) <= 1 && (m = this.snapVerticalRlLogicalOffsetFromEdgeMask(f, s)), Math.abs(m - f) <= 1 && (m = f), Math.abs(m - c) <= 1) {
+				let p = this._verticalRlSequentialBoundaryConstraint && this._verticalRlSequentialBoundaryConstraint.pageIndex === r ? this._verticalRlSequentialBoundaryConstraint : {}, m = this.views && (this.views.first() || this.views.last()), h = !!(m && m.iframe && m.contents && m.contents.document && m.contents.document.body && m.contents.window), g = !d || h ? this.snapVerticalRlLogicalOffsetToTextBoundary(f, s, p) : f;
+				if (Number.isFinite(Number(g)) || (g = f), !d && Math.abs(g - f) <= 1 && (g = this.snapVerticalRlLogicalOffsetFromEdgeMask(f, s)), Math.abs(g - f) <= 1 && (g = f), Math.abs(g - c) <= 1) {
 					let t = Number(a[e]);
 					Number.isFinite(t) && t >= 0 && setTimeout(function() {
 						o(e + 1);
 					}, t);
 					return;
 				}
-				this.cacheVerticalRlLogicalPageOffset(r, m, l);
-				let h = m;
-				this.settings.direction === "rtl" && (this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0 ? h = -m : this.settings.rtlScrollType === "default" && (h = Math.max(0, s - m))), this._verticalRlBoundarySnapApplying = !0;
+				this.cacheVerticalRlLogicalPageOffset(r, g, l);
+				let _ = g;
+				this.settings.direction === "rtl" && (this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0 ? _ = -g : this.settings.rtlScrollType === "default" && (_ = Math.max(0, s - g))), this._verticalRlBoundarySnapApplying = !0;
 				try {
-					this.scrollTo(h, 0, !0);
+					this.scrollTo(_, 0, !0);
 				} finally {
 					this._verticalRlBoundarySnapApplying = !1;
 				}
