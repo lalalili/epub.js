@@ -5753,6 +5753,187 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(view._contentWidth, 4227);
 	});
 
+	it("establishes the viewport width before measuring a newly inserted vertical-rl iframe", function() {
+		let view = Object.create(IframeView.prototype);
+		let measuredIframeWidth = null;
+		let reframed = null;
+
+		view.lockedWidth = 393;
+		view.lockedHeight = 654;
+		view._contentWidth = 0;
+		view._expanding = false;
+		view._needsReframe = true;
+		view.element = { style: { width: "0px" } };
+		view.iframe = {
+			clientWidth: 0,
+			style: { width: "0px" },
+			getBoundingClientRect: function() {
+				return { width: 0 };
+			}
+		};
+		view.settings = {
+			axis: "horizontal",
+			flow: "paginated",
+			forceEvenPages: false
+		};
+		view.layout = {
+			pageWidth: 393,
+			viewportPageWidth: 393,
+			effectivePageAdvance: 393,
+			delta: 393,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0,
+			update: function() {}
+		};
+		view.contents = {
+			textWidth: function() {
+				return 1056;
+			},
+			writingMode: function() {
+				return "vertical-rl";
+			},
+			verticalRlPageMetrics: function() {
+				measuredIframeWidth = view.iframe.style.width;
+				return {
+					rawWidth: 1056,
+					rawPaintWidth: 1056,
+					snappedContentWidth: 1179,
+					pageWidth: 393,
+					viewportPageWidth: 393,
+					effectivePageAdvance: 393,
+					pageBoundaryShift: 0,
+					edgeGuardPx: 0,
+					totalPages: 3
+				};
+			}
+		};
+		view.reframe = function(width, height) {
+			reframed = { width, height };
+		};
+
+		view.expand();
+
+		assert.equal(measuredIframeWidth, "393px");
+		assert.deepEqual(reframed, { width: 1179, height: 654 });
+		assert.equal(view._contentWidth, 1179);
+	});
+
+	it("does not multiply a previously measured vertical-rl frame width", function() {
+		let view = Object.create(IframeView.prototype);
+		let reframed = null;
+
+		view.lockedWidth = 393;
+		view.lockedHeight = 654;
+		view._contentWidth = 786;
+		view._expanding = false;
+		view._needsReframe = true;
+		view.iframe = {};
+		view.settings = {
+			axis: "horizontal",
+			flow: "paginated",
+			forceEvenPages: false
+		};
+		view.layout = {
+			pageWidth: 393,
+			viewportPageWidth: 393,
+			effectivePageAdvance: 393,
+			delta: 393,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0,
+			update: function() {}
+		};
+		view.contents = {
+			textWidth: function() {
+				return 11913;
+			},
+			writingMode: function() {
+				return "vertical-rl";
+			},
+			verticalRlPageMetrics: function() {
+				return {
+					rawWidth: 11913,
+					rawPaintWidth: 11913,
+					snappedContentWidth: 11913,
+					pageWidth: 393,
+					viewportPageWidth: 393,
+					effectivePageAdvance: 393,
+					pageBoundaryShift: 0,
+					edgeGuardPx: 0,
+					totalPages: 31
+				};
+			}
+		};
+		view.reframe = function(width, height) {
+			reframed = { width, height };
+		};
+
+		view.expand();
+
+		assert.deepEqual(reframed, { width: 786, height: 654 });
+		assert.equal(view._contentWidth, 786);
+	});
+
+	it("remeasures an expanded vertical-rl iframe at the visible viewport width", function() {
+		let view = Object.create(IframeView.prototype);
+		let measuredIframeWidth = null;
+
+		view.lockedWidth = 393;
+		view.lockedHeight = 654;
+		view._contentWidth = 1179;
+		view._expanding = false;
+		view._needsReframe = true;
+		view.element = { style: { width: "1179px" } };
+		view.iframe = {
+			clientWidth: 1179,
+			style: { width: "1179px" },
+			getBoundingClientRect: function() {
+				return { width: 1179 };
+			}
+		};
+		view.settings = {
+			axis: "horizontal",
+			flow: "paginated",
+			forceEvenPages: false
+		};
+		view.layout = {
+			pageWidth: 393,
+			viewportPageWidth: 393,
+			effectivePageAdvance: 393,
+			delta: 393,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0,
+			update: function() {}
+		};
+		view.contents = {
+			textWidth: function() {
+				return 1056;
+			},
+			writingMode: function() {
+				return "vertical-rl";
+			},
+			verticalRlPageMetrics: function() {
+				measuredIframeWidth = view.iframe.style.width;
+				return {
+					rawWidth: 1056,
+					rawPaintWidth: 1056,
+					snappedContentWidth: 1179,
+					pageWidth: 393,
+					viewportPageWidth: 393,
+					effectivePageAdvance: 393,
+					pageBoundaryShift: 0,
+					edgeGuardPx: 0,
+					totalPages: 3
+				};
+			}
+		};
+		view.reframe = function() {};
+
+		view.expand();
+
+		assert.equal(measuredIframeWidth, "393px");
+		assert.equal(view._contentWidth, 1179);
+	});
+
 	it("keeps vertical-rl page advance equal to the visible page width", function() {
 		let contents = Object.create(Contents.prototype);
 		contents._verticalRlPageMetricsCache = null;

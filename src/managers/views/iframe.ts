@@ -502,6 +502,27 @@ class IframeView {
 			let pageMetrics: VerticalRlPageMetrics | null = null;
 			let viewportFillingSingleMediaPage = false;
 
+			// A newly inserted view can briefly have a zero-width iframe while an
+			// adjacent spine item is being displayed. Measuring vertical text in
+			// that state makes its column canvas depend on the unconstrained body
+			// width, which can then feed back into subsequent frame measurements.
+			// Establish the real viewport width before reading vertical-rl metrics.
+			const iframeWidth = Math.max(
+				Number(this.iframe.clientWidth || 0),
+				Number(this.iframe.getBoundingClientRect && this.iframe.getBoundingClientRect().width || 0),
+				Number.parseFloat(this.iframe.style && this.iframe.style.width || "") || 0
+			);
+			if (
+				iframeWidth <= 0 &&
+				visiblePageWidth > 0 &&
+				this.iframe.style &&
+				this.element &&
+				this.element.style
+			) {
+				this.element.style.width = visiblePageWidth + "px";
+				this.iframe.style.width = visiblePageWidth + "px";
+			}
+
 			if (
 				this.settings.flow === "paginated" &&
 				this.contents.isViewportFillingSingleMediaPage &&
@@ -521,6 +542,10 @@ class IframeView {
 				this.contents.writingMode() === "vertical-rl" &&
 				this.contents.verticalRlPageMetrics
 			) {
+				if (this.iframe.style && this.element && this.element.style && visiblePageWidth > 0) {
+					this.element.style.width = visiblePageWidth + "px";
+					this.iframe.style.width = visiblePageWidth + "px";
+				}
 				pageMetrics = this.contents.verticalRlPageMetrics(visiblePageWidth, height) as VerticalRlPageMetrics;
 				width = pageMetrics.rawWidth;
 				if (pageMetrics.effectivePageAdvance > 0) {
@@ -560,7 +585,10 @@ class IframeView {
 					previousContentWidth > visiblePageWidth &&
 					pageMetrics.snappedContentWidth > previousContentWidth &&
 					pageMetrics.rawWidth <= previousContentWidth + 4;
-				width = rawWidthTracksPreviousFrame
+				const repeatedMeasurementHasRunawayGrowth =
+					previousContentWidth > visiblePageWidth &&
+					pageMetrics.snappedContentWidth > previousContentWidth * 4;
+				width = rawWidthTracksPreviousFrame || repeatedMeasurementHasRunawayGrowth
 					? previousContentWidth
 					: pageMetrics.snappedContentWidth;
 			} else if (pageAdvance > 0 && visiblePageWidth > 0) {
