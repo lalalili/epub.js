@@ -14694,7 +14694,21 @@
 				right: 0
 			};
 			let maxScroll = this.getMaxLogicalScrollLeft();
-			let cleanPageMask = getVerticalRlCleanPageEdgeMaskInput(advance, totalPages, currentPageIndex, this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll), this.getLogicalOffsetForPageIndex(currentPageIndex - 1, totalPages, maxScroll), this.getNormalizedLogicalScrollLeft(), this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll), this._verticalRlSequentialBoundaryConstraint ? this._verticalRlSequentialBoundaryConstraint.pageIndex : null);
+			let currentOffset = this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll);
+			let previousOffset = this.getLogicalOffsetForPageIndex(currentPageIndex - 1, totalPages, maxScroll);
+			let appliedOffsets = this._verticalRlAppliedOffsets;
+			if (appliedOffsets) {
+				let appliedCurrent = appliedOffsets[currentPageIndex];
+				let appliedPrevious = appliedOffsets[currentPageIndex - 1];
+				if (Number.isFinite(appliedCurrent) && Number.isFinite(appliedPrevious)) {
+					currentOffset = appliedCurrent;
+					previousOffset = appliedPrevious;
+				}
+			}
+			let actualCurrentOffset = this.getNormalizedLogicalScrollLeft();
+			let currentGridOffset = this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll);
+			let sequentialBoundaryPageIndex = this._verticalRlSequentialBoundaryConstraint ? this._verticalRlSequentialBoundaryConstraint.pageIndex : null;
+			let cleanPageMask = getVerticalRlCleanPageEdgeMaskInput(advance, totalPages, currentPageIndex, currentOffset, previousOffset, actualCurrentOffset, currentGridOffset, sequentialBoundaryPageIndex);
 			if (!cleanPageMask) return {
 				left: 0,
 				right: 0
@@ -15078,6 +15092,8 @@
 					if (Number.isFinite(snappedLogicalOffset)) logicalOffset = snappedLogicalOffset;
 				}
 			}
+			if (!this._verticalRlAppliedOffsets) this._verticalRlAppliedOffsets = {};
+			this._verticalRlAppliedOffsets[targetIndex] = logicalOffset;
 			this._verticalRlSequentialBoundaryConstraint = sequentialBoundaryConstraint;
 			if (this.isRtlVerticalPaginated()) this.cacheVerticalRlLogicalPageOffset(targetIndex, logicalOffset, logicalOffsetCacheKey);
 			let left = logicalOffset;

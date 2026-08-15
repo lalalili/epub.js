@@ -8641,14 +8641,19 @@ var Nr = class {
 			left: 0,
 			right: 0
 		};
-		let r = this.getMaxLogicalScrollLeft(), i = ur(e, t, n, this.getLogicalOffsetForPageIndex(n, t, r), this.getLogicalOffsetForPageIndex(n - 1, t, r), this.getNormalizedLogicalScrollLeft(), this.getLogicalOffsetForPageIndex(n, t, r), this._verticalRlSequentialBoundaryConstraint ? this._verticalRlSequentialBoundaryConstraint.pageIndex : null);
-		return i ? this.snapVerticalRlEdgeMaskWidths(i.widths, i.maxMask, {
-			nextPageStep: i.nextPageStep,
-			previousPageStep: i.previousPageStep,
-			rightMaxMask: i.rightMaxMask,
-			allowRawRightMask: i.allowRawRightMask,
-			allowRawLeftMask: i.allowRawLeftMask,
-			forceRawLeftMask: i.forceRawLeftMask
+		let r = this.getMaxLogicalScrollLeft(), i = this.getLogicalOffsetForPageIndex(n, t, r), a = this.getLogicalOffsetForPageIndex(n - 1, t, r), o = this._verticalRlAppliedOffsets;
+		if (o) {
+			let e = o[n], t = o[n - 1];
+			Number.isFinite(e) && Number.isFinite(t) && (i = e, a = t);
+		}
+		let s = this.getNormalizedLogicalScrollLeft(), c = this.getLogicalOffsetForPageIndex(n, t, r), l = this._verticalRlSequentialBoundaryConstraint ? this._verticalRlSequentialBoundaryConstraint.pageIndex : null, u = ur(e, t, n, i, a, s, c, l);
+		return u ? this.snapVerticalRlEdgeMaskWidths(u.widths, u.maxMask, {
+			nextPageStep: u.nextPageStep,
+			previousPageStep: u.previousPageStep,
+			rightMaxMask: u.rightMaxMask,
+			allowRawRightMask: u.allowRawRightMask,
+			allowRawLeftMask: u.allowRawLeftMask,
+			forceRawLeftMask: u.forceRawLeftMask
 		}) : {
 			left: 0,
 			right: 0
@@ -8888,7 +8893,7 @@ var Nr = class {
 			let e = this.snapVerticalRlLogicalOffsetToTextBoundary(_, p, m || {});
 			Number.isFinite(e) && (_ = e);
 		}
-		this._verticalRlSequentialBoundaryConstraint = m, this.isRtlVerticalPaginated() && this.cacheVerticalRlLogicalPageOffset(f, _, h);
+		this._verticalRlAppliedOffsets ||= {}, this._verticalRlAppliedOffsets[f] = _, this._verticalRlSequentialBoundaryConstraint = m, this.isRtlVerticalPaginated() && this.cacheVerticalRlLogicalPageOffset(f, _, h);
 		let v = _;
 		this.settings.direction === "rtl" ? this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0 ? v = -_ : this.settings.rtlScrollType === "default" && (v = Math.max(0, p - _)) : v = _, this._verticalRlBoundarySnapApplying = !0;
 		try {
