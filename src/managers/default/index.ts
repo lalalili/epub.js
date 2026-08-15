@@ -1349,9 +1349,42 @@ class DefaultViewManager {
 			}
 		}
 
+		// 右遮罩的用途是蓋掉「前一頁已完整顯示過」的重疊區。允許量由 overlap 推得
+		// （getVerticalRlPreviousPageRightMask），但本方法原本只以 maxMask 夾，
+		// 於是跨界字可把右遮罩撐到 advance/4，蓋住前一頁根本沒顯示過的內容——
+		// 實測 9789570538069 16px/2.0 的 Section0002 因此有 92 字兩頁皆不顯示。
+		// 故此處一併以重疊允許量夾住；取不到可靠值時退回 maxMask，維持原行為。
+		let rightAllowance = maxMask;
+
+		try {
+			let totalPages = this.getTotalPagesForCurrentView();
+			let currentPageIndex = this.getCurrentPageIndex();
+
+			if (currentPageIndex <= 0) {
+				// 首頁沒有前一頁，任何右遮罩都會永久藏住內容。
+				rightAllowance = 0;
+			} else {
+				let maxScroll = this.getMaxLogicalScrollLeft();
+				let currentOffset = this.getVerticalRlPageOffset(currentPageIndex, totalPages, maxScroll);
+				let previousOffset = this.getVerticalRlPageOffset(currentPageIndex - 1, totalPages, maxScroll);
+				let previousPageStep = Math.abs(currentOffset - previousOffset);
+				let visibleWidth = (this.layout && (this.layout.pageWidth || this.layout.width)) || advance;
+				let previousLeftMask = this.getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask);
+
+				rightAllowance = getVerticalRlPreviousPageRightMaskHelper(
+					visibleWidth,
+					previousPageStep,
+					previousLeftMask,
+					maxMask
+				);
+			}
+		} catch (error) {
+			rightAllowance = maxMask;
+		}
+
 		return {
 			left: Math.min(left, maxMask),
-			right: Math.min(right, maxMask)
+			right: Math.min(right, maxMask, Math.max(0, rightAllowance))
 		};
 	}
 

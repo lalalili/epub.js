@@ -8675,20 +8675,31 @@ var Nr = class {
 		if (!e || !this.container || !this.views) return e;
 		let t = this.views.first() || this.views.last(), n = t && t.iframe, r = t && t.contents && t.contents.document, i = t && t.contents && t.contents.window, a = r && r.body;
 		if (!n || !r || !i || !a) return e;
-		let o = un(this.getPageAdvance() || 0);
-		if (!o) return e;
-		let s = this.container.getBoundingClientRect(), c = n.getBoundingClientRect(), l = s.left - c.left, u = s.right - c.left, d = Math.max(0, Number(e.left) || 0), f = Math.max(0, Number(e.right) || 0), p = V(r, i, a, {
+		let o = this.getPageAdvance() || 0, s = un(o);
+		if (!s) return e;
+		let c = this.container.getBoundingClientRect(), l = n.getBoundingClientRect(), u = c.left - l.left, d = c.right - l.left, f = Math.max(0, Number(e.left) || 0), p = Math.max(0, Number(e.right) || 0), m = V(r, i, a, {
 			limit: 1e3,
 			countInvalidRects: !0
 		});
-		if (!p) return e;
-		for (let e of p) {
-			let t = hr(e, l, u, c.left), n = t.left, r = t.right, i = c.left + e.left, a = c.left + e.right;
-			(n < l && r > l || i < s.left && a > s.left) && (d = Math.max(d, Math.ceil(Math.max(r - l, a - s.left) + 1))), (n < u && r > u || i < s.right && a > s.right) && (f = Math.max(f, Math.ceil(Math.max(u - n, s.right - i) + 1)));
+		if (!m) return e;
+		for (let e of m) {
+			let t = hr(e, u, d, l.left), n = t.left, r = t.right, i = l.left + e.left, a = l.left + e.right;
+			(n < u && r > u || i < c.left && a > c.left) && (f = Math.max(f, Math.ceil(Math.max(r - u, a - c.left) + 1))), (n < d && r > d || i < c.right && a > c.right) && (p = Math.max(p, Math.ceil(Math.max(d - n, c.right - i) + 1)));
+		}
+		let h = s;
+		try {
+			let e = this.getTotalPagesForCurrentView(), t = this.getCurrentPageIndex();
+			if (t <= 0) h = 0;
+			else {
+				let n = this.getMaxLogicalScrollLeft(), r = this.getVerticalRlPageOffset(t, e, n), i = this.getVerticalRlPageOffset(t - 1, e, n), a = Math.abs(r - i);
+				h = pn(this.layout && (this.layout.pageWidth || this.layout.width) || o, a, this.getPreviousVerticalRlLeftMask(a, f, s), s);
+			}
+		} catch {
+			h = s;
 		}
 		return {
-			left: Math.min(d, o),
-			right: Math.min(f, o)
+			left: Math.min(f, s),
+			right: Math.min(p, s, Math.max(0, h))
 		};
 	}
 	getLogicalPageStepToNextPage() {

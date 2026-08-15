@@ -14738,7 +14738,8 @@
 			let win = view && view.contents && view.contents.window;
 			let body = doc && doc.body;
 			if (!iframe || !doc || !win || !body) return maskWidths;
-			let maxMask = getVerticalRlEdgeMaskLimit(this.getPageAdvance() || 0);
+			let advance = this.getPageAdvance() || 0;
+			let maxMask = getVerticalRlEdgeMaskLimit(advance);
 			if (!maxMask) return maskWidths;
 			let containerRect = this.container.getBoundingClientRect();
 			let iframeRect = iframe.getBoundingClientRect();
@@ -14760,9 +14761,24 @@
 				if (rectLeft < rawLeft && rectRight > rawLeft || viewportRectLeft < containerRect.left && viewportRectRight > containerRect.left) left = Math.max(left, Math.ceil(Math.max(rectRight - rawLeft, viewportRectRight - containerRect.left) + 1));
 				if (rectLeft < rawRight && rectRight > rawRight || viewportRectLeft < containerRect.right && viewportRectRight > containerRect.right) right = Math.max(right, Math.ceil(Math.max(rawRight - rectLeft, containerRect.right - viewportRectLeft) + 1));
 			}
+			let rightAllowance = maxMask;
+			try {
+				let totalPages = this.getTotalPagesForCurrentView();
+				let currentPageIndex = this.getCurrentPageIndex();
+				if (currentPageIndex <= 0) rightAllowance = 0;
+				else {
+					let maxScroll = this.getMaxLogicalScrollLeft();
+					let currentOffset = this.getVerticalRlPageOffset(currentPageIndex, totalPages, maxScroll);
+					let previousOffset = this.getVerticalRlPageOffset(currentPageIndex - 1, totalPages, maxScroll);
+					let previousPageStep = Math.abs(currentOffset - previousOffset);
+					rightAllowance = getVerticalRlPreviousPageRightMask(this.layout && (this.layout.pageWidth || this.layout.width) || advance, previousPageStep, this.getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask), maxMask);
+				}
+			} catch (error) {
+				rightAllowance = maxMask;
+			}
 			return {
 				left: Math.min(left, maxMask),
-				right: Math.min(right, maxMask)
+				right: Math.min(right, maxMask, Math.max(0, rightAllowance))
 			};
 		}
 		getLogicalPageStepToNextPage() {
