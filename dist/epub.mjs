@@ -8771,9 +8771,10 @@ var Nr = class {
 	}
 	getVerticalRlPageOffset(e, t, n) {
 		let r = this.getLogicalOffsetForPageIndex(e, t, n);
-		if (!this.isRtlVerticalPaginated() || e <= 0 || e >= t - 1) return r;
+		if (!this.isRtlVerticalPaginated() || e <= 0) return r;
 		let i = this.getVerticalRlLogicalPageOffsetCacheKey(t, n), a = this.getCachedVerticalRlLogicalPageOffset(e, i);
 		if (Number.isFinite(a)) return a;
+		if (e >= t - 1) return r;
 		let o = this.getCachedVerticalRlLogicalPageOffset(e - 1, i);
 		if (!Number.isFinite(o)) return r;
 		let s = this.getPageAdvance() || 0;

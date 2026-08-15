@@ -14952,10 +14952,11 @@
 		*/
 		getVerticalRlPageOffset(pageIndex, totalPages, maxScroll) {
 			let gridOffset = this.getLogicalOffsetForPageIndex(pageIndex, totalPages, maxScroll);
-			if (!this.isRtlVerticalPaginated() || pageIndex <= 0 || pageIndex >= totalPages - 1) return gridOffset;
+			if (!this.isRtlVerticalPaginated() || pageIndex <= 0) return gridOffset;
 			let cacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
 			let cached = this.getCachedVerticalRlLogicalPageOffset(pageIndex, cacheKey);
 			if (Number.isFinite(cached)) return cached;
+			if (pageIndex >= totalPages - 1) return gridOffset;
 			let previous = this.getCachedVerticalRlLogicalPageOffset(pageIndex - 1, cacheKey);
 			if (!Number.isFinite(previous)) return gridOffset;
 			let advance = this.getPageAdvance() || 0;
