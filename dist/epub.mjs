@@ -8267,7 +8267,7 @@ var Nr = class {
 		stage: e,
 		capturedAt: Date.now(),
 		...t
-	}), n.__EPUB_VRL_SCROLL_TRACE__.length > 200 && n.__EPUB_VRL_SCROLL_TRACE__.splice(0, n.__EPUB_VRL_SCROLL_TRACE__.length - 200);
+	}), n.__EPUB_VRL_SCROLL_TRACE__.length > 4e3 && n.__EPUB_VRL_SCROLL_TRACE__.splice(0, n.__EPUB_VRL_SCROLL_TRACE__.length - 4e3);
 }, Lr = class {
 	constructor(e) {
 		this.name = "default", this.optsSettings = e.settings, this.View = e.view, this.request = e.request, this.renditionQueue = e.queue, this.q = new $e(this), this.settings = I(this.settings || {}, {

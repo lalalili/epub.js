@@ -73,7 +73,7 @@ type VerticalRlDebugWindow = Window & {
  * 再由 readVerticalRlScrollTrace() 讀取 window.__EPUB_VRL_SCROLL_TRACE__，
  * 併入 turnEvidence 供失敗分析使用。
  *
- * 注意：保留上限為 200 筆，高頻 stage 會擠掉較早的事件；
+ * 注意：保留上限為 4000 筆，高頻 stage 仍可能擠掉較早的事件；
  * 診斷時應限縮量測範圍或減少同時啟用的 stage。
  *
  * @param stage 診斷階段名稱
@@ -94,8 +94,8 @@ const appendVerticalRlScrollTrace = (stage: string, detail: Record<string, unkno
 		capturedAt: Date.now(),
 		...detail
 	});
-	if (debugWindow.__EPUB_VRL_SCROLL_TRACE__.length > 200) {
-		debugWindow.__EPUB_VRL_SCROLL_TRACE__.splice(0, debugWindow.__EPUB_VRL_SCROLL_TRACE__.length - 200);
+	if (debugWindow.__EPUB_VRL_SCROLL_TRACE__.length > 4000) {
+		debugWindow.__EPUB_VRL_SCROLL_TRACE__.splice(0, debugWindow.__EPUB_VRL_SCROLL_TRACE__.length - 4000);
 	}
 };
 type SnapLimits = {
