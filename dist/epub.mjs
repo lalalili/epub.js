@@ -8492,13 +8492,13 @@ var Nr = class {
 		this.syncVerticalRlViewportClip(), this.emit($.MANAGERS.RESIZE, e.section);
 	}
 	getVerticalRlPageIndexForOffset(e, t) {
-		let n = this.getPageAdvance() || 0, r = this.views && (this.views.first() || this.views.last()), i = Math.max(t || 0, (r && r.width ? r.width() : 0) || 0, this.container.scrollWidth || 0), a = this.layout.pageWidth || this.layout.width || n, o = this.getTotalPagesForCurrentView(), s = Math.max(0, i - a), c = this.getMaxLogicalScrollLeft(), l = Math.max(0, Math.min(i, Number(e.left) || 0)), u = this.getPageSnapTolerance(), d = null, f = 0, p = Infinity;
+		let n = this.getPageAdvance() || 0, r = this.views && (this.views.first() || this.views.last()), i = Math.max(t || 0, (r && r.width ? r.width() : 0) || 0, this.container.scrollWidth || 0), a = this.layout.pageWidth || this.layout.width || n, o = this.getTotalPagesForCurrentView(), s = Math.max(0, i - a), c = this.getMaxLogicalScrollLeft(), l = Math.max(0, Math.min(i, Number(e.left) || 0)), u = this.getPageSnapTolerance(), d = null, f = 0, p = Infinity, m = this.getVerticalRlLogicalPageOffsetCacheKey(o, c);
 		for (let e = 0; e < o; e++) {
-			let t = this.getLogicalOffsetForPageIndex(e, o, c), n = Math.max(0, Math.min(s, s - t)), r = Math.min(i, n + a);
-			if (l >= n && l <= r) return e;
-			d === null && l >= n - u && l <= r + u && (d = e);
-			let m = l < n ? n - l : l - r;
-			m < p && (p = m, f = e);
+			let t = this.getCachedVerticalRlLogicalPageOffset(e, m), n = Number.isFinite(t) ? t : this.getLogicalOffsetForPageIndex(e, o, c), r = Math.max(0, Math.min(s, s - n)), h = Math.min(i, r + a);
+			if (l >= r && l <= h) return e;
+			d === null && l >= r - u && l <= h + u && (d = e);
+			let g = l < r ? r - l : l - h;
+			g < p && (p = g, f = e);
 		}
 		return d === null ? f : d;
 	}
@@ -8585,7 +8585,7 @@ var Nr = class {
 		if (n <= 1) return this.getVerticalRlCleanPageEdgeMaskWidths(e);
 		let r = Math.ceil(n), i = 0, a = un(e), o = this.getTotalPagesForCurrentView(), s = this.getCurrentPageIndex(), c = 0;
 		if (s > 0) {
-			let e = this.getMaxLogicalScrollLeft(), t = this.getVerticalRlEffectiveOffsetForPageIndex(s, o, e), n = this.getVerticalRlEffectiveOffsetForPageIndex(s - 1, o, e);
+			let e = this.getMaxLogicalScrollLeft(), t = this.getVerticalRlPageOffset(s, o, e), n = this.getVerticalRlPageOffset(s - 1, o, e);
 			c = Math.abs(t - n);
 		}
 		if (fn(t, e, r, this.getPageBoundaryShift(), s, c)) {
@@ -8641,7 +8641,7 @@ var Nr = class {
 			left: 0,
 			right: 0
 		};
-		let r = this.getMaxLogicalScrollLeft(), i = ur(e, t, n, this.getVerticalRlEffectiveOffsetForPageIndex(n, t, r), this.getVerticalRlEffectiveOffsetForPageIndex(n - 1, t, r), this.getNormalizedLogicalScrollLeft(), this.getLogicalOffsetForPageIndex(n, t, r), this._verticalRlSequentialBoundaryConstraint ? this._verticalRlSequentialBoundaryConstraint.pageIndex : null);
+		let r = this.getMaxLogicalScrollLeft(), i = ur(e, t, n, this.getVerticalRlPageOffset(n, t, r), this.getVerticalRlPageOffset(n - 1, t, r), this.getNormalizedLogicalScrollLeft(), this.getLogicalOffsetForPageIndex(n, t, r), this._verticalRlSequentialBoundaryConstraint ? this._verticalRlSequentialBoundaryConstraint.pageIndex : null);
 		return i ? this.snapVerticalRlEdgeMaskWidths(i.widths, i.maxMask, {
 			nextPageStep: i.nextPageStep,
 			previousPageStep: i.previousPageStep,
@@ -8697,7 +8697,7 @@ var Nr = class {
 		let t = this.getTotalPagesForCurrentView(), n = this.getCurrentPageIndex(), r = Math.min(t - 1, n + 1);
 		if (r <= n) return 0;
 		let i = this.getMaxLogicalScrollLeft();
-		return rn(e, t, n, r, this.getVerticalRlEffectiveOffsetForPageIndex(n, t, i), this.getVerticalRlEffectiveOffsetForPageIndex(r, t, i), this.hasVerticalRlStructuralPageGutter());
+		return rn(e, t, n, r, this.getVerticalRlPageOffset(n, t, i), this.getVerticalRlPageOffset(r, t, i), this.hasVerticalRlStructuralPageGutter());
 	}
 	snapVerticalRlEdgeMaskWidths(e, t, n = {}) {
 		if (!this.container || !e || t <= 0) return e;
@@ -8758,17 +8758,17 @@ var Nr = class {
 			rightMaxMask: r.rightMaxMask
 		}) : null;
 	}
-	getVerticalRlSequentialTargetOffset(e, t, n, r) {
-		let i = this.getLogicalOffsetForPageIndex(e, t, n);
-		if (!this.isRtlVerticalPaginated() || e <= 0) return i;
-		let a = this._verticalRlAppliedOffsets, o = a ? a[e - 1] : void 0;
-		if (!Number.isFinite(o)) return i;
-		let s = this.getVerticalRlRenderedEdgeMaskWidths(), c = Math.max(0, Number(s && s.left) || 0), l = o + Math.max(1, (Number(r) || 0) - c);
-		return Math.max(0, Math.min(n, l));
-	}
-	getVerticalRlEffectiveOffsetForPageIndex(e, t, n) {
-		let r = this._verticalRlAppliedOffsets, i = r ? r[e] : void 0;
-		return Number.isFinite(i) ? i : this.getLogicalOffsetForPageIndex(e, t, n);
+	getVerticalRlPageOffset(e, t, n) {
+		let r = this.getLogicalOffsetForPageIndex(e, t, n);
+		if (!this.isRtlVerticalPaginated() || e <= 0 || e >= t - 1) return r;
+		let i = this.getVerticalRlLogicalPageOffsetCacheKey(t, n), a = this.getCachedVerticalRlLogicalPageOffset(e, i);
+		if (Number.isFinite(a)) return a;
+		let o = this.getCachedVerticalRlLogicalPageOffset(e - 1, i);
+		if (!Number.isFinite(o)) return r;
+		let s = this.getPageAdvance() || 0;
+		if (!s) return r;
+		let c = this.getVerticalRlRenderedEdgeMaskWidths(), l = Math.max(0, Number(c && c.left) || 0), u = Math.max(1, s - l);
+		return Math.max(0, Math.min(n, o + u));
 	}
 	getLogicalOffsetForPageIndex(e, t, n) {
 		return cn(e, t, n, this.getPageAdvance() || 0, this.getPageBoundaryShift(), this.isRtlVerticalPaginated());
@@ -8895,12 +8895,12 @@ var Nr = class {
 				}
 			}
 		}
-		let _ = g !== null && !m ? g : m ? this.getLogicalOffsetForPageIndex(f, l, p) : this.getVerticalRlSequentialTargetOffset(f, l, p, c);
+		let _ = g !== null && !m ? g : m ? this.getLogicalOffsetForPageIndex(f, l, p) : this.getVerticalRlPageOffset(f, l, p);
 		if ((g === null || m) && this.isRtlVerticalPaginated() && f > 0 && (f < l - 1 || m)) {
 			let e = this.snapVerticalRlLogicalOffsetToTextBoundary(_, p, m || {});
 			Number.isFinite(e) && (_ = e);
 		}
-		this._verticalRlAppliedOffsets ||= {}, this._verticalRlAppliedOffsets[f] = _, this._verticalRlSequentialBoundaryConstraint = m, this.isRtlVerticalPaginated() && this.cacheVerticalRlLogicalPageOffset(f, _, h);
+		this._verticalRlSequentialBoundaryConstraint = m, this.isRtlVerticalPaginated() && this.cacheVerticalRlLogicalPageOffset(f, _, h);
 		let v = _;
 		this.settings.direction === "rtl" ? this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0 ? v = -_ : this.settings.rtlScrollType === "default" && (v = Math.max(0, p - _)) : v = _, this._verticalRlBoundarySnapApplying = !0;
 		try {
@@ -8967,9 +8967,9 @@ var Nr = class {
 		], o = function(e) {
 			this.waitForVerticalRlLayoutReady().then(function() {
 				if (this._verticalRlBoundarySnapRetryToken !== i || !this.container) return;
-				let n = this.getTotalPagesForCurrentView(), s = this.getMaxLogicalScrollLeft(), c = this.getNormalizedLogicalScrollLeft(), l = this.getVerticalRlLogicalPageOffsetCacheKey(n, s), u = this.getCachedVerticalRlLogicalPageOffset(r, l), d = u !== null && (!t.useCurrentOffset || Math.abs(c - u) <= this.getPageSnapTolerance()), f = d ? u : t.useCurrentOffset ? Math.max(0, Math.min(s, c)) : this.getLogicalOffsetForPageIndex(r, n, s);
+				let n = this.getTotalPagesForCurrentView(), s = this.getMaxLogicalScrollLeft(), c = this.getNormalizedLogicalScrollLeft(), l = this.getVerticalRlLogicalPageOffsetCacheKey(n, s), u = this.getCachedVerticalRlLogicalPageOffset(r, l), d = u !== null && (!t.useCurrentOffset || Math.abs(c - u) <= this.getPageSnapTolerance()), f = d ? u : t.useCurrentOffset ? Math.max(0, Math.min(s, c)) : this.getVerticalRlPageOffset(r, n, s);
 				if (t.useCurrentOffset && this.getPageBoundaryShift() === 0 && this.container) {
-					let e = this.getCurrentPageIndex(), t = this.getLogicalOffsetForPageIndex(e, n, s);
+					let e = this.getCurrentPageIndex(), t = this.getVerticalRlPageOffset(e, n, s);
 					Math.abs(c - t) <= this.getPageSnapTolerance() && (f = t);
 				}
 				let p = this._verticalRlSequentialBoundaryConstraint && this._verticalRlSequentialBoundaryConstraint.pageIndex === r ? this._verticalRlSequentialBoundaryConstraint : {}, m = this.views && (this.views.first() || this.views.last()), h = !!(m && m.iframe && m.contents && m.contents.document && m.contents.document.body && m.contents.window), g = !d || h ? this.snapVerticalRlLogicalOffsetToTextBoundary(f, s, p) : f;

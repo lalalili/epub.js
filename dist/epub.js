@@ -14476,8 +14476,10 @@
 			let toleranceMatch = null;
 			let nearestIndex = 0;
 			let nearestDistance = Infinity;
+			let offsetLedgerKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxLogicalScroll);
 			for (let i = 0; i < totalPages; i++) {
-				let logicalOffset = this.getLogicalOffsetForPageIndex(i, totalPages, maxLogicalScroll);
+				let ledgerOffset = this.getCachedVerticalRlLogicalPageOffset(i, offsetLedgerKey);
+				let logicalOffset = Number.isFinite(ledgerOffset) ? ledgerOffset : this.getLogicalOffsetForPageIndex(i, totalPages, maxLogicalScroll);
 				let physicalStart = Math.max(0, Math.min(maxPhysicalStart, maxPhysicalStart - logicalOffset));
 				let physicalEnd = Math.min(contentWidth, physicalStart + visiblePageWidth);
 				if (targetLeft >= physicalStart && targetLeft <= physicalEnd) return i;
@@ -14623,8 +14625,8 @@
 			let previousPageStep = 0;
 			if (currentPageIndex > 0) {
 				let maxScroll = this.getMaxLogicalScrollLeft();
-				let currentOffset = this.getVerticalRlEffectiveOffsetForPageIndex(currentPageIndex, totalPages, maxScroll);
-				let previousOffset = this.getVerticalRlEffectiveOffsetForPageIndex(currentPageIndex - 1, totalPages, maxScroll);
+				let currentOffset = this.getVerticalRlPageOffset(currentPageIndex, totalPages, maxScroll);
+				let previousOffset = this.getVerticalRlPageOffset(currentPageIndex - 1, totalPages, maxScroll);
 				previousPageStep = Math.abs(currentOffset - previousOffset);
 			}
 			if (hasVerticalRlEdgeMaskStructuralGutter(visibleWidth, advance, left, this.getPageBoundaryShift(), currentPageIndex, previousPageStep)) {
@@ -14694,7 +14696,7 @@
 				right: 0
 			};
 			let maxScroll = this.getMaxLogicalScrollLeft();
-			let cleanPageMask = getVerticalRlCleanPageEdgeMaskInput(advance, totalPages, currentPageIndex, this.getVerticalRlEffectiveOffsetForPageIndex(currentPageIndex, totalPages, maxScroll), this.getVerticalRlEffectiveOffsetForPageIndex(currentPageIndex - 1, totalPages, maxScroll), this.getNormalizedLogicalScrollLeft(), this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll), this._verticalRlSequentialBoundaryConstraint ? this._verticalRlSequentialBoundaryConstraint.pageIndex : null);
+			let cleanPageMask = getVerticalRlCleanPageEdgeMaskInput(advance, totalPages, currentPageIndex, this.getVerticalRlPageOffset(currentPageIndex, totalPages, maxScroll), this.getVerticalRlPageOffset(currentPageIndex - 1, totalPages, maxScroll), this.getNormalizedLogicalScrollLeft(), this.getLogicalOffsetForPageIndex(currentPageIndex, totalPages, maxScroll), this._verticalRlSequentialBoundaryConstraint ? this._verticalRlSequentialBoundaryConstraint.pageIndex : null);
 			if (!cleanPageMask) return {
 				left: 0,
 				right: 0
@@ -14771,7 +14773,7 @@
 			let nextPageIndex = Math.min(totalPages - 1, currentPageIndex + 1);
 			if (nextPageIndex <= currentPageIndex) return 0;
 			let maxScroll = this.getMaxLogicalScrollLeft();
-			return getVerticalRlLogicalPageStepToNextPage(advance, totalPages, currentPageIndex, nextPageIndex, this.getVerticalRlEffectiveOffsetForPageIndex(currentPageIndex, totalPages, maxScroll), this.getVerticalRlEffectiveOffsetForPageIndex(nextPageIndex, totalPages, maxScroll), this.hasVerticalRlStructuralPageGutter());
+			return getVerticalRlLogicalPageStepToNextPage(advance, totalPages, currentPageIndex, nextPageIndex, this.getVerticalRlPageOffset(currentPageIndex, totalPages, maxScroll), this.getVerticalRlPageOffset(nextPageIndex, totalPages, maxScroll), this.hasVerticalRlStructuralPageGutter());
 		}
 		snapVerticalRlEdgeMaskWidths(widths, maxMask, limits = {}) {
 			if (!this.container || !widths || maxMask <= 0) return widths;
@@ -14913,39 +14915,39 @@
 		* @return {number}
 		*/
 		/**
-		* 取得連續翻頁時的目標 logical offset。
+		* vertical-rl 分頁位置的**單一真相來源**。
 		*
-		* 每翻一頁實際前進的距離是「可見寬度」＝ advance 減去該頁的左遮罩
-		* （實測 384 − 24 = 360），因為被遮蔽的一段要留到下一頁顯示。但目標位置若用
-		* 理論網格 pageIndex × advance 推算，就會以 384 為步距，與實際的 360 逐頁累積
-		* 誤差，累積到一定量後會整頁跳過——實測 offset 由 4039 直接跳到 4783（744 ≈ 2×360），
-		* 中間整整 360px 的內容從未進入任何視窗。
+		* 過去頁位置散落在四個彼此不同步的來源：理論網格、已套用 offset、快取、
+		* 以及 DOM 當下捲動位置。各處自行挑選來源，累積誤差造成兩類實測缺陷：
+		* 雙重遮蔽剖開整行字（27 字），以及整頁被跳過（210-246 字）。
 		*
-		* 因此連續往後翻頁時，改以「前一頁實際套用的 offset ＋ 實際可見步進」推算。
-		* 非連續跳轉（書籤、還原）沒有前一頁記錄時，回退為理論網格值。
+		* 本方法統一優先序：
+		* 1. 已套用並快取的實際 offset —— 權威值，由 scrollToLogicalPage 寫入，
+		*    且與 (totalPages, maxScroll) 綁定 key，版面變動時自動失效。
+		* 2. 由前一頁實際 offset 推算：前頁 offset ＋ 實際可見步進。
+		*    步進為 advance 減去前頁左遮罩（實測 384 − 24 = 360），因為被遮蔽的
+		*    一段要留到下一頁顯示；若改用 advance 當步距會逐頁累積誤差。
+		* 3. 理論網格 pageIndex × advance —— 僅在毫無實際資料時使用。
 		*
-		* @param targetIndex 目標頁索引
+		* @param pageIndex 頁索引
 		* @param totalPages 目前 view 的總頁數
 		* @param maxScroll 最大 logical scroll
-		* @param advance 每頁推進量
 		* @return {number}
 		*/
-		getVerticalRlSequentialTargetOffset(targetIndex, totalPages, maxScroll, advance) {
-			let gridOffset = this.getLogicalOffsetForPageIndex(targetIndex, totalPages, maxScroll);
-			if (!this.isRtlVerticalPaginated() || targetIndex <= 0) return gridOffset;
-			let applied = this._verticalRlAppliedOffsets;
-			let previousApplied = applied ? applied[targetIndex - 1] : void 0;
-			if (!Number.isFinite(previousApplied)) return gridOffset;
+		getVerticalRlPageOffset(pageIndex, totalPages, maxScroll) {
+			let gridOffset = this.getLogicalOffsetForPageIndex(pageIndex, totalPages, maxScroll);
+			if (!this.isRtlVerticalPaginated() || pageIndex <= 0 || pageIndex >= totalPages - 1) return gridOffset;
+			let cacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
+			let cached = this.getCachedVerticalRlLogicalPageOffset(pageIndex, cacheKey);
+			if (Number.isFinite(cached)) return cached;
+			let previous = this.getCachedVerticalRlLogicalPageOffset(pageIndex - 1, cacheKey);
+			if (!Number.isFinite(previous)) return gridOffset;
+			let advance = this.getPageAdvance() || 0;
+			if (!advance) return gridOffset;
 			let maskWidths = this.getVerticalRlRenderedEdgeMaskWidths();
 			let leftMask = Math.max(0, Number(maskWidths && maskWidths.left) || 0);
-			let candidate = previousApplied + Math.max(1, (Number(advance) || 0) - leftMask);
-			return Math.max(0, Math.min(maxScroll, candidate));
-		}
-		getVerticalRlEffectiveOffsetForPageIndex(pageIndex, totalPages, maxScroll) {
-			let applied = this._verticalRlAppliedOffsets;
-			let appliedOffset = applied ? applied[pageIndex] : void 0;
-			if (Number.isFinite(appliedOffset)) return appliedOffset;
-			return this.getLogicalOffsetForPageIndex(pageIndex, totalPages, maxScroll);
+			let step = Math.max(1, advance - leftMask);
+			return Math.max(0, Math.min(maxScroll, previous + step));
 		}
 		getLogicalOffsetForPageIndex(pageIndex, totalPages, maxScroll) {
 			return getLogicalOffsetForPageIndex(pageIndex, totalPages, maxScroll, this.getPageAdvance() || 0, this.getPageBoundaryShift(), this.isRtlVerticalPaginated());
@@ -15119,15 +15121,13 @@
 					}
 				}
 			}
-			let logicalOffset = cachedLogicalOffset !== null && !sequentialBoundaryConstraint ? cachedLogicalOffset : sequentialBoundaryConstraint ? this.getLogicalOffsetForPageIndex(targetIndex, totalPages, maxScroll) : this.getVerticalRlSequentialTargetOffset(targetIndex, totalPages, maxScroll, advance);
+			let logicalOffset = cachedLogicalOffset !== null && !sequentialBoundaryConstraint ? cachedLogicalOffset : sequentialBoundaryConstraint ? this.getLogicalOffsetForPageIndex(targetIndex, totalPages, maxScroll) : this.getVerticalRlPageOffset(targetIndex, totalPages, maxScroll);
 			if (cachedLogicalOffset === null || sequentialBoundaryConstraint) {
 				if (this.isRtlVerticalPaginated() && targetIndex > 0 && (targetIndex < totalPages - 1 || sequentialBoundaryConstraint)) {
 					let snappedLogicalOffset = this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll, sequentialBoundaryConstraint || {});
 					if (Number.isFinite(snappedLogicalOffset)) logicalOffset = snappedLogicalOffset;
 				}
 			}
-			if (!this._verticalRlAppliedOffsets) this._verticalRlAppliedOffsets = {};
-			this._verticalRlAppliedOffsets[targetIndex] = logicalOffset;
 			this._verticalRlSequentialBoundaryConstraint = sequentialBoundaryConstraint;
 			if (this.isRtlVerticalPaginated()) this.cacheVerticalRlLogicalPageOffset(targetIndex, logicalOffset, logicalOffsetCacheKey);
 			let left = logicalOffset;
@@ -15223,10 +15223,10 @@
 					let logicalOffsetCacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(currentTotalPages, maxScroll);
 					let cachedLogicalOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey);
 					let shouldUseCachedLogicalOffset = cachedLogicalOffset !== null && (!options.useCurrentOffset || Math.abs(currentOffset - cachedLogicalOffset) <= this.getPageSnapTolerance());
-					let logicalOffset = shouldUseCachedLogicalOffset ? cachedLogicalOffset : options.useCurrentOffset ? Math.max(0, Math.min(maxScroll, currentOffset)) : this.getLogicalOffsetForPageIndex(targetIndex, currentTotalPages, maxScroll);
+					let logicalOffset = shouldUseCachedLogicalOffset ? cachedLogicalOffset : options.useCurrentOffset ? Math.max(0, Math.min(maxScroll, currentOffset)) : this.getVerticalRlPageOffset(targetIndex, currentTotalPages, maxScroll);
 					if (options.useCurrentOffset && this.getPageBoundaryShift() === 0 && this.container) {
 						let currentIndex = this.getCurrentPageIndex();
-						let pageOffset = this.getLogicalOffsetForPageIndex(currentIndex, currentTotalPages, maxScroll);
+						let pageOffset = this.getVerticalRlPageOffset(currentIndex, currentTotalPages, maxScroll);
 						if (Math.abs(currentOffset - pageOffset) <= this.getPageSnapTolerance()) logicalOffset = pageOffset;
 					}
 					let sequentialBoundaryConstraint = this._verticalRlSequentialBoundaryConstraint && this._verticalRlSequentialBoundaryConstraint.pageIndex === targetIndex ? this._verticalRlSequentialBoundaryConstraint : {};
