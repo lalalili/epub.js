@@ -8585,7 +8585,7 @@ var Nr = class {
 		if (n <= 1) return this.getVerticalRlCleanPageEdgeMaskWidths(e);
 		let r = Math.ceil(n), i = 0, a = un(e), o = this.getTotalPagesForCurrentView(), s = this.getCurrentPageIndex(), c = 0;
 		if (s > 0) {
-			let e = this.getMaxLogicalScrollLeft(), t = this.getLogicalOffsetForPageIndex(s, o, e), n = this.getLogicalOffsetForPageIndex(s - 1, o, e);
+			let e = this.getMaxLogicalScrollLeft(), t = this.getVerticalRlEffectiveOffsetForPageIndex(s, o, e), n = this.getVerticalRlEffectiveOffsetForPageIndex(s - 1, o, e);
 			c = Math.abs(t - n);
 		}
 		if (fn(t, e, r, this.getPageBoundaryShift(), s, c)) {
@@ -8641,19 +8641,14 @@ var Nr = class {
 			left: 0,
 			right: 0
 		};
-		let r = this.getMaxLogicalScrollLeft(), i = this.getLogicalOffsetForPageIndex(n, t, r), a = this.getLogicalOffsetForPageIndex(n - 1, t, r), o = this._verticalRlAppliedOffsets;
-		if (o) {
-			let e = o[n], t = o[n - 1];
-			Number.isFinite(e) && Number.isFinite(t) && (i = e, a = t);
-		}
-		let s = this.getNormalizedLogicalScrollLeft(), c = this.getLogicalOffsetForPageIndex(n, t, r), l = this._verticalRlSequentialBoundaryConstraint ? this._verticalRlSequentialBoundaryConstraint.pageIndex : null, u = ur(e, t, n, i, a, s, c, l);
-		return u ? this.snapVerticalRlEdgeMaskWidths(u.widths, u.maxMask, {
-			nextPageStep: u.nextPageStep,
-			previousPageStep: u.previousPageStep,
-			rightMaxMask: u.rightMaxMask,
-			allowRawRightMask: u.allowRawRightMask,
-			allowRawLeftMask: u.allowRawLeftMask,
-			forceRawLeftMask: u.forceRawLeftMask
+		let r = this.getMaxLogicalScrollLeft(), i = ur(e, t, n, this.getVerticalRlEffectiveOffsetForPageIndex(n, t, r), this.getVerticalRlEffectiveOffsetForPageIndex(n - 1, t, r), this.getNormalizedLogicalScrollLeft(), this.getLogicalOffsetForPageIndex(n, t, r), this._verticalRlSequentialBoundaryConstraint ? this._verticalRlSequentialBoundaryConstraint.pageIndex : null);
+		return i ? this.snapVerticalRlEdgeMaskWidths(i.widths, i.maxMask, {
+			nextPageStep: i.nextPageStep,
+			previousPageStep: i.previousPageStep,
+			rightMaxMask: i.rightMaxMask,
+			allowRawRightMask: i.allowRawRightMask,
+			allowRawLeftMask: i.allowRawLeftMask,
+			forceRawLeftMask: i.forceRawLeftMask
 		}) : {
 			left: 0,
 			right: 0
@@ -8702,7 +8697,7 @@ var Nr = class {
 		let t = this.getTotalPagesForCurrentView(), n = this.getCurrentPageIndex(), r = Math.min(t - 1, n + 1);
 		if (r <= n) return 0;
 		let i = this.getMaxLogicalScrollLeft();
-		return rn(e, t, n, r, this.getLogicalOffsetForPageIndex(n, t, i), this.getLogicalOffsetForPageIndex(r, t, i), this.hasVerticalRlStructuralPageGutter());
+		return rn(e, t, n, r, this.getVerticalRlEffectiveOffsetForPageIndex(n, t, i), this.getVerticalRlEffectiveOffsetForPageIndex(r, t, i), this.hasVerticalRlStructuralPageGutter());
 	}
 	snapVerticalRlEdgeMaskWidths(e, t, n = {}) {
 		if (!this.container || !e || t <= 0) return e;
@@ -8762,6 +8757,10 @@ var Nr = class {
 			nextPageStep: r.nextPageStep,
 			rightMaxMask: r.rightMaxMask
 		}) : null;
+	}
+	getVerticalRlEffectiveOffsetForPageIndex(e, t, n) {
+		let r = this._verticalRlAppliedOffsets, i = r ? r[e] : void 0;
+		return Number.isFinite(i) ? i : this.getLogicalOffsetForPageIndex(e, t, n);
 	}
 	getLogicalOffsetForPageIndex(e, t, n) {
 		return cn(e, t, n, this.getPageAdvance() || 0, this.getPageBoundaryShift(), this.isRtlVerticalPaginated());
