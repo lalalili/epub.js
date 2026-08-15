@@ -8260,7 +8260,15 @@ var Nr = class {
 		for (var e, t = this.length, n = 0; n < t; n++) e = this._views[n], e.displayed && e.hide();
 		this.hidden = !0;
 	}
-}, Fr = N, Ir = class {
+}, Fr = N, Ir = (e, t) => {
+	if (typeof window > "u" || !window.__EPUB_VRL_DEBUG__) return;
+	let n = window;
+	Array.isArray(n.__EPUB_VRL_SCROLL_TRACE__) || (n.__EPUB_VRL_SCROLL_TRACE__ = []), n.__EPUB_VRL_SCROLL_TRACE__.push({
+		stage: e,
+		capturedAt: Date.now(),
+		...t
+	}), n.__EPUB_VRL_SCROLL_TRACE__.length > 200 && n.__EPUB_VRL_SCROLL_TRACE__.splice(0, n.__EPUB_VRL_SCROLL_TRACE__.length - 200);
+}, Lr = class {
 	constructor(e) {
 		this.name = "default", this.optsSettings = e.settings, this.View = e.view, this.request = e.request, this.renditionQueue = e.queue, this.q = new $e(this), this.settings = I(this.settings || {}, {
 			infinite: !0,
@@ -8841,29 +8849,85 @@ var Nr = class {
 		return ln(this.getNormalizedLogicalScrollLeft(), t, e, this.getMaxLogicalScrollLeft(), this.getPageSnapTolerance(), this.getPageBoundaryShift(), this.isRtlVerticalPaginated());
 	}
 	scrollToLogicalPage(e, t = {}) {
-		this.syncVerticalRlViewportClip();
-		let n = this.getPageAdvance(), r = this.getTotalPagesForCurrentView(), i = Math.max(0, Math.min(r - 1, e)), a = this.getMaxLogicalScrollLeft(), o = null, s = this.getVerticalRlLogicalPageOffsetCacheKey(r, a), c = t && t.ignoreCachedLogicalOffset ? null : this.getCachedVerticalRlLogicalPageOffset(i, s);
-		if (this.isRtlVerticalPaginated() && i > 0) {
+		let n = this.views && (this.views.first() || this.views.last()), r = n && n.iframe ? Math.max(Number(n.iframe.getBoundingClientRect && n.iframe.getBoundingClientRect().width) || 0, parseFloat(n.iframe.style && n.iframe.style.width) || 0) : 0, i = n && n.element ? Math.max(Number(n.element.getBoundingClientRect && n.element.getBoundingClientRect().width) || 0, parseFloat(n.element.style && n.element.style.width) || 0) : 0, a = n ? Math.max(this.getVerticalRlVisualContentWidth(n), r, i) : 0, o = this.getTotalPagesForCurrentView(), s = () => n && n.iframe ? Math.max(Number(n.iframe.getBoundingClientRect && n.iframe.getBoundingClientRect().width) || 0, parseFloat(n.iframe.style && n.iframe.style.width) || 0) : 0;
+		Ir("before-sync", {
+			pageIndex: e,
+			preSyncTotalPages: o,
+			preSyncVisualContentWidth: a,
+			preSyncIframeWidth: r,
+			preSyncElementWidth: i,
+			containerScrollWidth: this.container && this.container.scrollWidth,
+			containerClientWidth: this.container && this.container.clientWidth
+		}), this.syncVerticalRlViewportClip();
+		let c = this.getPageAdvance(), l = Math.max(o, this.getTotalPagesForCurrentView()), u = () => {
+			if (!(this.isRtlVerticalPaginated() && l > 1 && this.container && this.container.scrollWidth <= this.container.clientWidth + 1 && a > this.container.clientWidth + 1 && n)) return !1;
+			let e = `${a}px`;
+			return n.iframe && n.iframe.style && (n.iframe.style.width = e), n.element && n.element.style && (n.element.style.width = e), n._contentWidth = a, n._width = a, !0;
+		}, d = u(), f = Math.max(0, Math.min(l - 1, e)), p = this.getMaxLogicalScrollLeft();
+		Ir("after-first-sync", {
+			totalPages: l,
+			restoredBeforeScroll: d,
+			maxScroll: p,
+			containerScrollWidth: this.container && this.container.scrollWidth,
+			iframeWidth: s()
+		});
+		let m = null, h = this.getVerticalRlLogicalPageOffsetCacheKey(l, p), g = t && t.ignoreCachedLogicalOffset ? null : this.getCachedVerticalRlLogicalPageOffset(f, h);
+		if (this.isRtlVerticalPaginated() && f > 0) {
 			let e = Number(t && t.sequentialRightBoundary);
-			if (Number.isFinite(e) && e > 0) o = Kn(i, e, 0, 0, 0, 0, 0, 0);
-			else if (i < r - 1) {
+			if (Number.isFinite(e) && e > 0) m = Kn(f, e, 0, 0, 0, 0, 0, 0);
+			else if (f < l - 1) {
 				let t = this.getCurrentPageIndex();
-				if (t === i - 1) {
-					let s = this.views && (this.views.first() || this.views.last()), c = s ? this.getVerticalRlVisualContentWidth(s) : 0, l = this.layout.pageWidth || this.layout.width || n || 0, u = this.getNormalizedLogicalScrollLeft(), d = this.getLogicalOffsetForPageIndex(t, r, a), f = this.getVerticalRlRenderedEdgeMaskWidths();
-					o = Kn(i, e, c, u, d, l, n, Number(f && f.left) || 0);
+				if (t === f - 1) {
+					let n = this.views && (this.views.first() || this.views.last()), r = n ? this.getVerticalRlVisualContentWidth(n) : 0, i = this.layout.pageWidth || this.layout.width || c || 0, a = this.getNormalizedLogicalScrollLeft(), o = this.getLogicalOffsetForPageIndex(t, l, p), s = this.getVerticalRlRenderedEdgeMaskWidths();
+					m = Kn(f, e, r, a, o, i, c, Number(s && s.left) || 0);
 				}
 			}
 		}
-		let l = c !== null && !o ? c : this.getLogicalOffsetForPageIndex(i, r, a);
-		(c === null || o) && this.isRtlVerticalPaginated() && i > 0 && (i < r - 1 || o) && (l = this.snapVerticalRlLogicalOffsetToTextBoundary(l, a, o || {})), this._verticalRlSequentialBoundaryConstraint = o, this.isRtlVerticalPaginated() && this.cacheVerticalRlLogicalPageOffset(i, l, s);
-		let u = l;
-		this.settings.direction === "rtl" ? this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0 ? u = -l : this.settings.rtlScrollType === "default" && (u = Math.max(0, a - l)) : u = l, this._verticalRlBoundarySnapApplying = !0;
+		let _ = g !== null && !m ? g : this.getLogicalOffsetForPageIndex(f, l, p);
+		if ((g === null || m) && this.isRtlVerticalPaginated() && f > 0 && (f < l - 1 || m)) {
+			let e = this.snapVerticalRlLogicalOffsetToTextBoundary(_, p, m || {});
+			Number.isFinite(e) && (_ = e);
+		}
+		this._verticalRlSequentialBoundaryConstraint = m, this.isRtlVerticalPaginated() && this.cacheVerticalRlLogicalPageOffset(f, _, h);
+		let v = _;
+		this.settings.direction === "rtl" ? this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0 ? v = -_ : this.settings.rtlScrollType === "default" && (v = Math.max(0, p - _)) : v = _, this._verticalRlBoundarySnapApplying = !0;
 		try {
-			this.scrollTo(u, 0, !0);
+			this.scrollTo(v, 0, !0);
 		} finally {
 			this._verticalRlBoundarySnapApplying = !1;
 		}
-		this.syncVerticalRlViewportClip(), this.queueVerticalRlBoundarySnapRetry(i);
+		this.syncVerticalRlViewportClip();
+		let y = u();
+		if (Ir("after-second-sync", {
+			logicalOffset: _,
+			left: v,
+			restoredAfterScroll: y,
+			containerScrollLeft: this.container && this.container.scrollLeft,
+			containerScrollWidth: this.container && this.container.scrollWidth,
+			iframeWidth: s()
+		}), y) {
+			this._verticalRlBoundarySnapApplying = !0;
+			try {
+				this.scrollTo(v, 0, !0);
+			} finally {
+				this._verticalRlBoundarySnapApplying = !1;
+			}
+		}
+		Ir("complete", {
+			targetIndex: f,
+			containerScrollLeft: this.container && this.container.scrollLeft,
+			containerScrollWidth: this.container && this.container.scrollWidth,
+			iframeWidth: s()
+		}), this.queueVerticalRlBoundarySnapRetry(f), this.waitForVerticalRlLayoutReady().then(function() {
+			if (this.container && this.getCurrentPageIndex() === f && (this.syncVerticalRlViewportClip(), this.getCurrentPageIndex() !== f)) {
+				this._verticalRlBoundarySnapApplying = !0;
+				try {
+					this.scrollTo(v, 0, !0);
+				} finally {
+					this._verticalRlBoundarySnapApplying = !1;
+				}
+			}
+		}.bind(this));
 	}
 	waitForVerticalRlLayoutReady() {
 		let e = this.views && (this.views.first() || this.views.last()), t = e && e.contents && e.contents.document, n = t && t.fonts && t.fonts.ready ? t.fonts.ready.catch(function() {}) : Promise.resolve(), r = Number(this.settings && this.settings.verticalRlFontReadyTimeout), i = Number.isFinite(r) && r >= 0 ? r : 160, a = Promise.race([n, new Promise(function(e) {
@@ -8898,6 +8962,7 @@ var Nr = class {
 				}
 				let p = this._verticalRlSequentialBoundaryConstraint && this._verticalRlSequentialBoundaryConstraint.pageIndex === r ? this._verticalRlSequentialBoundaryConstraint : {}, m = this.views && (this.views.first() || this.views.last()), h = !!(m && m.iframe && m.contents && m.contents.document && m.contents.document.body && m.contents.window), g = !d || h ? this.snapVerticalRlLogicalOffsetToTextBoundary(f, s, p) : f;
 				if (Number.isFinite(Number(g)) || (g = f), !d && Math.abs(g - f) <= 1 && (g = this.snapVerticalRlLogicalOffsetFromEdgeMask(f, s)), Math.abs(g - f) <= 1 && (g = f), Math.abs(g - c) <= 1) {
+					this.syncVerticalRlViewportClip();
 					let t = Number(a[e]);
 					Number.isFinite(t) && t >= 0 && setTimeout(function() {
 						o(e + 1);
@@ -9152,12 +9217,12 @@ var Nr = class {
 		return this.rendered;
 	}
 };
-(0, j.default)(Ir.prototype);
+(0, j.default)(Lr.prototype);
 //#endregion
 //#region src/managers/helpers/snap.ts
-var Lr = N, Rr = Math.PI / 2, zr = {
+var Rr = N, zr = Math.PI / 2, Br = {
 	easeOutSine: function(e) {
-		return Math.sin(e * Rr);
+		return Math.sin(e * zr);
 	},
 	easeInOutSine: function(e) {
 		return -.5 * (Math.cos(Math.PI * e) - 1);
@@ -9168,7 +9233,7 @@ var Lr = N, Rr = Math.PI / 2, zr = {
 	easeInCubic: function(e) {
 		return e ** 3;
 	}
-}, Br = class {
+}, Vr = class {
 	settings;
 	supportsTouch;
 	manager;
@@ -9199,7 +9264,7 @@ var Lr = N, Rr = Math.PI / 2, zr = {
 			duration: 80,
 			minVelocity: .2,
 			minDistance: 10,
-			easing: zr.easeInCubic
+			easing: Br.easeInCubic
 		}, t || {}), this.supportsTouch = this.detectSupportsTouch(), this.supportsTouch && this.setup(e);
 	}
 	setup(e) {
@@ -9267,7 +9332,7 @@ var Lr = N, Rr = Math.PI / 2, zr = {
 		return e && (r += e * n), this.smoothScrollTo(r);
 	}
 	smoothScrollTo(e) {
-		let t = new Lr(), n = this.scrollLeft, r = this.now(), i = this.settings.duration;
+		let t = new Rr(), n = this.scrollLeft, r = this.now(), i = this.settings.duration;
 		this.snapping = !0;
 		function a() {
 			let o = this.now(), s = Math.min(1, (o - r) / i);
@@ -9289,10 +9354,10 @@ var Lr = N, Rr = Math.PI / 2, zr = {
 		this.scroller &&= (this.fullsize && this.enableScroll(), this.removeListeners(), void 0);
 	}
 };
-(0, j.default)(Br.prototype);
+(0, j.default)(Vr.prototype);
 //#endregion
 //#region src/managers/continuous/index.ts
-var Vr = N, Hr = class extends Ir {
+var Hr = N, Ur = class extends Lr {
 	constructor(e) {
 		super(e), this.name = "continuous", this.settings = I(this.settings || {}, {
 			infinite: !0,
@@ -9338,12 +9403,12 @@ var Vr = N, Hr = class extends Ir {
 		};
 	}
 	display(e, t) {
-		return Ir.prototype.display.call(this, e, t).then(function() {
+		return Lr.prototype.display.call(this, e, t).then(function() {
 			return this.fill();
 		}.bind(this));
 	}
 	fill(e) {
-		var t = e || new Vr();
+		var t = e || new Hr();
 		return this.q.enqueue(() => this.check()).then((e) => {
 			e ? this.fill(t) : t.resolve();
 		}), t.promise;
@@ -9392,7 +9457,7 @@ var Vr = N, Hr = class extends Ir {
 		this.settings.axis === "vertical" ? this.scrollBy(0, e.heightDelta || 0, !0) : this.scrollBy(e.widthDelta || 0, 0, !0);
 	}
 	update(e) {
-		for (var t = this.bounds(), n = this.views.all(), r = n.length, i = [], a = e === void 0 ? this.settings.offset || 0 : e, o, s, c = new Vr(), l = [], u = 0; u < r; u++) if (s = n[u], o = this.isVisible(s, a, a, t), o === !0) {
+		for (var t = this.bounds(), n = this.views.all(), r = n.length, i = [], a = e === void 0 ? this.settings.offset || 0 : e, o, s, c = new Hr(), l = [], u = 0; u < r; u++) if (s = n[u], o = this.isVisible(s, a, a, t), o === !0) {
 			if (s.displayed) (s.element && s.element.style.visibility !== "visible" || s.iframe && s.iframe.style.visibility !== "visible") && s.show();
 			else {
 				let e = s.display(this.request).then(function(e) {
@@ -9418,7 +9483,7 @@ var Vr = N, Hr = class extends Ir {
 		}.bind(this), e);
 	}
 	check(e, t) {
-		var n = new Vr(), r = [], i = this.settings.axis === "horizontal", a = this.settings.offset || 0;
+		var n = new Hr(), r = [], i = this.settings.axis === "horizontal", a = this.settings.offset || 0;
 		e && i && (a = e), t && !i && (a = t);
 		var o = this._bounds;
 		let { top: s, left: c } = this.syncScrollPosition(), l = i ? c : s, u = i ? Math.floor(o.width) : o.height, d = i ? this.container.scrollWidth : this.container.scrollHeight, f = this.writingMode && this.writingMode.indexOf("vertical") === 0 ? "vertical" : "horizontal", p = this.settings.rtlScrollType, m = this.settings.direction === "rtl";
@@ -9437,7 +9502,7 @@ var Vr = N, Hr = class extends Ir {
 		}.bind(this)), n.resolve(!1), n.promise);
 	}
 	trim() {
-		for (var e = new Vr(), t = this.views.displayed(), n = t[0], r = t[t.length - 1], i = this.views.indexOf(n), a = this.views.indexOf(r), o = this.views.slice(0, i), s = this.views.slice(a + 1), c = 0; c < o.length - 1; c++) this.erase(o[c], o);
+		for (var e = new Hr(), t = this.views.displayed(), n = t[0], r = t[t.length - 1], i = this.views.indexOf(n), a = this.views.indexOf(r), o = this.views.slice(0, i), s = this.views.slice(a + 1), c = 0; c < o.length - 1; c++) this.erase(o[c], o);
 		for (var l = 1; l < s.length; l++) this.erase(s[l]);
 		return e.resolve(), e.promise;
 	}
@@ -9450,7 +9515,7 @@ var Vr = N, Hr = class extends Ir {
 	addEventListeners(e) {
 		this._onUnload = function(e) {
 			this.ignore = !0, this.destroy();
-		}.bind(this), window.addEventListener("unload", this._onUnload), this.addScrollListeners(), this.isPaginated && this.settings.snap && (this.snapper = new Br(this, this.settings.snap && typeof this.settings.snap == "object" && this.settings.snap));
+		}.bind(this), window.addEventListener("unload", this._onUnload), this.addScrollListeners(), this.isPaginated && this.settings.snap && (this.snapper = new Vr(this, this.settings.snap && typeof this.settings.snap == "object" && this.settings.snap));
 	}
 	addScrollListeners() {
 		var e;
@@ -9498,19 +9563,19 @@ var Vr = N, Hr = class extends Ir {
 		}.bind(this)));
 	}
 	updateFlow(e) {
-		this.rendered && this.snapper && (this.snapper.destroy(), this.snapper = void 0), super.updateFlow(e, "scroll"), this.rendered && this.isPaginated && this.settings.snap && (this.snapper = new Br(this, this.settings.snap && typeof this.settings.snap == "object" && this.settings.snap));
+		this.rendered && this.snapper && (this.snapper.destroy(), this.snapper = void 0), super.updateFlow(e, "scroll"), this.rendered && this.isPaginated && this.settings.snap && (this.snapper = new Vr(this, this.settings.snap && typeof this.settings.snap == "object" && this.settings.snap));
 	}
 	destroy() {
 		clearTimeout(this.trimTimeout), clearTimeout(this.scrollTimeout), super.destroy(), this.snapper && this.snapper.destroy();
 	}
-}, Ur = N;
-function Wr(e) {
+}, Wr = N;
+function Gr(e) {
 	return typeof e.then == "function";
 }
-function Gr(e) {
+function Kr(e) {
 	if (e) return Array.isArray(e) ? e[0] || e[e.length - 1] : e.first && e.first() || e.last && e.last();
 }
-var Kr = class {
+var qr = class {
 	settings;
 	book;
 	hooks;
@@ -9552,13 +9617,13 @@ var Kr = class {
 			layout: new xe(this),
 			render: new xe(this),
 			show: new xe(this)
-		}, this.hooks.content.register(this.handleLinks.bind(this)), this.hooks.content.register(this.passEvents.bind(this)), this.hooks.content.register(this.adjustImages.bind(this)), this.book.spine.hooks.content.register(this.injectIdentifier.bind(this)), this.settings.stylesheet && this.book.spine.hooks.content.register(this.injectStylesheet.bind(this)), this.settings.script && this.book.spine.hooks.content.register(this.injectScript.bind(this)), this.themes = new pt(this), this.annotations = new mt(this), this.epubcfi = new Z(), this.q = new $e(this), this.location = void 0, this.q.enqueue(this.book.opened), this.starting = new Ur(), this.started = this.starting.promise, this.q.enqueue(this.start);
+		}, this.hooks.content.register(this.handleLinks.bind(this)), this.hooks.content.register(this.passEvents.bind(this)), this.hooks.content.register(this.adjustImages.bind(this)), this.book.spine.hooks.content.register(this.injectIdentifier.bind(this)), this.settings.stylesheet && this.book.spine.hooks.content.register(this.injectStylesheet.bind(this)), this.settings.script && this.book.spine.hooks.content.register(this.injectScript.bind(this)), this.themes = new pt(this), this.annotations = new mt(this), this.epubcfi = new Z(), this.q = new $e(this), this.location = void 0, this.q.enqueue(this.book.opened), this.starting = new Wr(), this.started = this.starting.promise, this.q.enqueue(this.start);
 	}
 	setManager(e) {
 		this.manager = e;
 	}
 	requireManager(e) {
-		return typeof e == "string" && e === "default" ? Ir : typeof e == "string" && e === "continuous" ? Hr : e;
+		return typeof e == "string" && e === "default" ? Lr : typeof e == "string" && e === "continuous" ? Ur : e;
 	}
 	requireView(e) {
 		return typeof e == "string" && e === "iframe" ? Xt : e;
@@ -9592,7 +9657,7 @@ var Kr = class {
 	}
 	_display(e) {
 		if (this.book) {
-			var t = new Ur(), n = t.promise, r;
+			var t = new Wr(), n = t.promise, r;
 			return this.displaying = t, this.book.locations.length() && ge(e) && (e = this.book.locations.cfiFromPercentage(parseFloat(String(e)))), r = this.book.spine.get(e), r ? (this.manager.display(r, e).then(() => {
 				t.resolve(r), this.displaying = void 0, this.emit($.RENDITION.DISPLAYED, r), this.reportLocation();
 			}, (e) => {
@@ -9647,7 +9712,7 @@ var Kr = class {
 		return this.q.enqueue(this.manager.prev.bind(this.manager)).then(this.reportLocation.bind(this));
 	}
 	debugVerticalRlPage() {
-		let e = this.manager, t = Gr(e && e.views), n = t && t.contents, r = e && e.container, i = e && e.layout ? e.layout.pageWidth : null, a = n && n.debugVerticalRlMetrics ? n.debugVerticalRlMetrics(i) : {}, o = e && e.getPageAdvance ? e.getPageAdvance() : i, s = e && e.getTotalPagesForCurrentView ? e.getTotalPagesForCurrentView() : null, c = e && e.getCurrentPageIndex ? e.getCurrentPageIndex() : null, l = e && e.getNormalizedLogicalScrollLeft ? e.getNormalizedLogicalScrollLeft() : null, u = e && e.layout && (e.layout.pageWidth || e.layout.width) || o, d = t && t.width ? t.width() : null, f = Number.isFinite(d) && Number.isFinite(u) ? Math.max(0, d - u) : null, p = Number.isFinite(f) && Number.isFinite(c) && Number.isFinite(o) ? Math.max(0, Math.min(f, f - c * o)) : null, m = Number.isFinite(d) && Number.isFinite(p) && Number.isFinite(u) ? Math.min(d, p + u) : null, h = Object.assign({}, a, {
+		let e = this.manager, t = Kr(e && e.views), n = t && t.contents, r = e && e.container, i = e && e.layout ? e.layout.pageWidth : null, a = n && n.debugVerticalRlMetrics ? n.debugVerticalRlMetrics(i) : {}, o = e && e.getPageAdvance ? e.getPageAdvance() : i, s = e && e.getTotalPagesForCurrentView ? e.getTotalPagesForCurrentView() : null, c = e && e.getCurrentPageIndex ? e.getCurrentPageIndex() : null, l = e && e.getNormalizedLogicalScrollLeft ? e.getNormalizedLogicalScrollLeft() : null, u = e && e.layout && (e.layout.pageWidth || e.layout.width) || o, d = t && t.width ? t.width() : null, f = Number.isFinite(d) && Number.isFinite(u) ? Math.max(0, d - u) : null, p = Number.isFinite(f) && Number.isFinite(c) && Number.isFinite(o) ? Math.max(0, Math.min(f, f - c * o)) : null, m = Number.isFinite(d) && Number.isFinite(p) && Number.isFinite(u) ? Math.min(d, p + u) : null, h = Object.assign({}, a, {
 			containerClientWidth: r ? r.clientWidth : null,
 			containerScrollWidth: r ? r.scrollWidth : null,
 			containerScrollLeft: r ? r.scrollLeft : null,
@@ -9664,7 +9729,7 @@ var Kr = class {
 		return typeof console < "u" && console.debug && console.debug("[epubjs:vertical-rl-page]", h), h;
 	}
 	remeasure({ preserveLocation: e = !0, waitForFonts: t = !0 } = {}) {
-		let n = e && this.location && this.location.start ? this.location.start.cfi : null, r = this.manager, i = Gr(r && r.views), a = i && i.contents && i.contents.document;
+		let n = e && this.location && this.location.start ? this.location.start.cfi : null, r = this.manager, i = Kr(r && r.views), a = i && i.contents && i.contents.document;
 		return (t && a && a.fonts && a.fonts.ready ? a.fonts.ready.catch(function() {}) : Promise.resolve()).then(function() {
 			r && typeof r.updateLayout == "function" && (r._layoutDirty = !0, r.updateLayout());
 		}).then(function() {
@@ -9712,7 +9777,7 @@ var Kr = class {
 					} catch {
 						return;
 					}
-					if (e && Wr(e)) e.then(function(e) {
+					if (e && Gr(e)) e.then(function(e) {
 						let t = this.located(e);
 						!t || !t.start || !t.end || (this.location = t, this.emit($.RENDITION.LOCATION_CHANGED, {
 							index: this.location.start.index,
@@ -9722,7 +9787,7 @@ var Kr = class {
 							percentage: this.location.start.percentage
 						}), this.emit($.RENDITION.RELOCATED, this.location));
 					}.bind(this));
-					else if (e && !Wr(e)) {
+					else if (e && !Gr(e)) {
 						let t = this.located(e);
 						if (!t || !t.start || !t.end) return;
 						this.location = t, this.emit($.RENDITION.LOCATION_CHANGED, {
@@ -9739,10 +9804,10 @@ var Kr = class {
 	}
 	currentLocation() {
 		var e = this.manager.currentLocation();
-		if (e && Wr(e)) return e.then(function(e) {
+		if (e && Gr(e)) return e.then(function(e) {
 			return this.located(e);
 		}.bind(this));
-		if (e && !Wr(e)) return this.located(e);
+		if (e && !Gr(e)) return this.located(e);
 	}
 	located(e) {
 		if (!e || !e.length) return {};
@@ -9854,10 +9919,10 @@ var Kr = class {
 		r.setAttribute("name", "dc.relation.ispartof"), n && r.setAttribute("content", n), e.getElementsByTagName("head")[0].appendChild(r);
 	}
 };
-(0, j.default)(Kr.prototype);
+(0, j.default)(qr.prototype);
 //#endregion
 //#region src/archive.ts
-var qr = /* @__PURE__ */ l((/* @__PURE__ */ o(((e, t) => {
+var Jr = /* @__PURE__ */ l((/* @__PURE__ */ o(((e, t) => {
 	(function(n) {
 		if (typeof e == "object" && t !== void 0) t.exports = n();
 		else if (typeof define == "function" && define.amd) define([], n);
@@ -13076,7 +13141,7 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 			}, {}]
 		}, {}, [10])(10);
 	});
-})))()), Jr = class {
+})))()), Yr = class {
 	zip;
 	urlCache;
 	constructor() {
@@ -13084,7 +13149,7 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 	}
 	checkRequirements() {
 		try {
-			this.zip = new qr.default();
+			this.zip = new Jr.default();
 		} catch {
 			throw Error("JSZip lib not loaded");
 		}
@@ -13154,7 +13219,7 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 		for (let t of Object.values(this.urlCache)) e.revokeObjectURL(t);
 		this.zip = void 0, this.urlCache = {};
 	}
-}, Yr = /* @__PURE__ */ l((/* @__PURE__ */ o(((e, t) => {
+}, Xr = /* @__PURE__ */ l((/* @__PURE__ */ o(((e, t) => {
 	(function(n) {
 		if (typeof e == "object" && t !== void 0) t.exports = n();
 		else if (typeof define == "function" && define.amd) define([], n);
@@ -14500,7 +14565,7 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 			}, { 3: 3 }]
 		}, {}, [4])(4);
 	});
-})))()), Xr = class {
+})))()), Zr = class {
 	urlCache;
 	storage;
 	name;
@@ -14513,8 +14578,8 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 	}
 	checkRequirements() {
 		try {
-			let e = Yr.default;
-			Yr.default === void 0 && (e = Yr.default), this.storage = e.createInstance({ name: this.name });
+			let e = Xr.default;
+			Xr.default === void 0 && (e = Xr.default), this.storage = e.createInstance({ name: this.name });
 		} catch {
 			throw Error("localForage lib not loaded");
 		}
@@ -14609,10 +14674,10 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 		this.urlCache = {}, this.removeListeners();
 	}
 };
-(0, j.default)(Xr.prototype);
+(0, j.default)(Zr.prototype);
 //#endregion
 //#region src/displayoptions.ts
-var Zr = class {
+var Qr = class {
 	interactive;
 	fixedLayout;
 	openToSpread;
@@ -14646,14 +14711,14 @@ var Zr = class {
 	destroy() {
 		this.interactive = void 0, this.fixedLayout = void 0, this.openToSpread = void 0, this.orientationLock = void 0;
 	}
-}, Qr = N, $r = "META-INF/container.xml", ei = "META-INF/com.apple.ibooks.display-options.xml", ti = {
+}, $r = N, ei = "META-INF/container.xml", ti = "META-INF/com.apple.ibooks.display-options.xml", ni = {
 	BINARY: "binary",
 	BASE64: "base64",
 	EPUB: "epub",
 	OPF: "opf",
 	MANIFEST: "json",
 	DIRECTORY: "directory"
-}, ni = class {
+}, ri = class {
 	settings;
 	opening;
 	opened;
@@ -14689,15 +14754,15 @@ var Zr = class {
 			canonical: void 0,
 			openAs: void 0,
 			store: void 0
-		}), I(this.settings, t), this.opening = new Qr(), this.opened = this.opening.promise, this.isOpen = !1, this.loading = {
-			manifest: new Qr(),
-			spine: new Qr(),
-			metadata: new Qr(),
-			cover: new Qr(),
-			navigation: new Qr(),
-			pageList: new Qr(),
-			resources: new Qr(),
-			displayOptions: new Qr()
+		}), I(this.settings, t), this.opening = new $r(), this.opened = this.opening.promise, this.isOpen = !1, this.loading = {
+			manifest: new $r(),
+			spine: new $r(),
+			metadata: new $r(),
+			cover: new $r(),
+			navigation: new $r(),
+			pageList: new $r(),
+			resources: new $r(),
+			displayOptions: new $r()
 		}, this.loaded = {
 			manifest: this.loading.manifest.promise,
 			spine: this.loading.spine.promise,
@@ -14722,10 +14787,10 @@ var Zr = class {
 	}
 	open(e, t) {
 		var n, r = t || this.determineType(e);
-		return r === ti.BINARY ? (this.archived = !0, this.url = new ce("/", ""), n = this.openEpub(e)) : r === ti.BASE64 ? (this.archived = !0, this.url = new ce("/", ""), n = this.openEpub(e, r)) : r === ti.EPUB ? (this.archived = !0, this.url = new ce("/", ""), n = this.request(e, "binary", this.settings.requestCredentials, this.settings.requestHeaders).then(this.openEpub.bind(this))) : r == ti.OPF ? (this.url = new ce(e), n = this.openPackaging(this.url.Path.toString())) : r == ti.MANIFEST ? (this.url = new ce(e), n = this.openManifest(this.url.Path.toString())) : (this.url = new ce(e), n = this.openContainer($r).then(this.openPackaging.bind(this))), n;
+		return r === ni.BINARY ? (this.archived = !0, this.url = new ce("/", ""), n = this.openEpub(e)) : r === ni.BASE64 ? (this.archived = !0, this.url = new ce("/", ""), n = this.openEpub(e, r)) : r === ni.EPUB ? (this.archived = !0, this.url = new ce("/", ""), n = this.request(e, "binary", this.settings.requestCredentials, this.settings.requestHeaders).then(this.openEpub.bind(this))) : r == ni.OPF ? (this.url = new ce(e), n = this.openPackaging(this.url.Path.toString())) : r == ni.MANIFEST ? (this.url = new ce(e), n = this.openManifest(this.url.Path.toString())) : (this.url = new ce(e), n = this.openContainer(ei).then(this.openPackaging.bind(this))), n;
 	}
 	openEpub(e, t) {
-		return this.unarchive(e, t || this.settings.encoding).then(() => this.openContainer($r)).then((e) => this.openPackaging(e));
+		return this.unarchive(e, t || this.settings.encoding).then(() => this.openContainer(ei)).then((e) => this.openPackaging(e));
 	}
 	openContainer(e) {
 		return this.load(e, "xml").then((e) => (this.container = new nt(e), this.resolve(this.container.packagePath)));
@@ -14752,19 +14817,19 @@ var Zr = class {
 	}
 	determineType(e) {
 		var t, n, r;
-		if (this.settings.encoding === "base64") return ti.BASE64;
-		if (typeof e != "string") return ti.BINARY;
-		if (t = new ce(e), n = t.path(), r = n.extension, r &&= r.replace(/\?.*$/, ""), !r) return ti.DIRECTORY;
-		if (r === "epub") return ti.EPUB;
-		if (r === "opf") return ti.OPF;
-		if (r === "json") return ti.MANIFEST;
+		if (this.settings.encoding === "base64") return ni.BASE64;
+		if (typeof e != "string") return ni.BINARY;
+		if (t = new ce(e), n = t.path(), r = n.extension, r &&= r.replace(/\?.*$/, ""), !r) return ni.DIRECTORY;
+		if (r === "epub") return ni.EPUB;
+		if (r === "opf") return ni.OPF;
+		if (r === "json") return ni.MANIFEST;
 	}
 	unpack(e) {
-		this.package = e, this.packaging.metadata.layout === "" ? this.load(this.url.resolve(ei), "xml").then((e) => {
-			this.displayOptions = new Zr(e), this.loading.displayOptions.resolve(this.displayOptions);
+		this.package = e, this.packaging.metadata.layout === "" ? this.load(this.url.resolve(ti), "xml").then((e) => {
+			this.displayOptions = new Qr(e), this.loading.displayOptions.resolve(this.displayOptions);
 		}).catch((e) => {
-			this.displayOptions = new Zr(), this.loading.displayOptions.resolve(this.displayOptions);
-		}) : (this.displayOptions = new Zr(), this.loading.displayOptions.resolve(this.displayOptions));
+			this.displayOptions = new Qr(), this.loading.displayOptions.resolve(this.displayOptions);
+		}) : (this.displayOptions = new Qr(), this.loading.displayOptions.resolve(this.displayOptions));
 		var t = (e, t) => this.resolve(e, t), n = (e) => this.resolve(e), r = this;
 		function i(e, t) {
 			return t === "blob" ? r.request(e, "blob") : r.request(e, "text");
@@ -14798,7 +14863,7 @@ var Zr = class {
 		return this.spine.get(e);
 	}
 	renderTo(e, t) {
-		return this.rendition = new Kr(this, t), this.rendition.attachTo(e), this.rendition;
+		return this.rendition = new qr(this, t), this.rendition.attachTo(e), this.rendition;
 	}
 	setRequestCredentials(e) {
 		this.settings.requestCredentials = e;
@@ -14807,11 +14872,11 @@ var Zr = class {
 		this.settings.requestHeaders = e;
 	}
 	unarchive(e, t) {
-		return this.archive = new Jr(), this.archive.open(e, t);
+		return this.archive = new Yr(), this.archive.open(e, t);
 	}
 	store(e) {
 		let t = this.settings.replacements && this.settings.replacements !== "none", n = this.url, r = this.settings.requestMethod || Ye.bind(this);
-		return this.storage = new Xr(e, r, this.resolve.bind(this)), this.request = this.storage.request.bind(this.storage), this.opened.then(() => {
+		return this.storage = new Zr(e, r, this.resolve.bind(this)), this.request = this.storage.request.bind(this.storage), this.opened.then(() => {
 			this.archived && (this.storage.requester = this.archive.request.bind(this.archive));
 			let e = (e, t) => {
 				t.output = this.resources.substitute(e, t.url);
@@ -14844,175 +14909,175 @@ var Zr = class {
 		this.opened = void 0, this.loading = void 0, this.loaded = void 0, this.ready = void 0, this.isOpen = !1, this.isRendered = !1, this.spine && this.spine.destroy(), this.locations && this.locations.destroy(), this.pageList && this.pageList.destroy(), this.archive && this.archive.destroy(), this.resources && this.resources.destroy(), this.container && this.container.destroy(), this.packaging && this.packaging.destroy(), this.rendition && this.rendition.destroy(), this.displayOptions && this.displayOptions.destroy(), this.spine = void 0, this.locations = void 0, this.pageList = void 0, this.archive = void 0, this.resources = void 0, this.container = void 0, this.packaging = void 0, this.rendition = void 0, this.navigation = void 0, this.url = void 0, this.path = void 0, this.archived = !1;
 	}
 };
-(0, j.default)(ni.prototype);
+(0, j.default)(ri.prototype);
 //#endregion
 //#region src/utils/core.ts
-var ri = /* @__PURE__ */ s({
-	RangeObject: () => Ui,
-	blob2base64: () => Ii,
-	borders: () => _i,
-	bounds: () => gi,
-	createBase64Url: () => Di,
-	createBlob: () => wi,
-	createBlobUrl: () => Ti,
-	defaults: () => di,
-	defer: () => Li,
-	documentHeight: () => oi,
-	extend: () => fi,
-	filterChildren: () => Vi,
-	findChildren: () => zi,
-	getParentByTagName: () => Hi,
-	indexOfElementNode: () => Si,
-	indexOfNode: () => bi,
-	indexOfSorted: () => hi,
-	indexOfTextNode: () => xi,
-	insert: () => pi,
-	isElement: () => si,
-	isFloat: () => li,
-	isNumber: () => ci,
-	isXml: () => Ci,
-	locationOf: () => mi,
-	nodeBounds: () => vi,
-	parents: () => Bi,
-	parse: () => ki,
-	prefixed: () => ui,
-	qs: () => Ai,
-	qsa: () => ji,
-	qsp: () => Mi,
-	querySelectorByType: () => Ri,
-	requestAnimationFrame: () => ii,
-	revokeBlobUrl: () => Ei,
-	sprint: () => Ni,
-	treeWalker: () => Pi,
-	type: () => Oi,
-	uuid: () => ai,
-	walk: () => Fi,
-	windowBounds: () => yi
-}), ii = ze;
-function ai() {
+var ii = /* @__PURE__ */ s({
+	RangeObject: () => Wi,
+	blob2base64: () => Li,
+	borders: () => vi,
+	bounds: () => _i,
+	createBase64Url: () => Oi,
+	createBlob: () => Ti,
+	createBlobUrl: () => Ei,
+	defaults: () => fi,
+	defer: () => Ri,
+	documentHeight: () => si,
+	extend: () => pi,
+	filterChildren: () => Hi,
+	findChildren: () => Bi,
+	getParentByTagName: () => Ui,
+	indexOfElementNode: () => Ci,
+	indexOfNode: () => xi,
+	indexOfSorted: () => gi,
+	indexOfTextNode: () => Si,
+	insert: () => mi,
+	isElement: () => ci,
+	isFloat: () => ui,
+	isNumber: () => li,
+	isXml: () => wi,
+	locationOf: () => hi,
+	nodeBounds: () => yi,
+	parents: () => Vi,
+	parse: () => Ai,
+	prefixed: () => di,
+	qs: () => ji,
+	qsa: () => Mi,
+	qsp: () => Ni,
+	querySelectorByType: () => zi,
+	requestAnimationFrame: () => ai,
+	revokeBlobUrl: () => Di,
+	sprint: () => Pi,
+	treeWalker: () => Fi,
+	type: () => ki,
+	uuid: () => oi,
+	walk: () => Ii,
+	windowBounds: () => bi
+}), ai = ze;
+function oi() {
 	return M();
 }
-function oi() {
+function si() {
 	return vt();
 }
-function si(e) {
+function ci(e) {
 	return J(e);
 }
-function ci(e) {
+function li(e) {
 	return Y(e);
 }
-function li(e) {
+function ui(e) {
 	return ge(e);
 }
-function ui(e) {
+function di(e) {
 	return gt(e);
 }
-function di(e, ...t) {
+function fi(e, ...t) {
 	return F.apply(null, arguments);
 }
-function fi(e, ...t) {
+function pi(e, ...t) {
 	return I.apply(null, arguments);
 }
-function pi(e, t, n) {
+function mi(e, t, n) {
 	return ee(e, t, n);
 }
-function mi(e, t, n, r, i) {
+function hi(e, t, n, r, i) {
 	return te(e, t, n, r, i);
 }
-function hi(e, t, n, r, i) {
+function gi(e, t, n, r, i) {
 	return ne(e, t, n, r, i);
 }
-function gi(e) {
+function _i(e) {
 	return yt(e);
 }
-function _i(e) {
+function vi(e) {
 	return bt(e);
 }
-function vi(e) {
+function yi(e) {
 	return xt(e);
 }
-function yi() {
+function bi() {
 	return St();
 }
-function bi(e, t) {
+function xi(e, t) {
 	return G(e, t);
 }
-function xi(e) {
+function Si(e) {
 	return K(e);
 }
-function Si(e) {
+function Ci(e) {
 	return q(e);
 }
-function Ci(e) {
+function wi(e) {
 	return qe(e);
 }
-function wi(e, t) {
+function Ti(e, t) {
 	return at(e, t);
 }
-function Ti(e, t) {
+function Ei(e, t) {
 	return ot(e, t);
 }
-function Ei(e) {
+function Di(e) {
 	return st(e);
 }
-function Di(e, t) {
+function Oi(e, t) {
 	return ct(e, t);
 }
-function Oi(e) {
+function ki(e) {
 	return _e(e);
 }
-function ki(e, t, n) {
+function Ai(e, t, n) {
 	return He(e, t, n);
 }
-function Ai(e, t) {
+function ji(e, t) {
 	return Q(e, t);
 }
-function ji(e, t) {
+function Mi(e, t) {
 	return Se(e, t);
 }
-function Mi(e, t, n) {
+function Ni(e, t, n) {
 	return Ce(e, t, n);
 }
-function Ni(e, t) {
+function Pi(e, t) {
 	return B(e, t);
 }
-function Pi(e, t, n) {
+function Fi(e, t, n) {
 	return de(e, t, n);
 }
-function Fi(e, t) {
+function Ii(e, t) {
 	return H(e, t);
 }
-function Ii(e) {
+function Li(e) {
 	return lt(e);
 }
-function Li() {
+function Ri() {
 	N.call(this);
 }
-function Ri(e, t, n) {
+function zi(e, t, n) {
 	return we(e, t, n);
 }
-function zi(e) {
+function Bi(e) {
 	return U(e);
 }
-function Bi(e) {
+function Vi(e) {
 	return pe(e);
 }
-function Vi(e, t, n) {
+function Hi(e, t, n) {
 	return me(e, t, n);
 }
-function Hi(e, t) {
+function Ui(e, t) {
 	return W(e, t);
 }
-var Ui = class extends he {}, Wi = function(e, t) {
-	return t === void 0 && typeof e != "string" && !(e instanceof Blob) && !(e instanceof ArrayBuffer) ? new ni(e) : new ni(e, t);
+var Wi = class extends he {}, Gi = function(e, t) {
+	return t === void 0 && typeof e != "string" && !(e instanceof Blob) && !(e instanceof ArrayBuffer) ? new ri(e) : new ri(e, t);
 };
-Wi.VERSION = "0.3", globalThis.EPUBJS_VERSION = "0.3", Wi.Book = ni, Wi.Rendition = Kr, Wi.Contents = Ht, Wi.CFI = Z, Wi.utils = ri;
+Gi.VERSION = "0.3", globalThis.EPUBJS_VERSION = "0.3", Gi.Book = ri, Gi.Rendition = qr, Gi.Contents = Ht, Gi.CFI = Z, Gi.utils = ii;
 //#endregion
 //#region src/media-overlay.ts
-var Gi = (e) => typeof e == "string" ? e.trim() : "", Ki = (e) => /^[a-z][a-z0-9+.-]*:/i.test(e) || e.startsWith("//"), qi = (e = "", t = "") => {
-	let n = Gi(t);
-	if (!n || Ki(n)) return n;
-	let [r, i = ""] = n.split("#"), a = Gi(e).split("#")[0].split("?")[0], o = `${a.includes("/") ? a.slice(0, a.lastIndexOf("/") + 1) : ""}${r}`.split("/"), s = [];
+var Ki = (e) => typeof e == "string" ? e.trim() : "", qi = (e) => /^[a-z][a-z0-9+.-]*:/i.test(e) || e.startsWith("//"), Ji = (e = "", t = "") => {
+	let n = Ki(t);
+	if (!n || qi(n)) return n;
+	let [r, i = ""] = n.split("#"), a = Ki(e).split("#")[0].split("?")[0], o = `${a.includes("/") ? a.slice(0, a.lastIndexOf("/") + 1) : ""}${r}`.split("/"), s = [];
 	for (let e of o) if (!(!e || e === ".")) {
 		if (e === "..") {
 			s.pop();
@@ -15021,18 +15086,18 @@ var Gi = (e) => typeof e == "string" ? e.trim() : "", Ki = (e) => /^[a-z][a-z0-9
 		s.push(e);
 	}
 	return `${s.join("/")}${i ? `#${i}` : ""}`;
-}, Ji = (e = "") => Gi(e).split(":").pop()?.toLowerCase() ?? "", Yi = (e = "") => {
+}, Yi = (e = "") => Ki(e).split(":").pop()?.toLowerCase() ?? "", Xi = (e = "") => {
 	let t = {}, n = /([\w:.-]+)\s*=\s*("([^"]*)"|'([^']*)')/g, r = n.exec(e);
 	for (; r;) t[r[1]] = r[3] ?? r[4] ?? "", r = n.exec(e);
 	return t;
-}, Xi = (e = "") => {
+}, Zi = (e = "") => {
 	let t = {
 		name: "root",
 		attributes: {},
 		children: []
 	}, n = [t], r = /<\s*(\/)?\s*([\w:.-]+)([^>]*?)(\/)?\s*>/g, i = r.exec(e);
 	for (; i;) {
-		let [, t, a, o, s] = i, c = Ji(a);
+		let [, t, a, o, s] = i, c = Yi(a);
 		if (t) {
 			for (; n.length > 1 && n[n.length - 1].name !== c;) n.pop();
 			n.length > 1 && n.pop(), i = r.exec(e);
@@ -15040,88 +15105,88 @@ var Gi = (e) => typeof e == "string" ? e.trim() : "", Ki = (e) => /^[a-z][a-z0-9
 		}
 		let l = {
 			name: c,
-			attributes: Yi(o),
+			attributes: Xi(o),
 			children: []
 		};
 		n[n.length - 1].children.push(l), s || n.push(l), i = r.exec(e);
 	}
 	return t;
-}, Zi = (e) => {
+}, Qi = (e) => {
 	if (!e) return null;
 	let t = {};
 	for (let n of Array.from(e.attributes ?? [])) t[n.name] = n.value;
 	return {
-		name: Ji(e.localName || e.nodeName),
+		name: Yi(e.localName || e.nodeName),
 		attributes: t,
-		children: Array.from(e.children ?? []).map(Zi).filter((e) => !!e)
+		children: Array.from(e.children ?? []).map(Qi).filter((e) => !!e)
 	};
-}, Qi = (e = "") => {
+}, $i = (e = "") => {
 	if (typeof DOMParser == "function") {
-		let t = new DOMParser().parseFromString(e, "application/xml"), n = t.querySelector("parsererror") ? null : Zi(t.documentElement);
+		let t = new DOMParser().parseFromString(e, "application/xml"), n = t.querySelector("parsererror") ? null : Qi(t.documentElement);
 		if (n) return n;
 	}
-	return Xi(e);
-}, $i = (e, t) => {
+	return Zi(e);
+}, ea = (e, t) => {
 	if (!e) return null;
 	if (e.name === t) return e;
 	for (let n of e.children) {
-		let e = $i(n, t);
+		let e = ea(n, t);
 		if (e) return e;
 	}
 	return null;
-}, ea = (e, t) => (e?.children ?? []).filter((e) => e.name === t), ta = (e, t) => {
+}, ta = (e, t) => (e?.children ?? []).filter((e) => e.name === t), na = (e, t) => {
 	if (!e) return null;
-	let n = Gi(e.attributes.src);
+	let n = Ki(e.attributes.src);
 	return {
 		src: n,
-		href: qi(t, n)
+		href: Ji(t, n)
 	};
-}, na = (e, t) => {
+}, ra = (e, t) => {
 	if (!e) return null;
-	let n = Gi(e.attributes.src);
+	let n = Ki(e.attributes.src);
 	return {
 		src: n,
-		href: qi(t, n),
-		clipBegin: Gi(e.attributes.clipBegin),
-		clipEnd: Gi(e.attributes.clipEnd)
+		href: Ji(t, n),
+		clipBegin: Ki(e.attributes.clipBegin),
+		clipEnd: Ki(e.attributes.clipEnd)
 	};
-}, ra = (e, t, n) => {
-	let r = ta(ea(e, "text")[0], t), i = na(ea(e, "audio")[0], t);
+}, ia = (e, t, n) => {
+	let r = na(ta(e, "text")[0], t), i = ra(ta(e, "audio")[0], t);
 	return {
-		id: Gi(e.attributes.id),
+		id: Ki(e.attributes.id),
 		text: r,
 		audio: i,
 		sequencePath: n
 	};
-}, ia = (e, t, n = []) => {
-	let r = [...n, Gi(e.attributes.id)].filter(Boolean), i = Gi(e.attributes["epub:textref"] ?? e.attributes.textref), a = [], o = [];
+}, aa = (e, t, n = []) => {
+	let r = [...n, Ki(e.attributes.id)].filter(Boolean), i = Ki(e.attributes["epub:textref"] ?? e.attributes.textref), a = [], o = [];
 	for (let n of e.children) {
 		if (n.name === "seq") {
-			let e = ia(n, t, r);
+			let e = aa(n, t, r);
 			a.push(e), o.push(...e.fragments);
 			continue;
 		}
 		if (n.name === "par") {
-			let e = ra(n, t, r);
+			let e = ia(n, t, r);
 			a.push(e), o.push(e);
 		}
 	}
 	return {
-		id: Gi(e.attributes.id),
+		id: Ki(e.attributes.id),
 		textref: i,
-		textrefHref: qi(t, i),
+		textrefHref: Ji(t, i),
 		children: a,
 		fragments: o
 	};
-}, aa = (e = "", t = {}) => {
-	let n = Gi(t.href), r = Qi(e), i = $i(r, "body") ?? r, a = ea(i, "seq").map((e) => ia(e, n)), o = ea(i, "par").map((e) => ra(e, n, []));
+}, oa = (e = "", t = {}) => {
+	let n = Ki(t.href), r = $i(e), i = ea(r, "body") ?? r, a = ta(i, "seq").map((e) => aa(e, n)), o = ta(i, "par").map((e) => ia(e, n, []));
 	return {
 		href: n,
 		sequences: a,
 		fragments: [...a.flatMap((e) => e.fragments), ...o]
 	};
-}, oa = (e) => {
-	let t = Gi(e).replace(/^npt=/i, "");
+}, sa = (e) => {
+	let t = Ki(e).replace(/^npt=/i, "");
 	if (!t) return null;
 	let n = t.match(/^([0-9]+(?:\.[0-9]+)?)(h|min|s|ms)$/i);
 	if (n) {
@@ -15140,8 +15205,8 @@ var Gi = (e) => typeof e == "string" ? e.trim() : "", Ki = (e) => /^[a-z][a-z0-9
 	if (i.some((e) => !Number.isFinite(e))) return null;
 	let [a, o, s] = r.length === 3 ? i : [0, ...i];
 	return a * 3600 + o * 60 + s;
-}, sa = Wi;
+}, ca = Gi;
 //#endregion
-export { ni as Book, Ht as Contents, Z as EpubCFI, ft as Layout, Kr as Rendition, sa as default, oa as parseSmilClock, aa as parseSmilDocument, Te as replaceBase, Ee as replaceCanonical, Oe as replaceLinks, De as replaceMeta, Ye as request, qi as resolveSmilHref, ke as substitute };
+export { ri as Book, Ht as Contents, Z as EpubCFI, ft as Layout, qr as Rendition, ca as default, sa as parseSmilClock, oa as parseSmilDocument, Te as replaceBase, Ee as replaceCanonical, Oe as replaceLinks, De as replaceMeta, Ye as request, Ji as resolveSmilHref, ke as substitute };
 
 //# sourceMappingURL=epub.mjs.map

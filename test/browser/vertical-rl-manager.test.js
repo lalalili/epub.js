@@ -2104,6 +2104,182 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(snapCalls, 2);
 	});
 
+	it("keeps the logical grid offset when a vertical-rl text-boundary snap has no candidate", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let contentWidth = 1161;
+		let visibleWidth = 393;
+		let capturedLeft = null;
+
+		manager.container = {
+			clientWidth: visibleWidth,
+			scrollWidth: contentWidth,
+			scrollLeft: 0
+		};
+		manager.layout = {
+			effectivePageAdvance: 384,
+			delta: 384,
+			pageWidth: visibleWidth,
+			width: visibleWidth,
+			edgeGuardPx: 4,
+			pageBoundaryShift: 4
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			first: function() {
+				return {
+					_contentWidth: contentWidth,
+					width: function() {
+						return contentWidth;
+					},
+					iframe: null,
+					contents: null
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.queueVerticalRlBoundarySnapRetry = function() {};
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function() {
+			return null;
+		};
+		manager.scrollTo = function(left) {
+			capturedLeft = left;
+			this.container.scrollLeft = left;
+		};
+
+		let totalPages = manager.getTotalPagesForCurrentView();
+		let maxScroll = manager.getMaxLogicalScrollLeft();
+		let expectedOffset = manager.getLogicalOffsetForPageIndex(1, totalPages, maxScroll);
+
+		manager.scrollToLogicalPage(1, {
+			sequentialRightBoundary: manager.getVerticalRlCurrentEffectiveLeftBoundary()
+		});
+
+		assert.equal(capturedLeft, -expectedOffset);
+		assert.notEqual(capturedLeft, 0);
+	});
+
+	it("refreshes the vertical-rl edge mask when a delayed snap keeps the current offset", async function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let syncCalls = 0;
+
+		manager.container = { scrollLeft: -384 };
+		manager.settings = {
+			direction: "rtl",
+			rtlScrollType: "negative",
+			verticalRlBoundarySnapRetryDelays: []
+		};
+		manager.isRtlVerticalPaginated = function() { return true; };
+		manager.getTotalPagesForCurrentView = function() { return 3; };
+		manager.getMaxLogicalScrollLeft = function() { return 768; };
+		manager.getNormalizedLogicalScrollLeft = function() { return 384; };
+		manager.getVerticalRlLogicalPageOffsetCacheKey = function() { return "key"; };
+		manager.getCachedVerticalRlLogicalPageOffset = function() { return 384; };
+		manager.getPageSnapTolerance = function() { return 1; };
+		manager.getPageBoundaryShift = function() { return 0; };
+		manager.getCurrentPageIndex = function() { return 1; };
+		manager.getLogicalOffsetForPageIndex = function() { return 384; };
+		manager.waitForVerticalRlLayoutReady = function() { return Promise.resolve(); };
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function() { return 384; };
+		manager.syncVerticalRlViewportClip = function() { syncCalls += 1; };
+		manager.views = {
+			first: function() {
+				return { iframe: {}, contents: { document: { body: {} }, window: {} } };
+			},
+			last: function() { return this.first(); }
+		};
+
+		manager.queueVerticalRlBoundarySnapRetry(1);
+		await Promise.resolve();
+		await Promise.resolve();
+
+		assert.equal(syncCalls, 1);
+	});
+
+	it("refreshes the vertical-rl viewport clip after the target layout settles", async function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let syncCalls = 0;
+
+		manager.container = { clientWidth: 393, scrollWidth: 1161, scrollLeft: 0 };
+		manager.layout = {
+			effectivePageAdvance: 384,
+			delta: 384,
+			pageWidth: 393,
+			width: 393,
+			edgeGuardPx: 4,
+			pageBoundaryShift: 4
+		};
+		manager.settings = { axis: "horizontal", direction: "rtl", rtlScrollType: "negative", writingMode: "vertical-rl" };
+		manager.isPaginated = true;
+		manager.views = {
+			first: function() { return { _contentWidth: 1161, width: function() { return 1161; }, iframe: null, contents: null }; },
+			last: function() { return this.first(); }
+		};
+		manager.syncVerticalRlViewportClip = function() { syncCalls += 1; };
+		manager.queueVerticalRlBoundarySnapRetry = function() {};
+		manager.waitForVerticalRlLayoutReady = function() { return Promise.resolve(); };
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function(offset) { return offset; };
+		manager.scrollTo = function(left) { this.container.scrollLeft = left; };
+
+		manager.scrollToLogicalPage(1);
+		assert.equal(syncCalls, 2);
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.equal(syncCalls, 3);
+	});
+
+	it("restores a multi-page vertical-rl view width when pre-scroll sync collapses it", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let container = { clientWidth: 393, scrollWidth: 1161, scrollLeft: 0 };
+		let iframeStyle = {};
+		let elementStyle = {};
+		Object.defineProperty(iframeStyle, "width", {
+			get: function() { return this._width || "1161px"; },
+			set: function(value) { this._width = value; container.scrollWidth = Number.parseFloat(value); }
+		});
+		let view = {
+			_contentWidth: 1161,
+			_width: 1161,
+			width: function() { return this._contentWidth; },
+			iframe: { style: iframeStyle },
+			element: { style: elementStyle },
+			contents: null
+		};
+
+		manager.container = container;
+		manager.layout = { effectivePageAdvance: 384, delta: 384, pageWidth: 393, width: 393 };
+		manager.settings = { axis: "horizontal", direction: "rtl", rtlScrollType: "negative", writingMode: "vertical-rl" };
+		manager.isPaginated = true;
+		manager.views = { first: function() { return view; }, last: function() { return view; } };
+		manager.syncVerticalRlViewportClip = function() {
+			container.scrollWidth = 393;
+			view._contentWidth = 393;
+			view._width = 393;
+		};
+		manager.getTotalPagesForCurrentView = function() {
+			return container.scrollWidth > container.clientWidth + 1 ? 3 : 1;
+		};
+		manager.queueVerticalRlBoundarySnapRetry = function() {};
+		manager.waitForVerticalRlLayoutReady = function() { return Promise.resolve(); };
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function(offset) { return offset; };
+		manager.scrollTo = function(left) { this.container.scrollLeft = left; };
+
+		manager.scrollToLogicalPage(1);
+
+		assert.equal(container.scrollWidth, 1161, `scrollWidth=${container.scrollWidth}`);
+		assert.equal(iframeStyle.width, "1161px");
+		assert.equal(elementStyle.width, "1161px");
+		assert.equal(container.scrollLeft, -384);
+	});
+
 	it("keeps delayed vertical-rl boundary retries on the cached logical page offset", async function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let contentWidth = 18139;

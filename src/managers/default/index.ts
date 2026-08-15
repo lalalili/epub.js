@@ -61,6 +61,43 @@ const Deferred = defer as unknown as {
 };
 
 type EdgeMaskWidths = { left: number; right: number };
+type VerticalRlDebugWindow = Window & {
+	__EPUB_VRL_DEBUG__?: boolean;
+	__EPUB_VRL_SCROLL_TRACE__?: Array<Record<string, unknown>>;
+};
+
+/**
+ * 記錄 vertical-rl 捲動診斷事件，僅在 window.__EPUB_VRL_DEBUG__ 為真時作用。
+ *
+ * 消費端：cptw 的 e2e harness 以 installVerticalRlScrollTrace() 開啟旗標，
+ * 再由 readVerticalRlScrollTrace() 讀取 window.__EPUB_VRL_SCROLL_TRACE__，
+ * 併入 turnEvidence 供失敗分析使用。
+ *
+ * 注意：保留上限為 200 筆，高頻 stage 會擠掉較早的事件；
+ * 診斷時應限縮量測範圍或減少同時啟用的 stage。
+ *
+ * @param stage 診斷階段名稱
+ * @param detail 該階段要記錄的欄位
+ * @return {void}
+ */
+const appendVerticalRlScrollTrace = (stage: string, detail: Record<string, unknown>): void => {
+	if (typeof window === "undefined" || !(window as VerticalRlDebugWindow).__EPUB_VRL_DEBUG__) {
+		return;
+	}
+
+	let debugWindow = window as VerticalRlDebugWindow;
+	if (!Array.isArray(debugWindow.__EPUB_VRL_SCROLL_TRACE__)) {
+		debugWindow.__EPUB_VRL_SCROLL_TRACE__ = [];
+	}
+	debugWindow.__EPUB_VRL_SCROLL_TRACE__.push({
+		stage,
+		capturedAt: Date.now(),
+		...detail
+	});
+	if (debugWindow.__EPUB_VRL_SCROLL_TRACE__.length > 200) {
+		debugWindow.__EPUB_VRL_SCROLL_TRACE__.splice(0, debugWindow.__EPUB_VRL_SCROLL_TRACE__.length - 200);
+	}
+};
 type SnapLimits = {
 	rawLeft?: number;
 	rawRight?: number;
@@ -1440,9 +1477,7 @@ class DefaultViewManager {
 			return;
 		}
 
-		let maskWidths = this.expandVerticalRlLeftMaskToVisibleLine(
-			this.getVerticalRlEdgeMaskWidths()
-		);
+		let maskWidths = this.expandVerticalRlLeftMaskToVisibleLine(this.getVerticalRlEdgeMaskWidths());
 		if (!maskWidths.left && !maskWidths.right) {
 			this.removeVerticalRlViewportClip();
 			if (this.container.dataset && this.container.dataset.epubVrlEdgeMask) {
@@ -1853,11 +1888,84 @@ class DefaultViewManager {
 	}
 
 	scrollToLogicalPage(pageIndex: number, options: SnapLimits = {}): void {
+		let preSyncView = this.views && (this.views.first() || this.views.last());
+		let preSyncIframeWidth = preSyncView && preSyncView.iframe
+			? Math.max(
+				Number(preSyncView.iframe.getBoundingClientRect && preSyncView.iframe.getBoundingClientRect().width) || 0,
+				parseFloat(preSyncView.iframe.style && preSyncView.iframe.style.width) || 0
+			)
+			: 0;
+		let preSyncElementWidth = preSyncView && preSyncView.element
+			? Math.max(
+				Number(preSyncView.element.getBoundingClientRect && preSyncView.element.getBoundingClientRect().width) || 0,
+				parseFloat(preSyncView.element.style && preSyncView.element.style.width) || 0
+			)
+			: 0;
+		let preSyncVisualContentWidth = preSyncView
+			? Math.max(
+				this.getVerticalRlVisualContentWidth(preSyncView),
+				preSyncIframeWidth,
+				preSyncElementWidth
+			)
+			: 0;
+		let preSyncTotalPages = this.getTotalPagesForCurrentView();
+		let readPreSyncIframeWidth = () => preSyncView && preSyncView.iframe
+			? Math.max(
+				Number(preSyncView.iframe.getBoundingClientRect && preSyncView.iframe.getBoundingClientRect().width) || 0,
+				parseFloat(preSyncView.iframe.style && preSyncView.iframe.style.width) || 0
+			)
+			: 0;
+		appendVerticalRlScrollTrace("before-sync", {
+			pageIndex,
+			preSyncTotalPages,
+			preSyncVisualContentWidth,
+			preSyncIframeWidth,
+			preSyncElementWidth,
+			containerScrollWidth: this.container && this.container.scrollWidth,
+			containerClientWidth: this.container && this.container.clientWidth
+		});
 		this.syncVerticalRlViewportClip();
 		let advance = this.getPageAdvance();
-		let totalPages = this.getTotalPagesForCurrentView();
+		// 防禦性下限：layout 未穩定時 getTotalPagesForCurrentView() 可能低估頁數。
+		// 2026-08-15 於 9789570538069 的量測顯示 layout 穩定過程中頁數只增不減
+		// （5→8、4→9），故此 Math.max 在該情境未實際生效；保留以防其他情境低估。
+		let totalPages = Math.max(preSyncTotalPages, this.getTotalPagesForCurrentView());
+		// 塌陷防護：syncVerticalRlViewportClip() 後 view 寬度若被壓縮至單頁寬，
+		// 多頁內容會塌陷、捲動落點與遮罩計算全部失準。
+		// 2026-08-15 量測：9789570538069 四組字級/行高的 restoredBeforeScroll 與
+		// restoredAfterScroll 皆為 0，此防護未曾觸發；保留以防其他情境塌陷。
+		let restorePreSyncVisualContentWidth = () => {
+			if (!(
+				this.isRtlVerticalPaginated() &&
+				totalPages > 1 &&
+				this.container &&
+				this.container.scrollWidth <= this.container.clientWidth + 1 &&
+				preSyncVisualContentWidth > this.container.clientWidth + 1 &&
+				preSyncView
+			)) {
+				return false;
+			}
+			let restoredWidth = `${preSyncVisualContentWidth}px`;
+			if (preSyncView.iframe && preSyncView.iframe.style) {
+				preSyncView.iframe.style.width = restoredWidth;
+			}
+			if (preSyncView.element && preSyncView.element.style) {
+				preSyncView.element.style.width = restoredWidth;
+			}
+			preSyncView._contentWidth = preSyncVisualContentWidth;
+			preSyncView._width = preSyncVisualContentWidth;
+			return true;
+		};
+		let restoredBeforeScroll = restorePreSyncVisualContentWidth();
 		let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
 		let maxScroll = this.getMaxLogicalScrollLeft();
+		appendVerticalRlScrollTrace("after-first-sync", {
+			totalPages,
+			restoredBeforeScroll,
+			maxScroll,
+			containerScrollWidth: this.container && this.container.scrollWidth,
+			iframeWidth: readPreSyncIframeWidth()
+		});
 		let sequentialBoundaryConstraint = null;
 		let logicalOffsetCacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
 		let ignoreCachedLogicalOffset = Boolean(options && options.ignoreCachedLogicalOffset);
@@ -1909,7 +2017,14 @@ class DefaultViewManager {
 				targetIndex > 0 &&
 				(targetIndex < totalPages - 1 || sequentialBoundaryConstraint)
 			) {
-				logicalOffset = this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll, sequentialBoundaryConstraint || {});
+				let snappedLogicalOffset = this.snapVerticalRlLogicalOffsetToTextBoundary(
+					logicalOffset,
+					maxScroll,
+					sequentialBoundaryConstraint || {}
+				);
+				if (Number.isFinite(snappedLogicalOffset)) {
+					logicalOffset = snappedLogicalOffset;
+				}
 			}
 		}
 		this._verticalRlSequentialBoundaryConstraint = sequentialBoundaryConstraint;
@@ -1935,7 +2050,53 @@ class DefaultViewManager {
 			this._verticalRlBoundarySnapApplying = false;
 		}
 		this.syncVerticalRlViewportClip();
+		let restoredAfterScroll = restorePreSyncVisualContentWidth();
+		appendVerticalRlScrollTrace("after-second-sync", {
+			logicalOffset,
+			left,
+			restoredAfterScroll,
+			containerScrollLeft: this.container && this.container.scrollLeft,
+			containerScrollWidth: this.container && this.container.scrollWidth,
+			iframeWidth: readPreSyncIframeWidth()
+		});
+		if (restoredAfterScroll) {
+			this._verticalRlBoundarySnapApplying = true;
+			try {
+				this.scrollTo(left, 0, true);
+			} finally {
+				this._verticalRlBoundarySnapApplying = false;
+			}
+		}
+		appendVerticalRlScrollTrace("complete", {
+			targetIndex,
+			containerScrollLeft: this.container && this.container.scrollLeft,
+			containerScrollWidth: this.container && this.container.scrollWidth,
+			iframeWidth: readPreSyncIframeWidth()
+		});
 		this.queueVerticalRlBoundarySnapRetry(targetIndex);
+		// layout 穩定後重算遮罩。首次 syncVerticalRlViewportClip() 發生在 layout
+		// 尚未定案時（頁數仍在變動），算出的遮罩偏寬，會遮蔽超出必要範圍的頁緣內容。
+		//
+		// 2026-08-15 ablation（9789570538069, mobile-390x844, 27 格）：停用本區塊後
+		// 22px/1.8 的左遮罩由 0 回升至 26；全格遮罩觸發量由 237 回升至 352。
+		// 這是本次 WIP 諸多防護中唯一經實測有效者。
+		//
+		// 註：邊緣遮罩本身為正確行為——被遮蔽的字元會在下一頁完整顯示，
+		// 經相鄰頁銜接驗證確認不會遺失內容。故本區塊屬顯示品質最佳化，
+		// 而非內容遺失的修正。
+		this.waitForVerticalRlLayoutReady().then(function(){
+			if (this.container && this.getCurrentPageIndex() === targetIndex) {
+				this.syncVerticalRlViewportClip();
+				if (this.getCurrentPageIndex() !== targetIndex) {
+					this._verticalRlBoundarySnapApplying = true;
+					try {
+						this.scrollTo(left, 0, true);
+					} finally {
+						this._verticalRlBoundarySnapApplying = false;
+					}
+				}
+			}
+		}.bind(this));
 	}
 
 	waitForVerticalRlLayoutReady(){
@@ -2054,6 +2215,7 @@ class DefaultViewManager {
 				}
 
 				if (Math.abs(snappedOffset - currentOffset) <= 1) {
+					this.syncVerticalRlViewportClip();
 					let delay = Number(retryDelays[attempt]);
 					if (Number.isFinite(delay) && delay >= 0) {
 						setTimeout(function(){

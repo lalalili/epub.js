@@ -14126,6 +14126,31 @@
 	//#endregion
 	//#region src/managers/default/index.ts
 	var Deferred = defer$1;
+	/**
+	* 記錄 vertical-rl 捲動診斷事件，僅在 window.__EPUB_VRL_DEBUG__ 為真時作用。
+	*
+	* 消費端：cptw 的 e2e harness 以 installVerticalRlScrollTrace() 開啟旗標，
+	* 再由 readVerticalRlScrollTrace() 讀取 window.__EPUB_VRL_SCROLL_TRACE__，
+	* 併入 turnEvidence 供失敗分析使用。
+	*
+	* 注意：保留上限為 200 筆，高頻 stage 會擠掉較早的事件；
+	* 診斷時應限縮量測範圍或減少同時啟用的 stage。
+	*
+	* @param stage 診斷階段名稱
+	* @param detail 該階段要記錄的欄位
+	* @return {void}
+	*/
+	var appendVerticalRlScrollTrace = (stage, detail) => {
+		if (typeof window === "undefined" || !window.__EPUB_VRL_DEBUG__) return;
+		let debugWindow = window;
+		if (!Array.isArray(debugWindow.__EPUB_VRL_SCROLL_TRACE__)) debugWindow.__EPUB_VRL_SCROLL_TRACE__ = [];
+		debugWindow.__EPUB_VRL_SCROLL_TRACE__.push({
+			stage,
+			capturedAt: Date.now(),
+			...detail
+		});
+		if (debugWindow.__EPUB_VRL_SCROLL_TRACE__.length > 200) debugWindow.__EPUB_VRL_SCROLL_TRACE__.splice(0, debugWindow.__EPUB_VRL_SCROLL_TRACE__.length - 200);
+	};
 	var DefaultViewManager = class {
 		constructor(options) {
 			this.name = "default";
@@ -14990,11 +15015,43 @@
 			return getCurrentPageIndexForOffset(this.getNormalizedLogicalScrollLeft(), totalPages, advance, this.getMaxLogicalScrollLeft(), this.getPageSnapTolerance(), this.getPageBoundaryShift(), this.isRtlVerticalPaginated());
 		}
 		scrollToLogicalPage(pageIndex, options = {}) {
+			let preSyncView = this.views && (this.views.first() || this.views.last());
+			let preSyncIframeWidth = preSyncView && preSyncView.iframe ? Math.max(Number(preSyncView.iframe.getBoundingClientRect && preSyncView.iframe.getBoundingClientRect().width) || 0, parseFloat(preSyncView.iframe.style && preSyncView.iframe.style.width) || 0) : 0;
+			let preSyncElementWidth = preSyncView && preSyncView.element ? Math.max(Number(preSyncView.element.getBoundingClientRect && preSyncView.element.getBoundingClientRect().width) || 0, parseFloat(preSyncView.element.style && preSyncView.element.style.width) || 0) : 0;
+			let preSyncVisualContentWidth = preSyncView ? Math.max(this.getVerticalRlVisualContentWidth(preSyncView), preSyncIframeWidth, preSyncElementWidth) : 0;
+			let preSyncTotalPages = this.getTotalPagesForCurrentView();
+			let readPreSyncIframeWidth = () => preSyncView && preSyncView.iframe ? Math.max(Number(preSyncView.iframe.getBoundingClientRect && preSyncView.iframe.getBoundingClientRect().width) || 0, parseFloat(preSyncView.iframe.style && preSyncView.iframe.style.width) || 0) : 0;
+			appendVerticalRlScrollTrace("before-sync", {
+				pageIndex,
+				preSyncTotalPages,
+				preSyncVisualContentWidth,
+				preSyncIframeWidth,
+				preSyncElementWidth,
+				containerScrollWidth: this.container && this.container.scrollWidth,
+				containerClientWidth: this.container && this.container.clientWidth
+			});
 			this.syncVerticalRlViewportClip();
 			let advance = this.getPageAdvance();
-			let totalPages = this.getTotalPagesForCurrentView();
+			let totalPages = Math.max(preSyncTotalPages, this.getTotalPagesForCurrentView());
+			let restorePreSyncVisualContentWidth = () => {
+				if (!(this.isRtlVerticalPaginated() && totalPages > 1 && this.container && this.container.scrollWidth <= this.container.clientWidth + 1 && preSyncVisualContentWidth > this.container.clientWidth + 1 && preSyncView)) return false;
+				let restoredWidth = `${preSyncVisualContentWidth}px`;
+				if (preSyncView.iframe && preSyncView.iframe.style) preSyncView.iframe.style.width = restoredWidth;
+				if (preSyncView.element && preSyncView.element.style) preSyncView.element.style.width = restoredWidth;
+				preSyncView._contentWidth = preSyncVisualContentWidth;
+				preSyncView._width = preSyncVisualContentWidth;
+				return true;
+			};
+			let restoredBeforeScroll = restorePreSyncVisualContentWidth();
 			let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
 			let maxScroll = this.getMaxLogicalScrollLeft();
+			appendVerticalRlScrollTrace("after-first-sync", {
+				totalPages,
+				restoredBeforeScroll,
+				maxScroll,
+				containerScrollWidth: this.container && this.container.scrollWidth,
+				iframeWidth: readPreSyncIframeWidth()
+			});
 			let sequentialBoundaryConstraint = null;
 			let logicalOffsetCacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
 			let cachedLogicalOffset = Boolean(options && options.ignoreCachedLogicalOffset) ? null : this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey);
@@ -15016,7 +15073,10 @@
 			}
 			let logicalOffset = cachedLogicalOffset !== null && !sequentialBoundaryConstraint ? cachedLogicalOffset : this.getLogicalOffsetForPageIndex(targetIndex, totalPages, maxScroll);
 			if (cachedLogicalOffset === null || sequentialBoundaryConstraint) {
-				if (this.isRtlVerticalPaginated() && targetIndex > 0 && (targetIndex < totalPages - 1 || sequentialBoundaryConstraint)) logicalOffset = this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll, sequentialBoundaryConstraint || {});
+				if (this.isRtlVerticalPaginated() && targetIndex > 0 && (targetIndex < totalPages - 1 || sequentialBoundaryConstraint)) {
+					let snappedLogicalOffset = this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll, sequentialBoundaryConstraint || {});
+					if (Number.isFinite(snappedLogicalOffset)) logicalOffset = snappedLogicalOffset;
+				}
 			}
 			this._verticalRlSequentialBoundaryConstraint = sequentialBoundaryConstraint;
 			if (this.isRtlVerticalPaginated()) this.cacheVerticalRlLogicalPageOffset(targetIndex, logicalOffset, logicalOffsetCacheKey);
@@ -15032,7 +15092,43 @@
 				this._verticalRlBoundarySnapApplying = false;
 			}
 			this.syncVerticalRlViewportClip();
+			let restoredAfterScroll = restorePreSyncVisualContentWidth();
+			appendVerticalRlScrollTrace("after-second-sync", {
+				logicalOffset,
+				left,
+				restoredAfterScroll,
+				containerScrollLeft: this.container && this.container.scrollLeft,
+				containerScrollWidth: this.container && this.container.scrollWidth,
+				iframeWidth: readPreSyncIframeWidth()
+			});
+			if (restoredAfterScroll) {
+				this._verticalRlBoundarySnapApplying = true;
+				try {
+					this.scrollTo(left, 0, true);
+				} finally {
+					this._verticalRlBoundarySnapApplying = false;
+				}
+			}
+			appendVerticalRlScrollTrace("complete", {
+				targetIndex,
+				containerScrollLeft: this.container && this.container.scrollLeft,
+				containerScrollWidth: this.container && this.container.scrollWidth,
+				iframeWidth: readPreSyncIframeWidth()
+			});
 			this.queueVerticalRlBoundarySnapRetry(targetIndex);
+			this.waitForVerticalRlLayoutReady().then(function() {
+				if (this.container && this.getCurrentPageIndex() === targetIndex) {
+					this.syncVerticalRlViewportClip();
+					if (this.getCurrentPageIndex() !== targetIndex) {
+						this._verticalRlBoundarySnapApplying = true;
+						try {
+							this.scrollTo(left, 0, true);
+						} finally {
+							this._verticalRlBoundarySnapApplying = false;
+						}
+					}
+				}
+			}.bind(this));
 		}
 		waitForVerticalRlLayoutReady() {
 			let view = this.views && (this.views.first() || this.views.last());
@@ -15091,6 +15187,7 @@
 					if (!shouldUseCachedLogicalOffset && Math.abs(snappedOffset - logicalOffset) <= 1) snappedOffset = this.snapVerticalRlLogicalOffsetFromEdgeMask(logicalOffset, maxScroll);
 					if (Math.abs(snappedOffset - logicalOffset) <= 1) snappedOffset = logicalOffset;
 					if (Math.abs(snappedOffset - currentOffset) <= 1) {
+						this.syncVerticalRlViewportClip();
 						let delay = Number(retryDelays[attempt]);
 						if (Number.isFinite(delay) && delay >= 0) setTimeout(function() {
 							retryAttempt(attempt + 1);
