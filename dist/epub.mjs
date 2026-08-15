@@ -8758,6 +8758,14 @@ var Nr = class {
 			rightMaxMask: r.rightMaxMask
 		}) : null;
 	}
+	getVerticalRlSequentialTargetOffset(e, t, n, r) {
+		let i = this.getLogicalOffsetForPageIndex(e, t, n);
+		if (!this.isRtlVerticalPaginated() || e <= 0) return i;
+		let a = this._verticalRlAppliedOffsets, o = a ? a[e - 1] : void 0;
+		if (!Number.isFinite(o)) return i;
+		let s = this.getVerticalRlRenderedEdgeMaskWidths(), c = Math.max(0, Number(s && s.left) || 0), l = o + Math.max(1, (Number(r) || 0) - c);
+		return Math.max(0, Math.min(n, l));
+	}
 	getVerticalRlEffectiveOffsetForPageIndex(e, t, n) {
 		let r = this._verticalRlAppliedOffsets, i = r ? r[e] : void 0;
 		return Number.isFinite(i) ? i : this.getLogicalOffsetForPageIndex(e, t, n);
@@ -8887,7 +8895,7 @@ var Nr = class {
 				}
 			}
 		}
-		let _ = g !== null && !m ? g : this.getLogicalOffsetForPageIndex(f, l, p);
+		let _ = g !== null && !m ? g : m ? this.getLogicalOffsetForPageIndex(f, l, p) : this.getVerticalRlSequentialTargetOffset(f, l, p, c);
 		if ((g === null || m) && this.isRtlVerticalPaginated() && f > 0 && (f < l - 1 || m)) {
 			let e = this.snapVerticalRlLogicalOffsetToTextBoundary(_, p, m || {});
 			Number.isFinite(e) && (_ = e);
