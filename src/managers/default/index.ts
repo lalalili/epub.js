@@ -1562,6 +1562,73 @@ class DefaultViewManager {
 	}
 
 	/**
+	 * 取得「可證實」的右遮罩允許量：前一頁確實完整顯示過的重疊區寬度。
+	 *
+	 * 右遮罩的唯一正當理由是「這段內容前一頁已完整顯示過」。消費端（reader 套件）
+	 * 會由多個量測來源取 max 得出右遮罩，若超過此值就會把前一頁根本沒顯示過的內容
+	 * 永久遮住——實測 9789570538069 32px/2.0 Section0003 第 2 頁套了 27px 右遮罩，
+	 * 與前一頁 27px 左遮罩重疊遮住同一行，19 字兩頁皆不顯示。
+	 *
+	 * 只有在能以本 view 的實際記錄證實時才回傳數值；證實不了時回傳 null，
+	 * 由呼叫端沿用自己的判斷（例如 locator 跳轉後沒有前一頁記錄，
+	 * 仍需完整的 clean-core right shift）。
+	 *
+	 * @return {number|null}
+	 */
+	getVerticalRlProvenRightMaskAllowance(): number | null {
+		if (!this.isRtlVerticalPaginated()) {
+			return null;
+		}
+
+		try {
+			let advance = this.getPageAdvance() || 0;
+			let maxMask = getVerticalRlEdgeMaskLimitHelper(advance);
+
+			if (!maxMask) {
+				return null;
+			}
+
+			let currentPageIndex = this.getCurrentPageIndex();
+
+			if (!Number.isFinite(currentPageIndex)) {
+				return null;
+			}
+
+			// 首頁沒有前一頁，任何右遮罩都會永久藏住內容。
+			if (currentPageIndex <= 0) {
+				return 0;
+			}
+
+			let recordedPreviousLeftMask = this.getRecordedVerticalRlAppliedLeftMask(currentPageIndex - 1);
+
+			if (!Number.isFinite(recordedPreviousLeftMask)) {
+				return null;
+			}
+
+			let totalPages = this.getTotalPagesForCurrentView();
+			let maxScroll = this.getMaxLogicalScrollLeft();
+			let currentOffset = this.getVerticalRlPageOffset(currentPageIndex, totalPages, maxScroll);
+			let previousOffset = this.getVerticalRlPageOffset(currentPageIndex - 1, totalPages, maxScroll);
+
+			// 頁位置必須隨 index 遞增；不成立代表位置記錄自相矛盾，無法證實重疊區。
+			if (!(currentOffset > previousOffset)) {
+				return 0;
+			}
+
+			let visibleWidth = (this.layout && (this.layout.pageWidth || this.layout.width)) || advance;
+
+			return getVerticalRlPreviousPageRightMaskHelper(
+				visibleWidth,
+				Math.abs(currentOffset - previousOffset),
+				recordedPreviousLeftMask as number,
+				maxMask
+			);
+		} catch (error) {
+			return null;
+		}
+	}
+
+	/**
 	 * 取得指定頁實際套用過的左遮罩寬度；沒有記錄時回傳 null。
 	 *
 	 * @param pageIndex 頁索引

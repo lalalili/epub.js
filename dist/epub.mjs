@@ -8735,6 +8735,22 @@ var Nr = class {
 			(!this._verticalRlAppliedLeftMaskLedger || this._verticalRlAppliedLeftMaskLedgerKey !== r) && (this._verticalRlAppliedLeftMaskLedger = {}, this._verticalRlAppliedLeftMaskLedgerKey = r), this._verticalRlAppliedLeftMaskLedger[String(i)] = e;
 		} catch {}
 	}
+	getVerticalRlProvenRightMaskAllowance() {
+		if (!this.isRtlVerticalPaginated()) return null;
+		try {
+			let e = this.getPageAdvance() || 0, t = un(e);
+			if (!t) return null;
+			let n = this.getCurrentPageIndex();
+			if (!Number.isFinite(n)) return null;
+			if (n <= 0) return 0;
+			let r = this.getRecordedVerticalRlAppliedLeftMask(n - 1);
+			if (!Number.isFinite(r)) return null;
+			let i = this.getTotalPagesForCurrentView(), a = this.getMaxLogicalScrollLeft(), o = this.getVerticalRlPageOffset(n, i, a), s = this.getVerticalRlPageOffset(n - 1, i, a);
+			return o > s ? pn(this.layout && (this.layout.pageWidth || this.layout.width) || e, Math.abs(o - s), r, t) : 0;
+		} catch {
+			return null;
+		}
+	}
 	getRecordedVerticalRlAppliedLeftMask(e) {
 		let t = this._verticalRlAppliedLeftMaskLedger;
 		if (!t) return null;
