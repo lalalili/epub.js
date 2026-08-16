@@ -14771,7 +14771,10 @@
 					let currentOffset = this.getVerticalRlPageOffset(currentPageIndex, totalPages, maxScroll);
 					let previousOffset = this.getVerticalRlPageOffset(currentPageIndex - 1, totalPages, maxScroll);
 					let previousPageStep = Math.abs(currentOffset - previousOffset);
-					rightAllowance = getVerticalRlPreviousPageRightMask(this.layout && (this.layout.pageWidth || this.layout.width) || advance, previousPageStep, this.getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask), maxMask);
+					let visibleWidth = this.layout && (this.layout.pageWidth || this.layout.width) || advance;
+					let recordedPreviousLeftMask = this.getRecordedVerticalRlAppliedLeftMask(currentPageIndex - 1);
+					let previousLeftMask = Number.isFinite(recordedPreviousLeftMask) ? recordedPreviousLeftMask : this.getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask);
+					rightAllowance = currentOffset > previousOffset ? getVerticalRlPreviousPageRightMask(visibleWidth, previousPageStep, previousLeftMask, maxMask) : 0;
 				}
 			} catch (error) {
 				rightAllowance = maxMask;
@@ -14838,9 +14841,43 @@
 				right
 			};
 		}
+		/**
+		* 記錄目前頁面實際套用的左遮罩寬度，供下一頁計算右遮罩允許量使用。
+		*
+		* @param leftMask 本頁實際套用的左遮罩寬度
+		* @return {void}
+		*/
+		recordVerticalRlAppliedLeftMask(leftMask) {
+			if (!this.isRtlVerticalPaginated()) return;
+			try {
+				let totalPages = this.getTotalPagesForCurrentView();
+				let maxScroll = this.getMaxLogicalScrollLeft();
+				let cacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
+				let pageIndex = this.getCurrentPageIndex();
+				if (!cacheKey || !Number.isFinite(pageIndex)) return;
+				if (!this._verticalRlAppliedLeftMaskLedger || this._verticalRlAppliedLeftMaskLedgerKey !== cacheKey) {
+					this._verticalRlAppliedLeftMaskLedger = {};
+					this._verticalRlAppliedLeftMaskLedgerKey = cacheKey;
+				}
+				this._verticalRlAppliedLeftMaskLedger[String(pageIndex)] = leftMask;
+			} catch (error) {}
+		}
+		/**
+		* 取得指定頁實際套用過的左遮罩寬度；沒有記錄時回傳 null。
+		*
+		* @param pageIndex 頁索引
+		* @return {number|null}
+		*/
+		getRecordedVerticalRlAppliedLeftMask(pageIndex) {
+			let ledger = this._verticalRlAppliedLeftMaskLedger;
+			if (!ledger) return null;
+			let recorded = ledger[String(pageIndex)];
+			return Number.isFinite(recorded) ? recorded : null;
+		}
 		syncVerticalRlViewportClip() {
 			if (!this.container || !this.container.style) return;
 			let maskWidths = this.expandVerticalRlLeftMaskToVisibleLine(this.getVerticalRlEdgeMaskWidths());
+			this.recordVerticalRlAppliedLeftMask(Math.max(0, Number(maskWidths.left) || 0));
 			if (!maskWidths.left && !maskWidths.right) {
 				this.removeVerticalRlViewportClip();
 				if (this.container.dataset && this.container.dataset.epubVrlEdgeMask) {
@@ -15075,11 +15112,51 @@
 			}
 			return this.countPagesWithFractionalTolerance(width, advance);
 		}
+		/**
+		* 依已記錄的實際頁位置判斷目前頁索引。
+		*
+		* 直排每頁的實際步進會被左遮罩縮短，累積後實際位置會明顯落後理論網格
+		* （實測 9789570538069 24px/2.0：第 68 頁實際 offset 25906、理論網格 26112，
+		* 落後 206px 超過半頁），純以 offset/advance 推算會讓索引停止前進，
+		* 使閱讀定位與頁碼卡住。
+		*
+		* @param normalizedOffset 目前的 logical scroll 位置
+		* @param totalPages 目前 view 的總頁數
+		* @param advance 每頁步進
+		* @return {number|null} 找不到足夠接近的記錄時回傳 null
+		*/
+		getVerticalRlPageIndexFromOffsetLedger(normalizedOffset, totalPages, advance) {
+			if (!this.isRtlVerticalPaginated() || !(totalPages > 0) || !(totalPages <= 2e3) || !(advance > 0)) return null;
+			let maxScroll = this.getMaxLogicalScrollLeft();
+			let cacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
+			if (!cacheKey) return null;
+			if (this._verticalRlPageIndexLookupKey === cacheKey && this._verticalRlPageIndexLookupOffset === normalizedOffset) return this._verticalRlPageIndexLookupResult ?? null;
+			let tolerance = advance / 2;
+			let bestIndex = null;
+			let bestDistance = Number.POSITIVE_INFINITY;
+			for (let index = 0; index < totalPages; index += 1) {
+				let recorded = this.getCachedVerticalRlLogicalPageOffset(index, cacheKey);
+				if (!Number.isFinite(recorded)) continue;
+				let distance = Math.abs(recorded - normalizedOffset);
+				if (distance < bestDistance) {
+					bestDistance = distance;
+					bestIndex = index;
+				}
+			}
+			let resolved = bestIndex !== null && bestDistance <= tolerance ? bestIndex : null;
+			this._verticalRlPageIndexLookupKey = cacheKey;
+			this._verticalRlPageIndexLookupOffset = normalizedOffset;
+			this._verticalRlPageIndexLookupResult = resolved;
+			return resolved;
+		}
 		getCurrentPageIndex() {
 			let advance = this.getPageAdvance();
 			if (!advance || advance <= 0 || !this.container) return 0;
 			let totalPages = this.getTotalPagesForCurrentView();
-			return getCurrentPageIndexForOffset(this.getNormalizedLogicalScrollLeft(), totalPages, advance, this.getMaxLogicalScrollLeft(), this.getPageSnapTolerance(), this.getPageBoundaryShift(), this.isRtlVerticalPaginated());
+			let normalized = this.getNormalizedLogicalScrollLeft();
+			let ledgerIndex = this.getVerticalRlPageIndexFromOffsetLedger(normalized, totalPages, advance);
+			if (ledgerIndex !== null) return ledgerIndex;
+			return getCurrentPageIndexForOffset(normalized, totalPages, advance, this.getMaxLogicalScrollLeft(), this.getPageSnapTolerance(), this.getPageBoundaryShift(), this.isRtlVerticalPaginated());
 		}
 		scrollToLogicalPage(pageIndex, options = {}) {
 			let preSyncView = this.views && (this.views.first() || this.views.last());

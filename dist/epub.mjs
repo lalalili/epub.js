@@ -8691,8 +8691,8 @@ var Nr = class {
 			let e = this.getTotalPagesForCurrentView(), t = this.getCurrentPageIndex();
 			if (t <= 0) h = 0;
 			else {
-				let n = this.getMaxLogicalScrollLeft(), r = this.getVerticalRlPageOffset(t, e, n), i = this.getVerticalRlPageOffset(t - 1, e, n), a = Math.abs(r - i);
-				h = pn(this.layout && (this.layout.pageWidth || this.layout.width) || o, a, this.getPreviousVerticalRlLeftMask(a, f, s), s);
+				let n = this.getMaxLogicalScrollLeft(), r = this.getVerticalRlPageOffset(t, e, n), i = this.getVerticalRlPageOffset(t - 1, e, n), a = Math.abs(r - i), c = this.layout && (this.layout.pageWidth || this.layout.width) || o, l = this.getRecordedVerticalRlAppliedLeftMask(t - 1), u = Number.isFinite(l) ? l : this.getPreviousVerticalRlLeftMask(a, f, s);
+				h = r > i ? pn(c, a, u, s) : 0;
 			}
 		} catch {
 			h = s;
@@ -8728,10 +8728,23 @@ var Nr = class {
 			right: _
 		};
 	}
+	recordVerticalRlAppliedLeftMask(e) {
+		if (this.isRtlVerticalPaginated()) try {
+			let t = this.getTotalPagesForCurrentView(), n = this.getMaxLogicalScrollLeft(), r = this.getVerticalRlLogicalPageOffsetCacheKey(t, n), i = this.getCurrentPageIndex();
+			if (!r || !Number.isFinite(i)) return;
+			(!this._verticalRlAppliedLeftMaskLedger || this._verticalRlAppliedLeftMaskLedgerKey !== r) && (this._verticalRlAppliedLeftMaskLedger = {}, this._verticalRlAppliedLeftMaskLedgerKey = r), this._verticalRlAppliedLeftMaskLedger[String(i)] = e;
+		} catch {}
+	}
+	getRecordedVerticalRlAppliedLeftMask(e) {
+		let t = this._verticalRlAppliedLeftMaskLedger;
+		if (!t) return null;
+		let n = t[String(e)];
+		return Number.isFinite(n) ? n : null;
+	}
 	syncVerticalRlViewportClip() {
 		if (!this.container || !this.container.style) return;
 		let e = this.expandVerticalRlLeftMaskToVisibleLine(this.getVerticalRlEdgeMaskWidths());
-		if (!e.left && !e.right) {
+		if (this.recordVerticalRlAppliedLeftMask(Math.max(0, Number(e.left) || 0)), !e.left && !e.right) {
 			this.removeVerticalRlViewportClip(), this.container.dataset && this.container.dataset.epubVrlEdgeMask && (delete this.container.dataset.epubVrlEdgeMask, delete this.container.dataset.epubVrlEdgeMaskLeft, delete this.container.dataset.epubVrlEdgeMaskRight);
 			return;
 		}
@@ -8866,11 +8879,26 @@ var Nr = class {
 		}
 		return this.countPagesWithFractionalTolerance(t, n);
 	}
+	getVerticalRlPageIndexFromOffsetLedger(e, t, n) {
+		if (!this.isRtlVerticalPaginated() || !(t > 0) || !(t <= 2e3) || !(n > 0)) return null;
+		let r = this.getMaxLogicalScrollLeft(), i = this.getVerticalRlLogicalPageOffsetCacheKey(t, r);
+		if (!i) return null;
+		if (this._verticalRlPageIndexLookupKey === i && this._verticalRlPageIndexLookupOffset === e) return this._verticalRlPageIndexLookupResult ?? null;
+		let a = n / 2, o = null, s = Infinity;
+		for (let n = 0; n < t; n += 1) {
+			let t = this.getCachedVerticalRlLogicalPageOffset(n, i);
+			if (!Number.isFinite(t)) continue;
+			let r = Math.abs(t - e);
+			r < s && (s = r, o = n);
+		}
+		let c = o !== null && s <= a ? o : null;
+		return this._verticalRlPageIndexLookupKey = i, this._verticalRlPageIndexLookupOffset = e, this._verticalRlPageIndexLookupResult = c, c;
+	}
 	getCurrentPageIndex() {
 		let e = this.getPageAdvance();
 		if (!e || e <= 0 || !this.container) return 0;
-		let t = this.getTotalPagesForCurrentView();
-		return ln(this.getNormalizedLogicalScrollLeft(), t, e, this.getMaxLogicalScrollLeft(), this.getPageSnapTolerance(), this.getPageBoundaryShift(), this.isRtlVerticalPaginated());
+		let t = this.getTotalPagesForCurrentView(), n = this.getNormalizedLogicalScrollLeft(), r = this.getVerticalRlPageIndexFromOffsetLedger(n, t, e);
+		return r === null ? ln(n, t, e, this.getMaxLogicalScrollLeft(), this.getPageSnapTolerance(), this.getPageBoundaryShift(), this.isRtlVerticalPaginated()) : r;
 	}
 	scrollToLogicalPage(e, t = {}) {
 		let n = this.views && (this.views.first() || this.views.last()), r = n && n.iframe ? Math.max(Number(n.iframe.getBoundingClientRect && n.iframe.getBoundingClientRect().width) || 0, parseFloat(n.iframe.style && n.iframe.style.width) || 0) : 0, i = n && n.element ? Math.max(Number(n.element.getBoundingClientRect && n.element.getBoundingClientRect().width) || 0, parseFloat(n.element.style && n.element.style.width) || 0) : 0, a = n ? Math.max(this.getVerticalRlVisualContentWidth(n), r, i) : 0, o = this.getTotalPagesForCurrentView(), s = () => n && n.iframe ? Math.max(Number(n.iframe.getBoundingClientRect && n.iframe.getBoundingClientRect().width) || 0, parseFloat(n.iframe.style && n.iframe.style.width) || 0) : 0;
