@@ -14898,6 +14898,28 @@
 			}
 		}
 		/**
+		* 取得「可證實」的左遮罩允許量。
+		*
+		* 左遮罩的正當理由是「這段內容會在下一頁完整顯示」。本 view 的最後一頁沒有下一頁，
+		* 任何左遮罩都會讓該章結尾永久消失——實測 9789570535556 32px/2.0 Section0006
+		* 第 73 頁（最後一頁）套了 32px 左遮罩，該章最後 23 字從未顯示。
+		*
+		* 只有在能證實時才回傳數值（最後一頁為 0）；其餘情形回傳 null 由呼叫端自行判斷。
+		*
+		* @return {number|null}
+		*/
+		getVerticalRlProvenLeftMaskAllowance() {
+			if (!this.isRtlVerticalPaginated()) return null;
+			try {
+				let totalPages = this.getTotalPagesForCurrentView();
+				let currentPageIndex = this.getCurrentPageIndex();
+				if (!(totalPages > 0) || !Number.isFinite(currentPageIndex)) return null;
+				return currentPageIndex >= totalPages - 1 ? 0 : null;
+			} catch (error) {
+				return null;
+			}
+		}
+		/**
 		* 取得指定頁實際套用過的左遮罩寬度；沒有記錄時回傳 null。
 		*
 		* @param pageIndex 頁索引

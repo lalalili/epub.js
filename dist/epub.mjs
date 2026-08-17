@@ -8751,6 +8751,15 @@ var Nr = class {
 			return null;
 		}
 	}
+	getVerticalRlProvenLeftMaskAllowance() {
+		if (!this.isRtlVerticalPaginated()) return null;
+		try {
+			let e = this.getTotalPagesForCurrentView(), t = this.getCurrentPageIndex();
+			return !(e > 0) || !Number.isFinite(t) ? null : t >= e - 1 ? 0 : null;
+		} catch {
+			return null;
+		}
+	}
 	getRecordedVerticalRlAppliedLeftMask(e) {
 		let t = this._verticalRlAppliedLeftMaskLedger;
 		if (!t) return null;
