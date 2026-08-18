@@ -280,6 +280,7 @@ class DefaultViewManager {
 	declare resizeTimeout?: ReturnType<typeof setTimeout>;
 	declare afterScrolled?: ReturnType<typeof setTimeout>;
 	declare _verticalRlBoundarySnapAfterScroll?: ReturnType<typeof setTimeout>;
+	declare _verticalRlEdgeMaskComputing?: boolean;
 	declare _onUnload?: EventListener;
 	declare _onScroll?: EventListener;
 	declare _stageSize?: ManagerStageSize;
@@ -1065,7 +1066,41 @@ class DefaultViewManager {
 		return "rgb(255, 255, 255)";
 	}
 
-	getVerticalRlEdgeMaskWidths(){
+	getVerticalRlEdgeMaskWidths(): EdgeMaskWidths {
+		// 重入防護：本函式需要 page offset，而 getVerticalRlPageOffset 在「無快取且非末頁」
+		// 的估算分支又會回頭索取遮罩寬度，形成
+		// getVerticalRlEdgeMaskWidths → snapVerticalRlEdgeMaskWidths →
+		// getLogicalPageStepToNextPage → getVerticalRlPageOffset →
+		// getVerticalRlRenderedEdgeMaskWidths → getVerticalRlEdgeMaskWidths 的環路。
+		// 窄視窗（實測 320x568）快取常為冷態，會直接撞出
+		// RangeError: Maximum call stack size exceeded，讓 display() 的 promise 永不 settle。
+		// 重入時回傳「目前已套用在 DOM 上的遮罩」，這正是估算方要的語意。
+		if (this._verticalRlEdgeMaskComputing) {
+			return this.getVerticalRlAppliedEdgeMaskWidths();
+		}
+
+		this._verticalRlEdgeMaskComputing = true;
+
+		try {
+			return this.computeVerticalRlEdgeMaskWidths();
+		} finally {
+			this._verticalRlEdgeMaskComputing = false;
+		}
+	}
+
+	getVerticalRlAppliedEdgeMaskWidths(): EdgeMaskWidths {
+		let dataset = this.container && this.container.dataset ? this.container.dataset : {};
+		let left = Number(dataset.epubVrlEdgeMaskLeft);
+		let right = Number(dataset.epubVrlEdgeMaskRight);
+		let combined = Number(dataset.epubVrlEdgeMask);
+
+		return {
+			left: Math.max(0, Number.isFinite(left) ? left : (Number.isFinite(combined) ? combined : 0)),
+			right: Math.max(0, Number.isFinite(right) ? right : 0)
+		};
+	}
+
+	computeVerticalRlEdgeMaskWidths(): EdgeMaskWidths {
 		let advance = this.getPageAdvance() || 0;
 		let visibleWidth = this.container ? this.container.clientWidth || 0 : 0;
 		let bleed = visibleWidth - advance;

@@ -14609,6 +14609,25 @@
 			return "rgb(255, 255, 255)";
 		}
 		getVerticalRlEdgeMaskWidths() {
+			if (this._verticalRlEdgeMaskComputing) return this.getVerticalRlAppliedEdgeMaskWidths();
+			this._verticalRlEdgeMaskComputing = true;
+			try {
+				return this.computeVerticalRlEdgeMaskWidths();
+			} finally {
+				this._verticalRlEdgeMaskComputing = false;
+			}
+		}
+		getVerticalRlAppliedEdgeMaskWidths() {
+			let dataset = this.container && this.container.dataset ? this.container.dataset : {};
+			let left = Number(dataset.epubVrlEdgeMaskLeft);
+			let right = Number(dataset.epubVrlEdgeMaskRight);
+			let combined = Number(dataset.epubVrlEdgeMask);
+			return {
+				left: Math.max(0, Number.isFinite(left) ? left : Number.isFinite(combined) ? combined : 0),
+				right: Math.max(0, Number.isFinite(right) ? right : 0)
+			};
+		}
+		computeVerticalRlEdgeMaskWidths() {
 			let advance = this.getPageAdvance() || 0;
 			let visibleWidth = this.container ? this.container.clientWidth || 0 : 0;
 			let bleed = visibleWidth - advance;

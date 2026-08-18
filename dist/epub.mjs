@@ -8577,6 +8577,22 @@ var Nr = class {
 		return "rgb(255, 255, 255)";
 	}
 	getVerticalRlEdgeMaskWidths() {
+		if (this._verticalRlEdgeMaskComputing) return this.getVerticalRlAppliedEdgeMaskWidths();
+		this._verticalRlEdgeMaskComputing = !0;
+		try {
+			return this.computeVerticalRlEdgeMaskWidths();
+		} finally {
+			this._verticalRlEdgeMaskComputing = !1;
+		}
+	}
+	getVerticalRlAppliedEdgeMaskWidths() {
+		let e = this.container && this.container.dataset ? this.container.dataset : {}, t = Number(e.epubVrlEdgeMaskLeft), n = Number(e.epubVrlEdgeMaskRight), r = Number(e.epubVrlEdgeMask);
+		return {
+			left: Math.max(0, Number.isFinite(t) ? t : Number.isFinite(r) ? r : 0),
+			right: Math.max(0, Number.isFinite(n) ? n : 0)
+		};
+	}
+	computeVerticalRlEdgeMaskWidths() {
 		let e = this.getPageAdvance() || 0, t = this.container && this.container.clientWidth || 0, n = t - e;
 		if (!this.isRtlVerticalPaginated() || !e || !t) return {
 			left: 0,
