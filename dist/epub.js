@@ -16755,6 +16755,7 @@
 				this.emit(EVENTS.RENDITION.DISPLAYED, section);
 				this.reportLocation();
 			}, (err) => {
+				this.displaying = void 0;
 				/**
 				* Emit that has been an error displaying
 				* @event displayError
@@ -16762,6 +16763,7 @@
 				* @memberof Rendition
 				*/
 				this.emit(EVENTS.RENDITION.DISPLAY_ERROR, err);
+				displaying.reject(err);
 			});
 			return displayed;
 		}

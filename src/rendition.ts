@@ -535,6 +535,8 @@ class Rendition {
 				this.emit(EVENTS.RENDITION.DISPLAYED, section);
 				this.reportLocation();
 			}, (err: unknown) => {
+				this.displaying = undefined;
+
 				/**
 				 * Emit that has been an error displaying
 				 * @event displayError
@@ -542,6 +544,14 @@ class Rendition {
 				 * @memberof Rendition
 				 */
 				this.emit(EVENTS.RENDITION.DISPLAY_ERROR, err);
+
+				// 沒有這行，display() 回傳的 promise 會永久懸置：呼叫端既等不到
+				// 成功也等不到失敗，翻頁交易無法收尾。實際案例是遮罩計算的堆疊
+				// 溢位（v0.3.93.145 修）——例外拋在 manager 的 fulfillment
+				// handler 內，消費端的 pageTurnInFlight 因此一直為 true、閱讀器
+				// locator 凍結，且症狀完全看不出源頭是一個被吞掉的例外。
+				// 上方「No Section Found」那條路徑本來就 reject，此處對齊。
+				displaying.reject!(err);
 			});
 
 		return displayed;

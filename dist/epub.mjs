@@ -9754,7 +9754,7 @@ var qr = class {
 			return this.displaying = t, this.book.locations.length() && ge(e) && (e = this.book.locations.cfiFromPercentage(parseFloat(String(e)))), r = this.book.spine.get(e), r ? (this.manager.display(r, e).then(() => {
 				t.resolve(r), this.displaying = void 0, this.emit($.RENDITION.DISPLAYED, r), this.reportLocation();
 			}, (e) => {
-				this.emit($.RENDITION.DISPLAY_ERROR, e);
+				this.displaying = void 0, this.emit($.RENDITION.DISPLAY_ERROR, e), t.reject(e);
 			}), n) : (t.reject(/* @__PURE__ */ Error("No Section Found")), n);
 		}
 	}
