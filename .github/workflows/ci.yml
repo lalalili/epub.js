@@ -41,8 +41,18 @@ jobs:
 
       # 瀏覽器測試走 @vitest/browser-playwright，runner 預裝的 Chrome 不算數，
       # 必須讓 Playwright 裝自己的 chromium。
+      #
+      # 不要加 --with-deps：它會跑 apt 安裝系統套件，實測在 runner 上吃掉 9.8 分鐘
+      # 還沒跑完（npm ci 才 10 秒），整個 job 因此逾時。ubuntu runner 已具備
+      # headless chromium 所需的函式庫，只要下載瀏覽器本體即可。
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - name: Install Playwright chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
 
       - name: Typecheck
         run: npm run typecheck
@@ -78,8 +88,14 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - name: Install Playwright chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
 
       - name: Verify release
         run: npm run verify:release
