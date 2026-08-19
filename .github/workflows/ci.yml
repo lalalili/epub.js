@@ -1,13 +1,60 @@
 name: ci
 
+# 分層設計，因為 GitHub Actions 額度有限。
+#
+# 先前的設定有兩個問題：push 只在 main 觸發，而實際開發都在 feature 分支上
+# （main 一度落後 release 線 33 個 commit），等於每次推送都沒跑到 CI；跑的又是
+# 最重的 verify:release（lint＋typecheck＋compile＋build＋docs＋9 項 contract＋
+# browser 測試＋兩次 audit＋pack）乘上 Node 22/24 兩個版本。花最多額度卻沒守到
+# 正在動的分支。
+#
+# 改為：
+#   quick   每次 push（任何分支）與 PR，只跑型別檢查與瀏覽器測試，單一 Node。
+#   release 只在 main 與對 main 的 PR 跑完整發版驗證。
+#
+# quick 這一層雖然便宜，卻涵蓋了實際發生過的三個缺陷：
+#   vertical-rl-edge-mask-reentrancy   遮罩計算無限遞迴（RangeError）
+#   rendition-display-error-rejection  display 失敗時 promise 永久懸置
+#   manager-lifecycle-guards           stage 未建立時 bounds() 丟 TypeError
+
 on:
   pull_request:
   push:
-    branches:
-      - main
 
 jobs:
-  test:
+  quick:
+    name: typecheck + browser tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # 瀏覽器測試走 @vitest/browser-playwright，runner 預裝的 Chrome 不算數，
+      # 必須讓 Playwright 裝自己的 chromium。
+      - name: Install Playwright chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Browser tests
+        run: npm run test:browser
+
+  release:
+    name: verify release
+    # 完整發版驗證只在「即將成為發行內容」時才需要：main 本身，以及對 main 的 PR。
+    if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
+    needs: quick
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
@@ -30,6 +77,9 @@ jobs:
 
       - name: Install
         run: npm ci
+
+      - name: Install Playwright chromium
+        run: npx playwright install --with-deps chromium
 
       - name: Verify release
         run: npm run verify:release

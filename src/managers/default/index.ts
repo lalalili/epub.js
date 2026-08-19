@@ -229,6 +229,11 @@ type ManagerView = {
 	onResize?: () => void;
 	expanded?: boolean;
 	iframe?: HTMLIFrameElement;
+	// IframeView 實際上有這兩個欄位（見 managers/views/iframe.ts），型別卻漏了宣告，
+	// 於是 resize 同步那段程式碼一直帶著 9 個型別錯誤。這些錯誤先前沒被 CI 擋下，
+	// 是因為 push 只在 main 觸發，而相關程式碼只存在於 release 分支上。
+	element?: HTMLElement;
+	_width?: number | null;
 	_contentWidth?: number;
 	_viewportFillingSingleMediaPage?: boolean;
 	_forceEvenPageAdded?: boolean;
