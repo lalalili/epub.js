@@ -135,7 +135,10 @@ describe("horizontal RTL fragment boundary characterization", () => {
 			});
 			expect(geometry.paragraphLeftRemainders).toEqual([54]);
 			expect(geometry.runtimeSlice.visibleRectCount).toBeGreaterThan(0);
-			expect(geometry.runtimeSlice.crossingCount).toBe(44);
+			// 交叉數取決於字型度量，跨環境會不同（本機容器裝了 Noto CJK 別名量到 44，
+			// GitHub runner 量到 64）。硬編數字會讓這支測試在 CI 永遠紅燈而失去意義；
+			// 真正要記錄的不變式是「執行期的 slice 會跨界，校正後的不會」。
+			expect(geometry.runtimeSlice.crossingCount).toBeGreaterThan(0);
 			expect(geometry.alignedSlice.visibleRectCount).toBeGreaterThan(0);
 			expect(geometry.alignedSlice.crossingCount).toBe(0);
 		} finally {
