@@ -8386,7 +8386,7 @@ var Nr = class {
 		(this.settings.fullsize ? window : this.container).removeEventListener("scroll", this._onScroll), this._onScroll = void 0, window.removeEventListener("unload", this._onUnload), this._onUnload = void 0;
 	}
 	destroy() {
-		clearTimeout(this.orientationTimeout), clearTimeout(this.resizeTimeout), clearTimeout(this.afterScrolled), this.clear(), this.removeEventListeners(), this.removeVerticalRlViewportClip(), this.stage.destroy(), this.rendered = !1;
+		clearTimeout(this.orientationTimeout), clearTimeout(this.resizeTimeout), clearTimeout(this.afterScrolled), clearTimeout(this._verticalRlBoundarySnapAfterScroll), this.clear(), this.removeEventListeners(), this.removeVerticalRlViewportClip(), this.stage.destroy(), this.rendered = !1;
 	}
 	onOrientationChange(e) {
 		let { orientation: t } = window;
@@ -8398,6 +8398,7 @@ var Nr = class {
 		this.resize();
 	}
 	resize(e, t, n) {
+		if (!this.stage) return;
 		let r = this.stage.size(e, t);
 		if (this.winBounds = St(), this.orientationTimeout && this.winBounds.width === this.winBounds.height) {
 			this._stageSize = void 0;
@@ -9264,7 +9265,12 @@ var Nr = class {
 		}.bind(this), 20)), !n && !this._verticalRlBoundarySnapApplying && this.isRtlVerticalPaginated() && this.queueVerticalRlBoundarySnapRetryForCurrentOffset();
 	}
 	bounds() {
-		return this.stage.bounds();
+		return this.stage ? this.stage.bounds() : this._bounds || {
+			width: 0,
+			height: 0,
+			top: 0,
+			left: 0
+		};
 	}
 	applyLayout(e) {
 		this.layout = e, this._layoutDirty = !0, this.updateLayout(), this.views && this.views.length > 0 && this.layout.name === "pre-paginated" && this.display(this.views.first().section);

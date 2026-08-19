@@ -14322,6 +14322,7 @@
 			clearTimeout(this.orientationTimeout);
 			clearTimeout(this.resizeTimeout);
 			clearTimeout(this.afterScrolled);
+			clearTimeout(this._verticalRlBoundarySnapAfterScroll);
 			this.clear();
 			this.removeEventListeners();
 			this.removeVerticalRlViewportClip();
@@ -14342,6 +14343,7 @@
 			this.resize();
 		}
 		resize(width, height, epubcfi) {
+			if (!this.stage) return;
 			let stageSize = this.stage.size(width, height);
 			this.winBounds = windowBounds$1();
 			if (this.orientationTimeout && this.winBounds.width === this.winBounds.height) {
@@ -15779,6 +15781,12 @@
 			if (!ignored && !this._verticalRlBoundarySnapApplying && this.isRtlVerticalPaginated()) this.queueVerticalRlBoundarySnapRetryForCurrentOffset();
 		}
 		bounds() {
+			if (!this.stage) return this._bounds || {
+				width: 0,
+				height: 0,
+				top: 0,
+				left: 0
+			};
 			return this.stage.bounds();
 		}
 		applyLayout(layout) {

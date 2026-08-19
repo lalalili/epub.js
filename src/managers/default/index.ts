@@ -574,6 +574,8 @@ class DefaultViewManager {
 		clearTimeout(this.orientationTimeout);
 		clearTimeout(this.resizeTimeout);
 		clearTimeout(this.afterScrolled);
+		// 直排的邊界 snap 重試也要一起取消，否則銷毀後它仍會醒來並操作已拆掉的 stage。
+		clearTimeout(this._verticalRlBoundarySnapAfterScroll);
 
 		this.clear();
 
@@ -626,6 +628,12 @@ class DefaultViewManager {
 	}
 
 	resize(width?: number, height?: number, epubcfi?: string): void {
+		// render 之前沒有 stage 可調整，此時 resize 沒有任何意義；不擋掉的話
+		// 下一行就會對 undefined 取值。
+		if (!this.stage) {
+			return;
+		}
+
 		let stageSize = this.stage.size(width, height);
 
 		// For Safari, wait for orientation to catch up
@@ -3214,6 +3222,15 @@ class DefaultViewManager {
 	}
 
 	bounds(): ManagerBounds {
+		// stage 只在 render() 內建立，但消費端（含 Capacitor app 的初始 resize）
+		// 可能在 render 完成前就問尺寸。實測 Android 會在此丟出
+		// `Cannot read properties of undefined (reading 'bounds')`，
+		// 那是一個沒人接的 TypeError，會中斷當下的整條回呼。
+		// 此處回傳上一次已知的尺寸（沒有就回零），讓呼叫端拿到可用值而非炸掉。
+		if (!this.stage) {
+			return (this._bounds || { width: 0, height: 0, top: 0, left: 0 }) as ManagerBounds;
+		}
+
 		var bounds;
 
 		bounds = this.stage.bounds() as ManagerBounds;
