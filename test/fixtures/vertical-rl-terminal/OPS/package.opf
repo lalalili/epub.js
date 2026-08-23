@@ -11,12 +11,14 @@
     <item id="one" href="terminal-one.xhtml" media-type="application/xhtml+xml" />
     <item id="two" href="terminal-two.xhtml" media-type="application/xhtml+xml" />
     <item id="control" href="terminal-control.xhtml" media-type="application/xhtml+xml" />
+    <item id="marker" href="marker-visibility.xhtml" media-type="application/xhtml+xml" />
     <item id="next" href="next.xhtml" media-type="application/xhtml+xml" />
   </manifest>
   <spine>
     <itemref idref="one" />
     <itemref idref="two" />
     <itemref idref="control" />
+    <itemref idref="marker" />
     <itemref idref="next" />
   </spine>
 </package>

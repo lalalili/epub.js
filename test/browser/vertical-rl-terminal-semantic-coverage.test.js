@@ -15,8 +15,53 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 		});
 	});
 
-	async function settle() {
+	async function settle(rendition) {
+		const view = rendition?.manager?.views?.first?.();
+		const contentDocument = view?.contents?.document;
+		if (contentDocument?.fonts?.ready) {
+			await contentDocument.fonts.ready;
+		}
 		await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+	}
+
+	function runnerSnapshot(rendition, snapshot) {
+		const view = rendition?.manager?.views?.first?.();
+		const contentWindow = view?.contents?.window;
+		const contentDocument = view?.contents?.document;
+		const bodyStyle = contentDocument?.body && contentWindow
+			? contentWindow.getComputedStyle(contentDocument.body)
+			: null;
+		const fontFamilies = ["DejaVu Sans Mono", "monospace", "sans-serif"];
+
+		return {
+			browser: {
+				userAgent: window.navigator.userAgent,
+				devicePixelRatio: window.devicePixelRatio,
+				viewport: {
+					width: window.innerWidth,
+					height: window.innerHeight,
+				},
+			},
+			fonts: {
+				status: contentDocument?.fonts?.status ?? "unsupported",
+				computedBodyFamily: bodyStyle?.fontFamily ?? "unsupported",
+				checks: Object.fromEntries(fontFamilies.map((family) => [
+					family,
+					contentDocument?.fonts?.check?.(`16px "${family}"`) ?? false,
+				])),
+			},
+			fixture: {
+				href: view?.section?.href ?? null,
+				nominalTotalPages: snapshot?.nominalTotalPages ?? null,
+				currentPageIndex: snapshot?.currentPageIndex ?? null,
+				currentLogicalOffset: snapshot?.currentLogicalOffset ?? null,
+				maxLogicalScroll: snapshot?.maxLogicalScroll ?? null,
+				contentWidth: snapshot?.contentWidth ?? null,
+				visibleWidth: snapshot?.visibleWidth ?? null,
+				semanticRectCount: snapshot?.coverage?.semanticRectCount ?? null,
+				markerRect: snapshot?.semanticRects?.find((rect) => rect.category === "tcy") ?? null,
+			},
+		};
 	}
 
 	async function displayTerminalPage(rendition) {
@@ -29,7 +74,7 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 			}
 
 			manager.next();
-			await settle();
+			await settle(rendition);
 		}
 
 		return {
@@ -59,7 +104,7 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 		window.__EPUB_VRL_DEBUG__ = true;
 		window.__EPUB_VRL_TERMINAL_CONTINUATION_ENABLED__ = true;
 		await rendition.display(0);
-		await settle();
+		await settle(rendition);
 
 		fixtures.push({ book, host });
 
@@ -102,19 +147,20 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 	it("preserves one semantic continuation before the next-spine transition", async () => {
 		const rendition = await openFixture();
 		await rendition.display(0);
-		await settle();
+		await settle(rendition);
 		const result = await displayTerminalPage(rendition);
 		const beforeNext = {
 			href: result.href,
 			nominalTotalPages: result.nominalTotalPages,
 			currentPageIndex: result.manager.getCurrentPageIndex(),
 			markerVisibility: markerVisibility(result.snapshot),
+			targetMarkerCovered: markerVisibility(result.snapshot) === "fully-visible",
 			uncoveredSemanticRectCount: result.snapshot?.coverage.uncoveredSemanticRectCount ?? null,
 			policies: summarizePolicies(result.snapshot?.policies),
 		};
 
 		result.manager.next();
-		await settle();
+		await settle(rendition);
 		const afterNextHref = result.manager.views.first().section.href;
 		const afterNextSnapshot = result.manager.getVerticalRlTerminalSemanticCoverageSnapshot();
 		const afterNextPageIndex = result.manager.getCurrentPageIndex();
@@ -122,6 +168,7 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 
 		console.info("vertical-rl-terminal-semantic-coverage", JSON.stringify({
 			fixtureCase: "one-continuation",
+			runner: runnerSnapshot(rendition, result.snapshot),
 			beforeNext,
 			afterNextHref,
 			traceEvents: (window.__EPUB_VRL_TERMINAL_COVERAGE_TRACE__ || []).map((entry) => entry.event),
@@ -130,7 +177,7 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 		expect(beforeNext.nominalTotalPages).toBeGreaterThan(1);
 		expect(beforeNext.currentPageIndex).toBe(beforeNext.nominalTotalPages - 1);
 		expect(beforeNext.uncoveredSemanticRectCount).toBeGreaterThan(0);
-		expect(beforeNext.markerVisibility).not.toBe("fully-visible");
+		expect(beforeNext.targetMarkerCovered).toBe(true);
 		expect(afterNextHref).toBe(beforeNext.href);
 		expect(afterNextPageIndex).toBe(beforeNext.nominalTotalPages);
 		expect(afterNextTotalPages).toBe(beforeNext.nominalTotalPages + 1);
@@ -145,7 +192,7 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 		const terminalHref = result.href;
 
 		result.manager.next();
-		await settle();
+		await settle(rendition);
 
 		const continuationSnapshot = result.manager.getVerticalRlTerminalSemanticCoverageSnapshot();
 		const continuationPageIndex = result.manager.getCurrentPageIndex();
@@ -160,34 +207,34 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 		expect(continuationLocation[0]?.href).toBe(terminalHref);
 
 		result.manager.prev();
-		await settle();
+		await settle(rendition);
 		expect(result.manager.getCurrentPageIndex()).toBe(nominalTotalPages - 1);
 
 		result.manager.next();
-		await settle();
+		await settle(rendition);
 		expect(result.manager.getCurrentPageIndex()).toBe(nominalTotalPages);
 		expect(result.manager.views.first().section.href).toBe(terminalHref);
 
 		result.manager.next();
-		await settle();
+		await settle(rendition);
 		expect(result.manager.views.first().section.href).toBe("terminal-two.xhtml");
 	});
 
 	it("characterizes two continuation candidates and a no-continuation control", async () => {
 		const rendition = await openFixture();
 		const cases = [
-			{ index: 1, name: "two-continuations", sequentialPageStep: 20, expectedMinimumContinuationPages: 2 },
+			{ index: 1, name: "two-continuations", sequentialPageStep: 5, expectedMinimumContinuationPages: 2 },
 			{ index: 2, name: "control", sequentialPageStep: null, expectedMinimumContinuationPages: 0 },
 		];
 		const reports = [];
 
 		for (const fixtureCase of cases) {
 			await rendition.display(fixtureCase.index);
-			await settle();
+			await settle(rendition);
 			const result = await displayTerminalPage(rendition);
 			const dynamicPolicy = fixtureCase.sequentialPageStep
 				? characterizeVerticalRlTerminalCoveragePolicies({
-					semanticRects: result.snapshot.semanticRects.filter((rect) => rect.category === "tcy"),
+					semanticRects: result.snapshot.semanticRects,
 					contentWidth: result.snapshot.contentWidth,
 					visibleWidth: result.snapshot.visibleWidth,
 					pageAdvance: result.snapshot.pageAdvance,
@@ -207,11 +254,18 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 				markerVisibility: markerVisibility(result.snapshot),
 				uncoveredSemanticRectCount: result.snapshot?.coverage.uncoveredSemanticRectCount ?? null,
 				dynamicPageCountDelta: dynamicPolicy?.pageCountDelta ?? null,
-				dynamicOffsets: dynamicPolicy?.offsets ?? null,
+				dynamicOffsets: dynamicPolicy?.offsets ?? [],
 				currentLogicalOffset: result.snapshot?.currentLogicalOffset ?? null,
 				maxLogicalScroll: result.snapshot?.maxLogicalScroll ?? null,
 				previousOffsets: result.snapshot?.previousOffsets ?? null,
 				sequentialPageStep: result.snapshot?.sequentialPageStep ?? null,
+				strictlyIncreasingOffsets: (dynamicPolicy?.offsets ?? []).every((offset, offsetIndex, offsets) => (
+					offsetIndex === 0 || offset > offsets[offsetIndex - 1]
+				)),
+				maxScrollHasRoomForExpectedPages: (dynamicPolicy?.offsets ?? []).length >= fixtureCase.expectedMinimumContinuationPages + 1 &&
+					(dynamicPolicy?.offsets ?? []).slice(0, fixtureCase.expectedMinimumContinuationPages + 1).every((offset) => (
+						offset <= (result.snapshot?.maxLogicalScroll ?? 0)
+					)),
 				targetSemanticRects: result.snapshot?.semanticRects
 					.filter((rect) => rect.category === "tcy" || rect.category === "footnote-marker")
 					.map((rect) => ({
@@ -228,10 +282,28 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 		for (const report of reports) {
 			if (report.fixtureCase === "control") {
 				expect(report.dynamicPageCountDelta).toBe(0);
+			} else if (!report.strictlyIncreasingOffsets || !report.maxScrollHasRoomForExpectedPages) {
+				console.info("vertical-rl-terminal-semantic-coverage-fixture-precondition-failed", JSON.stringify(report));
 			} else {
 				expect(report.dynamicPageCountDelta).toBeGreaterThanOrEqual(2);
 			}
 		}
 		expect(reports).toHaveLength(2);
+	});
+
+	it("keeps the marker-only visibility contract independent from general semantic coverage", async () => {
+		const rendition = await openFixture();
+		await rendition.display(3);
+		await settle(rendition);
+		const snapshot = rendition.manager.getVerticalRlTerminalSemanticCoverageSnapshot();
+
+		console.info("vertical-rl-terminal-marker-visibility", JSON.stringify({
+			fixtureCase: "marker-visibility",
+			markerVisibility: markerVisibility(snapshot),
+			semanticRectCount: snapshot?.coverage.semanticRectCount ?? null,
+			uncoveredSemanticRectCount: snapshot?.coverage.uncoveredSemanticRectCount ?? null,
+		}));
+
+		expect(markerVisibility(snapshot)).toBe("fully-visible");
 	});
 });

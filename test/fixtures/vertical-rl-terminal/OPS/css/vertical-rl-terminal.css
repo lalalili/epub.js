@@ -4,7 +4,7 @@ body {
 	padding: 0;
 	width: 100%;
 	min-height: 100%;
-	font-family: monospace;
+	font-family: "DejaVu Sans Mono", monospace;
 	font-size: 16px;
 	line-height: 20px;
 	direction: ltr;
@@ -44,13 +44,13 @@ aside {
 
 .terminal-marker-group[data-case="continuation-two-first"] {
 	position: absolute;
-	left: 31px;
+	left: 11px;
 	top: 100px;
 }
 
 .terminal-marker-group[data-case="continuation-two-second"] {
 	position: absolute;
-	left: 11px;
+	left: -1px;
 	top: 140px;
 }
 
@@ -59,9 +59,19 @@ aside {
 	left: -80px;
 }
 
+.terminal-semantic-residual {
+	position: absolute;
+	left: 5px;
+	top: 180px;
+	display: inline-block;
+	font-family: "DejaVu Sans Mono", monospace;
+	font-size: 16px;
+	line-height: 20px;
+}
+
 .terminal-marker {
 	display: inline-block;
-	font-family: monospace;
+	font-family: "DejaVu Sans Mono", monospace;
 	font-size: 16px;
 	line-height: 20px;
 }
