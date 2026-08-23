@@ -7433,7 +7433,7 @@ var on = (e, t) => e.structureHash || `${t}:${e.left}:${e.right}`, sn = (e, t, n
 		let e = o.some((e) => sn(u, e, i)), t = o.some((e) => cn(u, e, i));
 		d = e ? "fully-visible" : t ? "partially-clipped" : "fully-outside";
 	}
-	let f = ln(a, i), p = t.length > 1 ? t[t.length - 2] : r[r.length - 1], m = Number.isFinite(p) ? an(p, n.contentWidth, n.visibleWidth) : null, h = o[o.length - 1] || null, g = !m || !h ? !0 : h.right >= m.left - i && m.right >= h.left - i;
+	let f = ln(a, i), p = f.gaps.filter((e) => n.semanticRects.some((t, n) => t.right > e.left + i && t.left < e.right - i && !a.some((e) => sn(t, e, i)) && l.includes(on(t, n)))), m = t.length > 1 ? t[t.length - 2] : r[r.length - 1], h = Number.isFinite(m) ? an(m, n.contentWidth, n.visibleWidth) : null, g = o[o.length - 1] || null, _ = !h || !g ? !0 : g.right >= h.left - i && h.right >= g.left - i;
 	return {
 		policy: e,
 		offsets: t,
@@ -7442,10 +7442,11 @@ var on = (e, t) => e.structureHash || `${t}:${e.left}:${e.right}`, sn = (e, t, n
 		duplicateSemanticRects: c,
 		uncoveredSemanticRects: l,
 		gapIntervals: f.gaps,
+		semanticGapIntervals: p,
 		overlapIntervals: f.overlaps,
 		pageCountDelta: Math.max(0, t.length - 1),
 		targetMarkerVisibility: d,
-		previousToTerminalCoverageContinuity: g,
+		previousToTerminalCoverageContinuity: _,
 		usedUnconditionalMaxScroll: e === "max-scroll"
 	};
 };

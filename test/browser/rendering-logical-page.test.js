@@ -92,6 +92,22 @@ describe("logical-page: terminal semantic coverage policies", () => {
 		expect(policies["dynamic-terminal-continuation"].pageCountDelta).toBe(0);
 		expect(policies["dynamic-terminal-continuation"].uncoveredSemanticRects).toEqual([]);
 	});
+
+	it("distinguishes an empty viewport gap from a semantic gap", () => {
+		const policies = characterizeVerticalRlTerminalCoveragePolicies({
+			...baseInput,
+			currentOffset: 302,
+			previousOffsets: [0, 100, 202],
+			preferredOffset: 302,
+			semanticRects: [{ left: 650, right: 660, structureHash: "owned-after-gap" }],
+		});
+
+		const dynamic = policies["dynamic-terminal-continuation"];
+
+		expect(dynamic.gapIntervals.length).toBeGreaterThan(0);
+		expect(dynamic.semanticGapIntervals).toEqual([]);
+		expect(dynamic.uncoveredSemanticRects).toEqual([]);
+	});
 });
 
 describe("logical-page: getVerticalRlLogicalPageOffsetCacheKey", () => {

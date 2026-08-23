@@ -12926,6 +12926,7 @@
 			markerVisibility = hasFull ? "fully-visible" : hasPartial ? "partially-clipped" : "fully-outside";
 		}
 		let relationships = terminalIntervalRelationships(allViewports, tolerance);
+		let semanticGapIntervals = relationships.gaps.filter((gap) => input.semanticRects.some((rect, index) => rect.right > gap.left + tolerance && rect.left < gap.right - tolerance && !allViewports.some((viewport) => terminalRectFullyInside(rect, viewport, tolerance)) && uncoveredSemanticRects.includes(terminalRectIdentity(rect, index))));
 		let previousOffset = offsets.length > 1 ? offsets[offsets.length - 2] : previousOffsets[previousOffsets.length - 1];
 		let previousViewport = Number.isFinite(previousOffset) ? getVerticalRlRawViewportForOffset(previousOffset, input.contentWidth, input.visibleWidth) : null;
 		let terminalViewport = viewports[viewports.length - 1] || null;
@@ -12938,6 +12939,7 @@
 			duplicateSemanticRects,
 			uncoveredSemanticRects,
 			gapIntervals: relationships.gaps,
+			semanticGapIntervals,
 			overlapIntervals: relationships.overlaps,
 			pageCountDelta: Math.max(0, offsets.length - 1),
 			targetMarkerVisibility: markerVisibility,

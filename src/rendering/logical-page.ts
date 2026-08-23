@@ -43,6 +43,7 @@ export type VerticalRlTerminalCoveragePolicyResult = {
 	duplicateSemanticRects: string[];
 	uncoveredSemanticRects: string[];
 	gapIntervals: Array<{ left: number; right: number }>;
+	semanticGapIntervals: Array<{ left: number; right: number }>;
 	overlapIntervals: Array<{ left: number; right: number }>;
 	pageCountDelta: number;
 	targetMarkerVisibility: "fully-visible" | "partially-clipped" | "fully-outside" | "unsupported";
@@ -171,6 +172,12 @@ const evaluateTerminalCoveragePolicy = (
 	}
 
 	let relationships = terminalIntervalRelationships(allViewports, tolerance);
+	let semanticGapIntervals = relationships.gaps.filter((gap) => input.semanticRects.some((rect, index) => (
+		rect.right > gap.left + tolerance &&
+		rect.left < gap.right - tolerance &&
+		!allViewports.some((viewport) => terminalRectFullyInside(rect, viewport, tolerance)) &&
+		uncoveredSemanticRects.includes(terminalRectIdentity(rect, index))
+	)));
 	let previousOffset = offsets.length > 1
 		? offsets[offsets.length - 2]
 		: previousOffsets[previousOffsets.length - 1];
@@ -191,6 +198,7 @@ const evaluateTerminalCoveragePolicy = (
 		duplicateSemanticRects,
 		uncoveredSemanticRects,
 		gapIntervals: relationships.gaps,
+		semanticGapIntervals,
 		overlapIntervals: relationships.overlaps,
 		pageCountDelta: Math.max(0, offsets.length - 1),
 		targetMarkerVisibility: markerVisibility,

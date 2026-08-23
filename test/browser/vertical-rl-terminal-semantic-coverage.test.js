@@ -92,6 +92,7 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 			duplicateSemanticRectCount: policy.duplicateSemanticRects.length,
 			uncoveredSemanticRectCount: policy.uncoveredSemanticRects.length,
 			gapIntervalCount: policy.gapIntervals.length,
+			semanticGapIntervalCount: policy.semanticGapIntervals.length,
 			overlapIntervalCount: policy.overlapIntervals.length,
 			previousToTerminalCoverageContinuity: policy.previousToTerminalCoverageContinuity,
 			usedUnconditionalMaxScroll: policy.usedUnconditionalMaxScroll,
