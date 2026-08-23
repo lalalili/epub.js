@@ -13,6 +13,8 @@ export {
 	getVerticalRlLogicalPageOffsetCacheKey,
 	getVerticalRlLogicalPageStepToNextPage,
 	getVerticalRlRawViewportForOffset,
+	getVerticalRlSafeTerminalContinuationOffset,
+	getVerticalRlTerminalRectOffsetInterval,
 	planVerticalRlTerminalContinuations,
 	characterizeVerticalRlTerminalCoveragePolicies
 } from "./logical-page";
@@ -22,6 +24,7 @@ export type {
 	VerticalRlTerminalCoveragePolicyInput,
 	VerticalRlTerminalCoveragePolicyResult,
 	VerticalRlTerminalCoverageRect,
+	VerticalRlTerminalRectOffsetInterval,
 	VerticalRlTerminalContinuationPlan
 } from "./logical-page";
 

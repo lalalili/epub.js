@@ -47,6 +47,7 @@ import {
 	collectVerticalRlSemanticRects,
 	getVerticalRlSemanticCoverage,
 	getVerticalRlRawViewportForOffset,
+	getVerticalRlTerminalRectOffsetInterval,
 	planVerticalRlTerminalContinuations,
 	characterizeVerticalRlTerminalCoveragePolicies,
 	type VerticalRlBoundarySnapCacheEntry,
@@ -2518,8 +2519,12 @@ class DefaultViewManager {
 				structureHash: rect.structureHash,
 				left: rect.left,
 				right: rect.right,
-				minimumOffset: snapshot.contentWidth - snapshot.visibleWidth - rect.left - tolerance,
-				maximumOffset: snapshot.contentWidth - rect.right + tolerance,
+				...getVerticalRlTerminalRectOffsetInterval(
+					rect,
+					snapshot.contentWidth,
+					snapshot.visibleWidth,
+					tolerance
+				),
 				plannedOffset: plan.offsets[0] ?? null,
 				plannedOffsetInsideInterval: Number.isFinite(plan.offsets[0])
 					? plan.offsets[0] >= snapshot.contentWidth - snapshot.visibleWidth - rect.left - tolerance &&
@@ -2655,6 +2660,34 @@ class DefaultViewManager {
 		this._verticalRlPageIndexLookupResult = null;
 		this._verticalRlTerminalCoverageProjectionKey = null;
 		this._verticalRlTerminalCoverageProjectionResult = null;
+	}
+
+	recordVerticalRlAppliedTerminalContinuationOffset(
+		pageIndex: number,
+		nominalTotalPages: number,
+		totalPages: number,
+		maxScroll: number,
+		actualOffset: number
+	): void {
+		let continuationIndex = pageIndex - nominalTotalPages;
+		if (
+			continuationIndex < 0 ||
+			!Number.isFinite(actualOffset) ||
+			!Array.isArray(this._verticalRlTerminalContinuationOffsets) ||
+			continuationIndex >= this._verticalRlTerminalContinuationOffsets.length
+		) {
+			return;
+		}
+
+		let normalizedActualOffset = Math.max(0, Math.min(maxScroll, actualOffset));
+		this._verticalRlTerminalContinuationOffsets[continuationIndex] = normalizedActualOffset;
+		let cacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
+		if (cacheKey) {
+			this.cacheVerticalRlLogicalPageOffset(pageIndex, normalizedActualOffset, cacheKey);
+		}
+		this._verticalRlPageIndexLookupKey = null;
+		this._verticalRlPageIndexLookupOffset = null;
+		this._verticalRlPageIndexLookupResult = null;
 	}
 
 	/**
@@ -2991,6 +3024,76 @@ class DefaultViewManager {
 				this._verticalRlBoundarySnapApplying = false;
 			}
 		}
+		let appliedLogicalOffset = this.getNormalizedLogicalScrollLeft();
+		this.recordVerticalRlAppliedTerminalContinuationOffset(
+			targetIndex,
+			nominalTotalPages,
+			totalPages,
+			maxScroll,
+			appliedLogicalOffset
+		);
+		if (this.isRtlVerticalPaginated() && targetIndex >= nominalTotalPages) {
+			let correctionOffsets = new Set<number>([appliedLogicalOffset]);
+			for (let correctionAttempt = 1; correctionAttempt <= 2; correctionAttempt += 1) {
+				let freshSnapshot = this.getVerticalRlTerminalSemanticCoverageSnapshot();
+				if (!freshSnapshot || freshSnapshot.coverage.uncoveredSemanticRectCount === 0) {
+					break;
+				}
+
+				let correctionOffset = this.getVerticalRlTerminalContinuationOffset(freshSnapshot);
+				if (
+					!Number.isFinite(correctionOffset) ||
+					correctionOffset <= appliedLogicalOffset ||
+					correctionOffset > maxScroll ||
+					correctionOffsets.has(correctionOffset)
+				) {
+					appendVerticalRlTerminalCoverageTrace("scroll:terminal-correction-stopped", {
+						correctionAttempt,
+						actualLogicalOffset: appliedLogicalOffset,
+						candidateLogicalOffset: correctionOffset,
+						uncoveredSemanticRectCount: freshSnapshot.coverage.uncoveredSemanticRectCount
+					});
+					break;
+				}
+
+				correctionOffsets.add(correctionOffset);
+				let correctionPhysicalScrollLeft = correctionOffset;
+				if (this.settings.direction === "rtl") {
+					if (this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0) {
+						correctionPhysicalScrollLeft = -correctionOffset;
+					} else if (this.settings.rtlScrollType === "default") {
+						correctionPhysicalScrollLeft = Math.max(0, maxScroll - correctionOffset);
+					}
+				}
+
+				this._verticalRlBoundarySnapApplying = true;
+				try {
+					this.scrollTo(correctionPhysicalScrollLeft, 0, true);
+				} finally {
+					this._verticalRlBoundarySnapApplying = false;
+				}
+				this.syncVerticalRlViewportClip();
+				let previousAppliedLogicalOffset = appliedLogicalOffset;
+				appliedLogicalOffset = this.getNormalizedLogicalScrollLeft();
+				this.recordVerticalRlAppliedTerminalContinuationOffset(
+					targetIndex,
+					nominalTotalPages,
+					totalPages,
+					maxScroll,
+					appliedLogicalOffset
+				);
+				appendVerticalRlTerminalCoverageTrace("scroll:terminal-correction", {
+					correctionAttempt,
+					previousAppliedLogicalOffset,
+					requestedLogicalOffset: correctionOffset,
+					requestedPhysicalScrollLeft: correctionPhysicalScrollLeft,
+					actualLogicalOffset: appliedLogicalOffset,
+					plannedVsAppliedOffsetDelta: appliedLogicalOffset - correctionOffset
+				});
+				logicalOffset = correctionOffset;
+				left = correctionPhysicalScrollLeft;
+			}
+		}
 		if (terminalSnapshot && isVerticalRlDebugEnabled()) {
 			let requestedLogicalOffset = logicalOffset;
 			let requestedPhysicalScrollLeft = left;
@@ -3013,6 +3116,27 @@ class DefaultViewManager {
 				let actualViewport = freshSnapshot?.currentRawViewport || null;
 				let tolerance = 0.5;
 				let freshUncoveredRects = freshSnapshot?.coverage.uncoveredSemanticRects || [];
+				let ownershipIntervals = terminalSnapshot.coverage.uncoveredSemanticRects.map((rect) => {
+					let interval = getVerticalRlTerminalRectOffsetInterval(
+						rect,
+						terminalSnapshot.contentWidth,
+						terminalSnapshot.visibleWidth,
+						tolerance
+					);
+
+					return {
+						structureHash: rect.structureHash,
+						left: rect.left,
+						right: rect.right,
+						...interval,
+						plannedOffset: requestedLogicalOffset,
+						appliedOffset: actualLogicalOffset,
+						plannedOffsetInsideInterval: requestedLogicalOffset >= interval.minimumOffset &&
+							requestedLogicalOffset <= interval.maximumOffset,
+						appliedOffsetInsideInterval: actualLogicalOffset >= interval.minimumOffset &&
+							actualLogicalOffset <= interval.maximumOffset
+					};
+				});
 
 				appendVerticalRlTerminalCoverageTrace("scroll:terminal-applied-offset", {
 					stage,
@@ -3050,6 +3174,7 @@ class DefaultViewManager {
 						top: rect.top,
 						bottom: rect.bottom
 					})),
+					ownershipIntervals,
 					offsetIntervals: freshUncoveredRects.map((rect) => {
 						let minimumOffset = (freshSnapshot?.contentWidth || 0) -
 							(freshSnapshot?.visibleWidth || 0) - rect.left - tolerance;

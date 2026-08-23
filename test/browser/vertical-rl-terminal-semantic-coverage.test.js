@@ -47,6 +47,16 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 			.slice(-8);
 	}
 
+	function finalAppliedOffsetEvidence() {
+		return (window.__EPUB_VRL_TERMINAL_COVERAGE_TRACE__ || [])
+			.filter((entry) => (
+				entry.event === "scroll:terminal-applied-offset" &&
+				entry.stage === "after-fonts-ready" &&
+				entry.ownershipIntervals?.length > 0
+			))
+			.at(-1);
+	}
+
 	function runnerSnapshot(rendition, snapshot) {
 		const view = rendition?.manager?.views?.first?.();
 		const contentWindow = view?.contents?.window;
@@ -189,6 +199,7 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 		const afterNextSnapshot = result.manager.getVerticalRlTerminalSemanticCoverageSnapshot();
 		const afterNextPageIndex = result.manager.getCurrentPageIndex();
 		const afterNextTotalPages = result.manager.getTotalPagesForCurrentView();
+		const appliedOffsetEvidence = finalAppliedOffsetEvidence();
 
 		console.info("vertical-rl-terminal-semantic-coverage", JSON.stringify({
 			fixtureCase: "one-continuation",
@@ -207,6 +218,11 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 		expect(afterNextPageIndex).toBe(beforeNext.nominalTotalPages);
 		expect(afterNextTotalPages).toBe(beforeNext.nominalTotalPages + 1);
 		expect(afterNextSnapshot.coverage.uncoveredSemanticRectCount).toBe(0);
+		expect(appliedOffsetEvidence?.freshUncoveredHashes).toEqual([]);
+		expect(appliedOffsetEvidence?.ownershipIntervals.every((interval) => (
+			interval.plannedOffsetInsideInterval && interval.appliedOffsetInsideInterval
+		))).toBe(true);
+		expect(appliedOffsetEvidence?.requestedLogicalOffset).toBeGreaterThanOrEqual(775);
 		expect(markerVisibility(afterNextSnapshot)).toBe("fully-visible");
 	});
 

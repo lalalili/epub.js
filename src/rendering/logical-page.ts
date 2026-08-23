@@ -83,6 +83,48 @@ export function getVerticalRlRawViewportForOffset(
 	};
 }
 
+export type VerticalRlTerminalRectOffsetInterval = {
+	minimumOffset: number;
+	maximumOffset: number;
+};
+
+export function getVerticalRlTerminalRectOffsetInterval(
+	rect: VerticalRlTerminalCoverageRect,
+	contentWidth: number,
+	visibleWidth: number,
+	tolerance = 0.5
+): VerticalRlTerminalRectOffsetInterval {
+	let normalizedTolerance = Math.max(0, Number(tolerance) || 0);
+
+	return {
+		minimumOffset: Number(contentWidth) - Number(visibleWidth) - Number(rect.left) - normalizedTolerance,
+		maximumOffset: Number(contentWidth) - Number(rect.right) + normalizedTolerance
+	};
+}
+
+export function getVerticalRlSafeTerminalContinuationOffset(
+	interval: VerticalRlTerminalRectOffsetInterval,
+	currentOffset: number,
+	maxScroll: number,
+	ownershipSafetyPx = 1,
+	scrollQuantumPx = 1
+): number | null {
+	let quantum = Math.max(Number.EPSILON, Number(scrollQuantumPx) || 1);
+	let safeMinimum = Number(interval.minimumOffset) + Math.max(0, Number(ownershipSafetyPx) || 0);
+	let candidate = Math.ceil((safeMinimum - Number.EPSILON) / quantum) * quantum;
+
+	if (
+		!Number.isFinite(candidate) ||
+		candidate <= Number(currentOffset) ||
+		candidate > Number(interval.maximumOffset) ||
+		candidate > Number(maxScroll)
+	) {
+		return null;
+	}
+
+	return candidate;
+}
+
 const terminalRectIdentity = (rect: VerticalRlTerminalCoverageRect, index: number): string => (
 	rect.structureHash || `${index}:${rect.left}:${rect.right}`
 );
@@ -280,11 +322,20 @@ export function planVerticalRlTerminalContinuations(
 			tolerance
 		);
 		let candidateOffsets = [...new Set(uncovered.map((rect) => {
-			let minimumOffset = contentWidth - visibleWidth - rect.left - tolerance;
-			return Math.max(currentOffset + minProgress, minimumOffset);
+			let interval = getVerticalRlTerminalRectOffsetInterval(
+				rect,
+				contentWidth,
+				visibleWidth,
+				tolerance
+			);
+
+			return getVerticalRlSafeTerminalContinuationOffset(
+				interval,
+				currentOffset + minProgress / 2,
+				maxScroll
+			);
 		}))]
-			.map((offset) => Math.min(maxScroll, offset))
-			.filter((offset) => offset > currentOffset + minProgress / 2 && offset <= maxScroll);
+			.filter((offset): offset is number => Number.isFinite(offset));
 		let bestCandidate: {
 			offset: number;
 			result: VerticalRlTerminalCoveragePolicyResult;

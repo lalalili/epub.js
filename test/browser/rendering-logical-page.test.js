@@ -6,6 +6,8 @@ import {
 	getLogicalOffsetForPageIndex,
 	getVerticalRlLogicalPageOffsetCacheKey,
 	getVerticalRlLogicalPageStepToNextPage,
+	getVerticalRlSafeTerminalContinuationOffset,
+	getVerticalRlTerminalRectOffsetInterval,
 	planVerticalRlTerminalContinuations,
 	characterizeVerticalRlTerminalCoveragePolicies,
 	getVerticalRlRawViewportForOffset,
@@ -148,6 +150,49 @@ describe("logical-page: terminal semantic coverage policies", () => {
 
 		expect(plan.offsets).toEqual([]);
 		expect(plan.coverage.uncoveredSemanticRects).toEqual(["outside-max-scroll"]);
+	});
+
+	it("quantizes a half-pixel ownership boundary to a safe applied offset", () => {
+		const interval = getVerticalRlTerminalRectOffsetInterval(
+			{ left: 6, right: 25, structureHash: "runner-residual" },
+			1040,
+			260,
+			0.5,
+		);
+		const candidate = getVerticalRlSafeTerminalContinuationOffset(interval, 767, 780);
+
+		expect(interval).toEqual({ minimumOffset: 773.5, maximumOffset: 1015.5 });
+		expect(773).toBeLessThan(interval.minimumOffset);
+		expect(candidate).toBe(775);
+		expect(candidate).toBeGreaterThanOrEqual(interval.minimumOffset);
+		expect(candidate).toBeLessThanOrEqual(interval.maximumOffset);
+
+		const plan = planVerticalRlTerminalContinuations({
+			contentWidth: 1040,
+			visibleWidth: 260,
+			pageAdvance: 260,
+			currentOffset: 767,
+			maxScroll: 780,
+			previousOffsets: [0, 260, 507],
+			semanticRects: [{ left: 6, right: 25, structureHash: "runner-residual" }],
+		});
+
+		expect(plan.offsets).toEqual([775]);
+		expect(plan.coverage.uncoveredSemanticRects).toEqual([]);
+		expect(plan.coverage.previousToTerminalCoverageContinuity).toBe(true);
+	});
+
+	it("rejects safe quantization outside the feasible interval or max scroll", () => {
+		expect(getVerticalRlSafeTerminalContinuationOffset(
+			{ minimumOffset: 773.5, maximumOffset: 774.75 },
+			767,
+			780,
+		)).toBeNull();
+		expect(getVerticalRlSafeTerminalContinuationOffset(
+			{ minimumOffset: 773.5, maximumOffset: 1015.5 },
+			767,
+			774,
+		)).toBeNull();
 	});
 });
 
