@@ -1901,7 +1901,7 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(capturedOptions.sequentialRightBoundary, 7767.45458984375);
 	});
 
-	it("creates a continuation page before leaving a nominal terminal page with uncovered semantics", function() {
+	it("materializes a complete continuation plan before leaving a nominal terminal page", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let capturedPageIndex = null;
 		let appended = false;
@@ -1972,8 +1972,8 @@ describe("Vertical RL manager pagination", function() {
 				policies: {}
 			};
 		};
-		manager.getVerticalRlTerminalContinuationOffset = function() {
-			return 680;
+		manager.getVerticalRlTerminalContinuationPlan = function() {
+			return [680, 760];
 		};
 		manager.addVerticalRlTerminalContinuationOffset = function(offset) {
 			continuationOffsets.push(offset);
@@ -1985,7 +1985,7 @@ describe("Vertical RL manager pagination", function() {
 		manager.next();
 
 		assert.equal(capturedPageIndex, 3);
-		assert.deepEqual(continuationOffsets, [680]);
+		assert.deepEqual(continuationOffsets, [680, 760]);
 		assert.equal(appended, false);
 	});
 

@@ -12947,6 +12947,60 @@
 			usedUnconditionalMaxScroll: policy === "max-scroll"
 		};
 	};
+	var verticalRlTerminalRectIdentity = (rect, index) => terminalRectIdentity(rect, index);
+	var getVerticalRlOwnedSemanticRectIdentities = (semanticRects, offsets, contentWidth, visibleWidth, tolerance) => {
+		let viewports = offsets.map((offset) => getVerticalRlRawViewportForOffset(offset, contentWidth, visibleWidth));
+		let owned = /* @__PURE__ */ new Set();
+		semanticRects.forEach((rect, index) => {
+			if (viewports.some((viewport) => terminalRectFullyInside(rect, viewport, tolerance))) owned.add(verticalRlTerminalRectIdentity(rect, index));
+		});
+		return owned;
+	};
+	function planVerticalRlTerminalContinuations(input) {
+		let tolerance = Math.max(0, Number(input.tolerance) || .5);
+		let contentWidth = Math.max(0, Number(input.contentWidth) || 0);
+		let visibleWidth = Math.max(0, Number(input.visibleWidth) || 0);
+		let currentOffset = Math.max(0, Number(input.currentOffset) || 0);
+		let maxScroll = Math.max(currentOffset, Number(input.maxScroll) || 0);
+		let semanticRects = Array.isArray(input.semanticRects) ? input.semanticRects : [];
+		let maxContinuationPages = Math.max(1, Math.min(20, Number(input.maxContinuationPages) || 8));
+		let minProgress = Math.max(.01, tolerance / 10);
+		let continuationOffsets = [];
+		let currentPlanOffsets = [currentOffset];
+		let previousOffsets = Array.isArray(input.previousOffsets) ? input.previousOffsets : [];
+		for (let attempt = 0; attempt < maxContinuationPages; attempt += 1) {
+			let currentResult = evaluateTerminalCoveragePolicy("dynamic-terminal-continuation", currentPlanOffsets, input, previousOffsets, tolerance);
+			if (!currentResult.uncoveredSemanticRects.length) break;
+			let uncovered = semanticRects.filter((rect, index) => currentResult.uncoveredSemanticRects.includes(verticalRlTerminalRectIdentity(rect, index)));
+			let currentOwned = getVerticalRlOwnedSemanticRectIdentities(semanticRects, [...previousOffsets, ...currentPlanOffsets], contentWidth, visibleWidth, tolerance);
+			let candidateOffsets = [...new Set(uncovered.map((rect) => {
+				let minimumOffset = contentWidth - visibleWidth - rect.left - tolerance;
+				return Math.max(currentOffset + minProgress, minimumOffset);
+			}))].map((offset) => Math.min(maxScroll, offset)).filter((offset) => offset > currentOffset + minProgress / 2 && offset <= maxScroll);
+			let bestCandidate = null;
+			for (let candidateOffset of candidateOffsets) {
+				let candidatePlanOffsets = [...currentPlanOffsets, candidateOffset];
+				let candidateResult = evaluateTerminalCoveragePolicy("dynamic-terminal-continuation", candidatePlanOffsets, input, previousOffsets, tolerance);
+				let newlyOwned = [...getVerticalRlOwnedSemanticRectIdentities(semanticRects, [...previousOffsets, ...candidatePlanOffsets], contentWidth, visibleWidth, tolerance)].filter((identity) => !currentOwned.has(identity)).length;
+				if (newlyOwned < 1 || candidateResult.uncoveredSemanticRects.length >= currentResult.uncoveredSemanticRects.length || !candidateResult.previousToTerminalCoverageContinuity) continue;
+				if (!bestCandidate || candidateResult.uncoveredSemanticRects.length < bestCandidate.result.uncoveredSemanticRects.length || candidateResult.uncoveredSemanticRects.length === bestCandidate.result.uncoveredSemanticRects.length && (candidateOffset < bestCandidate.offset || newlyOwned > bestCandidate.newlyOwned)) bestCandidate = {
+					offset: candidateOffset,
+					result: candidateResult,
+					newlyOwned
+				};
+			}
+			if (!bestCandidate) break;
+			continuationOffsets.push(bestCandidate.offset);
+			currentPlanOffsets.push(bestCandidate.offset);
+			currentOffset = bestCandidate.offset;
+		}
+		let coverage = evaluateTerminalCoveragePolicy("dynamic-terminal-continuation", currentPlanOffsets, input, previousOffsets, tolerance);
+		return {
+			offsets: continuationOffsets,
+			viewports: continuationOffsets.map((offset) => getVerticalRlRawViewportForOffset(offset, contentWidth, visibleWidth)),
+			coverage
+		};
+	}
 	function characterizeVerticalRlTerminalCoveragePolicies(input) {
 		let tolerance = Math.max(0, Number(input.tolerance) || .5);
 		let currentOffset = Math.max(0, Number(input.currentOffset) || 0);
@@ -12954,23 +13008,7 @@
 		let previousOffsets = Array.isArray(input.previousOffsets) ? input.previousOffsets : [];
 		let preferredOffset = Number.isFinite(Number(input.preferredOffset)) ? Math.max(0, Math.min(maxScroll, Number(input.preferredOffset))) : currentOffset;
 		let maxOnlyOffset = Number.isFinite(Number(input.maxRightBoundary)) ? Math.max(0, Math.min(maxScroll, Number(input.contentWidth) - Number(input.maxRightBoundary))) : currentOffset;
-		let maxContinuationPages = Math.max(1, Math.min(20, Number(input.maxContinuationPages) || 8));
-		let dynamicOffsets = [];
-		let dynamicCurrentOffset = currentOffset;
-		let sequentialPageStep = Number.isFinite(Number(input.sequentialPageStep)) && Number(input.sequentialPageStep) > 0 ? Number(input.sequentialPageStep) : Number(input.pageAdvance) || 1;
-		for (let attempt = 0; attempt < maxContinuationPages; attempt += 1) {
-			let result = evaluateTerminalCoveragePolicy("dynamic-terminal-continuation", [...dynamicOffsets, dynamicCurrentOffset], input, previousOffsets, tolerance);
-			if (!result.uncoveredSemanticRects.length) break;
-			let uncovered = input.semanticRects.filter((rect, index) => result.uncoveredSemanticRects.includes(terminalRectIdentity(rect, index)));
-			let currentViewport = getVerticalRlRawViewportForOffset(dynamicCurrentOffset, input.contentWidth, input.visibleWidth);
-			let nearestUncovered = uncovered.length ? Math.max(...uncovered.map((rect) => rect.left)) : currentViewport.left;
-			let requiredShift = Math.max(1, currentViewport.left - nearestUncovered + tolerance);
-			let nextOffset = Math.min(maxScroll, dynamicCurrentOffset + Math.max(requiredShift, sequentialPageStep));
-			if (nextOffset <= dynamicCurrentOffset + tolerance) break;
-			dynamicOffsets.push(dynamicCurrentOffset);
-			dynamicCurrentOffset = nextOffset;
-		}
-		let dynamicResult = evaluateTerminalCoveragePolicy("dynamic-terminal-continuation", dynamicOffsets.length ? [...dynamicOffsets, dynamicCurrentOffset] : [currentOffset], input, previousOffsets, tolerance);
+		let dynamicResult = planVerticalRlTerminalContinuations(input).coverage;
 		return {
 			"current-exact-sequential": evaluateTerminalCoveragePolicy("current-exact-sequential", [preferredOffset], input, previousOffsets, tolerance),
 			"sequential-max-only": evaluateTerminalCoveragePolicy("sequential-max-only", [maxOnlyOffset], input, previousOffsets, tolerance),
@@ -15312,6 +15350,7 @@
 			let continuationIndex = pageIndex - nominalTotalPages;
 			let continuationOffsets = this._verticalRlTerminalContinuationOffsets;
 			if (continuationIndex >= 0 && Array.isArray(continuationOffsets) && Number.isFinite(continuationOffsets[continuationIndex])) return Math.max(0, Math.min(maxScroll, continuationOffsets[continuationIndex]));
+			if (pageIndex === nominalTotalPages - 1 && Number.isFinite(this._verticalRlNominalTerminalOffset)) return Math.max(0, Math.min(maxScroll, this._verticalRlNominalTerminalOffset));
 			let cacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
 			let cached = this.getCachedVerticalRlLogicalPageOffset(pageIndex, cacheKey);
 			if (Number.isFinite(cached)) return cached;
@@ -15443,15 +15482,14 @@
 				try {
 					let snapshot = this.getVerticalRlTerminalSemanticCoverageSnapshot();
 					if (snapshot) appendVerticalRlTerminalCoverageTrace("next:terminal-candidate", this.getVerticalRlTerminalCoverageTraceDetail(nominalTotalPages - 1, snapshot, { targetGridOffset: this.getMaxLogicalScrollLeft() }));
-					let continuationOffset = this.getVerticalRlTerminalContinuationOffset(snapshot);
-					if (continuationOffset !== null) {
-						this.addVerticalRlTerminalContinuationOffset(continuationOffset, nominalTotalPages, this.getMaxLogicalScrollLeft());
-						continuationCount = this._verticalRlTerminalContinuationOffsets.length;
-						if (snapshot) appendVerticalRlTerminalCoverageTrace("next:terminal-continuation", this.getVerticalRlTerminalCoverageTraceDetail(nominalTotalPages, snapshot, {
+					this.getVerticalRlTerminalContinuationPlan(snapshot).forEach((continuationOffset, index) => {
+						this.addVerticalRlTerminalContinuationOffset(continuationOffset, nominalTotalPages + index, this.getMaxLogicalScrollLeft());
+						if (snapshot) appendVerticalRlTerminalCoverageTrace("next:terminal-continuation", this.getVerticalRlTerminalCoverageTraceDetail(nominalTotalPages + index, snapshot, {
 							targetGridOffset: continuationOffset,
 							snappedOffset: continuationOffset
 						}));
-					}
+					});
+					continuationCount = this._verticalRlTerminalContinuationOffsets?.length || 0;
 				} finally {
 					this._verticalRlTerminalCoverageProjectionInProgress = false;
 				}
@@ -15562,16 +15600,24 @@
 				policies
 			};
 		}
+		getVerticalRlTerminalContinuationPlan(snapshot) {
+			if (!snapshot || !snapshot.coverage.uncoveredSemanticRects.length || !snapshot.coverage.maxScrollHasRoom) return [];
+			return planVerticalRlTerminalContinuations({
+				semanticRects: snapshot.semanticRects,
+				contentWidth: snapshot.contentWidth,
+				visibleWidth: snapshot.visibleWidth,
+				pageAdvance: snapshot.pageAdvance,
+				currentOffset: snapshot.currentLogicalOffset,
+				maxScroll: snapshot.maxLogicalScroll,
+				previousOffsets: snapshot.previousOffsets,
+				preferredOffset: snapshot.currentLogicalOffset,
+				maxRightBoundary: snapshot.contentWidth - snapshot.currentLogicalOffset,
+				sequentialPageStep: snapshot.sequentialPageStep,
+				maxContinuationPages: 20
+			}).offsets;
+		}
 		getVerticalRlTerminalContinuationOffset(snapshot) {
-			if (!snapshot || !snapshot.coverage.uncoveredSemanticRects.length || !snapshot.coverage.maxScrollHasRoom) return null;
-			let currentViewport = snapshot.currentRawViewport;
-			let nearestUncovered = Math.max(...snapshot.coverage.uncoveredSemanticRects.map((rect) => rect.left));
-			let requiredShift = Math.max(1, currentViewport.left - nearestUncovered + .5);
-			let pageStep = Math.max(1, Number(snapshot.sequentialPageStep) || Number(snapshot.pageAdvance) || 1);
-			let targetOffset = Math.min(snapshot.maxLogicalScroll, snapshot.currentLogicalOffset + Math.max(requiredShift, pageStep));
-			let targetRawViewport = getVerticalRlRawViewportForOffset(targetOffset, snapshot.contentWidth, snapshot.visibleWidth);
-			if (getVerticalRlSemanticCoverage(snapshot.semanticRects, targetRawViewport, [...snapshot.previousRawViewports, currentViewport], { maxScrollHasRoom: false }).uncoveredSemanticRects.length >= snapshot.coverage.uncoveredSemanticRects.length) return null;
-			return targetOffset > snapshot.currentLogicalOffset + .5 ? targetOffset : null;
+			return this.getVerticalRlTerminalContinuationPlan(snapshot)[0] ?? null;
 		}
 		getVerticalRlTerminalCoverageTraceDetail(targetPageIndex, snapshot, values = {}) {
 			let currentPageIndex = snapshot ? snapshot.currentPageIndex : this.getCurrentPageIndex();
@@ -15631,6 +15677,7 @@
 			if (!Number.isFinite(offset)) return;
 			let oldKey = this.getVerticalRlLogicalPageOffsetCacheKey(previousTotalPages, maxScroll);
 			let continuationOffsets = Array.isArray(this._verticalRlTerminalContinuationOffsets) ? this._verticalRlTerminalContinuationOffsets : [];
+			if (continuationOffsets.length === 0) this._verticalRlNominalTerminalOffset = this.getNormalizedLogicalScrollLeft();
 			continuationOffsets.push(Math.max(0, Math.min(maxScroll, offset)));
 			this._verticalRlTerminalContinuationOffsets = continuationOffsets;
 			let nextTotalPages = previousTotalPages + 1;
@@ -15727,11 +15774,10 @@
 				this._verticalRlTerminalCoverageProjectionInProgress = true;
 				try {
 					let projectedSnapshot = this.getVerticalRlTerminalSemanticCoverageSnapshot();
-					let continuationOffset = this.getVerticalRlTerminalContinuationOffset(projectedSnapshot);
-					if (continuationOffset !== null) {
-						this.addVerticalRlTerminalContinuationOffset(continuationOffset, nominalTotalPages, maxScroll);
-						totalPages = Math.max(totalPages, this.getTotalPagesForCurrentView());
-					}
+					this.getVerticalRlTerminalContinuationPlan(projectedSnapshot).forEach((continuationOffset, index) => {
+						this.addVerticalRlTerminalContinuationOffset(continuationOffset, nominalTotalPages + index, maxScroll);
+					});
+					totalPages = Math.max(totalPages, this.getTotalPagesForCurrentView());
 				} finally {
 					this._verticalRlTerminalCoverageProjectionInProgress = false;
 				}
@@ -15767,7 +15813,8 @@
 				}
 			}
 			let logicalOffset = cachedLogicalOffset !== null && !sequentialBoundaryConstraint ? cachedLogicalOffset : sequentialBoundaryConstraint ? this.getLogicalOffsetForPageIndex(targetIndex, totalPages, maxScroll) : this.getVerticalRlPageOffset(targetIndex, totalPages, maxScroll);
-			if (cachedLogicalOffset === null || sequentialBoundaryConstraint) {
+			let isNominalTerminalWithContinuations = this.isRtlVerticalPaginated() && targetIndex === nominalTotalPages - 1 && Array.isArray(this._verticalRlTerminalContinuationOffsets) && this._verticalRlTerminalContinuationOffsets.length > 0 && Number.isFinite(this._verticalRlNominalTerminalOffset);
+			if ((cachedLogicalOffset === null || sequentialBoundaryConstraint) && !isNominalTerminalWithContinuations) {
 				if (this.isRtlVerticalPaginated() && targetIndex > 0 && (targetIndex < totalPages - 1 || sequentialBoundaryConstraint)) {
 					let snappedLogicalOffset = this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll, sequentialBoundaryConstraint || {});
 					if (Number.isFinite(snappedLogicalOffset)) logicalOffset = snappedLogicalOffset;
@@ -15875,7 +15922,15 @@
 			let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
 			let token = (this._verticalRlBoundarySnapRetryToken || 0) + 1;
 			this._verticalRlBoundarySnapRetryToken = token;
-			if (targetIndex <= 0 || targetIndex >= totalPages - 1) return;
+			let nominalTotalPages = totalPages;
+			let continuationOffsets = this._verticalRlTerminalContinuationOffsets;
+			if (Array.isArray(continuationOffsets) && continuationOffsets.length > 0) try {
+				nominalTotalPages = this.getNominalTotalPagesForCurrentView();
+			} catch (error) {
+				nominalTotalPages = totalPages;
+			}
+			let isNominalTerminalWithContinuations = targetIndex === nominalTotalPages - 1 && Array.isArray(continuationOffsets) && continuationOffsets.length > 0 && Number.isFinite(this._verticalRlNominalTerminalOffset);
+			if (targetIndex <= 0 || targetIndex >= totalPages - 1 || isNominalTerminalWithContinuations) return;
 			let retryDelays = Array.isArray(this.settings && this.settings.verticalRlBoundarySnapRetryDelays) ? this.settings.verticalRlBoundarySnapRetryDelays : [
 				250,
 				750,
@@ -15979,15 +16034,17 @@
 				if (pageIndex >= nominalTotalPages - 1 && isVerticalRlTerminalContinuationEnabled()) {
 					let terminalSnapshot = this.getVerticalRlTerminalSemanticCoverageSnapshot();
 					if (terminalSnapshot) appendVerticalRlTerminalCoverageTrace("next:terminal-candidate", this.getVerticalRlTerminalCoverageTraceDetail(pageIndex, terminalSnapshot, { targetGridOffset: this.getLogicalOffsetForPageIndex(pageIndex, totalPages, this.getMaxLogicalScrollLeft()) }));
-					let continuationOffset = this.getVerticalRlTerminalContinuationOffset(terminalSnapshot);
-					if (continuationOffset !== null) {
+					let continuationOffsets = this.getVerticalRlTerminalContinuationPlan(terminalSnapshot);
+					if (continuationOffsets.length) {
 						let previousTotalPages = totalPages;
-						this.addVerticalRlTerminalContinuationOffset(continuationOffset, previousTotalPages, this.getMaxLogicalScrollLeft());
-						appendVerticalRlTerminalCoverageTrace("next:terminal-continuation", this.getVerticalRlTerminalCoverageTraceDetail(pageIndex + 1, terminalSnapshot, {
-							targetGridOffset: continuationOffset,
-							snappedOffset: continuationOffset
-						}));
-						this.scrollToLogicalPage(pageIndex + 1);
+						continuationOffsets.forEach((continuationOffset, index) => {
+							this.addVerticalRlTerminalContinuationOffset(continuationOffset, previousTotalPages + index, this.getMaxLogicalScrollLeft());
+							appendVerticalRlTerminalCoverageTrace("next:terminal-continuation", this.getVerticalRlTerminalCoverageTraceDetail(pageIndex + index + 1, terminalSnapshot, {
+								targetGridOffset: continuationOffset,
+								snappedOffset: continuationOffset
+							}));
+						});
+						this.scrollToLogicalPage(pageIndex + continuationOffsets.length);
 						return this.waitForVerticalRlLayoutReady();
 					}
 					if (terminalSnapshot && terminalSnapshot.coverage.uncoveredSemanticRects.length) return;
@@ -16080,6 +16137,7 @@
 				this.views.clear();
 			}
 			this._verticalRlTerminalContinuationOffsets = [];
+			this._verticalRlNominalTerminalOffset = null;
 			this._verticalRlLogicalPageOffsetCache = null;
 			this._verticalRlAppliedLeftMaskLedger = null;
 			this._verticalRlAppliedLeftMaskLedgerKey = null;
@@ -16195,10 +16253,11 @@
 				let endPage = Math.floor(end / pageAdvance);
 				if (isRtlVerticalPaginated) {
 					let currentPageIndex = this.getCurrentPageIndex();
+					let currentLogicalOffset = this.getNormalizedLogicalScrollLeft();
 					let visiblePageWidth = this.layout.pageWidth || this.layout.width || pageAdvance;
 					let contentWidth = width;
 					let maxPhysicalStart = Math.max(0, contentWidth - visiblePageWidth);
-					let physicalStart = Math.max(0, Math.min(maxPhysicalStart, maxPhysicalStart - currentPageIndex * pageAdvance));
+					let physicalStart = Math.max(0, Math.min(maxPhysicalStart, maxPhysicalStart - currentLogicalOffset));
 					let physicalEnd = Math.min(contentWidth, physicalStart + visiblePageWidth);
 					totalPages = this.getTotalPagesForCurrentView();
 					pages = [currentPageIndex + 1];
@@ -16337,6 +16396,7 @@
 		updateLayout() {
 			if (!this.stage) return;
 			this._verticalRlTerminalContinuationOffsets = [];
+			this._verticalRlNominalTerminalOffset = null;
 			this._verticalRlLogicalPageOffsetCache = null;
 			this._verticalRlAppliedLeftMaskLedger = null;
 			this._verticalRlAppliedLeftMaskLedgerKey = null;

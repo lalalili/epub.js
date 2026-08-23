@@ -6,6 +6,7 @@ import {
 	getLogicalOffsetForPageIndex,
 	getVerticalRlLogicalPageOffsetCacheKey,
 	getVerticalRlLogicalPageStepToNextPage,
+	planVerticalRlTerminalContinuations,
 	characterizeVerticalRlTerminalCoveragePolicies,
 	getVerticalRlRawViewportForOffset,
 } from "../../src/rendering/logical-page";
@@ -69,7 +70,7 @@ describe("logical-page: terminal semantic coverage policies", () => {
 			...baseInput,
 			semanticRects: [
 				{ left: 590, right: 600, structureHash: "two-a" },
-				{ left: 480, right: 490, structureHash: "two-b" },
+				{ left: 495, right: 505, structureHash: "two-b" },
 			],
 			markerStructureHash: "two-b",
 		});
@@ -107,6 +108,46 @@ describe("logical-page: terminal semantic coverage policies", () => {
 		expect(dynamic.gapIntervals.length).toBeGreaterThan(0);
 		expect(dynamic.semanticGapIntervals).toEqual([]);
 		expect(dynamic.uncoveredSemanticRects).toEqual([]);
+	});
+
+	it("plans the minimal strictly increasing continuation that owns a coverable terminal cluster", () => {
+		const input = {
+			contentWidth: 23654,
+			visibleWidth: 369.59375,
+			pageAdvance: 369.59375,
+			currentOffset: 22767,
+			maxScroll: 23284,
+			previousOffsets: [],
+			semanticRects: [
+				{ left: 503.90625, right: 534.703125, structureHash: "tcy" },
+				{ left: 499.3125, right: 539.3125, structureHash: "block" },
+				{ left: 499.3125, right: 539.3125, structureHash: "text" },
+			],
+		};
+		const plan = planVerticalRlTerminalContinuations(input);
+
+		expect(plan.offsets).toHaveLength(1);
+		expect(plan.offsets[0]).toBeGreaterThan(22767);
+		expect(plan.offsets[0]).toBeLessThanOrEqual(23284);
+		expect(plan.coverage.uncoveredSemanticRects).toEqual([]);
+		expect(plan.coverage.usedUnconditionalMaxScroll).toBe(false);
+		expect(plan.viewports[0].left).toBeLessThanOrEqual(499.8125);
+		expect(plan.viewports[0].right).toBeGreaterThanOrEqual(539.3125 - 0.5);
+	});
+
+	it("does not create a continuation when no candidate strictly reduces uncovered content", () => {
+		const plan = planVerticalRlTerminalContinuations({
+			contentWidth: 1000,
+			visibleWidth: 100,
+			pageAdvance: 100,
+			currentOffset: 900,
+			maxScroll: 900,
+			previousOffsets: [],
+			semanticRects: [{ left: 120, right: 130, structureHash: "outside-max-scroll" }],
+		});
+
+		expect(plan.offsets).toEqual([]);
+		expect(plan.coverage.uncoveredSemanticRects).toEqual(["outside-max-scroll"]);
 	});
 });
 

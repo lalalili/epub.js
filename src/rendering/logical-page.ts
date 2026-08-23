@@ -207,6 +207,160 @@ const evaluateTerminalCoveragePolicy = (
 	};
 };
 
+export type VerticalRlTerminalContinuationPlan = {
+	offsets: number[];
+	viewports: Array<{ left: number; right: number }>;
+	coverage: VerticalRlTerminalCoveragePolicyResult;
+};
+
+const verticalRlTerminalRectIdentity = (
+	rect: VerticalRlTerminalCoverageRect,
+	index: number
+): string => terminalRectIdentity(rect, index);
+
+const getVerticalRlOwnedSemanticRectIdentities = (
+	semanticRects: VerticalRlTerminalCoverageRect[],
+	offsets: number[],
+	contentWidth: number,
+	visibleWidth: number,
+	tolerance: number
+): Set<string> => {
+	let viewports = offsets.map((offset) => getVerticalRlRawViewportForOffset(
+		offset,
+		contentWidth,
+		visibleWidth
+	));
+	let owned = new Set<string>();
+
+	semanticRects.forEach((rect, index) => {
+		if (viewports.some((viewport) => terminalRectFullyInside(rect, viewport, tolerance))) {
+			owned.add(verticalRlTerminalRectIdentity(rect, index));
+		}
+	});
+
+	return owned;
+};
+
+export function planVerticalRlTerminalContinuations(
+	input: VerticalRlTerminalCoveragePolicyInput
+): VerticalRlTerminalContinuationPlan {
+	let tolerance = Math.max(0, Number(input.tolerance) || 0.5);
+	let contentWidth = Math.max(0, Number(input.contentWidth) || 0);
+	let visibleWidth = Math.max(0, Number(input.visibleWidth) || 0);
+	let currentOffset = Math.max(0, Number(input.currentOffset) || 0);
+	let maxScroll = Math.max(currentOffset, Number(input.maxScroll) || 0);
+	let semanticRects = Array.isArray(input.semanticRects) ? input.semanticRects : [];
+	let maxContinuationPages = Math.max(1, Math.min(20, Number(input.maxContinuationPages) || 8));
+	let minProgress = Math.max(0.01, tolerance / 10);
+	let continuationOffsets: number[] = [];
+	let currentPlanOffsets = [currentOffset];
+	let previousOffsets = Array.isArray(input.previousOffsets) ? input.previousOffsets : [];
+
+	for (let attempt = 0; attempt < maxContinuationPages; attempt += 1) {
+		let currentResult = evaluateTerminalCoveragePolicy(
+			"dynamic-terminal-continuation",
+			currentPlanOffsets,
+			input,
+			previousOffsets,
+			tolerance
+		);
+
+		if (!currentResult.uncoveredSemanticRects.length) {
+			break;
+		}
+
+		let uncovered = semanticRects.filter((rect, index) => (
+			currentResult.uncoveredSemanticRects.includes(verticalRlTerminalRectIdentity(rect, index))
+		));
+		let currentOwned = getVerticalRlOwnedSemanticRectIdentities(
+			semanticRects,
+			[...previousOffsets, ...currentPlanOffsets],
+			contentWidth,
+			visibleWidth,
+			tolerance
+		);
+		let candidateOffsets = [...new Set(uncovered.map((rect) => {
+			let minimumOffset = contentWidth - visibleWidth - rect.left - tolerance;
+			return Math.max(currentOffset + minProgress, minimumOffset);
+		}))]
+			.map((offset) => Math.min(maxScroll, offset))
+			.filter((offset) => offset > currentOffset + minProgress / 2 && offset <= maxScroll);
+		let bestCandidate: {
+			offset: number;
+			result: VerticalRlTerminalCoveragePolicyResult;
+			newlyOwned: number;
+		} | null = null;
+
+		for (let candidateOffset of candidateOffsets) {
+			let candidatePlanOffsets = [...currentPlanOffsets, candidateOffset];
+			let candidateResult = evaluateTerminalCoveragePolicy(
+				"dynamic-terminal-continuation",
+				candidatePlanOffsets,
+				input,
+				previousOffsets,
+				tolerance
+			);
+			let candidateOwned = getVerticalRlOwnedSemanticRectIdentities(
+				semanticRects,
+				[...previousOffsets, ...candidatePlanOffsets],
+				contentWidth,
+				visibleWidth,
+				tolerance
+			);
+			let newlyOwned = [...candidateOwned].filter((identity) => !currentOwned.has(identity)).length;
+
+			if (
+				newlyOwned < 1 ||
+				candidateResult.uncoveredSemanticRects.length >= currentResult.uncoveredSemanticRects.length ||
+				!candidateResult.previousToTerminalCoverageContinuity
+			) {
+				continue;
+			}
+
+			if (
+				!bestCandidate ||
+				candidateResult.uncoveredSemanticRects.length < bestCandidate.result.uncoveredSemanticRects.length ||
+				(
+				candidateResult.uncoveredSemanticRects.length === bestCandidate.result.uncoveredSemanticRects.length &&
+					(newlyOwned > bestCandidate.newlyOwned || candidateOffset < bestCandidate.offset)
+				)
+			) {
+				bestCandidate = {
+					offset: candidateOffset,
+					result: candidateResult,
+					newlyOwned
+				};
+			}
+		}
+
+		if (!bestCandidate) {
+			break;
+		}
+
+		continuationOffsets.push(bestCandidate.offset);
+		currentPlanOffsets.push(bestCandidate.offset);
+		currentOffset = bestCandidate.offset;
+	}
+
+	let coverage = evaluateTerminalCoveragePolicy(
+		"dynamic-terminal-continuation",
+		currentPlanOffsets,
+		input,
+		previousOffsets,
+		tolerance
+	);
+
+	return {
+		offsets: continuationOffsets,
+		viewports: continuationOffsets.map((offset) => getVerticalRlRawViewportForOffset(
+			offset,
+			contentWidth,
+			visibleWidth
+		)),
+		coverage
+	};
+}
+
 export function characterizeVerticalRlTerminalCoveragePolicies(
 	input: VerticalRlTerminalCoveragePolicyInput
 ): Record<VerticalRlTerminalCoveragePolicy, VerticalRlTerminalCoveragePolicyResult> {
@@ -220,55 +374,8 @@ export function characterizeVerticalRlTerminalCoveragePolicies(
 	let maxOnlyOffset = Number.isFinite(Number(input.maxRightBoundary))
 		? Math.max(0, Math.min(maxScroll, Number(input.contentWidth) - Number(input.maxRightBoundary)))
 		: currentOffset;
-	let maxContinuationPages = Math.max(1, Math.min(20, Number(input.maxContinuationPages) || 8));
-	let dynamicOffsets: number[] = [];
-	let dynamicCurrentOffset = currentOffset;
-	let sequentialPageStep = Number.isFinite(Number(input.sequentialPageStep)) && Number(input.sequentialPageStep) > 0
-		? Number(input.sequentialPageStep)
-		: Number(input.pageAdvance) || 1;
-
-	for (let attempt = 0; attempt < maxContinuationPages; attempt += 1) {
-		let result = evaluateTerminalCoveragePolicy(
-			"dynamic-terminal-continuation",
-			[...dynamicOffsets, dynamicCurrentOffset],
-			input,
-			previousOffsets,
-			tolerance
-		);
-
-		if (!result.uncoveredSemanticRects.length) {
-			break;
-		}
-
-		let uncovered = input.semanticRects.filter((rect, index) => (
-			result.uncoveredSemanticRects.includes(terminalRectIdentity(rect, index))
-		));
-		let currentViewport = getVerticalRlRawViewportForOffset(
-			dynamicCurrentOffset,
-			input.contentWidth,
-			input.visibleWidth
-		);
-		let nearestUncovered = uncovered.length
-			? Math.max(...uncovered.map((rect) => rect.left))
-			: currentViewport.left;
-		let requiredShift = Math.max(1, currentViewport.left - nearestUncovered + tolerance);
-		let nextOffset = Math.min(maxScroll, dynamicCurrentOffset + Math.max(requiredShift, sequentialPageStep));
-
-		if (nextOffset <= dynamicCurrentOffset + tolerance) {
-			break;
-		}
-
-		dynamicOffsets.push(dynamicCurrentOffset);
-		dynamicCurrentOffset = nextOffset;
-	}
-
-	let dynamicResult = evaluateTerminalCoveragePolicy(
-		"dynamic-terminal-continuation",
-		dynamicOffsets.length ? [...dynamicOffsets, dynamicCurrentOffset] : [currentOffset],
-		input,
-		previousOffsets,
-		tolerance
-	);
+	let dynamicPlan = planVerticalRlTerminalContinuations(input);
+	let dynamicResult = dynamicPlan.coverage;
 
 	return {
 		"current-exact-sequential": evaluateTerminalCoveragePolicy(
