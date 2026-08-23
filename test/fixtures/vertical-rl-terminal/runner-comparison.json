@@ -1,0 +1,115 @@
+{
+  "repository": "lalalili/epub.js",
+  "head": "7a3394664a552d57350918e5fd4115024408a088",
+  "fixture": "vertical-rl-terminal",
+  "comparison": {
+    "fields": [
+      "devicePixelRatio",
+      "viewport",
+      "fontStatus",
+      "computedBodyFamily",
+      "fontChecks",
+      "nominalTotalPages",
+      "currentPageIndex",
+      "currentLogicalOffset",
+      "maxLogicalScroll",
+      "contentWidth",
+      "visibleWidth",
+      "markerRect",
+      "twoContinuationOffsets"
+    ],
+    "allStable": true,
+    "notes": [
+      "Node and Chromium patch versions differ, but fixture geometry fields are equal.",
+      "The reader host and rendition geometry are fixed at 260x260 CSS pixels."
+    ]
+  },
+  "local": {
+    "node": "24.11.1",
+    "npm": "11.12.1",
+    "playwright": "1.60.0",
+    "chromium": "148.0.0.0",
+    "devicePixelRatio": 1,
+    "viewport": { "width": 414, "height": 896 },
+    "fontStatus": "loaded",
+    "computedBodyFamily": "\"DejaVu Sans Mono\", monospace",
+    "fontChecks": {
+      "DejaVu Sans Mono": true,
+      "monospace": true,
+      "sans-serif": true
+    },
+    "oneContinuation": {
+      "nominalTotalPages": 4,
+      "currentPageIndex": 3,
+      "currentLogicalOffset": 767,
+      "maxLogicalScroll": 780,
+      "contentWidth": 1040,
+      "visibleWidth": 260,
+      "semanticRectCount": 4,
+      "markerRect": { "left": 113, "right": 132, "width": 19 },
+      "uncoveredSemanticRectCount": 1
+    },
+    "twoContinuationPolicy": {
+      "offsets": [767, 772, 780],
+      "pageCountDelta": 2,
+      "uncoveredSemanticRectCount": 2,
+      "strictlyIncreasingOffsets": true,
+      "maxScrollHasRoom": true
+    },
+    "control": {
+      "nominalTotalPages": 1,
+      "continuationPageCount": 0,
+      "uncoveredSemanticRectCount": 0
+    },
+    "testSummary": {
+      "testFilesPassed": 75,
+      "testsPassed": 834,
+      "testsFailed": 0,
+      "testsSkipped": 1
+    }
+  },
+  "github": {
+    "runId": 32644773913,
+    "node": "24.19.0",
+    "npm": "11.17.0",
+    "chromium": "151.0.0.0",
+    "devicePixelRatio": 1,
+    "viewport": { "width": 414, "height": 896 },
+    "fontStatus": "loaded",
+    "computedBodyFamily": "\"DejaVu Sans Mono\", monospace",
+    "fontChecks": {
+      "DejaVu Sans Mono": true,
+      "monospace": true,
+      "sans-serif": true
+    },
+    "oneContinuation": {
+      "nominalTotalPages": 4,
+      "currentPageIndex": 3,
+      "currentLogicalOffset": 767,
+      "maxLogicalScroll": 780,
+      "contentWidth": 1040,
+      "visibleWidth": 260,
+      "semanticRectCount": 4,
+      "markerRect": { "left": 113, "right": 132, "width": 19 },
+      "uncoveredSemanticRectCount": 1
+    },
+    "twoContinuationPolicy": {
+      "offsets": [767, 772, 780],
+      "pageCountDelta": 2,
+      "uncoveredSemanticRectCount": 2,
+      "strictlyIncreasingOffsets": true,
+      "maxScrollHasRoom": true
+    },
+    "control": {
+      "nominalTotalPages": 1,
+      "continuationPageCount": 0,
+      "uncoveredSemanticRectCount": 0
+    },
+    "testSummary": {
+      "testFilesPassed": 75,
+      "testsPassed": 834,
+      "testsFailed": 0,
+      "testsSkipped": 1
+    }
+  }
+}
