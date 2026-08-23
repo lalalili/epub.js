@@ -98,12 +98,11 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 		}]));
 	}
 
-	it("characterizes one continuation candidate before the engine fix", async () => {
+	it("preserves one semantic continuation before the next-spine transition", async () => {
 		const rendition = await openFixture();
 		await rendition.display(0);
 		await settle();
 		const result = await displayTerminalPage(rendition);
-		window.__EPUB_VRL_TERMINAL_CONTINUATION_ENABLED__ = false;
 		const beforeNext = {
 			href: result.href,
 			nominalTotalPages: result.nominalTotalPages,
@@ -116,6 +115,9 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 		result.manager.next();
 		await settle();
 		const afterNextHref = result.manager.views.first().section.href;
+		const afterNextSnapshot = result.manager.getVerticalRlTerminalSemanticCoverageSnapshot();
+		const afterNextPageIndex = result.manager.getCurrentPageIndex();
+		const afterNextTotalPages = result.manager.getTotalPagesForCurrentView();
 
 		console.info("vertical-rl-terminal-semantic-coverage", JSON.stringify({
 			fixtureCase: "one-continuation",
@@ -128,7 +130,11 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 		expect(beforeNext.currentPageIndex).toBe(beforeNext.nominalTotalPages - 1);
 		expect(beforeNext.uncoveredSemanticRectCount).toBeGreaterThan(0);
 		expect(beforeNext.markerVisibility).not.toBe("fully-visible");
-		expect(afterNextHref).not.toBe(beforeNext.href);
+		expect(afterNextHref).toBe(beforeNext.href);
+		expect(afterNextPageIndex).toBe(beforeNext.nominalTotalPages);
+		expect(afterNextTotalPages).toBe(beforeNext.nominalTotalPages + 1);
+		expect(afterNextSnapshot.coverage.uncoveredSemanticRectCount).toBe(0);
+		expect(markerVisibility(afterNextSnapshot)).toBe("fully-visible");
 	});
 
 	it("keeps a real continuation in the same spine before the single next-spine transition", async () => {

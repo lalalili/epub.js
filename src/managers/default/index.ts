@@ -361,6 +361,10 @@ class DefaultViewManager {
 	declare _verticalRlBoundarySnapApplying?: boolean;
 	declare _verticalRlViewportClipOverlay?: HTMLDivElement;
 	declare _verticalRlTerminalContinuationOffsets?: number[];
+	declare _verticalRlTerminalCoverageProjectionInProgress?: boolean;
+	declare _verticalRlTerminalCoverageProjectionKey?: string | null;
+	declare _verticalRlTerminalCoverageProjectionResult?: boolean | null;
+	declare _verticalRlLogicalPageScrollInProgress?: boolean;
 	declare _resizeSettleTrace?: ResizeSettleTraceEntry[];
 	declare _resizeSettleTraceSequence?: number;
 	declare _resizeSettleTraceGeneration?: number;
@@ -2269,7 +2273,100 @@ class DefaultViewManager {
 			? this._verticalRlTerminalContinuationOffsets.length
 			: 0;
 
+		if (
+			continuationCount === 0 &&
+			!this._verticalRlTerminalCoverageProjectionInProgress &&
+			!this._verticalRlLogicalPageScrollInProgress &&
+			this.shouldProjectVerticalRlTerminalContinuation()
+		) {
+			this._verticalRlTerminalCoverageProjectionInProgress = true;
+			try {
+				let snapshot = this.getVerticalRlTerminalSemanticCoverageSnapshot();
+				if (snapshot) {
+					appendVerticalRlTerminalCoverageTrace("next:terminal-candidate", this.getVerticalRlTerminalCoverageTraceDetail(
+						nominalTotalPages - 1,
+						snapshot,
+						{ targetGridOffset: this.getMaxLogicalScrollLeft() }
+					));
+				}
+				let continuationOffset = this.getVerticalRlTerminalContinuationOffset(snapshot);
+
+				if (continuationOffset !== null) {
+					this.addVerticalRlTerminalContinuationOffset(
+						continuationOffset,
+						nominalTotalPages,
+						this.getMaxLogicalScrollLeft()
+					);
+					continuationCount = this._verticalRlTerminalContinuationOffsets.length;
+					if (snapshot) {
+						appendVerticalRlTerminalCoverageTrace("next:terminal-continuation", this.getVerticalRlTerminalCoverageTraceDetail(
+							nominalTotalPages,
+							snapshot,
+							{ targetGridOffset: continuationOffset, snappedOffset: continuationOffset }
+						));
+					}
+				}
+			} finally {
+				this._verticalRlTerminalCoverageProjectionInProgress = false;
+			}
+		}
+
 		return nominalTotalPages + continuationCount;
+	}
+
+	shouldProjectVerticalRlTerminalContinuation(): boolean {
+		if (!this.isRtlVerticalPaginated() || !this.views || !this.layout) {
+			return false;
+		}
+
+		let view = this.views.first() || this.views.last();
+		let nominalTotalPages = this.getNominalTotalPagesForCurrentView();
+		let maxLogicalScroll = this.getMaxLogicalScrollLeft();
+		let currentLogicalOffset = this.getNormalizedLogicalScrollLeft();
+		let pageAdvance = this.getPageAdvance();
+
+		this._verticalRlTerminalCoverageProjectionInProgress = true;
+		try {
+			let currentPageIndex = this.getCurrentPageIndex();
+			let projectionKey = JSON.stringify([
+				view && view.section ? view.section.href : null,
+				nominalTotalPages,
+				currentPageIndex,
+				currentLogicalOffset,
+				maxLogicalScroll,
+				pageAdvance,
+				this.layout.pageWidth,
+				this.layout.effectivePageAdvance,
+				view ? this.getVerticalRlVisualContentWidth(view) : 0
+			]);
+
+			if (
+				this._verticalRlTerminalCoverageProjectionKey === projectionKey &&
+				typeof this._verticalRlTerminalCoverageProjectionResult === "boolean"
+			) {
+				return this._verticalRlTerminalCoverageProjectionResult;
+			}
+
+			if (currentPageIndex < nominalTotalPages - 1) {
+				this._verticalRlTerminalCoverageProjectionKey = projectionKey;
+				this._verticalRlTerminalCoverageProjectionResult = false;
+				return false;
+			}
+
+			let snapshot = this.getVerticalRlTerminalSemanticCoverageSnapshot();
+			let result = Boolean(
+				snapshot &&
+				snapshot.currentPageIndex >= snapshot.nominalTotalPages - 1 &&
+				snapshot.coverage.uncoveredSemanticRects.length > 0 &&
+				snapshot.coverage.maxScrollHasRoom
+			);
+			this._verticalRlTerminalCoverageProjectionKey = projectionKey;
+			this._verticalRlTerminalCoverageProjectionResult = result;
+
+			return result;
+		} finally {
+			this._verticalRlTerminalCoverageProjectionInProgress = false;
+		}
 	}
 
 	getVerticalRlTerminalSemanticCoverageSnapshot() {
@@ -2494,12 +2591,21 @@ class DefaultViewManager {
 		if (this._verticalRlLogicalPageOffsetCache && this._verticalRlLogicalPageOffsetCache.key === oldKey && nextKey) {
 			this._verticalRlLogicalPageOffsetCache.key = nextKey;
 		}
+		if (nextKey) {
+			this.cacheVerticalRlLogicalPageOffset(
+				previousTotalPages,
+				continuationOffsets[continuationOffsets.length - 1],
+				nextKey
+			);
+		}
 		if (this._verticalRlAppliedLeftMaskLedgerKey === oldKey) {
 			this._verticalRlAppliedLeftMaskLedgerKey = nextKey;
 		}
 		this._verticalRlPageIndexLookupKey = null;
 		this._verticalRlPageIndexLookupOffset = null;
 		this._verticalRlPageIndexLookupResult = null;
+		this._verticalRlTerminalCoverageProjectionKey = null;
+		this._verticalRlTerminalCoverageProjectionResult = null;
 	}
 
 	/**
@@ -2598,6 +2704,7 @@ class DefaultViewManager {
 	}
 
 	scrollToLogicalPage(pageIndex: number, options: SnapLimits = {}): void {
+		this._verticalRlLogicalPageScrollInProgress = true;
 		let preSyncView = this.views && (this.views.first() || this.views.last());
 		let preSyncIframeWidth = preSyncView && preSyncView.iframe
 			? Math.max(
@@ -2669,6 +2776,31 @@ class DefaultViewManager {
 		let restoredBeforeScroll = restorePreSyncVisualContentWidth();
 		let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
 		let maxScroll = this.getMaxLogicalScrollLeft();
+		let nominalTotalPages = this.getNominalTotalPagesForCurrentView();
+		if (
+			this.isRtlVerticalPaginated() &&
+			targetIndex >= nominalTotalPages &&
+			(!Array.isArray(this._verticalRlTerminalContinuationOffsets) ||
+				this._verticalRlTerminalContinuationOffsets.length === 0)
+		) {
+			this._verticalRlTerminalCoverageProjectionInProgress = true;
+			try {
+				let projectedSnapshot = this.getVerticalRlTerminalSemanticCoverageSnapshot();
+				let continuationOffset = this.getVerticalRlTerminalContinuationOffset(projectedSnapshot);
+
+				if (continuationOffset !== null) {
+					this.addVerticalRlTerminalContinuationOffset(
+						continuationOffset,
+						nominalTotalPages,
+						maxScroll
+					);
+					totalPages = Math.max(totalPages, this.getTotalPagesForCurrentView());
+				}
+			} finally {
+				this._verticalRlTerminalCoverageProjectionInProgress = false;
+			}
+		}
+		targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
 		let terminalSnapshot = isVerticalRlDebugEnabled() && this.isRtlVerticalPaginated()
 			? this.getVerticalRlTerminalSemanticCoverageSnapshot()
 			: null;
@@ -2836,6 +2968,7 @@ class DefaultViewManager {
 				}
 			));
 		}
+		this._verticalRlLogicalPageScrollInProgress = false;
 		this.queueVerticalRlBoundarySnapRetry(targetIndex);
 		// layout 穩定後重算遮罩。首次 syncVerticalRlViewportClip() 發生在 layout
 		// 尚未定案時（頁數仍在變動），算出的遮罩偏寬，會遮蔽超出必要範圍的頁緣內容。
@@ -3099,11 +3232,15 @@ class DefaultViewManager {
 					appendVerticalRlTerminalCoverageTrace("next:terminal-continuation", this.getVerticalRlTerminalCoverageTraceDetail(
 						pageIndex + 1,
 						terminalSnapshot,
-						{ targetGridOffset: continuationOffset, snappedOffset: continuationOffset }
-					));
-					this.scrollToLogicalPage(pageIndex + 1);
-					return;
-				}
+							{ targetGridOffset: continuationOffset, snappedOffset: continuationOffset }
+						));
+						this.scrollToLogicalPage(pageIndex + 1);
+						// Keep the rendition queue open until the continuation viewport has
+						// settled. Consumers inspect the current slice immediately after
+						// manager.next() resolves and must not mistake the in-flight
+						// continuation for a blank terminal page.
+						return this.waitForVerticalRlLayoutReady();
+					}
 
 				if (terminalSnapshot && terminalSnapshot.coverage.uncoveredSemanticRects.length) {
 					return;
@@ -3303,6 +3440,9 @@ class DefaultViewManager {
 		this._verticalRlPageIndexLookupKey = null;
 		this._verticalRlPageIndexLookupOffset = null;
 		this._verticalRlPageIndexLookupResult = null;
+		this._verticalRlTerminalCoverageProjectionKey = null;
+		this._verticalRlTerminalCoverageProjectionResult = null;
+		this._verticalRlLogicalPageScrollInProgress = false;
 	}
 
 	currentLocation(): Array<ManagerLocationItem | null | undefined> {
@@ -3683,6 +3823,9 @@ class DefaultViewManager {
 		this._verticalRlPageIndexLookupKey = null;
 		this._verticalRlPageIndexLookupOffset = null;
 		this._verticalRlPageIndexLookupResult = null;
+		this._verticalRlTerminalCoverageProjectionKey = null;
+		this._verticalRlTerminalCoverageProjectionResult = null;
+		this._verticalRlLogicalPageScrollInProgress = false;
 
 		this._stageSize = this.stage.size();
 		this._lastLayoutStageSize = {
