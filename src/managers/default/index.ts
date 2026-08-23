@@ -2485,6 +2485,21 @@ class DefaultViewManager {
 			snapshot.maxLogicalScroll,
 			snapshot.currentLogicalOffset + Math.max(requiredShift, pageStep)
 		);
+		let targetRawViewport = getVerticalRlRawViewportForOffset(
+			targetOffset,
+			snapshot.contentWidth,
+			snapshot.visibleWidth
+		);
+		let targetCoverage = getVerticalRlSemanticCoverage(
+			snapshot.semanticRects,
+			targetRawViewport,
+			[...snapshot.previousRawViewports, currentViewport],
+			{ maxScrollHasRoom: false }
+		);
+
+		if (targetCoverage.uncoveredSemanticRects.length > 0) {
+			return null;
+		}
 
 		return targetOffset > snapshot.currentLogicalOffset + 0.5 ? targetOffset : null;
 	}
