@@ -2497,7 +2497,10 @@ class DefaultViewManager {
 			{ maxScrollHasRoom: false }
 		);
 
-		if (targetCoverage.uncoveredSemanticRects.length > 0) {
+		if (
+			targetCoverage.uncoveredSemanticRects.length >=
+			snapshot.coverage.uncoveredSemanticRects.length
+		) {
 			return null;
 		}
 

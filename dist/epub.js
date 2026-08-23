@@ -15570,7 +15570,7 @@
 			let pageStep = Math.max(1, Number(snapshot.sequentialPageStep) || Number(snapshot.pageAdvance) || 1);
 			let targetOffset = Math.min(snapshot.maxLogicalScroll, snapshot.currentLogicalOffset + Math.max(requiredShift, pageStep));
 			let targetRawViewport = getVerticalRlRawViewportForOffset(targetOffset, snapshot.contentWidth, snapshot.visibleWidth);
-			if (getVerticalRlSemanticCoverage(snapshot.semanticRects, targetRawViewport, [...snapshot.previousRawViewports, currentViewport], { maxScrollHasRoom: false }).uncoveredSemanticRects.length > 0) return null;
+			if (getVerticalRlSemanticCoverage(snapshot.semanticRects, targetRawViewport, [...snapshot.previousRawViewports, currentViewport], { maxScrollHasRoom: false }).uncoveredSemanticRects.length >= snapshot.coverage.uncoveredSemanticRects.length) return null;
 			return targetOffset > snapshot.currentLogicalOffset + .5 ? targetOffset : null;
 		}
 		getVerticalRlTerminalCoverageTraceDetail(targetPageIndex, snapshot, values = {}) {
