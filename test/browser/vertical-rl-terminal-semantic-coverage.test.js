@@ -24,6 +24,29 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 		await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 	}
 
+	async function waitForTerminalParityTrace() {
+		for (let attempt = 0; attempt < 6; attempt += 1) {
+			const trace = window.__EPUB_VRL_TERMINAL_COVERAGE_TRACE__ || [];
+			if (trace.some((entry) => (
+				entry.event === "scroll:terminal-applied-offset" &&
+				entry.stage === "after-fonts-ready"
+			))) {
+				return;
+			}
+
+			await new Promise((resolve) => requestAnimationFrame(resolve));
+		}
+	}
+
+	function terminalParityEvidence() {
+		return (window.__EPUB_VRL_TERMINAL_COVERAGE_TRACE__ || [])
+			.filter((entry) => (
+				entry.event === "next:terminal-plan" ||
+				entry.event === "scroll:terminal-applied-offset"
+			))
+			.slice(-8);
+	}
+
 	function runnerSnapshot(rendition, snapshot) {
 		const view = rendition?.manager?.views?.first?.();
 		const contentWindow = view?.contents?.window;
@@ -161,6 +184,7 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 
 		result.manager.next();
 		await settle(rendition);
+		await waitForTerminalParityTrace();
 		const afterNextHref = result.manager.views.first().section.href;
 		const afterNextSnapshot = result.manager.getVerticalRlTerminalSemanticCoverageSnapshot();
 		const afterNextPageIndex = result.manager.getCurrentPageIndex();
@@ -171,6 +195,7 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 			runner: runnerSnapshot(rendition, result.snapshot),
 			beforeNext,
 			afterNextHref,
+			parityEvidence: terminalParityEvidence(),
 			traceEvents: (window.__EPUB_VRL_TERMINAL_COVERAGE_TRACE__ || []).map((entry) => entry.event),
 		}));
 
@@ -193,11 +218,17 @@ describe("vertical-rl terminal semantic coverage fixture", () => {
 
 		result.manager.next();
 		await settle(rendition);
+		await waitForTerminalParityTrace();
 
 		const continuationSnapshot = result.manager.getVerticalRlTerminalSemanticCoverageSnapshot();
 		const continuationPageIndex = result.manager.getCurrentPageIndex();
 		const continuationTotalPages = result.manager.getTotalPagesForCurrentView();
 		const continuationLocation = result.manager.currentLocation();
+		console.info("vertical-rl-terminal-planner-runtime-parity", JSON.stringify({
+			fixtureCase: "one-continuation-round-trip",
+			parityEvidence: terminalParityEvidence(),
+			freshUncoveredHashes: continuationSnapshot.coverage.uncoveredSemanticRects.map((rect) => rect.structureHash),
+		}));
 
 		expect(result.manager.views.first().section.href).toBe(terminalHref);
 		expect(continuationPageIndex).toBe(nominalTotalPages);

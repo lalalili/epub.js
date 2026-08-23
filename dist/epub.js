@@ -12983,7 +12983,7 @@
 				let candidateResult = evaluateTerminalCoveragePolicy("dynamic-terminal-continuation", candidatePlanOffsets, input, previousOffsets, tolerance);
 				let newlyOwned = [...getVerticalRlOwnedSemanticRectIdentities(semanticRects, [...previousOffsets, ...candidatePlanOffsets], contentWidth, visibleWidth, tolerance)].filter((identity) => !currentOwned.has(identity)).length;
 				if (newlyOwned < 1 || candidateResult.uncoveredSemanticRects.length >= currentResult.uncoveredSemanticRects.length || !candidateResult.previousToTerminalCoverageContinuity) continue;
-				if (!bestCandidate || candidateResult.uncoveredSemanticRects.length < bestCandidate.result.uncoveredSemanticRects.length || candidateResult.uncoveredSemanticRects.length === bestCandidate.result.uncoveredSemanticRects.length && (candidateOffset < bestCandidate.offset || newlyOwned > bestCandidate.newlyOwned)) bestCandidate = {
+				if (!bestCandidate || candidateResult.uncoveredSemanticRects.length < bestCandidate.result.uncoveredSemanticRects.length || candidateResult.uncoveredSemanticRects.length === bestCandidate.result.uncoveredSemanticRects.length && (newlyOwned > bestCandidate.newlyOwned || candidateOffset < bestCandidate.offset)) bestCandidate = {
 					offset: candidateOffset,
 					result: candidateResult,
 					newlyOwned
@@ -15602,7 +15602,7 @@
 		}
 		getVerticalRlTerminalContinuationPlan(snapshot) {
 			if (!snapshot || !snapshot.coverage.uncoveredSemanticRects.length || !snapshot.coverage.maxScrollHasRoom) return [];
-			return planVerticalRlTerminalContinuations({
+			let plan = planVerticalRlTerminalContinuations({
 				semanticRects: snapshot.semanticRects,
 				contentWidth: snapshot.contentWidth,
 				visibleWidth: snapshot.visibleWidth,
@@ -15614,7 +15614,29 @@
 				maxRightBoundary: snapshot.contentWidth - snapshot.currentLogicalOffset,
 				sequentialPageStep: snapshot.sequentialPageStep,
 				maxContinuationPages: 20
-			}).offsets;
+			});
+			let tolerance = .5;
+			let semanticHashes = snapshot.semanticRects.map((rect) => rect.structureHash);
+			let predictedUncoveredHashes = plan.coverage.uncoveredSemanticRects;
+			appendVerticalRlTerminalCoverageTrace("next:terminal-plan", {
+				inputCurrentOffset: snapshot.currentLogicalOffset,
+				previousOffsets: snapshot.previousOffsets,
+				plannedContinuationOffsets: plan.offsets,
+				selectedCandidateOffset: plan.offsets[0] ?? null,
+				plannerPredictedViewports: plan.viewports,
+				plannerPredictedUncoveredHashes: predictedUncoveredHashes,
+				plannerPredictedCoveredHashes: semanticHashes.filter((hash) => !predictedUncoveredHashes.includes(hash)),
+				offsetIntervals: snapshot.coverage.uncoveredSemanticRects.map((rect) => ({
+					structureHash: rect.structureHash,
+					left: rect.left,
+					right: rect.right,
+					minimumOffset: snapshot.contentWidth - snapshot.visibleWidth - rect.left - tolerance,
+					maximumOffset: snapshot.contentWidth - rect.right + tolerance,
+					plannedOffset: plan.offsets[0] ?? null,
+					plannedOffsetInsideInterval: Number.isFinite(plan.offsets[0]) ? plan.offsets[0] >= snapshot.contentWidth - snapshot.visibleWidth - rect.left - tolerance && plan.offsets[0] <= snapshot.contentWidth - rect.right + tolerance : false
+				}))
+			});
+			return plan.offsets;
 		}
 		getVerticalRlTerminalContinuationOffset(snapshot) {
 			return this.getVerticalRlTerminalContinuationPlan(snapshot)[0] ?? null;
@@ -15858,6 +15880,89 @@
 					this._verticalRlBoundarySnapApplying = false;
 				}
 			}
+			if (terminalSnapshot && isVerticalRlDebugEnabled()) {
+				let requestedLogicalOffset = logicalOffset;
+				let requestedPhysicalScrollLeft = left;
+				let beforeSemanticRects = terminalSnapshot.semanticRects.map((rect) => ({
+					structureHash: rect.structureHash,
+					category: rect.category,
+					left: rect.left,
+					right: rect.right,
+					top: rect.top,
+					bottom: rect.bottom
+				}));
+				let captureAppliedOffset = (stage) => {
+					let actualLogicalOffset = this.getNormalizedLogicalScrollLeft();
+					let freshSnapshot = this.getVerticalRlTerminalSemanticCoverageSnapshot();
+					let plannedViewport = getVerticalRlRawViewportForOffset(requestedLogicalOffset, terminalSnapshot.contentWidth, terminalSnapshot.visibleWidth);
+					let actualViewport = freshSnapshot?.currentRawViewport || null;
+					let tolerance = .5;
+					let freshUncoveredRects = freshSnapshot?.coverage.uncoveredSemanticRects || [];
+					appendVerticalRlTerminalCoverageTrace("scroll:terminal-applied-offset", {
+						stage,
+						requestedLogicalOffset,
+						requestedPhysicalScrollLeft,
+						containerScrollLeft: this.container?.scrollLeft ?? null,
+						actualLogicalOffset,
+						finalAppliedLogicalOffset: stage === "after-fonts-ready" ? actualLogicalOffset : null,
+						plannedVsAppliedOffsetDelta: actualLogicalOffset - requestedLogicalOffset,
+						plannedViewport,
+						actualRawViewport: actualViewport,
+						plannedVsActualViewportDelta: actualViewport ? {
+							left: actualViewport.left - plannedViewport.left,
+							right: actualViewport.right - plannedViewport.right
+						} : null,
+						beforeSemanticRects,
+						freshSemanticRectCount: freshSnapshot?.semanticRects.length ?? null,
+						freshSemanticStructureHashes: freshSnapshot?.semanticRects.map((rect) => rect.structureHash) || [],
+						freshSemanticRects: freshSnapshot?.semanticRects.map((rect) => ({
+							structureHash: rect.structureHash,
+							category: rect.category,
+							left: rect.left,
+							right: rect.right,
+							top: rect.top,
+							bottom: rect.bottom
+						})) || [],
+						freshUncoveredHashes: freshUncoveredRects.map((rect) => rect.structureHash),
+						freshUncoveredRects: freshUncoveredRects.map((rect) => ({
+							structureHash: rect.structureHash,
+							category: rect.category,
+							left: rect.left,
+							right: rect.right,
+							top: rect.top,
+							bottom: rect.bottom
+						})),
+						offsetIntervals: freshUncoveredRects.map((rect) => {
+							let minimumOffset = (freshSnapshot?.contentWidth || 0) - (freshSnapshot?.visibleWidth || 0) - rect.left - tolerance;
+							let maximumOffset = (freshSnapshot?.contentWidth || 0) - rect.right + tolerance;
+							return {
+								structureHash: rect.structureHash,
+								left: rect.left,
+								right: rect.right,
+								minimumOffset,
+								maximumOffset,
+								plannedOffset: requestedLogicalOffset,
+								appliedOffset: actualLogicalOffset,
+								plannedOffsetInsideInterval: requestedLogicalOffset >= minimumOffset && requestedLogicalOffset <= maximumOffset,
+								appliedOffsetInsideInterval: actualLogicalOffset >= minimumOffset && actualLogicalOffset <= maximumOffset
+							};
+						})
+					});
+				};
+				let nextFrame = (callback) => {
+					if (typeof requestAnimationFrame === "function") requestAnimationFrame(callback);
+					else setTimeout(callback, 0);
+				};
+				captureAppliedOffset("immediate");
+				nextFrame(() => {
+					captureAppliedOffset("after-one-raf");
+					nextFrame(() => {
+						captureAppliedOffset("after-two-raf");
+						let fontReady = preSyncView?.contents?.document?.fonts?.ready;
+						Promise.resolve(fontReady).then(() => captureAppliedOffset("after-fonts-ready"));
+					});
+				});
+			}
 			if (terminalSnapshot) appendVerticalRlTerminalCoverageTrace("scroll:terminal-snapped", this.getVerticalRlTerminalCoverageTraceDetail(targetIndex, terminalSnapshot, {
 				targetGridOffset: this.getLogicalOffsetForPageIndex(targetIndex, totalPages, maxScroll),
 				snappedOffset: logicalOffset,
@@ -16044,7 +16149,7 @@
 								snappedOffset: continuationOffset
 							}));
 						});
-						this.scrollToLogicalPage(pageIndex + continuationOffsets.length);
+						this.scrollToLogicalPage(pageIndex + 1);
 						return this.waitForVerticalRlLayoutReady();
 					}
 					if (terminalSnapshot && terminalSnapshot.coverage.uncoveredSemanticRects.length) return;
