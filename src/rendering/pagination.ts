@@ -11,10 +11,16 @@ export {
 	getCurrentPageIndexForOffset,
 	getLogicalOffsetForPageIndex,
 	getVerticalRlLogicalPageOffsetCacheKey,
-	getVerticalRlLogicalPageStepToNextPage
+	getVerticalRlLogicalPageStepToNextPage,
+	getVerticalRlRawViewportForOffset,
+	characterizeVerticalRlTerminalCoveragePolicies
 } from "./logical-page";
 export type {
-	VerticalRlLogicalPageOffsetCache
+	VerticalRlLogicalPageOffsetCache,
+	VerticalRlTerminalCoveragePolicy,
+	VerticalRlTerminalCoveragePolicyInput,
+	VerticalRlTerminalCoveragePolicyResult,
+	VerticalRlTerminalCoverageRect
 } from "./logical-page";
 
 export {
@@ -115,9 +121,14 @@ export {
 	getVerticalRlViewportRect,
 	getVerticalRlViewportRectCoordinates,
 	getVerticalRlViewportRects,
-	isVerticalRlBoundarySnapTextReady
+	isVerticalRlBoundarySnapTextReady,
+	collectVerticalRlSemanticRects,
+	getVerticalRlSemanticCoverage
 } from "./boundary-mask";
 export type {
+	VerticalRlSemanticCoverage,
+	VerticalRlSemanticRect,
+	VerticalRlSemanticRectCategory,
 	VerticalRlBoundarySnapCacheEntry,
 	VerticalRlBoundarySnapCacheLookup,
 	VerticalRlBoundaryConstrainedOffset,

@@ -23,6 +23,271 @@ export function getVerticalRlLogicalPageStepToNextPage(
 	return step > 0 ? step : advance;
 }
 
+export type VerticalRlTerminalCoveragePolicy =
+	| "current-exact-sequential"
+	| "sequential-max-only"
+	| "max-scroll"
+	| "dynamic-terminal-continuation";
+
+export type VerticalRlTerminalCoverageRect = {
+	left: number;
+	right: number;
+	structureHash?: string;
+};
+
+export type VerticalRlTerminalCoveragePolicyResult = {
+	policy: VerticalRlTerminalCoveragePolicy;
+	offsets: number[];
+	viewports: Array<{ left: number; right: number }>;
+	newlyCoveredSemanticRects: string[];
+	duplicateSemanticRects: string[];
+	uncoveredSemanticRects: string[];
+	gapIntervals: Array<{ left: number; right: number }>;
+	overlapIntervals: Array<{ left: number; right: number }>;
+	pageCountDelta: number;
+	targetMarkerVisibility: "fully-visible" | "partially-clipped" | "fully-outside" | "unsupported";
+	previousToTerminalCoverageContinuity: boolean;
+	usedUnconditionalMaxScroll: boolean;
+};
+
+export type VerticalRlTerminalCoveragePolicyInput = {
+	semanticRects: VerticalRlTerminalCoverageRect[];
+	contentWidth: number;
+	visibleWidth: number;
+	pageAdvance: number;
+	currentOffset: number;
+	maxScroll: number;
+	previousOffsets?: number[];
+	preferredOffset?: number;
+	maxRightBoundary?: number;
+	markerStructureHash?: string;
+	sequentialPageStep?: number;
+	maxContinuationPages?: number;
+	tolerance?: number;
+};
+
+export function getVerticalRlRawViewportForOffset(
+	logicalOffset: number,
+	contentWidth: number,
+	visibleWidth: number
+): { left: number; right: number } {
+	let content = Math.max(0, Number(contentWidth) || 0);
+	let visible = Math.max(0, Number(visibleWidth) || 0);
+	let offset = Math.max(0, Math.min(Math.max(0, content - visible), Number(logicalOffset) || 0));
+	let right = content - offset;
+
+	return {
+		left: Math.max(0, right - visible),
+		right
+	};
+}
+
+const terminalRectIdentity = (rect: VerticalRlTerminalCoverageRect, index: number): string => (
+	rect.structureHash || `${index}:${rect.left}:${rect.right}`
+);
+
+const terminalRectFullyInside = (
+	rect: VerticalRlTerminalCoverageRect,
+	viewport: { left: number; right: number },
+	tolerance: number
+): boolean => rect.left >= viewport.left - tolerance && rect.right <= viewport.right + tolerance;
+
+const terminalRectIntersects = (
+	rect: VerticalRlTerminalCoverageRect,
+	viewport: { left: number; right: number },
+	tolerance: number
+): boolean => rect.right > viewport.left + tolerance && rect.left < viewport.right - tolerance;
+
+const terminalIntervalRelationships = (
+	viewports: Array<{ left: number; right: number }>,
+	tolerance: number
+): { gaps: Array<{ left: number; right: number }>; overlaps: Array<{ left: number; right: number }> } => {
+	let sorted = [...viewports]
+		.sort((a, b) => a.left - b.left)
+		.filter((viewport) => viewport.right >= viewport.left);
+	let gaps: Array<{ left: number; right: number }> = [];
+	let overlaps: Array<{ left: number; right: number }> = [];
+
+	for (let index = 1; index < sorted.length; index += 1) {
+		let previous = sorted[index - 1];
+		let current = sorted[index];
+
+		if (current.left > previous.right + tolerance) {
+			gaps.push({ left: previous.right, right: current.left });
+		} else if (current.left < previous.right - tolerance) {
+			overlaps.push({ left: current.left, right: Math.min(previous.right, current.right) });
+		}
+	}
+
+	return { gaps, overlaps };
+};
+
+const evaluateTerminalCoveragePolicy = (
+	policy: VerticalRlTerminalCoveragePolicy,
+	offsets: number[],
+	input: VerticalRlTerminalCoveragePolicyInput,
+	previousOffsets: number[],
+	tolerance: number
+): VerticalRlTerminalCoveragePolicyResult => {
+	let allOffsets = [...previousOffsets, ...offsets];
+	let allViewports = allOffsets.map((offset) => getVerticalRlRawViewportForOffset(
+		offset,
+		input.contentWidth,
+		input.visibleWidth
+	));
+	let viewports = offsets.map((offset) => getVerticalRlRawViewportForOffset(
+		offset,
+		input.contentWidth,
+		input.visibleWidth
+	));
+	let newlyCoveredSemanticRects: string[] = [];
+	let duplicateSemanticRects: string[] = [];
+	let uncoveredSemanticRects: string[] = [];
+
+	input.semanticRects.forEach((rect, index) => {
+		let identity = terminalRectIdentity(rect, index);
+		let owningViewports = allViewports.filter((viewport) => terminalRectFullyInside(rect, viewport, tolerance));
+
+		if (!owningViewports.length) {
+			uncoveredSemanticRects.push(identity);
+			return;
+		}
+
+		if (owningViewports.length > 1) {
+			duplicateSemanticRects.push(identity);
+		} else {
+			newlyCoveredSemanticRects.push(identity);
+		}
+	});
+
+	let marker = input.markerStructureHash
+		? input.semanticRects.find((rect, index) => terminalRectIdentity(rect, index) === input.markerStructureHash)
+		: null;
+	let markerVisibility: VerticalRlTerminalCoveragePolicyResult["targetMarkerVisibility"] = "unsupported";
+	if (marker) {
+		let hasFull = viewports.some((viewport) => terminalRectFullyInside(marker, viewport, tolerance));
+		let hasPartial = viewports.some((viewport) => terminalRectIntersects(marker, viewport, tolerance));
+		markerVisibility = hasFull ? "fully-visible" : hasPartial ? "partially-clipped" : "fully-outside";
+	}
+
+	let relationships = terminalIntervalRelationships(allViewports, tolerance);
+	let previousOffset = offsets.length > 1
+		? offsets[offsets.length - 2]
+		: previousOffsets[previousOffsets.length - 1];
+	let previousViewport = Number.isFinite(previousOffset)
+		? getVerticalRlRawViewportForOffset(previousOffset, input.contentWidth, input.visibleWidth)
+		: null;
+	let terminalViewport = viewports[viewports.length - 1] || null;
+	let previousToTerminalCoverageContinuity = !previousViewport || !terminalViewport
+		? true
+		: terminalViewport.right >= previousViewport.left - tolerance &&
+			previousViewport.right >= terminalViewport.left - tolerance;
+
+	return {
+		policy,
+		offsets,
+		viewports,
+		newlyCoveredSemanticRects,
+		duplicateSemanticRects,
+		uncoveredSemanticRects,
+		gapIntervals: relationships.gaps,
+		overlapIntervals: relationships.overlaps,
+		pageCountDelta: Math.max(0, offsets.length - 1),
+		targetMarkerVisibility: markerVisibility,
+		previousToTerminalCoverageContinuity,
+		usedUnconditionalMaxScroll: policy === "max-scroll"
+	};
+};
+
+export function characterizeVerticalRlTerminalCoveragePolicies(
+	input: VerticalRlTerminalCoveragePolicyInput
+): Record<VerticalRlTerminalCoveragePolicy, VerticalRlTerminalCoveragePolicyResult> {
+	let tolerance = Math.max(0, Number(input.tolerance) || 0.5);
+	let currentOffset = Math.max(0, Number(input.currentOffset) || 0);
+	let maxScroll = Math.max(currentOffset, Number(input.maxScroll) || 0);
+	let previousOffsets = Array.isArray(input.previousOffsets) ? input.previousOffsets : [];
+	let preferredOffset = Number.isFinite(Number(input.preferredOffset))
+		? Math.max(0, Math.min(maxScroll, Number(input.preferredOffset)))
+		: currentOffset;
+	let maxOnlyOffset = Number.isFinite(Number(input.maxRightBoundary))
+		? Math.max(0, Math.min(maxScroll, Number(input.contentWidth) - Number(input.maxRightBoundary)))
+		: currentOffset;
+	let maxContinuationPages = Math.max(1, Math.min(20, Number(input.maxContinuationPages) || 8));
+	let dynamicOffsets: number[] = [];
+	let dynamicCurrentOffset = currentOffset;
+	let sequentialPageStep = Number.isFinite(Number(input.sequentialPageStep)) && Number(input.sequentialPageStep) > 0
+		? Number(input.sequentialPageStep)
+		: Number(input.pageAdvance) || 1;
+
+	for (let attempt = 0; attempt < maxContinuationPages; attempt += 1) {
+		let result = evaluateTerminalCoveragePolicy(
+			"dynamic-terminal-continuation",
+			[...dynamicOffsets, dynamicCurrentOffset],
+			input,
+			previousOffsets,
+			tolerance
+		);
+
+		if (!result.uncoveredSemanticRects.length) {
+			break;
+		}
+
+		let uncovered = input.semanticRects.filter((rect, index) => (
+			result.uncoveredSemanticRects.includes(terminalRectIdentity(rect, index))
+		));
+		let currentViewport = getVerticalRlRawViewportForOffset(
+			dynamicCurrentOffset,
+			input.contentWidth,
+			input.visibleWidth
+		);
+		let nearestUncovered = uncovered.length
+			? Math.max(...uncovered.map((rect) => rect.left))
+			: currentViewport.left;
+		let requiredShift = Math.max(1, currentViewport.left - nearestUncovered + tolerance);
+		let nextOffset = Math.min(maxScroll, dynamicCurrentOffset + Math.max(requiredShift, sequentialPageStep));
+
+		if (nextOffset <= dynamicCurrentOffset + tolerance) {
+			break;
+		}
+
+		dynamicOffsets.push(dynamicCurrentOffset);
+		dynamicCurrentOffset = nextOffset;
+	}
+
+	let dynamicResult = evaluateTerminalCoveragePolicy(
+		"dynamic-terminal-continuation",
+		dynamicOffsets.length ? [...dynamicOffsets, dynamicCurrentOffset] : [currentOffset],
+		input,
+		previousOffsets,
+		tolerance
+	);
+
+	return {
+		"current-exact-sequential": evaluateTerminalCoveragePolicy(
+			"current-exact-sequential",
+			[preferredOffset],
+			input,
+			previousOffsets,
+			tolerance
+		),
+		"sequential-max-only": evaluateTerminalCoveragePolicy(
+			"sequential-max-only",
+			[maxOnlyOffset],
+			input,
+			previousOffsets,
+			tolerance
+		),
+		"max-scroll": evaluateTerminalCoveragePolicy(
+			"max-scroll",
+			[maxScroll],
+			input,
+			previousOffsets,
+			tolerance
+		),
+		"dynamic-terminal-continuation": dynamicResult
+	};
+}
+
 export function getVerticalRlLogicalPageOffsetCacheKey(
 	totalPages: number,
 	maxScroll: number,

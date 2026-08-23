@@ -6,6 +6,8 @@ import {
 	getLogicalOffsetForPageIndex,
 	getVerticalRlLogicalPageOffsetCacheKey,
 	getVerticalRlLogicalPageStepToNextPage,
+	characterizeVerticalRlTerminalCoveragePolicies,
+	getVerticalRlRawViewportForOffset,
 } from "../../src/rendering/logical-page";
 
 // Characterization tests for the pure vertical-RL logical-page helpers (page step, offset cache and
@@ -26,6 +28,69 @@ describe("logical-page: getVerticalRlLogicalPageStepToNextPage", () => {
 		expect(getVerticalRlLogicalPageStepToNextPage(100, 5, 3, 4, 0, 150, true)).toBe(100);
 		// same inputs without the gutter keep the raw delta
 		expect(getVerticalRlLogicalPageStepToNextPage(100, 5, 3, 4, 0, 150, false)).toBe(150);
+	});
+});
+
+describe("logical-page: terminal semantic coverage policies", () => {
+	const baseInput = {
+		contentWidth: 1000,
+		visibleWidth: 100,
+		pageAdvance: 100,
+		currentOffset: 300,
+		maxScroll: 900,
+		previousOffsets: [0, 100, 200],
+		preferredOffset: 300,
+		maxRightBoundary: 600,
+	};
+
+	it("keeps the current exact boundary as a baseline and moves a real uncovered rect by continuation", () => {
+		const semanticRects = [
+			{ left: 590, right: 600, structureHash: "marker" },
+		];
+		const policies = characterizeVerticalRlTerminalCoveragePolicies({
+			...baseInput,
+			semanticRects,
+			markerStructureHash: "marker",
+		});
+
+		expect(getVerticalRlRawViewportForOffset(300, 1000, 100)).toEqual({ left: 600, right: 700 });
+		expect(policies["current-exact-sequential"].uncoveredSemanticRects).toEqual(["marker"]);
+		expect(policies["dynamic-terminal-continuation"].pageCountDelta).toBe(1);
+		expect(policies["dynamic-terminal-continuation"].targetMarkerVisibility).toBe("fully-visible");
+	});
+
+	it("models one and two continuation pages without using unconditional maxScroll", () => {
+		const onePage = characterizeVerticalRlTerminalCoveragePolicies({
+			...baseInput,
+			semanticRects: [{ left: 590, right: 600, structureHash: "one" }],
+			markerStructureHash: "one",
+		});
+		const twoPages = characterizeVerticalRlTerminalCoveragePolicies({
+			...baseInput,
+			semanticRects: [
+				{ left: 590, right: 600, structureHash: "two-a" },
+				{ left: 480, right: 490, structureHash: "two-b" },
+			],
+			markerStructureHash: "two-b",
+		});
+
+		expect(onePage["dynamic-terminal-continuation"].pageCountDelta).toBe(1);
+		expect(onePage["dynamic-terminal-continuation"].uncoveredSemanticRects).toEqual([]);
+		expect(twoPages["dynamic-terminal-continuation"].pageCountDelta).toBe(2);
+		expect(twoPages["dynamic-terminal-continuation"].uncoveredSemanticRects).toEqual([]);
+		expect(twoPages["dynamic-terminal-continuation"].usedUnconditionalMaxScroll).toBe(false);
+		expect(twoPages["dynamic-terminal-continuation"].previousToTerminalCoverageContinuity).toBe(true);
+	});
+
+	it("does not create a continuation when all semantic rects are already owned", () => {
+		const policies = characterizeVerticalRlTerminalCoveragePolicies({
+			...baseInput,
+			semanticRects: [{ left: 620, right: 630, structureHash: "owned" }],
+			markerStructureHash: "owned",
+		});
+
+		expect(policies["dynamic-terminal-continuation"].pageCountDelta).toBe(0);
+		expect(policies["dynamic-terminal-continuation"].uncoveredSemanticRects).toEqual([]);
 	});
 });
 

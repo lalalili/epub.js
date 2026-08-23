@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "fixture": "vertical-rl-terminal",
+  "source": "self-authored browser fixture",
+  "contentRetention": "structure-and-geometry-only",
+  "policies": [
+    "current-exact-sequential",
+    "sequential-max-only",
+    "max-scroll",
+    "dynamic-terminal-continuation"
+  ],
+  "cases": {
+    "one-continuation": {
+      "baseline": {
+        "nominalFinalPageReached": true,
+        "semanticContentRemaining": true,
+        "targetMarkerDisposition": "partially-clipped",
+        "nextAction": "next-spine"
+      },
+      "dynamicContinuation": {
+        "requiredPages": 1,
+        "unconditionalMaxScroll": false,
+        "semanticGap": false,
+        "controlPageCountChange": false
+      }
+    },
+    "two-continuations": {
+      "baseline": {
+        "nominalFinalPageReached": true,
+        "semanticContentRemaining": true,
+        "targetMarkerDisposition": "partially-clipped"
+      },
+      "dynamicContinuation": {
+        "requiredPages": 2,
+        "fixtureSequentialStepPx": 20,
+        "unconditionalMaxScroll": false,
+        "semanticGap": false,
+        "controlPageCountChange": false
+      }
+    },
+    "control": {
+      "baseline": {
+        "nominalFinalPageReached": true,
+        "semanticContentRemaining": false,
+        "targetMarkerDisposition": "fully-visible"
+      },
+      "dynamicContinuation": {
+        "requiredPages": 0,
+        "unconditionalMaxScroll": false,
+        "semanticGap": false,
+        "controlPageCountChange": false
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="fixture-id">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:identifier id="fixture-id">urn:uuid:vertical-rl-terminal-coverage-fixture</dc:identifier>
+    <dc:title>Vertical RL Terminal Coverage Fixture</dc:title>
+    <dc:language>en</dc:language>
+  </metadata>
+  <manifest>
+    <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav" />
+    <item id="stylesheet" href="css/vertical-rl-terminal.css" media-type="text/css" />
+    <item id="one" href="terminal-one.xhtml" media-type="application/xhtml+xml" />
+    <item id="two" href="terminal-two.xhtml" media-type="application/xhtml+xml" />
+    <item id="control" href="terminal-control.xhtml" media-type="application/xhtml+xml" />
+    <item id="next" href="next.xhtml" media-type="application/xhtml+xml" />
+  </manifest>
+  <spine>
+    <itemref idref="one" />
+    <itemref idref="two" />
+    <itemref idref="control" />
+    <itemref idref="next" />
+  </spine>
+</package>

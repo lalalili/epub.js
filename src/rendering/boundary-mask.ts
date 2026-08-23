@@ -100,6 +100,255 @@ export type VerticalRlBoundarySnapPreflight = {
 	shouldMeasureText: boolean;
 };
 
+export type VerticalRlSemanticRectCategory =
+	| "text"
+	| "atomic-inline"
+	| "ruby"
+	| "tcy"
+	| "footnote-marker"
+	| "other";
+
+export type VerticalRlSemanticRect = VerticalRlClientRect & {
+	category: VerticalRlSemanticRectCategory;
+	structureHash: string;
+};
+
+export type VerticalRlSemanticCoverage = {
+	semanticRectCount: number;
+	leftmostSemanticRect: VerticalRlSemanticRect | null;
+	rightmostSemanticRect: VerticalRlSemanticRect | null;
+	fullyInsideCurrentRawViewportCount: number;
+	partiallyClippedCurrentRawViewportCount: number;
+	fullyBeforeCurrentRawLeftBoundaryCount: number;
+	coveredByPreviousRawViewportsCount: number;
+	uncoveredSemanticRectCount: number;
+	uncoveredSemanticRects: VerticalRlSemanticRect[];
+	uncoveredSemanticSpan: { left: number; right: number } | null;
+	semanticContentRemainingBeforeCurrentPage: boolean;
+	maxScrollHasRoom: boolean;
+};
+
+const verticalRlSemanticHash = (value: string): string => {
+	let hash = 2166136261;
+
+	for (let index = 0; index < value.length; index += 1) {
+		hash ^= value.charCodeAt(index);
+		hash = Math.imul(hash, 16777619);
+	}
+
+	return (hash >>> 0).toString(16).padStart(8, "0");
+};
+
+const verticalRlSemanticElementPath = (element: Element): string => {
+	let parts: string[] = [];
+	let current: Element | null = element;
+
+	while (current && parts.length < 32) {
+		let parent = current.parentElement;
+		let siblingIndex = parent
+			? Array.prototype.indexOf.call(parent.children, current)
+			: 0;
+		parts.unshift(`${current.tagName.toLowerCase()}:${siblingIndex}`);
+		current = parent;
+	}
+
+	return parts.join("/");
+};
+
+const verticalRlSemanticElementCategory = (
+	element: Element,
+	style: CSSStyleDeclaration | null
+): VerticalRlSemanticRectCategory => {
+	let tagName = element.tagName.toLowerCase();
+	let className = typeof element.getAttribute === "function"
+		? element.getAttribute("class") || ""
+		: "";
+	let epubType = typeof element.getAttribute === "function"
+		? element.getAttribute("epub:type") || ""
+		: "";
+	let categoryInput = `${tagName} ${className} ${epubType}`.toLowerCase();
+
+	if (categoryInput.includes("tcy") || tagName === "tcy") {
+		return "tcy";
+	}
+
+	if (tagName === "ruby" || tagName === "rt" || tagName === "rtc") {
+		return "ruby";
+	}
+
+	if (/(^|[\s:-])(footnote|noteref|endnote)(?:$|[\s:-])/.test(categoryInput)) {
+		return "footnote-marker";
+	}
+
+	if (style && ["inline-block", "inline-flex", "inline-grid", "table-cell"].includes(style.display)) {
+		return "atomic-inline";
+	}
+
+	return tagName === "span" || tagName === "a" ? "text" : "other";
+};
+
+const isVerticalRlSemanticElementIgnored = (
+	element: Element | null,
+	win: Window,
+	root: HTMLElement
+): boolean => {
+	let current = element;
+
+	while (current && current !== root) {
+		let tagName = current.tagName.toLowerCase();
+		if (tagName === "script" || tagName === "style" || current.getAttribute("aria-hidden") === "true") {
+			return true;
+		}
+
+		let role = current.getAttribute("role");
+		if (role === "presentation" || role === "none") {
+			return true;
+		}
+
+		let style = win.getComputedStyle(current);
+		if (style.display === "none" || style.visibility === "hidden") {
+			return true;
+		}
+
+		current = current.parentElement;
+	}
+
+	return !root.isConnected;
+};
+
+export function collectVerticalRlSemanticRects(
+	doc: Document | null | undefined,
+	win: Window | null | undefined,
+	root: HTMLElement | null | undefined,
+	options: { limit?: number } = {}
+): VerticalRlSemanticRect[] | null {
+	if (!doc || !win || !root || typeof doc.createTreeWalker !== "function" || !root.isConnected) {
+		return null;
+	}
+
+	let limit = Math.max(1, Number(options.limit) || 4000);
+	let walker = doc.createTreeWalker(root, 4);
+	let rects: VerticalRlSemanticRect[] = [];
+	let node: Node | null;
+
+	while ((node = walker.nextNode()) && rects.length < limit) {
+		if (node.nodeType !== 3 || !root.contains(node)) {
+			continue;
+		}
+
+		let element = node.parentElement;
+		if (!element || isVerticalRlSemanticElementIgnored(element, win, root)) {
+			continue;
+		}
+
+		let text = String(node.nodeValue || "").replace(/\s+/g, "");
+		if (!text) {
+			continue;
+		}
+
+		let range = doc.createRange();
+		range.selectNodeContents(node);
+		let style = win.getComputedStyle(element);
+		let category = verticalRlSemanticElementCategory(element, style);
+		let structurePath = verticalRlSemanticElementPath(element);
+
+		for (let [rectIndex, rect] of (Array.from(range.getClientRects()) as DOMRect[]).entries()) {
+			if (!(rect.width > 0 && rect.height > 0)) {
+				continue;
+			}
+
+			let structureHash = verticalRlSemanticHash(`${structurePath}:${rectIndex}`);
+
+			rects.push({
+				left: rect.left,
+				right: rect.right,
+				top: rect.top,
+				bottom: rect.bottom,
+				width: rect.width,
+				height: rect.height,
+				category,
+				structureHash
+			});
+
+			if (rects.length >= limit) {
+				break;
+			}
+		}
+
+		if (range.detach) {
+			range.detach();
+		}
+	}
+
+	return rects;
+}
+
+const verticalRlRectFullyInside = (
+	rect: VerticalRlSemanticRect,
+	viewport: { left: number; right: number },
+	tolerance: number
+): boolean => rect.left >= viewport.left - tolerance && rect.right <= viewport.right + tolerance;
+
+const verticalRlRectIntersects = (
+	rect: VerticalRlSemanticRect,
+	viewport: { left: number; right: number },
+	tolerance: number
+): boolean => rect.right > viewport.left + tolerance && rect.left < viewport.right - tolerance;
+
+export function getVerticalRlSemanticCoverage(
+	rects: VerticalRlSemanticRect[] | null | undefined,
+	currentRawViewport: { left: number; right: number },
+	previousRawViewports: Array<{ left: number; right: number }> = [],
+	options: { tolerance?: number; maxScrollHasRoom?: boolean } = {}
+): VerticalRlSemanticCoverage {
+	let tolerance = Math.max(0, Number(options.tolerance) || 0.5);
+	let semanticRects = (rects || []).filter((rect) => (
+		Number.isFinite(rect.left) &&
+		Number.isFinite(rect.right) &&
+		rect.right >= rect.left &&
+		rect.right > 0
+	));
+	let fullyInsideCurrentRawViewportCount = semanticRects.filter((rect) => (
+		verticalRlRectFullyInside(rect, currentRawViewport, tolerance)
+	)).length;
+	let partiallyClippedCurrentRawViewportCount = semanticRects.filter((rect) => (
+		verticalRlRectIntersects(rect, currentRawViewport, tolerance) &&
+		!verticalRlRectFullyInside(rect, currentRawViewport, tolerance)
+	)).length;
+	let fullyBeforeCurrentRawLeftBoundaryCount = semanticRects.filter((rect) => (
+		rect.right <= currentRawViewport.left + tolerance
+	)).length;
+	let coveredByPreviousRawViewportsCount = semanticRects.filter((rect) => (
+		previousRawViewports.some((viewport) => verticalRlRectFullyInside(rect, viewport, tolerance))
+	)).length;
+	let uncoveredSemanticRects = semanticRects.filter((rect) => (
+		!previousRawViewports.some((viewport) => verticalRlRectFullyInside(rect, viewport, tolerance)) &&
+		!verticalRlRectFullyInside(rect, currentRawViewport, tolerance)
+	));
+	let sorted = [...semanticRects].sort((a, b) => a.left - b.left || a.right - b.right);
+	let uncoveredSorted = [...uncoveredSemanticRects].sort((a, b) => a.left - b.left || a.right - b.right);
+
+	return {
+		semanticRectCount: semanticRects.length,
+		leftmostSemanticRect: sorted[0] || null,
+		rightmostSemanticRect: sorted[sorted.length - 1] || null,
+		fullyInsideCurrentRawViewportCount,
+		partiallyClippedCurrentRawViewportCount,
+		fullyBeforeCurrentRawLeftBoundaryCount,
+		coveredByPreviousRawViewportsCount,
+		uncoveredSemanticRectCount: uncoveredSemanticRects.length,
+		uncoveredSemanticRects,
+		uncoveredSemanticSpan: uncoveredSorted.length
+			? {
+				left: Math.min(...uncoveredSorted.map((rect) => rect.left)),
+				right: Math.max(...uncoveredSorted.map((rect) => rect.right))
+			}
+			: null,
+		semanticContentRemainingBeforeCurrentPage: uncoveredSemanticRects.length > 0,
+		maxScrollHasRoom: options.maxScrollHasRoom !== false
+	};
+}
+
 export function getVerticalRlCurrentEffectiveLeftBoundary(
 	contentWidth: number,
 	currentOffset: number,

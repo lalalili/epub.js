@@ -1,0 +1,80 @@
+html,
+body {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	min-height: 100%;
+	font-family: monospace;
+	font-size: 16px;
+	line-height: 20px;
+	direction: ltr;
+	writing-mode: vertical-rl;
+}
+
+body {
+	box-sizing: border-box;
+	background: #fff;
+}
+
+main {
+	box-sizing: border-box;
+	padding: 8px;
+}
+
+h1,
+p,
+ul,
+ol,
+aside {
+	margin: 0 0 16px;
+}
+
+.fixture-copy {
+	letter-spacing: 0;
+}
+
+.terminal-marker-group {
+	white-space: nowrap;
+}
+
+.terminal-marker-group[data-case="boundary"] {
+	position: relative;
+	left: -160px;
+}
+
+.terminal-marker-group[data-case="continuation-two-first"] {
+	position: absolute;
+	left: 31px;
+	top: 100px;
+}
+
+.terminal-marker-group[data-case="continuation-two-second"] {
+	position: absolute;
+	left: 11px;
+	top: 140px;
+}
+
+.terminal-marker-group[data-case="control"] {
+	position: relative;
+	left: -80px;
+}
+
+.terminal-marker {
+	display: inline-block;
+	font-family: monospace;
+	font-size: 16px;
+	line-height: 20px;
+}
+
+.tcy {
+	display: inline-block;
+	font-variant-east-asian: tcy;
+}
+
+.footnote-marker {
+	display: inline-block;
+}
+
+.hidden-semantic {
+	display: none;
+}

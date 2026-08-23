@@ -4,7 +4,8 @@ const fixtureUrls = {
 	"alice.epub": new URL("../../fixtures/alice.epub", import.meta.url).toString(),
 	"alice/OPS/images/cover_th.jpg": new URL("../../fixtures/alice/OPS/images/cover_th.jpg", import.meta.url).toString(),
 	"alice/OPS/package.opf": new URL("../../fixtures/alice/OPS/package.opf", import.meta.url).toString(),
-	"alice_without_cover.epub": new URL("../../fixtures/alice_without_cover.epub", import.meta.url).toString()
+	"alice_without_cover.epub": new URL("../../fixtures/alice_without_cover.epub", import.meta.url).toString(),
+	"vertical-rl-terminal/OPS/package.opf": new URL("../../fixtures/vertical-rl-terminal/OPS/package.opf", import.meta.url).toString()
 };
 
 export function fixtureUrl(path) {

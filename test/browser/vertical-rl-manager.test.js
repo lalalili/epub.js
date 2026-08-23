@@ -1901,6 +1901,110 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(capturedOptions.sequentialRightBoundary, 7767.45458984375);
 	});
 
+	it("creates a continuation page before leaving a nominal terminal page with uncovered semantics", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let capturedPageIndex = null;
+		let appended = false;
+		let continuationOffsets = [];
+		let nextSection = {
+			properties: [],
+			href: "next.xhtml"
+		};
+
+		manager.views = {
+			length: 1,
+			first: function() {
+				return {
+					section: {
+						next: function() {
+							return nextSection;
+						},
+						prev: function() {
+							return null;
+						}
+					}
+				};
+			},
+			last: function() {
+				return this.first();
+			}
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			writingMode: "vertical-rl"
+		};
+		manager.isRtlVerticalPaginated = function() {
+			return true;
+		};
+		manager.getCurrentPageIndex = function() {
+			return 2;
+		};
+		manager.getNominalTotalPagesForCurrentView = function() {
+			return 3;
+		};
+		manager.getTotalPagesForCurrentView = function() {
+			return 3 + continuationOffsets.length;
+		};
+		manager.getMaxLogicalScrollLeft = function() {
+			return 900;
+		};
+		manager.getVerticalRlTerminalSemanticCoverageSnapshot = function() {
+			return {
+				coverage: {
+					uncoveredSemanticRects: [{ left: 20, right: 30 }]
+				},
+				currentPageIndex: 2,
+				totalPages: 3,
+				currentLogicalOffset: 600,
+				maxLogicalScroll: 900,
+				contentWidth: 1000,
+				visibleWidth: 100,
+				pageAdvance: 100,
+				sequentialPageStep: 80,
+				currentRawViewport: { left: 100, right: 200 },
+				effectiveRawViewport: { left: 100, right: 200 },
+				currentMasks: { left: 0, right: 0 },
+				currentEffectiveLeftBoundary: 100,
+				previousOffsets: [],
+				previousRawViewports: [],
+				semanticRects: [],
+				policies: {}
+			};
+		};
+		manager.getVerticalRlTerminalContinuationOffset = function() {
+			return 680;
+		};
+		manager.addVerticalRlTerminalContinuationOffset = function(offset) {
+			continuationOffsets.push(offset);
+		};
+		manager.scrollToLogicalPage = function(pageIndex) {
+			capturedPageIndex = pageIndex;
+		};
+
+		manager.next();
+
+		assert.equal(capturedPageIndex, 3);
+		assert.deepEqual(continuationOffsets, [680]);
+		assert.equal(appended, false);
+	});
+
+	it("uses a continuation offset as the composite logical locator", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		manager.isRtlVerticalPaginated = function() {
+			return true;
+		};
+		manager.getNominalTotalPagesForCurrentView = function() {
+			return 3;
+		};
+		manager.getLogicalOffsetForPageIndex = function() {
+			return 300;
+		};
+		manager._verticalRlTerminalContinuationOffsets = [680];
+
+		assert.equal(manager.getVerticalRlPageOffset(3, 4, 900), 680);
+	});
+
 	it("ignores cached logical offsets when moving to the previous horizontal paginated page", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let capturedPageIndex = null;
