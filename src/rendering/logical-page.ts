@@ -255,6 +255,16 @@ export type VerticalRlTerminalContinuationPlan = {
 	coverage: VerticalRlTerminalCoveragePolicyResult;
 };
 
+export type VerticalRlContinuationReplacementResult = {
+	safeToReplace: boolean;
+	lostOwnedSemanticHashes: string[];
+	createdSemanticGapIntervals: Array<{ left: number; right: number }>;
+	coverageBefore: VerticalRlTerminalCoveragePolicyResult;
+	coverageAfter: VerticalRlTerminalCoveragePolicyResult;
+	continuityBefore: boolean;
+	continuityAfter: boolean;
+};
+
 const verticalRlTerminalRectIdentity = (
 	rect: VerticalRlTerminalCoverageRect,
 	index: number
@@ -282,6 +292,68 @@ const getVerticalRlOwnedSemanticRectIdentities = (
 
 	return owned;
 };
+
+export function evaluateVerticalRlContinuationReplacement(
+	input: VerticalRlTerminalCoveragePolicyInput,
+	currentOffset: number,
+	replacementOffset: number
+): VerticalRlContinuationReplacementResult {
+	let tolerance = Math.max(0, Number(input.tolerance) || 0.5);
+	let previousOffsets = Array.isArray(input.previousOffsets) ? input.previousOffsets : [];
+	let coverageBefore = evaluateTerminalCoveragePolicy(
+		"dynamic-terminal-continuation",
+		[currentOffset],
+		input,
+		previousOffsets,
+		tolerance
+	);
+	let coverageAfter = evaluateTerminalCoveragePolicy(
+		"dynamic-terminal-continuation",
+		[replacementOffset],
+		input,
+		previousOffsets,
+		tolerance
+	);
+	let ownedBefore = getVerticalRlOwnedSemanticRectIdentities(
+		input.semanticRects,
+		[...previousOffsets, currentOffset],
+		input.contentWidth,
+		input.visibleWidth,
+		tolerance
+	);
+	let ownedAfter = getVerticalRlOwnedSemanticRectIdentities(
+		input.semanticRects,
+		[...previousOffsets, replacementOffset],
+		input.contentWidth,
+		input.visibleWidth,
+		tolerance
+	);
+	let lostOwnedSemanticHashes = [...ownedBefore].filter((identity) => !ownedAfter.has(identity));
+	let beforeGapKeys = new Set(coverageBefore.semanticGapIntervals.map((gap) => `${gap.left}:${gap.right}`));
+	let createdSemanticGapIntervals = coverageAfter.semanticGapIntervals.filter(
+		(gap) => !beforeGapKeys.has(`${gap.left}:${gap.right}`)
+	);
+	let continuityBefore = coverageBefore.previousToTerminalCoverageContinuity;
+	let continuityAfter = coverageAfter.previousToTerminalCoverageContinuity;
+	let safeToReplace =
+		Number.isFinite(replacementOffset) &&
+		replacementOffset >= currentOffset &&
+		replacementOffset <= input.maxScroll &&
+		lostOwnedSemanticHashes.length === 0 &&
+		createdSemanticGapIntervals.length === 0 &&
+		coverageAfter.uncoveredSemanticRects.length <= coverageBefore.uncoveredSemanticRects.length &&
+		continuityAfter;
+
+	return {
+		safeToReplace,
+		lostOwnedSemanticHashes,
+		createdSemanticGapIntervals,
+		coverageBefore,
+		coverageAfter,
+		continuityBefore,
+		continuityAfter
+	};
+}
 
 export function planVerticalRlTerminalContinuations(
 	input: VerticalRlTerminalCoveragePolicyInput

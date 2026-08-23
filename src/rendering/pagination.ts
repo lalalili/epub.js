@@ -15,6 +15,7 @@ export {
 	getVerticalRlRawViewportForOffset,
 	getVerticalRlSafeTerminalContinuationOffset,
 	getVerticalRlTerminalRectOffsetInterval,
+	evaluateVerticalRlContinuationReplacement,
 	planVerticalRlTerminalContinuations,
 	characterizeVerticalRlTerminalCoveragePolicies
 } from "./logical-page";
@@ -25,7 +26,8 @@ export type {
 	VerticalRlTerminalCoveragePolicyResult,
 	VerticalRlTerminalCoverageRect,
 	VerticalRlTerminalRectOffsetInterval,
-	VerticalRlTerminalContinuationPlan
+	VerticalRlTerminalContinuationPlan,
+	VerticalRlContinuationReplacementResult
 } from "./logical-page";
 
 export {

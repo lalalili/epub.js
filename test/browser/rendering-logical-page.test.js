@@ -8,6 +8,7 @@ import {
 	getVerticalRlLogicalPageStepToNextPage,
 	getVerticalRlSafeTerminalContinuationOffset,
 	getVerticalRlTerminalRectOffsetInterval,
+	evaluateVerticalRlContinuationReplacement,
 	planVerticalRlTerminalContinuations,
 	characterizeVerticalRlTerminalCoveragePolicies,
 	getVerticalRlRawViewportForOffset,
@@ -193,6 +194,92 @@ describe("logical-page: terminal semantic coverage policies", () => {
 			767,
 			774,
 		)).toBeNull();
+	});
+
+	it("rejects replacing a continuation when the replacement creates a semantic gap", () => {
+		const input = {
+			contentWidth: 23654,
+			visibleWidth: 369.59375,
+			pageAdvance: 369.59375,
+			currentOffset: 23027,
+			maxScroll: 23284,
+			previousOffsets: [22397, 22696],
+			semanticRects: [
+				{ left: 829.6875, right: 869.6875, structureHash: "gap-a" },
+				{ left: 678.5, right: 718.5, structureHash: "gap-b" },
+				{ left: 588.90625, right: 628.90625, structureHash: "gap-c" },
+				{ left: 420, right: 460, structureHash: "current-only" },
+			],
+		};
+		const replacement = evaluateVerticalRlContinuationReplacement(input, 23027, 23284);
+
+		expect(replacement.safeToReplace).toBe(false);
+		expect(replacement.lostOwnedSemanticHashes).toContain("current-only");
+		expect(replacement.createdSemanticGapIntervals.length).toBeGreaterThan(0);
+	});
+
+	it("preserves coverage by appending a fresh continuation instead of replacing", () => {
+		const input = {
+			contentWidth: 23654,
+			visibleWidth: 369.59375,
+			pageAdvance: 369.59375,
+			currentOffset: 23027,
+			maxScroll: 23284,
+			previousOffsets: [22397, 22696],
+			semanticRects: [
+				{ left: 829.6875, right: 869.6875, structureHash: "gap-a" },
+				{ left: 678.5, right: 718.5, structureHash: "gap-b" },
+				{ left: 588.90625, right: 628.90625, structureHash: "gap-c" },
+				{ left: 100, right: 140, structureHash: "terminal" },
+			],
+		};
+		const appended = characterizeVerticalRlTerminalCoveragePolicies({
+			...input,
+			previousOffsets: [...input.previousOffsets, input.currentOffset],
+			currentOffset: 23284,
+		})["dynamic-terminal-continuation"];
+
+		expect([22696, 23027, 23284]).toEqual([...new Set([22696, 23027, 23284])]);
+		expect(appended.semanticGapIntervals).toEqual([]);
+		expect(appended.uncoveredSemanticRects).toEqual([]);
+	});
+
+	it("keeps browser quantization correction on the same continuation page", () => {
+		const input = {
+			contentWidth: 1040,
+			visibleWidth: 260,
+			pageAdvance: 260,
+			currentOffset: 773,
+			maxScroll: 780,
+			previousOffsets: [0, 260, 507, 767],
+			semanticRects: [
+				{ left: 6, right: 25, structureHash: "runner-residual" },
+			],
+		};
+		const replacement = evaluateVerticalRlContinuationReplacement(input, 773, 775);
+
+		expect(replacement.safeToReplace).toBe(true);
+		expect(replacement.lostOwnedSemanticHashes).toEqual([]);
+		expect(replacement.createdSemanticGapIntervals).toEqual([]);
+		expect(replacement.coverageAfter.uncoveredSemanticRects).toEqual([]);
+	});
+
+	it("fails closed when uncovered content has no distinct offset before max scroll", () => {
+		const plan = planVerticalRlTerminalContinuations({
+			contentWidth: 1040,
+			visibleWidth: 260,
+			pageAdvance: 260,
+			currentOffset: 780,
+			maxScroll: 780,
+			previousOffsets: [0, 260, 507, 767, 775],
+			semanticRects: [
+				{ left: -10, right: 5, structureHash: "outside-scroll-extent" },
+			],
+		});
+
+		expect(plan.offsets).toEqual([]);
+		expect(plan.coverage.uncoveredSemanticRects).toEqual(["outside-scroll-extent"]);
+		expect(plan.offsets.filter((offset) => offset === 780)).toHaveLength(0);
 	});
 });
 

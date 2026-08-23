@@ -12970,6 +12970,28 @@
 		});
 		return owned;
 	};
+	function evaluateVerticalRlContinuationReplacement(input, currentOffset, replacementOffset) {
+		let tolerance = Math.max(0, Number(input.tolerance) || .5);
+		let previousOffsets = Array.isArray(input.previousOffsets) ? input.previousOffsets : [];
+		let coverageBefore = evaluateTerminalCoveragePolicy("dynamic-terminal-continuation", [currentOffset], input, previousOffsets, tolerance);
+		let coverageAfter = evaluateTerminalCoveragePolicy("dynamic-terminal-continuation", [replacementOffset], input, previousOffsets, tolerance);
+		let ownedBefore = getVerticalRlOwnedSemanticRectIdentities(input.semanticRects, [...previousOffsets, currentOffset], input.contentWidth, input.visibleWidth, tolerance);
+		let ownedAfter = getVerticalRlOwnedSemanticRectIdentities(input.semanticRects, [...previousOffsets, replacementOffset], input.contentWidth, input.visibleWidth, tolerance);
+		let lostOwnedSemanticHashes = [...ownedBefore].filter((identity) => !ownedAfter.has(identity));
+		let beforeGapKeys = new Set(coverageBefore.semanticGapIntervals.map((gap) => `${gap.left}:${gap.right}`));
+		let createdSemanticGapIntervals = coverageAfter.semanticGapIntervals.filter((gap) => !beforeGapKeys.has(`${gap.left}:${gap.right}`));
+		let continuityBefore = coverageBefore.previousToTerminalCoverageContinuity;
+		let continuityAfter = coverageAfter.previousToTerminalCoverageContinuity;
+		return {
+			safeToReplace: Number.isFinite(replacementOffset) && replacementOffset >= currentOffset && replacementOffset <= input.maxScroll && lostOwnedSemanticHashes.length === 0 && createdSemanticGapIntervals.length === 0 && coverageAfter.uncoveredSemanticRects.length <= coverageBefore.uncoveredSemanticRects.length && continuityAfter,
+			lostOwnedSemanticHashes,
+			createdSemanticGapIntervals,
+			coverageBefore,
+			coverageAfter,
+			continuityBefore,
+			continuityAfter
+		};
+	}
 	function planVerticalRlTerminalContinuations(input) {
 		let tolerance = Math.max(0, Number(input.tolerance) || .5);
 		let contentWidth = Math.max(0, Number(input.contentWidth) || 0);
@@ -15919,6 +15941,51 @@
 							uncoveredSemanticRectCount: freshSnapshot.coverage.uncoveredSemanticRectCount
 						});
 						break;
+					}
+					let replacement = evaluateVerticalRlContinuationReplacement({
+						semanticRects: freshSnapshot.semanticRects,
+						contentWidth: freshSnapshot.contentWidth,
+						visibleWidth: freshSnapshot.visibleWidth,
+						pageAdvance: freshSnapshot.pageAdvance,
+						currentOffset: freshSnapshot.currentLogicalOffset,
+						maxScroll: freshSnapshot.maxLogicalScroll,
+						previousOffsets: freshSnapshot.previousOffsets,
+						tolerance: .5
+					}, appliedLogicalOffset, correctionOffset);
+					if (!replacement.safeToReplace) {
+						let uncoveredBefore = freshSnapshot.coverage.uncoveredSemanticRectCount;
+						this.addVerticalRlTerminalContinuationOffset(correctionOffset, totalPages, maxScroll);
+						totalPages += 1;
+						targetIndex += 1;
+						let additionalPhysicalScrollLeft = correctionOffset;
+						if (this.settings.direction === "rtl") {
+							if (this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0) additionalPhysicalScrollLeft = -correctionOffset;
+							else if (this.settings.rtlScrollType === "default") additionalPhysicalScrollLeft = Math.max(0, maxScroll - correctionOffset);
+						}
+						this._verticalRlBoundarySnapApplying = true;
+						try {
+							this.scrollTo(additionalPhysicalScrollLeft, 0, true);
+						} finally {
+							this._verticalRlBoundarySnapApplying = false;
+						}
+						this.syncVerticalRlViewportClip();
+						appliedLogicalOffset = this.getNormalizedLogicalScrollLeft();
+						this.recordVerticalRlAppliedTerminalContinuationOffset(targetIndex, nominalTotalPages, totalPages, maxScroll, appliedLogicalOffset);
+						let appendedSnapshot = this.getVerticalRlTerminalSemanticCoverageSnapshot();
+						appendVerticalRlTerminalCoverageTrace("scroll:terminal-additional-continuation", {
+							correctionAttempt,
+							previousAppliedLogicalOffset: freshSnapshot.currentLogicalOffset,
+							requestedLogicalOffset: correctionOffset,
+							actualLogicalOffset: appliedLogicalOffset,
+							lostOwnedSemanticHashes: replacement.lostOwnedSemanticHashes,
+							createdSemanticGapIntervals: replacement.createdSemanticGapIntervals,
+							uncoveredSemanticRectCountBefore: uncoveredBefore,
+							uncoveredSemanticRectCountAfter: appendedSnapshot?.coverage.uncoveredSemanticRectCount ?? null
+						});
+						logicalOffset = correctionOffset;
+						left = additionalPhysicalScrollLeft;
+						correctionOffsets.add(appliedLogicalOffset);
+						continue;
 					}
 					correctionOffsets.add(correctionOffset);
 					let correctionPhysicalScrollLeft = correctionOffset;
