@@ -12,6 +12,7 @@ export {
 	getLogicalOffsetForPageIndex,
 	getVerticalRlLogicalPageOffsetCacheKey,
 	getVerticalRlLogicalPageStepToNextPage,
+	getPlannedVerticalRlContinuationAhead,
 	getVerticalRlRawViewportForOffset,
 	getVerticalRlSafeTerminalContinuationOffset,
 	getVerticalRlTerminalRectOffsetInterval,

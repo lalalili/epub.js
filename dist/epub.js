@@ -12961,6 +12961,11 @@
 			usedUnconditionalMaxScroll: policy === "max-scroll"
 		};
 	};
+	function getPlannedVerticalRlContinuationAhead(continuationOffsets, currentPageIndex, nominalTotalPages, candidateOffset, tolerance = .5) {
+		let currentContinuationIndex = currentPageIndex - nominalTotalPages;
+		let nextOffset = continuationOffsets?.[currentContinuationIndex + 1];
+		return Number.isFinite(nextOffset) && Number.isFinite(candidateOffset) && candidateOffset >= Number(nextOffset) - Math.max(0, tolerance) ? Number(nextOffset) : null;
+	}
 	var verticalRlTerminalRectIdentity = (rect, index) => terminalRectIdentity(rect, index);
 	var getVerticalRlOwnedSemanticRectIdentities = (semanticRects, offsets, contentWidth, visibleWidth, tolerance) => {
 		let viewports = offsets.map((offset) => getVerticalRlRawViewportForOffset(offset, contentWidth, visibleWidth));
@@ -15938,6 +15943,17 @@
 							correctionAttempt,
 							actualLogicalOffset: appliedLogicalOffset,
 							candidateLogicalOffset: correctionOffset,
+							uncoveredSemanticRectCount: freshSnapshot.coverage.uncoveredSemanticRectCount
+						});
+						break;
+					}
+					let plannedContinuationAhead = getPlannedVerticalRlContinuationAhead(this._verticalRlTerminalContinuationOffsets, targetIndex, nominalTotalPages, correctionOffset);
+					if (plannedContinuationAhead !== null) {
+						appendVerticalRlTerminalCoverageTrace("scroll:terminal-correction-deferred-to-planned-continuation", {
+							correctionAttempt,
+							actualLogicalOffset: appliedLogicalOffset,
+							candidateLogicalOffset: correctionOffset,
+							plannedContinuationAhead,
 							uncoveredSemanticRectCount: freshSnapshot.coverage.uncoveredSemanticRectCount
 						});
 						break;

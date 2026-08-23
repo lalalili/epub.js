@@ -265,6 +265,23 @@ export type VerticalRlContinuationReplacementResult = {
 	continuityAfter: boolean;
 };
 
+export function getPlannedVerticalRlContinuationAhead(
+	continuationOffsets: number[] | undefined,
+	currentPageIndex: number,
+	nominalTotalPages: number,
+	candidateOffset: number,
+	tolerance = 0.5
+): number | null {
+	let currentContinuationIndex = currentPageIndex - nominalTotalPages;
+	let nextOffset = continuationOffsets?.[currentContinuationIndex + 1];
+
+	return Number.isFinite(nextOffset) &&
+		Number.isFinite(candidateOffset) &&
+		candidateOffset >= Number(nextOffset) - Math.max(0, tolerance)
+		? Number(nextOffset)
+		: null;
+}
+
 const verticalRlTerminalRectIdentity = (
 	rect: VerticalRlTerminalCoverageRect,
 	index: number

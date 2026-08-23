@@ -6,6 +6,7 @@ import {
 	getLogicalOffsetForPageIndex,
 	getVerticalRlLogicalPageOffsetCacheKey,
 	getVerticalRlLogicalPageStepToNextPage,
+	getPlannedVerticalRlContinuationAhead,
 	getVerticalRlSafeTerminalContinuationOffset,
 	getVerticalRlTerminalRectOffsetInterval,
 	evaluateVerticalRlContinuationReplacement,
@@ -280,6 +281,21 @@ describe("logical-page: terminal semantic coverage policies", () => {
 		expect(plan.offsets).toEqual([]);
 		expect(plan.coverage.uncoveredSemanticRects).toEqual(["outside-scroll-extent"]);
 		expect(plan.offsets.filter((offset) => offset === 780)).toHaveLength(0);
+	});
+
+	it("defers a fresh candidate that is already the next planned continuation", () => {
+		expect(getPlannedVerticalRlContinuationAhead(
+			[22696, 23027],
+			64,
+			64,
+			23027,
+		)).toBe(23027);
+		expect(getPlannedVerticalRlContinuationAhead(
+			[22767, 23027],
+			65,
+			64,
+			23284,
+		)).toBeNull();
 	});
 });
 

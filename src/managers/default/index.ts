@@ -45,6 +45,7 @@ import {
 	getVerticalRlBoundarySnapPreflight as getVerticalRlBoundarySnapPreflightHelper,
 	runVerticalRlEdgeMaskSnapLoop as runVerticalRlEdgeMaskSnapLoopHelper,
 	collectVerticalRlSemanticRects,
+	getPlannedVerticalRlContinuationAhead,
 	getVerticalRlSemanticCoverage,
 	getVerticalRlRawViewportForOffset,
 	getVerticalRlTerminalRectOffsetInterval,
@@ -3054,6 +3055,27 @@ class DefaultViewManager {
 						candidateLogicalOffset: correctionOffset,
 						uncoveredSemanticRectCount: freshSnapshot.coverage.uncoveredSemanticRectCount
 					});
+					break;
+				}
+
+				let plannedContinuationAhead = getPlannedVerticalRlContinuationAhead(
+					this._verticalRlTerminalContinuationOffsets,
+					targetIndex,
+					nominalTotalPages,
+					correctionOffset
+				);
+				if (plannedContinuationAhead !== null) {
+					appendVerticalRlTerminalCoverageTrace(
+						"scroll:terminal-correction-deferred-to-planned-continuation",
+						{
+							correctionAttempt,
+							actualLogicalOffset: appliedLogicalOffset,
+							candidateLogicalOffset: correctionOffset,
+							plannedContinuationAhead,
+							uncoveredSemanticRectCount:
+								freshSnapshot.coverage.uncoveredSemanticRectCount
+						}
+					);
 					break;
 				}
 
