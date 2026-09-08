@@ -2016,11 +2016,17 @@
 			*/
 			XMLNS: "http://www.w3.org/2000/xmlns/"
 		});
+		var nameStartChar = /[A-Z_a-z\xC0-\xD6\xD8-\xF6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/;
+		var nameChar = new RegExp("[\\-\\.0-9" + nameStartChar.source.slice(1, -1) + "\\u00B7\\u0300-\\u036F\\u203F-\\u2040]");
+		var tagNamePattern = new RegExp("^" + nameStartChar.source + nameChar.source + "*(?::" + nameStartChar.source + nameChar.source + "*)?$");
 		exports.assign = assign;
 		exports.find = find;
 		exports.freeze = freeze;
 		exports.MIME_TYPE = MIME_TYPE;
 		exports.NAMESPACE = NAMESPACE;
+		exports.nameStartChar = nameStartChar;
+		exports.nameChar = nameChar;
+		exports.tagNamePattern = tagNamePattern;
 	}));
 	//#endregion
 	//#region node_modules/@xmldom/xmldom/lib/dom.js
@@ -2028,6 +2034,7 @@
 		var conventions = require_conventions();
 		var find = conventions.find;
 		var NAMESPACE = conventions.NAMESPACE;
+		var tagNamePattern = conventions.tagNamePattern;
 		/**
 		* A prerequisite for `[].filter`, to drop elements that are empty
 		* @param {string} input
@@ -2228,14 +2235,25 @@
 		* NamedNodeMap objects in the DOM are live.
 		* used for attributes or DocumentType entities
 		*/
-		function NamedNodeMap() {}
+		function NamedNodeMap() {
+			this._nameIndex = Object.create(null);
+		}
 		function _findNodeIndex(list, node) {
 			var i = list.length;
 			while (i--) if (list[i] === node) return i;
 		}
+		function _nnmIndexAdd(list, attr) {
+			list._nameIndex[attr.nodeName] = attr;
+		}
+		function _nnmIndexRemove(list, attr) {
+			if (list._nameIndex[attr.nodeName] === attr) delete list._nameIndex[attr.nodeName];
+		}
 		function _addNamedNode(el, list, newAttr, oldAttr) {
-			if (oldAttr) list[_findNodeIndex(list, oldAttr)] = newAttr;
-			else list[list.length++] = newAttr;
+			if (oldAttr) {
+				list[_findNodeIndex(list, oldAttr)] = newAttr;
+				_nnmIndexRemove(list, oldAttr);
+			} else list[list.length++] = newAttr;
+			_nnmIndexAdd(list, newAttr);
 			if (el) {
 				newAttr.ownerElement = el;
 				var doc = el.ownerDocument;
@@ -2251,6 +2269,7 @@
 				var lastIndex = list.length - 1;
 				while (i < lastIndex) list[i] = list[++i];
 				list.length = lastIndex;
+				_nnmIndexRemove(list, attr);
 				if (el) {
 					var doc = el.ownerDocument;
 					if (doc) {
@@ -2273,7 +2292,7 @@
 			setNamedItem: function(attr) {
 				var el = attr.ownerElement;
 				if (el && el != this._ownerElement) throw new DOMException(INUSE_ATTRIBUTE_ERR);
-				var oldAttr = this.getNamedItem(attr.nodeName);
+				var oldAttr = this._nameIndex[attr.nodeName];
 				_addNamedNode(this._ownerElement, this, attr, oldAttr);
 				return oldAttr;
 			},
@@ -2477,8 +2496,26 @@
 					while (child) {
 						var next = child.nextSibling;
 						if (next !== null && next.nodeType === TEXT_NODE && child.nodeType === TEXT_NODE) {
-							node.removeChild(next);
-							child.appendData(next.data);
+							var tail = [];
+							var sibling = next;
+							while (sibling !== null && sibling.nodeType === TEXT_NODE) {
+								tail.push(sibling.data);
+								sibling = sibling.nextSibling;
+							}
+							var removed = child.nextSibling;
+							while (removed !== sibling) {
+								var following = removed.nextSibling;
+								removed.parentNode = null;
+								removed.previousSibling = null;
+								removed.nextSibling = null;
+								removed = following;
+							}
+							child.nextSibling = sibling;
+							if (sibling !== null) sibling.previousSibling = child;
+							else node.lastChild = child;
+							child.appendData(tail.join(""));
+							_onUpdateChild(node.ownerDocument, node);
+							child = sibling;
 						} else child = next;
 					}
 					return true;
@@ -3073,8 +3110,10 @@
 			* - it does not do any input validation on the arguments and doesn't throw "InvalidCharacterError".
 			*
 			* Note: When the resulting document is serialized with `requireWellFormed: true`, the
-			* serializer throws with code `INVALID_STATE_ERR` if `.data` contains `?>` (W3C DOM Parsing
-			* §3.2.1.7). Without that option the data is emitted verbatim.
+			* serializer throws with code `INVALID_STATE_ERR` if `.target` is not a valid XML `NCName`
+			* (a `Name` with no colon) or is an ASCII case-insensitive match for `"xml"`, or if `.data`
+			* contains `?>` (W3C DOM Parsing §3.2.1.7). Without that option the target and data are
+			* emitted verbatim.
 			*
 			* @param {string} target
 			* @param {string} data
@@ -3099,7 +3138,25 @@
 				node.specified = true;
 				return node;
 			},
+			/**
+			* Creates an EntityReference object, serialized as `&name;`.
+			*
+			* The `name` is validated against the XML `Name` production at creation time; an invalid name
+			* throws a `DOMException` with code `INVALID_CHARACTER_ERR`. When the resulting node is
+			* serialized with `requireWellFormed: true`, the serializer re-validates `nodeName` and throws
+			* a `DOMException` with code `INVALID_STATE_ERR` if a later `nodeName` mutation made it invalid;
+			* without that option the name is emitted verbatim.
+			*
+			* Note: xmldom does not expand entities — the parser resolves entity references inline and never
+			* constructs `EntityReference` nodes, so this method is the only producer.
+			*
+			* @param {string} name The name of the entity to reference.
+			* @returns {EntityReference}
+			* @throws {DOMException} With code `INVALID_CHARACTER_ERR` when `name` is not a valid XML `Name`.
+			* @see https://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-392B75AE
+			*/
 			createEntityReference: function(name) {
+				if (!tagNamePattern.test(name)) throw new DOMException(INVALID_CHARACTER_ERR, "not a valid xml name \"" + name + "\"");
 				var node = new EntityReference();
 				node.ownerDocument = this;
 				node.nodeName = name;
@@ -3278,15 +3335,16 @@
 		/**
 		* Represents a DocumentType node (the `<!DOCTYPE ...>` declaration).
 		*
-		* `publicId`, `systemId`, and `internalSubset` are plain own-property assignments.
+		* `name`, `publicId`, `systemId`, and `internalSubset` are plain own-property assignments.
 		* xmldom does not enforce the `readonly` constraint declared by the WHATWG DOM spec —
 		* direct property writes succeed silently. Values are serialized verbatim when
 		* `requireWellFormed` is false (the default). When the serializer is invoked with
 		* `requireWellFormed: true` (via the 4th-parameter options object), it validates each
-		* field and throws `DOMException` with code `INVALID_STATE_ERR` on invalid values.
+		* field — including `name`, which is checked against the XML `Name` production — and throws
+		* `DOMException` with code `INVALID_STATE_ERR` on invalid values.
 		*
 		* @class
-		* @see https://developer.mozilla.org/en-US/docs/Web/API/DocumentType MDN
+		* @see https://developer.mozilla.org/docs/Web/API/DocumentType MDN
 		*/
 		function DocumentType() {}
 		DocumentType.prototype.nodeType = DOCUMENT_TYPE_NODE;
@@ -3297,6 +3355,20 @@
 		function Entity() {}
 		Entity.prototype.nodeType = ENTITY_NODE;
 		_extends(Entity, Node);
+		/**
+		* Represents an EntityReference node, serialized as `&nodeName;`.
+		*
+		* `nodeName` is the referenced entity's name, stored verbatim. When serialized with
+		* `requireWellFormed: true`, the serializer validates `nodeName` against the XML `Name` production
+		* and throws a `DOMException` with code `INVALID_STATE_ERR` if it does not match; without that
+		* option the name is emitted verbatim between `&` and `;`.
+		*
+		* Note: xmldom does not expand entities — the parser resolves entity references inline and never
+		* constructs `EntityReference` nodes, so the only producer is `Document.createEntityReference`.
+		*
+		* @class
+		* @see https://www.w3.org/TR/xml/#NT-Name
+		*/
 		function EntityReference() {}
 		EntityReference.prototype.nodeType = ENTITY_REFERENCE_NODE;
 		_extends(EntityReference, Node);
@@ -3330,14 +3402,20 @@
 		* @returns {string}
 		* @throws {DOMException}
 		* With code `INVALID_STATE_ERR` when `requireWellFormed` is `true` and:
+		* - an Element's qualified name (including any namespace prefix) is not a valid XML QName,
+		* - an attribute's qualified name (including a synthesized `xmlns:` namespace declaration) is
+		*   not a valid XML QName,
 		* - a CDATASection node's data contains `"]]>"`,
 		* - a Comment node's data contains `"-->"` (bare `"--"` does not throw on this branch),
-		* - a ProcessingInstruction's data contains `"?>"`,
+		* - a ProcessingInstruction's target is not a valid XML `NCName` (a `Name` with no colon) or is
+		*   an ASCII case-insensitive match for `"xml"`, or its data contains `"?>"`,
+		* - a DocumentType's `name` is not a valid XML `Name` (XML 1.0 production [5]),
 		* - a DocumentType's `publicId` is non-empty and does not match the XML `PubidLiteral`
 		*   production,
 		* - a DocumentType's `systemId` is non-empty and does not match the XML `SystemLiteral`
-		*   production, or
-		* - a DocumentType's `internalSubset` contains `"]>"`.
+		*   production,
+		* - a DocumentType's `internalSubset` contains `"]>"`, or
+		* - an EntityReference's `nodeName` is not a valid XML `Name` (XML 1.0 production [5]).
 		* Note: xmldom does not enforce `readonly` on DocumentType fields — direct property
 		* writes succeed and are covered by the serializer-level checks above.
 		* @see https://html.spec.whatwg.org/#dom-xmlserializer-serializetostring
@@ -3389,7 +3467,8 @@
 		* @see https://www.w3.org/TR/xml11/#AVNormalize
 		* @see https://w3c.github.io/DOM-Parsing/#serializing-an-element-s-attributes
 		*/
-		function addSerializedAttribute(buf, qualifiedName, value) {
+		function addSerializedAttribute(buf, qualifiedName, value, requireWellFormed) {
+			if (requireWellFormed && !tagNamePattern.test(qualifiedName)) throw new DOMException(INVALID_STATE_ERR, "The attribute name \"" + qualifiedName + "\" is not a valid XML QName");
 			buf.push(" ", qualifiedName, "=\"", value.replace(/[<>&"\t\n\r]/g, _xmlEncoder), "\"");
 		}
 		function serializeToString(node, buf, isHTML, nodeFilter, visibleNamespaces, requireWellFormed) {
@@ -3438,6 +3517,7 @@
 									}
 								}
 							}
+							if (requireWellFormed && !tagNamePattern.test(prefixedNodeName)) throw new DOMException(INVALID_STATE_ERR, "The element name \"" + prefixedNodeName + "\" is not a valid XML QName");
 							buf.push("<", prefixedNodeName);
 							var childNs = ns.slice();
 							for (var i = 0; i < len; i++) {
@@ -3456,7 +3536,7 @@
 								if (needNamespaceDefine(attr, html, childNs)) {
 									var attrPrefix = attr.prefix || "";
 									var uri = attr.namespaceURI;
-									addSerializedAttribute(buf, attrPrefix ? "xmlns:" + attrPrefix : "xmlns", uri);
+									addSerializedAttribute(buf, attrPrefix ? "xmlns:" + attrPrefix : "xmlns", uri, requireWellFormed);
 									childNs.push({
 										prefix: attrPrefix,
 										namespace: uri
@@ -3464,12 +3544,12 @@
 								}
 								var filteredAttr = nodeFilter ? nodeFilter(attr) : attr;
 								if (filteredAttr) if (typeof filteredAttr === "string") buf.push(filteredAttr);
-								else addSerializedAttribute(buf, filteredAttr.name, filteredAttr.value);
+								else addSerializedAttribute(buf, filteredAttr.name, filteredAttr.value, requireWellFormed);
 							}
 							if (nodeName === prefixedNodeName && needNamespaceDefine(n, html, childNs)) {
 								var nodePrefix = n.prefix || "";
 								var uri = n.namespaceURI;
-								addSerializedAttribute(buf, nodePrefix ? "xmlns:" + nodePrefix : "xmlns", uri);
+								addSerializedAttribute(buf, nodePrefix ? "xmlns:" + nodePrefix : "xmlns", uri, requireWellFormed);
 								childNs.push({
 									prefix: nodePrefix,
 									namespace: uri
@@ -3503,7 +3583,7 @@
 							tag: null
 						};
 						case ATTRIBUTE_NODE:
-							addSerializedAttribute(buf, n.name, n.value);
+							addSerializedAttribute(buf, n.name, n.value, requireWellFormed);
 							return null;
 						case TEXT_NODE:
 							/**
@@ -3534,6 +3614,7 @@
 							return null;
 						case DOCUMENT_TYPE_NODE:
 							if (requireWellFormed) {
+								if (!tagNamePattern.test(n.name)) throw new DOMException(INVALID_STATE_ERR, "The doctype name \"" + n.name + "\" is not a valid XML Name");
 								if (n.publicId && !/^("[\x20\r\na-zA-Z0-9\-()+,.\/:=?;!*#@$_%']*"|'[\x20\r\na-zA-Z0-9\-()+,.\/:=?;!*#@$_%'"]*')$/.test(n.publicId)) throw new DOMException(INVALID_STATE_ERR, "DocumentType publicId is not a valid PubidLiteral");
 								if (n.systemId && !/^("[^"]*"|'[^']*')$/.test(n.systemId)) throw new DOMException(INVALID_STATE_ERR, "DocumentType systemId is not a valid SystemLiteral");
 								if (n.internalSubset && n.internalSubset.indexOf("]>") !== -1) throw new DOMException(INVALID_STATE_ERR, "DocumentType internalSubset contains \"]>\"");
@@ -3553,10 +3634,14 @@
 							}
 							return null;
 						case PROCESSING_INSTRUCTION_NODE:
-							if (requireWellFormed && n.data.indexOf("?>") !== -1) throw new DOMException(INVALID_STATE_ERR, "The ProcessingInstruction data contains \"?>\"");
+							if (requireWellFormed) {
+								if (!tagNamePattern.test(n.target) || n.target.indexOf(":") !== -1 || n.target.toLowerCase() === "xml") throw new DOMException(INVALID_STATE_ERR, "The processing instruction target \"" + n.target + "\" is not a valid XML NCName or is reserved");
+								if (n.data.indexOf("?>") !== -1) throw new DOMException(INVALID_STATE_ERR, "The ProcessingInstruction data contains \"?>\"");
+							}
 							buf.push("<?", n.target, " ", n.data, "?>");
 							return null;
 						case ENTITY_REFERENCE_NODE:
+							if (requireWellFormed && !tagNamePattern.test(n.nodeName)) throw new DOMException(INVALID_STATE_ERR, "The entity reference name \"" + n.nodeName + "\" is not a valid XML Name");
 							buf.push("&", n.nodeName, ";");
 							return null;
 						default:
@@ -5855,9 +5940,7 @@
 	//#region node_modules/@xmldom/xmldom/lib/sax.js
 	var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
 		var NAMESPACE = require_conventions().NAMESPACE;
-		var nameStartChar = /[A-Z_a-z\xC0-\xD6\xD8-\xF6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/;
-		var nameChar = new RegExp("[\\-\\.0-9" + nameStartChar.source.slice(1, -1) + "\\u00B7\\u0300-\\u036F\\u203F-\\u2040]");
-		var tagNamePattern = new RegExp("^" + nameStartChar.source + nameChar.source + "*(?::" + nameStartChar.source + nameChar.source + "*)?$");
+		var tagNamePattern = require_conventions().tagNamePattern;
 		var S_TAG = 0;
 		var S_ATTR = 1;
 		var S_ATTR_SPACE = 2;
@@ -5944,7 +6027,7 @@
 					switch (source.charAt(tagStart + 1)) {
 						case "/":
 							var end = source.indexOf(">", tagStart + 3);
-							var tagName = source.substring(tagStart + 2, end).replace(/[ \t\n\r]+$/g, "");
+							var tagName = source.substring(tagStart + 2, end).replace(/^([\s\S]*?[^ \t\n\r])?[ \t\n\r]*$/, "$1");
 							var config = parseStack.pop();
 							if (end < 0) {
 								tagName = source.substring(tagStart + 2).replace(/[\s<].*/, "");
@@ -5954,7 +6037,7 @@
 								tagName = tagName.replace(/[\s<].*/, "");
 								errorHandler.error("end tag name: " + tagName + " maybe not complete");
 								end = tagStart + 1 + tagName.length;
-							}
+							} else if (/[ \t\n\r]/.test(tagName) && tagNamePattern.test(tagName.split(/[ \t\n\r]/)[0])) errorHandler.error("end tag name is followed by whitespace and trailing content: \"" + tagName + "\"");
 							var localNSMap = config.localNSMap;
 							var endMatch = config.tagName == tagName;
 							if (endMatch || config.tagName && config.tagName.toLowerCase() == tagName.toLowerCase()) {
@@ -6032,6 +6115,7 @@
 			var s = S_TAG;
 			while (true) {
 				var c = source.charAt(p);
+				if (s === S_TAG && c === "<") throw new Error("unexpected < in tag name: " + source.slice(start, p));
 				switch (c) {
 					case "=":
 						if (s === S_ATTR) {
@@ -6174,7 +6258,7 @@
 				if (nsPrefix !== false) {
 					if (localNSMap == null) {
 						localNSMap = {};
-						_copy(currentNSMap, currentNSMap = {});
+						currentNSMap = Object.create(currentNSMap);
 					}
 					currentNSMap[nsPrefix] = localNSMap[nsPrefix] = value;
 					a.uri = NAMESPACE.XMLNS;
