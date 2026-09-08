@@ -6,6 +6,11 @@ import { windowBounds } from "../../platform/layout";
 import { collectVisibleTextClientRects } from "../../platform/traversal";
 import scrollType from "../../utils/scrolltype";
 import Mapping from "../../mapping";
+import {
+	promoteVerticalRlTerminalContinuation,
+	resolveVerticalRlTerminalContinuation,
+	type VerticalRlTerminalContinuationState
+} from "../../rendering/terminal-continuation";
 import Queue from "../../utils/queue";
 import EpubCFI from "../../epubcfi";
 import type Contents from "../../contents";
@@ -303,6 +308,8 @@ class DefaultViewManager {
 	declare layout: Layout;
 	declare mapping: Mapping;
 	declare _verticalRlLogicalPageOffsetCache?: VerticalRlLogicalPageOffsetCache | null;
+	private _verticalRlTerminalLayouts?: WeakMap<object, VerticalRlTerminalContinuationState>;
+	private _verticalRlActiveTerminalLayout?: VerticalRlTerminalContinuationState;
 	declare _verticalRlAppliedLeftMaskLedger?: Record<string, number> | null;
 	declare _verticalRlAppliedLeftMaskLedgerKey?: string | null;
 	declare _verticalRlPageIndexLookupKey?: string | null;
@@ -1215,7 +1222,7 @@ class DefaultViewManager {
 		);
 	}
 
-	getVerticalRlLogicalPageOffsetCacheKey(totalPages: number, maxScroll: number): string | null {
+	getVerticalRlLogicalPageOffsetCacheKey(_totalPages: number, maxScroll: number): string | null {
 		if (!this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) {
 			return null;
 		}
@@ -1227,7 +1234,7 @@ class DefaultViewManager {
 		let edgeGuard = this.layout.edgeGuardPx || 0;
 
 		return getVerticalRlLogicalPageOffsetCacheKeyHelper(
-			totalPages,
+			this.getBaseGeometryPageCount(),
 			maxScroll,
 			contentWidth,
 			visibleWidth,
@@ -1247,6 +1254,47 @@ class DefaultViewManager {
 			logicalOffset,
 			cacheKey
 		);
+		if (this._verticalRlActiveTerminalLayout?.layoutKey === cacheKey) {
+			this._verticalRlActiveTerminalLayout.offsetCache = this._verticalRlLogicalPageOffsetCache;
+		}
+		this._verticalRlPageIndexLookupKey = null;
+	}
+
+	private getVerticalRlTerminalLayout(): VerticalRlTerminalContinuationState | null {
+		if (!this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) {
+			return null;
+		}
+		const view = this.views.first() || this.views.last();
+		if (!view?.section || view._viewportFillingSingleMediaPage) {
+			return null;
+		}
+		const base = this.getBaseGeometryPageCount();
+		const maxScroll = this.getMaxLogicalScrollLeft();
+		// A hidden/recreated multi-page view has no usable rail yet; do not
+		// invalidate its last known layout with that transient zero extent.
+		if (base > 1 && maxScroll === 0) {
+			return null;
+		}
+		const key = this.getVerticalRlLogicalPageOffsetCacheKey(base, maxScroll);
+		if (!key) {
+			return null;
+		}
+		// A Section survives view recreation; different sections never share a ledger.
+		const owner = view.section;
+		this._verticalRlTerminalLayouts ??= new WeakMap();
+		const state = resolveVerticalRlTerminalContinuation(this._verticalRlTerminalLayouts.get(owner), key)!;
+		this._verticalRlTerminalLayouts.set(owner, state);
+		if (this._verticalRlActiveTerminalLayout !== state) {
+			if (this._verticalRlActiveTerminalLayout) {
+				this._verticalRlActiveTerminalLayout.offsetCache = this._verticalRlLogicalPageOffsetCache || null;
+			} else if (this._verticalRlLogicalPageOffsetCache?.key === key) {
+				state.offsetCache = this._verticalRlLogicalPageOffsetCache;
+			}
+			this._verticalRlActiveTerminalLayout = state;
+			this._verticalRlLogicalPageOffsetCache = state.offsetCache;
+			this._verticalRlPageIndexLookupKey = null;
+		}
+		return state;
 	}
 
 	getVerticalRlCleanPageEdgeMaskWidths(advance: number): EdgeMaskWidths {
@@ -2170,7 +2218,7 @@ class DefaultViewManager {
 		return countPagesWithFractionalToleranceHelper(totalLength, pageLength);
 	}
 
-	getTotalPagesForCurrentView(){
+	private getBaseGeometryPageCount(){
 		let view = this.views && (this.views.first() || this.views.last());
 		if (!view) {
 			return 1;
@@ -2192,6 +2240,11 @@ class DefaultViewManager {
 		}
 
 		return this.countPagesWithFractionalTolerance(width, advance);
+	}
+
+	getTotalPagesForCurrentView(){
+		const base = this.getBaseGeometryPageCount();
+		return base + (this.getVerticalRlTerminalLayout()?.continuationCount || 0);
 	}
 
 	/**
@@ -2290,6 +2343,10 @@ class DefaultViewManager {
 	}
 
 	scrollToLogicalPage(pageIndex: number, options: SnapLimits = {}): void {
+		this.scrollToLogicalPageInLayout(pageIndex, options);
+	}
+
+	private scrollToLogicalPageInLayout(pageIndex: number | null, options: SnapLimits = {}): void {
 		let preSyncView = this.views && (this.views.first() || this.views.last());
 		let preSyncIframeWidth = preSyncView && preSyncView.iframe
 			? Math.max(
@@ -2359,7 +2416,10 @@ class DefaultViewManager {
 			return true;
 		};
 		let restoredBeforeScroll = restorePreSyncVisualContentWidth();
-		let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
+		// Width restoration can reactivate a learned continuation ledger. An end
+		// landing must select its index after that geometry has been established.
+		totalPages = Math.max(totalPages, this.getTotalPagesForCurrentView());
+		let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex ?? totalPages - 1));
 		let maxScroll = this.getMaxLogicalScrollLeft();
 		appendVerticalRlScrollTrace("after-first-sync", {
 			totalPages,
@@ -2371,9 +2431,14 @@ class DefaultViewManager {
 		let sequentialBoundaryConstraint = null;
 		let logicalOffsetCacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
 		let ignoreCachedLogicalOffset = Boolean(options && options.ignoreCachedLogicalOffset);
-		let cachedLogicalOffset = ignoreCachedLogicalOffset
+		const terminalLayout = this.getVerticalRlTerminalLayout();
+		const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey);
+		const preserveContinuationOffset = recordedOffset !== null &&
+			Boolean(terminalLayout?.continuationCount) &&
+			targetIndex >= this.getBaseGeometryPageCount() - 1 && targetIndex < totalPages - 1;
+		let cachedLogicalOffset = ignoreCachedLogicalOffset && !preserveContinuationOffset
 			? null
-			: this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey);
+			: recordedOffset;
 		if (this.isRtlVerticalPaginated() && targetIndex > 0) {
 			let forcedRightBoundary = Number(options && options.sequentialRightBoundary);
 			if (Number.isFinite(forcedRightBoundary) && forcedRightBoundary > 0) {
@@ -2410,13 +2475,13 @@ class DefaultViewManager {
 				}
 			}
 		}
-		let logicalOffset = cachedLogicalOffset !== null && !sequentialBoundaryConstraint
+		let logicalOffset = cachedLogicalOffset !== null && (!sequentialBoundaryConstraint || preserveContinuationOffset)
 			? cachedLogicalOffset
 			: sequentialBoundaryConstraint
 				// 強制右邊界（例如收尾頁）有自己的定位契約，維持理論網格推算。
 				? this.getLogicalOffsetForPageIndex(targetIndex, totalPages, maxScroll)
 				: this.getVerticalRlPageOffset(targetIndex, totalPages, maxScroll);
-		if (cachedLogicalOffset === null || sequentialBoundaryConstraint) {
+		if (!preserveContinuationOffset && (cachedLogicalOffset === null || sequentialBoundaryConstraint)) {
 			if (
 				this.isRtlVerticalPaginated() &&
 				targetIndex > 0 &&
@@ -2431,6 +2496,12 @@ class DefaultViewManager {
 					logicalOffset = snappedLogicalOffset;
 				}
 			}
+		}
+		if (terminalLayout && promoteVerticalRlTerminalContinuation(
+			terminalLayout, this.getBaseGeometryPageCount(), targetIndex,
+			logicalOffset, maxScroll, this.getPageSnapTolerance()
+		)) {
+			this._verticalRlPageIndexLookupKey = null;
 		}
 		this._verticalRlSequentialBoundaryConstraint = sequentialBoundaryConstraint;
 		if (this.isRtlVerticalPaginated()) {
@@ -2546,6 +2617,13 @@ class DefaultViewManager {
 		this._verticalRlBoundarySnapRetryToken = token;
 
 		if (targetIndex <= 0 || targetIndex >= totalPages - 1) {
+			return;
+		}
+		const terminalLayout = this.getVerticalRlTerminalLayout();
+		if (terminalLayout && terminalLayout.continuationCount > 0 &&
+			targetIndex >= this.getBaseGeometryPageCount() - 1 &&
+			this.getCachedVerticalRlLogicalPageOffset(targetIndex, terminalLayout.layoutKey) !== null) {
+			// Promotion changes page count, not the already committed boundary window.
 			return;
 		}
 
@@ -2690,7 +2768,11 @@ class DefaultViewManager {
 				if(this.isPaginated && this.settings.axis === "horizontal") {
 					let pageAdvance = this.getPageAdvance();
 					if (this.settings.direction === "rtl") {
-						this.scrollToLogicalPage(this.getTotalPagesForCurrentView() - 1);
+						if (this.isRtlVerticalPaginated()) {
+							this.scrollToLogicalPageInLayout(null);
+						} else {
+							this.scrollToLogicalPage(this.getTotalPagesForCurrentView() - 1);
+						}
 					} else {
 						this.scrollTo(this.container.scrollWidth - pageAdvance, 0, true);
 					}
