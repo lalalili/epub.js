@@ -71,6 +71,11 @@ async function pureSettle(manager, semanticIds, tailId) {
 	for (let attempt = 0; attempt < 40; attempt += 1) {
 		const view = manager.views.first();
 		const contentsDocument = view?.contents?.document;
+		if (!view?.iframe || !contentsDocument) {
+			stableSnapshots = 0;
+			await nextFrame();
+			continue;
+		}
 		if (contentsDocument?.fonts?.ready) {
 			await contentsDocument.fonts.ready;
 		}
