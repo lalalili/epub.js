@@ -12925,11 +12925,256 @@
 			offsetCache: null
 		};
 	}
+	/**
+	* Check the existing geometry-only continuation candidate without mutating state.
+	*
+	* The geometry check deliberately remains independent from semantic tail
+	* resolution. Callers only need to resolve the DOM tail after this returns true.
+	*/
+	function isVerticalRlTerminalContinuationGeometryCandidate(state, basePageCount, targetIndex, logicalOffset, maxLogicalScroll, snapTolerance) {
+		return Number.isInteger(basePageCount) && basePageCount > 0 && Number.isInteger(targetIndex) && Number.isFinite(logicalOffset) && logicalOffset >= 0 && Number.isFinite(maxLogicalScroll) && Number.isFinite(snapTolerance) && snapTolerance >= 0 && targetIndex === basePageCount + state.continuationCount - 1 && maxLogicalScroll - logicalOffset > snapTolerance;
+	}
+	/**
+	* Combine before/after observations without treating past-side geometry as a
+	* standalone reached signal.
+	*/
+	function aggregateVerticalRlTerminalTailState({ before, after, sameTerminalOwner, sameOwnerDocument, ownerStillConnected }) {
+		if (after === "reached") return "reached";
+		if (before === "reached" && sameTerminalOwner && sameOwnerDocument && ownerStillConnected) return "reached";
+		if (before === "unreached" && after === "unreached") return "unreached";
+		return "unknown";
+	}
 	/** Reserve another reachable index instead of replacing an early terminal window. */
-	function promoteVerticalRlTerminalContinuation(state, basePageCount, targetIndex, logicalOffset, maxLogicalScroll, snapTolerance) {
-		if (!Number.isInteger(basePageCount) || basePageCount <= 0 || !Number.isInteger(targetIndex) || !Number.isFinite(logicalOffset) || logicalOffset < 0 || !Number.isFinite(maxLogicalScroll) || !Number.isFinite(snapTolerance) || snapTolerance < 0 || targetIndex !== basePageCount + state.continuationCount - 1 || maxLogicalScroll - logicalOffset <= snapTolerance) return false;
+	function promoteVerticalRlTerminalContinuation(state, basePageCount, targetIndex, logicalOffset, maxLogicalScroll, snapTolerance, terminalTailState = "unknown") {
+		if (!isVerticalRlTerminalContinuationGeometryCandidate(state, basePageCount, targetIndex, logicalOffset, maxLogicalScroll, snapTolerance) || terminalTailState === "reached") return false;
 		state.continuationCount += 1;
 		return true;
+	}
+	var REPLACED_TAGS = /* @__PURE__ */ new Set([
+		"img",
+		"svg",
+		"video",
+		"canvas",
+		"object",
+		"embed",
+		"audio",
+		"iframe",
+		"math"
+	]);
+	var runtimeIdentityMap = /* @__PURE__ */ new WeakMap();
+	var nextRuntimeIdentity = 1;
+	/** Return a diagnostic-only identity without retaining a DOM object in traces. */
+	function getVerticalRlRuntimeIdentity(value) {
+		if (!value) return null;
+		let identity = runtimeIdentityMap.get(value);
+		if (identity === void 0) {
+			identity = nextRuntimeIdentity;
+			nextRuntimeIdentity += 1;
+			runtimeIdentityMap.set(value, identity);
+		}
+		return identity;
+	}
+	function hasFiniteRect(rect) {
+		return Boolean(rect) && [
+			rect.left,
+			rect.right,
+			rect.top,
+			rect.bottom,
+			rect.width,
+			rect.height
+		].every((value) => Number.isFinite(value));
+	}
+	function hasPositiveRect(rect) {
+		return hasFiniteRect(rect) && rect.width > 0 && rect.height > 0 && rect.right > rect.left && rect.bottom > rect.top;
+	}
+	function intersect(rect, clip) {
+		const width = Math.min(rect.right, clip.right) - Math.max(rect.left, clip.left);
+		const height = Math.min(rect.bottom, clip.bottom) - Math.max(rect.top, clip.top);
+		return {
+			width,
+			height,
+			positiveArea: width > 0 && height > 0
+		};
+	}
+	function mapToFrame(frameRect, rect) {
+		return {
+			left: frameRect.left + rect.left,
+			right: frameRect.left + rect.right,
+			top: frameRect.top + rect.top,
+			bottom: frameRect.top + rect.bottom,
+			width: rect.width,
+			height: rect.height
+		};
+	}
+	function visibleStyle(element, document) {
+		if (!element.isConnected || element.ownerDocument !== document) return null;
+		const view = document.defaultView;
+		if (!view) return null;
+		const style = view.getComputedStyle(element);
+		if (!style || style.display === "none" || style.visibility === "hidden") return null;
+		return {
+			display: style.display,
+			visibility: style.visibility
+		};
+	}
+	function textCandidate(node, document, frameRect, effectiveClip) {
+		const owner = node.parentElement;
+		if (!owner) return null;
+		const style = visibleStyle(owner, document);
+		if (!style) return null;
+		const range = document.createRange();
+		let endOffset = node.data.length;
+		while (endOffset > 0 && /\s/.test(node.data[endOffset - 1])) endOffset -= 1;
+		range.setStart(node, 0);
+		range.setEnd(node, endOffset);
+		const rects = Array.from(range.getClientRects()).map((rect) => mapToFrame(frameRect, rect)).filter((rect) => hasPositiveRect(rect));
+		if (!rects.length) return {
+			kind: "text",
+			tag: owner.tagName.toLowerCase(),
+			ownerIdentity: getVerticalRlRuntimeIdentity(owner),
+			ownerDocumentIdentity: getVerticalRlRuntimeIdentity(document),
+			textLength: node.data.trim().length,
+			connected: node.isConnected,
+			ownerDocumentIsCurrent: node.ownerDocument === document,
+			geometryPositive: false
+		};
+		const rect = rects[rects.length - 1];
+		return {
+			kind: "text",
+			tag: owner.tagName.toLowerCase(),
+			ownerIdentity: getVerticalRlRuntimeIdentity(owner),
+			ownerDocumentIdentity: getVerticalRlRuntimeIdentity(document),
+			textLength: node.data.trim().length,
+			connected: node.isConnected,
+			ownerDocumentIsCurrent: node.ownerDocument === document,
+			display: style.display,
+			visibility: style.visibility,
+			rect,
+			intersection: intersect(rect, effectiveClip),
+			geometryPositive: true
+		};
+	}
+	function replacedCandidate(element, document, frameRect, effectiveClip) {
+		const style = visibleStyle(element, document);
+		if (!style) return null;
+		const rect = element.getBoundingClientRect();
+		const mapped = hasPositiveRect(rect) ? mapToFrame(frameRect, rect) : null;
+		if (!mapped) return {
+			kind: "replaced",
+			tag: element.tagName.toLowerCase(),
+			ownerIdentity: getVerticalRlRuntimeIdentity(element),
+			ownerDocumentIdentity: getVerticalRlRuntimeIdentity(document),
+			connected: element.isConnected,
+			ownerDocumentIsCurrent: element.ownerDocument === document,
+			geometryPositive: false
+		};
+		return {
+			kind: "replaced",
+			tag: element.tagName.toLowerCase(),
+			ownerIdentity: getVerticalRlRuntimeIdentity(element),
+			ownerDocumentIdentity: getVerticalRlRuntimeIdentity(document),
+			connected: element.isConnected,
+			ownerDocumentIsCurrent: element.ownerDocument === document,
+			display: style.display,
+			visibility: style.visibility,
+			rect: mapped,
+			intersection: intersect(mapped, effectiveClip),
+			geometryPositive: true
+		};
+	}
+	function classify(candidate, effectiveClip, writingMode) {
+		if (!candidate.connected || !candidate.ownerDocumentIsCurrent || !candidate.geometryPositive || !candidate.rect || !candidate.intersection) return "unknown";
+		if (candidate.intersection.positiveArea) return "reached";
+		if (writingMode === "vertical-rl" && candidate.rect.right <= effectiveClip.left) return "unreached";
+		return "unknown";
+	}
+	function isTextInsideReplacedOwner(node) {
+		let owner = node.parentElement;
+		while (owner) {
+			if (REPLACED_TAGS.has(owner.tagName.toLowerCase())) return true;
+			owner = owner.parentElement;
+		}
+		return false;
+	}
+	/**
+	* Read the viewport clip that is already applied to a vertical-rl container.
+	* Dataset masks are written by the manager after layout; reading them here
+	* does not calculate or materialize pagination state.
+	*/
+	function getVerticalRlEffectiveClip(container) {
+		if (!container) return null;
+		const rect = container.getBoundingClientRect();
+		if (!hasFiniteRect(rect) || rect.width <= 0 || rect.height <= 0) return null;
+		const dataset = container.dataset || {};
+		const combinedMask = Number(dataset.epubVrlEdgeMask);
+		const leftMaskValue = Number(dataset.epubVrlEdgeMaskLeft);
+		const rightMaskValue = Number(dataset.epubVrlEdgeMaskRight);
+		const leftMask = Math.max(0, Number.isFinite(leftMaskValue) ? leftMaskValue : Number.isFinite(combinedMask) ? combinedMask : 0);
+		const rightMask = Math.max(0, Number.isFinite(rightMaskValue) ? rightMaskValue : 0);
+		const effectiveWidth = rect.width - leftMask - rightMask;
+		if (effectiveWidth <= 0) return null;
+		return {
+			left: rect.left + leftMask,
+			right: rect.right - rightMask,
+			top: rect.top,
+			bottom: rect.bottom,
+			width: effectiveWidth,
+			height: rect.height
+		};
+	}
+	/**
+	* Resolve the last renderable semantic owner without consulting pagination state.
+	*
+	* The resolver intentionally accepts only the active document, frame mapping,
+	* and already-applied effective clip. It never asks a manager to calculate or
+	* materialize page metrics.
+	*/
+	function resolveVerticalRlTerminalTail({ document, frameRect, effectiveClip }) {
+		if (!document?.body || !hasPositiveRect(frameRect) || !hasPositiveRect(effectiveClip)) return {
+			state: "unknown",
+			reason: "missing-document-frame-or-clip",
+			candidate: null,
+			writingMode: null,
+			direction: null
+		};
+		const bodyStyle = document.defaultView?.getComputedStyle(document.body);
+		const writingMode = bodyStyle?.writingMode?.toLowerCase() || bodyStyle?.getPropertyValue("writing-mode")?.toLowerCase() || null;
+		const direction = bodyStyle?.direction?.toLowerCase() || null;
+		const walker = document.createTreeWalker(document.body, 5);
+		const nodes = [];
+		let node = walker.nextNode();
+		while (node) {
+			nodes.push(node);
+			node = walker.nextNode();
+		}
+		for (let index = nodes.length - 1; index >= 0; index -= 1) {
+			node = nodes[index];
+			let candidate = null;
+			if (node.nodeType === 3) {
+				const text = node;
+				if (!text.data.trim() || isTextInsideReplacedOwner(text)) continue;
+				candidate = textCandidate(text, document, frameRect, effectiveClip);
+			} else if (node.nodeType === 1) {
+				const element = node;
+				if (!REPLACED_TAGS.has(element.tagName.toLowerCase())) continue;
+				candidate = replacedCandidate(element, document, frameRect, effectiveClip);
+			}
+			if (!candidate) continue;
+			return {
+				state: classify(candidate, effectiveClip, writingMode),
+				reason: candidate.geometryPositive ? "terminal-candidate-classified" : "terminal-candidate-geometry-unresolved",
+				candidate,
+				writingMode,
+				direction
+			};
+		}
+		return {
+			state: "unknown",
+			reason: "no-renderable-terminal-candidate",
+			candidate: null,
+			writingMode,
+			direction
+		};
 	}
 	//#endregion
 	//#region src/rendering/page-metrics.ts
@@ -14227,6 +14472,33 @@
 	//#endregion
 	//#region src/managers/default/index.ts
 	var Deferred = defer$1;
+	var getVerticalRlTerminalOwnerClipRelation = (observation) => {
+		let candidate = observation?.resolution?.candidate;
+		let clip = observation?.effectiveClip;
+		let rect = candidate?.rect;
+		if (!candidate || !clip || !rect) return "unknown";
+		if (candidate.intersection?.positiveArea) return "intersects";
+		if (rect.right <= clip.left) return "future-left";
+		if (rect.left >= clip.right) return "past-right";
+		return "crosses-without-positive-area";
+	};
+	var getVerticalRlTerminalTailSnapshot = (observation) => {
+		let resolution = observation?.resolution;
+		let candidate = resolution?.candidate;
+		return {
+			tailState: resolution?.state || "unknown",
+			terminalOwnerKind: candidate?.kind || null,
+			terminalOwnerTag: candidate?.tag || null,
+			terminalOwnerIdentity: candidate?.ownerIdentity ?? null,
+			ownerConnected: candidate ? candidate.connected : null,
+			ownerDocumentIdentity: candidate?.ownerDocumentIdentity ?? null,
+			frameIdentity: observation?.frameIdentity ?? null,
+			documentIdentity: observation?.documentIdentity ?? null,
+			ownerRect: candidate?.rect || null,
+			effectiveClip: observation?.effectiveClip || null,
+			ownerClipRelation: getVerticalRlTerminalOwnerClipRelation(observation)
+		};
+	};
 	/**
 	* 記錄 vertical-rl 捲動診斷事件，僅在 window.__EPUB_VRL_DEBUG__ 為真時作用。
 	*
@@ -14251,6 +14523,24 @@
 			...detail
 		});
 		if (debugWindow.__EPUB_VRL_SCROLL_TRACE__.length > 4e3) debugWindow.__EPUB_VRL_SCROLL_TRACE__.splice(0, debugWindow.__EPUB_VRL_SCROLL_TRACE__.length - 4e3);
+	};
+	/**
+	* Record terminal continuation timing without participating in the decision.
+	*
+	* The trace is intentionally separate from the existing scroll trace so a
+	* diagnostic reader can compare the pre-scroll resolver result with the
+	* post-scroll DOM state without changing pagination behavior.
+	*/
+	var appendVerticalRlTerminalTrace = (event, detail) => {
+		if (typeof window === "undefined" || !window.__EPUB_VRL_DEBUG__) return;
+		let debugWindow = window;
+		if (!Array.isArray(debugWindow.__EPUB_VRL_TERMINAL_TRACE__)) debugWindow.__EPUB_VRL_TERMINAL_TRACE__ = [];
+		debugWindow.__EPUB_VRL_TERMINAL_TRACE__.push({
+			event,
+			capturedAt: Date.now(),
+			...detail
+		});
+		if (debugWindow.__EPUB_VRL_TERMINAL_TRACE__.length > 4e3) debugWindow.__EPUB_VRL_TERMINAL_TRACE__.splice(0, debugWindow.__EPUB_VRL_TERMINAL_TRACE__.length - 4e3);
 	};
 	var DefaultViewManager = class {
 		_verticalRlTerminalLayouts;
@@ -14731,6 +15021,54 @@
 				left: Math.max(0, Number.isFinite(left) ? left : Number.isFinite(combined) ? combined : 0),
 				right: Math.max(0, Number.isFinite(right) ? right : 0)
 			};
+		}
+		/**
+		* Resolve the active document's terminal semantic owner after a geometry
+		* continuation candidate has already been established.
+		*
+		* This reads only the currently applied DOM mask. It intentionally avoids
+		* pagination getters so tail inspection cannot materialize another layout.
+		*/
+		resolveVerticalRlTerminalTailObservation() {
+			let view = this.views && (this.views.first() || this.views.last());
+			let iframe = view && view.iframe;
+			let contentsDocument = view && view.contents && view.contents.document;
+			if (!this.container || !iframe || !contentsDocument) return {
+				resolution: null,
+				effectiveClip: null,
+				frameIdentity: null,
+				documentIdentity: null
+			};
+			try {
+				let frameRect = iframe.getBoundingClientRect();
+				let effectiveClip = getVerticalRlEffectiveClip(this.container);
+				if (!effectiveClip) return {
+					resolution: null,
+					effectiveClip: null,
+					frameIdentity: getVerticalRlRuntimeIdentity(iframe),
+					documentIdentity: getVerticalRlRuntimeIdentity(contentsDocument)
+				};
+				return {
+					resolution: resolveVerticalRlTerminalTail({
+						document: contentsDocument,
+						frameRect,
+						effectiveClip
+					}),
+					effectiveClip,
+					frameIdentity: getVerticalRlRuntimeIdentity(iframe),
+					documentIdentity: getVerticalRlRuntimeIdentity(contentsDocument)
+				};
+			} catch (_error) {
+				return {
+					resolution: null,
+					effectiveClip: null,
+					frameIdentity: getVerticalRlRuntimeIdentity(iframe),
+					documentIdentity: getVerticalRlRuntimeIdentity(contentsDocument)
+				};
+			}
+		}
+		resolveVerticalRlTerminalTailState() {
+			return this.resolveVerticalRlTerminalTailObservation().resolution?.state || "unknown";
 		}
 		computeVerticalRlEdgeMaskWidths() {
 			let advance = this.getPageAdvance() || 0;
@@ -15442,7 +15780,21 @@
 					if (Number.isFinite(snappedLogicalOffset)) logicalOffset = snappedLogicalOffset;
 				}
 			}
-			if (terminalLayout && promoteVerticalRlTerminalContinuation(terminalLayout, this.getBaseGeometryPageCount(), targetIndex, logicalOffset, maxScroll, this.getPageSnapTolerance())) this._verticalRlPageIndexLookupKey = null;
+			let basePageCount = this.getBaseGeometryPageCount();
+			let snapTolerance = this.getPageSnapTolerance();
+			let geometryCandidate = terminalLayout && isVerticalRlTerminalContinuationGeometryCandidate(terminalLayout, basePageCount, targetIndex, logicalOffset, maxScroll, snapTolerance);
+			let terminalTailStateBeforeScroll = "unknown";
+			let terminalTailObservationBeforeScroll = null;
+			if (geometryCandidate) {
+				terminalTailObservationBeforeScroll = this.resolveVerticalRlTerminalTailObservation();
+				terminalTailStateBeforeScroll = terminalTailObservationBeforeScroll.resolution?.state || "unknown";
+			}
+			let continuationCountBefore = terminalLayout?.continuationCount || 0;
+			let currentPageIndexBefore = terminalLayout && geometryCandidate ? this.getCurrentPageIndex() : null;
+			let currentLogicalOffset = terminalLayout && geometryCandidate ? this.getNormalizedLogicalScrollLeft() : null;
+			let promotionResult = false;
+			let terminalTailStateAfterApply = "unknown";
+			let terminalTailObservationAfterApply = null;
 			this._verticalRlSequentialBoundaryConstraint = sequentialBoundaryConstraint;
 			if (this.isRtlVerticalPaginated()) this.cacheVerticalRlLogicalPageOffset(targetIndex, logicalOffset, logicalOffsetCacheKey);
 			let left = logicalOffset;
@@ -15473,6 +15825,77 @@
 				} finally {
 					this._verticalRlBoundarySnapApplying = false;
 				}
+			}
+			if (geometryCandidate) {
+				terminalTailObservationAfterApply = this.resolveVerticalRlTerminalTailObservation();
+				terminalTailStateAfterApply = terminalTailObservationAfterApply.resolution?.state || "unknown";
+				let beforeTailSnapshot = getVerticalRlTerminalTailSnapshot(terminalTailObservationBeforeScroll);
+				let afterTailSnapshot = getVerticalRlTerminalTailSnapshot(terminalTailObservationAfterApply);
+				let sameTerminalOwner = beforeTailSnapshot.terminalOwnerIdentity !== null && afterTailSnapshot.terminalOwnerIdentity !== null && beforeTailSnapshot.terminalOwnerIdentity === afterTailSnapshot.terminalOwnerIdentity;
+				let sameOwnerDocument = beforeTailSnapshot.ownerDocumentIdentity !== null && afterTailSnapshot.ownerDocumentIdentity !== null && beforeTailSnapshot.ownerDocumentIdentity === afterTailSnapshot.ownerDocumentIdentity;
+				let sameFrame = beforeTailSnapshot.frameIdentity !== null && afterTailSnapshot.frameIdentity !== null && beforeTailSnapshot.frameIdentity === afterTailSnapshot.frameIdentity;
+				let ownerStillConnected = afterTailSnapshot.ownerConnected === true;
+				appendVerticalRlTerminalTrace("vertical-rl-terminal-tail-transaction", {
+					before: beforeTailSnapshot,
+					after: afterTailSnapshot,
+					sameTerminalOwner,
+					sameOwnerDocument,
+					sameFrame,
+					ownerStillConnected
+				});
+				let terminalTailStateForPromotion = aggregateVerticalRlTerminalTailState({
+					before: terminalTailStateBeforeScroll,
+					after: terminalTailStateAfterApply,
+					sameTerminalOwner,
+					sameOwnerDocument,
+					ownerStillConnected
+				});
+				promotionResult = terminalLayout ? promoteVerticalRlTerminalContinuation(terminalLayout, basePageCount, targetIndex, logicalOffset, maxScroll, snapTolerance, terminalTailStateForPromotion) : false;
+				if (promotionResult) {
+					this._verticalRlPageIndexLookupKey = null;
+					this.syncVerticalRlViewportClip();
+				}
+				let beforeCandidate = terminalTailObservationBeforeScroll?.resolution?.candidate;
+				let afterCandidate = terminalTailObservationAfterApply.resolution?.candidate;
+				appendVerticalRlTerminalTrace("vertical-rl-terminal-promotion-decision", {
+					currentPageIndexBefore,
+					targetIndex,
+					basePageCount,
+					continuationCountBefore,
+					currentLogicalOffset,
+					targetLogicalOffset: logicalOffset,
+					maxLogicalScroll: maxScroll,
+					remainingLogicalScroll: maxScroll - logicalOffset,
+					tailStateBeforeScroll: terminalTailStateBeforeScroll,
+					tailStateAfterApply: terminalTailStateAfterApply,
+					tailStateForPromotion: terminalTailStateForPromotion,
+					terminalOwnerKind: beforeCandidate?.kind || null,
+					terminalOwnerTag: beforeCandidate?.tag || null,
+					ownerRect: beforeCandidate?.rect || null,
+					effectiveClip: terminalTailObservationBeforeScroll?.effectiveClip || null,
+					positiveIntersection: beforeCandidate?.intersection?.positiveArea || false,
+					resolverReason: terminalTailObservationAfterApply.resolution?.reason || "unavailable",
+					afterApplyTerminalOwnerKind: afterCandidate?.kind || null,
+					afterApplyTerminalOwnerTag: afterCandidate?.tag || null,
+					afterApplyOwnerRect: afterCandidate?.rect || null,
+					afterApplyEffectiveClip: terminalTailObservationAfterApply.effectiveClip || null,
+					afterApplyPositiveIntersection: afterCandidate?.intersection?.positiveArea || false,
+					promotionResult,
+					continuationCountAfter: terminalLayout?.continuationCount || 0
+				});
+				appendVerticalRlTerminalTrace("vertical-rl-terminal-target-settled", {
+					targetIndex,
+					continuationCount: terminalLayout?.continuationCount || 0,
+					tailStateAfterScroll: terminalTailStateAfterApply,
+					tailStateAfterApply: terminalTailStateAfterApply,
+					tailStateForPromotion: terminalTailStateForPromotion,
+					terminalOwnerKind: afterCandidate?.kind || null,
+					terminalOwnerTag: afterCandidate?.tag || null,
+					ownerRect: afterCandidate?.rect || null,
+					effectiveClip: terminalTailObservationAfterApply.effectiveClip || null,
+					positiveIntersection: afterCandidate?.intersection?.positiveArea || false,
+					promotionResult
+				});
 			}
 			appendVerticalRlScrollTrace("complete", {
 				targetIndex,

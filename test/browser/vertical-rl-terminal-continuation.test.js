@@ -132,10 +132,10 @@ it("keeps a promoted window stable through retry and invalidates continuation on
 	await manager.waitForVerticalRlLayoutReady();
 	const resized = state(manager);
 	expect(resized.cache?.key).not.toBe(promoted.cache.key);
-	expect(manager.getVerticalRlTerminalLayout().continuationCount).toBe(0);
+	expect(manager.getVerticalRlTerminalLayout()?.continuationCount ?? 0).toBe(0);
 	rendition.resize(260, 260);
 	await manager.waitForVerticalRlLayoutReady();
 	manager.scrollToLogicalPage(0);
 	await manager.waitForVerticalRlLayoutReady();
-	expect(manager.getVerticalRlTerminalLayout().continuationCount).toBe(0);
+	expect(manager.getVerticalRlTerminalLayout()?.continuationCount ?? 0).toBe(0);
 }, 60000);

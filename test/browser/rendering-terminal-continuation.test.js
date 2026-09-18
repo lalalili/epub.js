@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { cacheVerticalRlLogicalPageOffset, getCachedVerticalRlLogicalPageOffset, getVerticalRlLogicalPageOffsetCacheKey } from "../../src/rendering/logical-page";
-import { resolveVerticalRlTerminalContinuation, promoteVerticalRlTerminalContinuation } from "../../src/rendering/terminal-continuation";
+import {
+	aggregateVerticalRlTerminalTailState,
+	resolveVerticalRlTerminalContinuation,
+	promoteVerticalRlTerminalContinuation,
+	isVerticalRlTerminalContinuationGeometryCandidate
+} from "../../src/rendering/terminal-continuation";
 
 describe("layout-scoped terminal continuation", () => {
 	const base = 4;
@@ -13,6 +18,57 @@ describe("layout-scoped terminal continuation", () => {
 			expect(promoteVerticalRlTerminalContinuation(state, base, base - 1, offset, max, tolerance)).toBe(false);
 		}
 		expect(state.continuationCount).toBe(0);
+	});
+	it("suppresses a geometry candidate only when the semantic tail is reached", () => {
+		const reached = create();
+		expect(isVerticalRlTerminalContinuationGeometryCandidate(reached, base, base - 1, max / 2, max, tolerance)).toBe(true);
+		expect(promoteVerticalRlTerminalContinuation(reached, base, base - 1, max / 2, max, tolerance, "reached")).toBe(false);
+		expect(reached.continuationCount).toBe(0);
+
+		const unreached = create();
+		expect(promoteVerticalRlTerminalContinuation(unreached, base, base - 1, max / 2, max, tolerance, "unreached")).toBe(true);
+		expect(unreached.continuationCount).toBe(1);
+
+		const unknown = create();
+		expect(promoteVerticalRlTerminalContinuation(unknown, base, base - 1, max / 2, max, tolerance, "unknown")).toBe(true);
+		expect(unknown.continuationCount).toBe(1);
+	});
+	it("aggregates transaction-level tail reachability conservatively", () => {
+		expect(aggregateVerticalRlTerminalTailState({
+			before: "reached",
+			after: "unknown",
+			sameTerminalOwner: true,
+			sameOwnerDocument: true,
+			ownerStillConnected: true
+		})).toBe("reached");
+		expect(aggregateVerticalRlTerminalTailState({
+			before: "reached",
+			after: "unknown",
+			sameTerminalOwner: false,
+			sameOwnerDocument: true,
+			ownerStillConnected: true
+		})).toBe("unknown");
+		expect(aggregateVerticalRlTerminalTailState({
+			before: "unreached",
+			after: "reached",
+			sameTerminalOwner: true,
+			sameOwnerDocument: true,
+			ownerStillConnected: true
+		})).toBe("reached");
+		expect(aggregateVerticalRlTerminalTailState({
+			before: "unreached",
+			after: "unreached",
+			sameTerminalOwner: true,
+			sameOwnerDocument: true,
+			ownerStillConnected: true
+		})).toBe("unreached");
+		expect(aggregateVerticalRlTerminalTailState({
+			before: "unknown",
+			after: "unknown",
+			sameTerminalOwner: true,
+			sameOwnerDocument: true,
+			ownerStillConnected: true
+		})).toBe("unknown");
 	});
 	it("promotes an early terminal without changing its recorded offset", () => {
 		const state = create();
