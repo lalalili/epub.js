@@ -68,6 +68,26 @@ type StringDeferConstructor = new () => {
 	reject(error?: unknown): void;
 };
 type HookConstructor = new (context?: unknown) => Hook;
+type PersistDocumentSource = {
+	readInvocationId: string;
+	producerReadInvocationId: string;
+	chunkId: string;
+	manifestVersion: string | number | null;
+	keyVersionFingerprint: string | null;
+	href: string | null;
+	sourceOwnerId: string | null;
+};
+type PersistReuseConsumption = {
+	consumptionId: string;
+	operationId: string;
+	sourceContentId: string;
+	sourceReadInvocationId: string;
+	producerReadInvocationId: string;
+	sourceOwnerId: string;
+};
+const persistDocumentSourceKey = Symbol.for('epub.persist.documentSource.v1');
+let nextPersistContentId = 0;
+let nextPersistReuseId = 0;
 
 /**
  * Represents a Section of the Book
@@ -97,6 +117,13 @@ class Section {
 	contents?: Element;
 	output?: string;
 	request?: SectionRequest;
+	private persistDocumentSource?: PersistDocumentSource;
+	private persistSourceContentId?: string;
+	private persistReuseByOperation = new Map<string, PersistReuseConsumption>();
+
+	getPersistReuseConsumption(operationId: string): PersistReuseConsumption | null {
+		return this.persistReuseByOperation.get(operationId) ?? null;
+	}
 
 	constructor(item: SpineItem, hooks?: SectionHookSet){
 		this.idref = item.idref;
@@ -141,6 +168,41 @@ class Section {
 		var loaded = loading.promise;
 
 		if(this.contents) {
+			const correlation = (request as SectionRequest & { persistResourceCorrelation?: Record<string, unknown> }).persistResourceCorrelation;
+			if (this.persistDocumentSource && this.persistSourceContentId &&
+				typeof correlation?.navigationOperationId === 'string' &&
+				typeof correlation?.parentActionId === 'string' &&
+				typeof correlation?.parentInvocationId === 'string') {
+				if (typeof this.persistDocumentSource.sourceOwnerId !== 'string') {
+					loading.resolve(this.contents);
+					return loaded as Promise<Element>;
+				}
+				const consumption: PersistReuseConsumption = {
+					consumptionId: `document-reuse-${++nextPersistReuseId}`,
+					operationId: correlation.navigationOperationId,
+					sourceContentId: this.persistSourceContentId,
+					sourceReadInvocationId: this.persistDocumentSource.readInvocationId,
+					producerReadInvocationId: this.persistDocumentSource.producerReadInvocationId,
+					sourceOwnerId: this.persistDocumentSource.sourceOwnerId,
+				};
+				this.persistReuseByOperation.set(consumption.operationId, consumption);
+				while (this.persistReuseByOperation.size > 8) this.persistReuseByOperation.delete(this.persistReuseByOperation.keys().next().value!);
+				try {
+					(globalThis as typeof globalThis & { __PERSIST_RENDERER_BOUNDARY__?: { provenance?: (event: string, detail: object) => void } })
+						.__PERSIST_RENDERER_BOUNDARY__?.provenance?.('document-reuse-consumed', {
+							schemaVersion: 1, consumptionKind: 'section-document-reuse',
+							...consumption, parentActionId: correlation.parentActionId,
+							parentInvocationId: correlation.parentInvocationId,
+							sectionHref: this.href ?? null, sectionIdref: this.idref ?? null,
+							chunkId: this.persistDocumentSource.chunkId,
+							manifestVersion: this.persistDocumentSource.manifestVersion,
+							keyVersionFingerprint: this.persistDocumentSource.keyVersionFingerprint,
+							sourceHref: this.persistDocumentSource.href,
+						});
+				} catch {
+					// Observation failure cannot alter Section.load's result.
+				}
+			}
 			loading.resolve(this.contents);
 		} else {
 			request(this.url!, undefined, undefined, undefined, signal)
@@ -149,6 +211,9 @@ class Section {
 
 					this.document = xml;
 					this.contents = xml.documentElement;
+					const source = (xml as Document & { [persistDocumentSourceKey]?: PersistDocumentSource })[persistDocumentSourceKey];
+					this.persistDocumentSource = source?.producerReadInvocationId ? { ...source } : undefined;
+					this.persistSourceContentId = this.persistDocumentSource ? `section-content-${++nextPersistContentId}` : undefined;
 
 					return this.hooks!.content.trigger(this.document, this);
 				})
@@ -390,6 +455,9 @@ class Section {
 		this.document = undefined;
 		this.contents = undefined;
 		this.output = undefined;
+		this.persistDocumentSource = undefined;
+		this.persistSourceContentId = undefined;
+		this.persistReuseByOperation.clear();
 	}
 
 	destroy(): void {

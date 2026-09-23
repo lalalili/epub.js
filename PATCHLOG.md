@@ -2,6 +2,15 @@
 
 This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
+## 2026-09-23
+
+### EPUB-PERSIST-001 semantic restore and request ownership
+- Why: same-layout restoration must retain the visible semantic set rather than infer it solely from a logical page index.
+- Diff Scope: bounded source-digested CFI runs, verified semantic-window restoration, immutable navigation/request correlation, and retained-document observation. Preserve current mainline terminal-continuation behavior.
+- Test: original TypeScript configuration; semantic-cut browser round trip and malformed/source/spine rejection; existing vertical-rl manager and terminal-continuation regressions; Reader producer/formal-consumer integration.
+- Evidence: the isolated predecessor passed formal EPUB-PERSIST-001 A–E in Run20260923T121646Z. This mainline port has its own offline verification and is not the byte-identical formal candidate.
+- Rollback: revert the integration commit and rebuild artifacts. Package tag publication and downstream dependency adoption remain separate release actions.
+
 ## Template
 
 ### Patch ID

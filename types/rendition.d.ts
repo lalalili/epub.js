@@ -92,7 +92,7 @@ export interface RenditionManager {
   views?: RenditionViewsBridge;
   _layoutDirty?: boolean;
   render(element: Element, size?: { width: number | string | null, height: number | string | null }): void;
-  display(section: Section, target?: string | number): Promise<void>;
+  display(section: Section, target?: string | number, options?: { persistResourceCorrelation?: unknown }): Promise<void>;
   resize(width?: number | string, height?: number | string, epubcfi?: string): void;
   resizeView?(view: View): void;
   moveTo(offset: object): void;
@@ -106,6 +106,8 @@ export interface RenditionManager {
   getTotalPagesForCurrentView?(): number;
   getCurrentPageIndex?(): number;
   getNormalizedLogicalScrollLeft?(): number;
+  createSemanticWindowDescriptor?(location: ManagerLocationItem, sourceIdentity: { publicationIdentifier: string; publicationModified: string }): Record<string, unknown> | null;
+  restoreSemanticWindowDescriptor?(descriptor: Record<string, unknown>, sourceIdentity: { publicationIdentifier: string; publicationModified: string }, context?: { restoreInvocationId?: string | null; semanticWindowDescriptorFingerprint?: string | null }): { status: string; reason: string };
   applyLayout(layout: Layout): void;
   updateFlow(flow: string): void;
   updateLayout(): void;
@@ -187,8 +189,11 @@ export default class Rendition {
 
     direction(dir: string): void;
 
-    display(target?: string): Promise<void>;
-    display(target?: number): Promise<void>;
+    display(target?: string | number, options?: { persistResourceCorrelation?: unknown }): Promise<void>;
+
+    createSemanticWindowDescriptor(location: Location | null | undefined): Record<string, unknown> | null;
+
+    restoreSemanticWindowDescriptor(descriptor: Record<string, unknown>, context?: { restoreInvocationId?: string | null; semanticWindowDescriptorFingerprint?: string | null }): { status: string; reason: string };
 
     flow(flow?: string | null): void;
 
@@ -210,7 +215,7 @@ export default class Rendition {
 
     moveTo(offset: object): void;
 
-    next(): Promise<void>;
+    next(options?: { persistResourceCorrelation?: unknown }): Promise<void>;
 
     onOrientationChange(orientation: string): void;
 

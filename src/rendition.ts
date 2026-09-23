@@ -103,7 +103,7 @@ export interface RenditionManager {
 	views?: RenditionViewsBridge;
 	_layoutDirty?: boolean;
 	render(element: Element, size?: { width: number | string | null; height: number | string | null }): void;
-	display(section: Section, target?: string | number): Promise<void>;
+	display(section: Section, target?: string | number, options?: { persistResourceCorrelation?: unknown }): Promise<void>;
 	resize(width?: number | string, height?: number | string, epubcfi?: string): void;
 	resizeView?(view: IframeView): void;
 	moveTo(offset: object): void;
@@ -117,6 +117,18 @@ export interface RenditionManager {
 	getTotalPagesForCurrentView?(): number;
 	getCurrentPageIndex?(): number;
 	getNormalizedLogicalScrollLeft?(): number;
+	createSemanticWindowDescriptor?(
+		location: ManagerLocationItem,
+		sourceIdentity: { publicationIdentifier: string; publicationModified: string }
+	): Record<string, unknown> | null;
+	restoreSemanticWindowDescriptor?(
+		descriptor: Record<string, unknown>,
+		sourceIdentity: { publicationIdentifier: string; publicationModified: string },
+		restoreContext?: {
+		restoreInvocationId?: string | null;
+		semanticWindowDescriptorFingerprint?: string | null;
+	}
+	): { status: string; reason: string };
 	recordResizeSettleTrace?(event: string, detail?: Record<string, unknown>): void;
 	getResizeSettleTrace?(): ResizeSettleTraceEntry[];
 	clearResizeSettleTrace?(): void;
@@ -409,11 +421,31 @@ class Rendition {
 		if(!this.manager) {
 			this.ViewManager = this.requireManager(this.settings.manager) as RenditionManagerConstructor;
 			this.View = this.requireView(this.settings.view) as RenditionViewConstructor;
+			const bookLoad = this.book.load.bind(this.book) as Book["load"] & {
+				withPersistCorrelation?: (correlation: unknown) => Book["load"] & { persistResourceCorrelation?: unknown };
+			};
+			const bookRequest = this.book.request as typeof this.book.request & {
+				withPersistCorrelation?: (correlation: unknown) => typeof this.book.request;
+			};
+			if (!this.book.archived && typeof bookRequest?.withPersistCorrelation === "function") {
+				bookLoad.withPersistCorrelation = (correlation: unknown) => {
+					const correlatedRequest = bookRequest.withPersistCorrelation!(correlation);
+					const correlatedLoad = ((path: string, type?: string | null) =>
+						correlatedRequest(
+							this.book.resolve(path) as string,
+							type || null,
+							this.book.settings.requestCredentials,
+							this.book.settings.requestHeaders,
+						)) as Book["load"] & { persistResourceCorrelation?: unknown };
+					correlatedLoad.persistResourceCorrelation = correlation;
+					return correlatedLoad;
+				};
+			}
 
 			this.manager = new this.ViewManager({
 				view: this.View,
 				queue: this.q,
-				request: this.book.load.bind(this.book),
+				request: bookLoad,
 				settings: this.settings
 			});
 		}
@@ -486,11 +518,11 @@ class Rendition {
 	 * @param  {string} target Url or EpubCFI
 	 * @return {Promise}
 	 */
-	display(target?: string | number): Promise<void> {
+	display(target?: string | number, options?: { persistResourceCorrelation?: unknown }): Promise<void> {
 		if (this.displaying) {
 			this.displaying.resolve!(undefined);
 		}
-		return this.q.enqueue(this._display, target) as Promise<void>;
+		return this.q.enqueue(this._display, target, options) as Promise<void>;
 	}
 
 	/**
@@ -499,7 +531,7 @@ class Rendition {
 	 * @param  {string} target Url or EpubCFI
 	 * @return {Promise}
 	 */
-	_display(target?: string | number): Promise<Section | undefined> | undefined {
+	_display(target?: string | number, options?: { persistResourceCorrelation?: unknown }): Promise<Section | undefined> | undefined {
 		if (!this.book) {
 			return;
 		}
@@ -521,7 +553,7 @@ class Rendition {
 			return displayed;
 		}
 
-		this.manager.display(section, target)
+		this.manager.display(section, target, options)
 			.then(() => {
 				displaying.resolve!(section);
 				this.displaying = undefined;
@@ -745,8 +777,8 @@ class Rendition {
 	 * Go to the next "page" in the rendition
 	 * @return {Promise}
 	 */
-	next(): Promise<void> {
-		return this.q.enqueue(this.manager.next.bind(this.manager))
+	next(options?: { persistResourceCorrelation?: unknown }): Promise<void> {
+		return this.q.enqueue(this.manager.next.bind(this.manager), options)
 			.then(this.reportLocation.bind(this));
 	}
 
@@ -1065,16 +1097,72 @@ class Rendition {
 	 * @return {displayedLocation | promise} location (may be a promise)
 	 */
 	currentLocation(): Location | Promise<Location> | undefined {
+		let boundaryToken: unknown;
+		try { boundaryToken = globalThis.__PERSIST_RENDERER_BOUNDARY__?.enter("rendition:current-location"); } catch (_) {}
+		const finishBoundary = (kind: "returned" | "threw"): void => {
+			try { globalThis.__PERSIST_RENDERER_BOUNDARY__?.[kind]?.(boundaryToken); } catch (_) {}
+		};
+		try {
 		var location: ManagerLocationResult | Promise<ManagerLocationResult> | undefined = this.manager.currentLocation();
 		if (location && isManagerLocationPromise(location)) {
-			return location.then(function(result: ManagerLocationResult) {
+			let resultPromise = location.then((result: ManagerLocationResult): Location => {
 				let located = this.located(result);
 				return located;
-			}.bind(this));
+			});
+			finishBoundary("returned");
+			return resultPromise;
 		} else if (location && !isManagerLocationPromise(location)) {
 			let located = this.located(location);
+			finishBoundary("returned");
 			return located;
 		}
+		finishBoundary("returned");
+		} catch (error) {
+			finishBoundary("threw");
+			throw error;
+		}
+	}
+
+	private semanticWindowSourceIdentity(): { publicationIdentifier: string; publicationModified: string } {
+		const metadata = this.book.packaging?.metadata || this.book.package?.metadata || {};
+		return {
+			publicationIdentifier: String(metadata.identifier || "").trim(),
+			publicationModified: String(metadata.modified_date || "").trim()
+		};
+	}
+
+	createSemanticWindowDescriptor(location: Location | null | undefined): Record<string, unknown> | null {
+		if (!location?.start?.href || !location.start.cfi || !location?.end?.cfi || !this.manager.createSemanticWindowDescriptor) {
+			return null;
+		}
+		const sourceIdentity = this.semanticWindowSourceIdentity();
+		if (!sourceIdentity.publicationIdentifier || !sourceIdentity.publicationModified) {
+			return null;
+		}
+		return this.manager.createSemanticWindowDescriptor({
+			index: location.start.index,
+			href: location.start.href,
+			mapping: { start: location.start.cfi, end: location.end.cfi },
+			pages: [location.start.displayed.page],
+			totalPages: location.start.displayed.total
+		}, sourceIdentity);
+	}
+
+	restoreSemanticWindowDescriptor(
+		descriptor: Record<string, unknown>,
+		restoreContext: {
+		restoreInvocationId?: string | null;
+		semanticWindowDescriptorFingerprint?: string | null;
+	} = {},
+	): { status: string; reason: string } {
+		if (!this.manager.restoreSemanticWindowDescriptor) {
+			return { status: "not-applicable", reason: "manager-unsupported" };
+		}
+		return this.manager.restoreSemanticWindowDescriptor(
+			descriptor,
+			this.semanticWindowSourceIdentity(),
+			restoreContext,
+		);
 	}
 
 	/**

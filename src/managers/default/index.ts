@@ -6,9 +6,10 @@ import { windowBounds } from "../../platform/layout";
 import { collectVisibleTextClientRects } from "../../platform/traversal";
 import scrollType from "../../utils/scrolltype";
 import Mapping from "../../mapping";
+import { captureSemanticCut, resolveSemanticCut, type SemanticCut } from '../../rendering/semantic-cut';
 import {
-	promoteVerticalRlTerminalContinuation,
-	resolveVerticalRlTerminalContinuation,
+	promoteVerticalRlTerminalContinuationWithObservation,
+	resolveVerticalRlTerminalContinuationWithObservation,
 	type VerticalRlTerminalContinuationState
 } from "../../rendering/terminal-continuation";
 import Queue from "../../utils/queue";
@@ -66,6 +67,42 @@ const Deferred = defer as unknown as {
 };
 
 type EdgeMaskWidths = { left: number; right: number };
+export interface SemanticWindowDescriptorV1 {
+	type: "epubjs-semantic-window";
+	version: 1;
+	semanticCut?: SemanticCut;
+	source: {
+		publicationIdentifier: string;
+		publicationModified: string;
+		href: string;
+		cfiBase: string;
+	};
+	layout: {
+		flow: "paginated";
+		axis: "horizontal";
+		direction: "rtl";
+		writingMode: "vertical-rl";
+	};
+	logicalPageIndex: number;
+	anchors: {
+		readingStart: { cfi: string; role: "reading-start" };
+		readingEndExclusive: { cfi: string; role: "reading-end-exclusive" };
+	};
+}
+
+export interface SemanticWindowSourceIdentity {
+	publicationIdentifier: string;
+	publicationModified: string;
+}
+
+export interface SemanticWindowRestoreResult {
+	status: "applied" | "not-applicable" | "unavailable";
+	reason: string;
+}
+export interface SemanticWindowRestoreContext {
+	restoreInvocationId?: string | null;
+	semanticWindowDescriptorFingerprint?: string | null;
+}
 type VerticalRlDebugWindow = Window & {
 	__EPUB_VRL_DEBUG__?: boolean;
 	__EPUB_VRL_SCROLL_TRACE__?: Array<Record<string, unknown>>;
@@ -86,21 +123,25 @@ type VerticalRlDebugWindow = Window & {
  * @return {void}
  */
 const appendVerticalRlScrollTrace = (stage: string, detail: Record<string, unknown>): void => {
-	if (typeof window === "undefined" || !(window as VerticalRlDebugWindow).__EPUB_VRL_DEBUG__) {
-		return;
-	}
+	try {
+		if (typeof window === "undefined" || !(window as VerticalRlDebugWindow).__EPUB_VRL_DEBUG__) {
+			return;
+		}
 
-	let debugWindow = window as VerticalRlDebugWindow;
-	if (!Array.isArray(debugWindow.__EPUB_VRL_SCROLL_TRACE__)) {
-		debugWindow.__EPUB_VRL_SCROLL_TRACE__ = [];
-	}
-	debugWindow.__EPUB_VRL_SCROLL_TRACE__.push({
-		stage,
-		capturedAt: Date.now(),
-		...detail
-	});
-	if (debugWindow.__EPUB_VRL_SCROLL_TRACE__.length > 4000) {
-		debugWindow.__EPUB_VRL_SCROLL_TRACE__.splice(0, debugWindow.__EPUB_VRL_SCROLL_TRACE__.length - 4000);
+		let debugWindow = window as VerticalRlDebugWindow;
+		if (!Array.isArray(debugWindow.__EPUB_VRL_SCROLL_TRACE__)) {
+			debugWindow.__EPUB_VRL_SCROLL_TRACE__ = [];
+		}
+		debugWindow.__EPUB_VRL_SCROLL_TRACE__.push({
+			stage,
+			capturedAt: Date.now(),
+			...detail
+		});
+		if (debugWindow.__EPUB_VRL_SCROLL_TRACE__.length > 4000) {
+			debugWindow.__EPUB_VRL_SCROLL_TRACE__.splice(0, debugWindow.__EPUB_VRL_SCROLL_TRACE__.length - 4000);
+		}
+	} catch (_) {
+		// Diagnostics must never change Reader behavior.
 	}
 };
 type SnapLimits = {
@@ -119,6 +160,7 @@ type SnapLimits = {
 	sequentialRightBoundary?: number;
 	useCurrentOffset?: boolean;
 	pageIndex?: number;
+	semanticWindowLogicalOffset?: number;
 };
 type VerticalRlSequentialBoundaryConstraint = {
 	pageIndex: number;
@@ -132,6 +174,13 @@ type TextRect = {
 	bottom?: number;
 	width?: number;
 	height?: number;
+};
+type VerticalRlSemanticCandidateObservation = {
+	status: "complete" | "unavailable";
+	reason: string | null;
+	fingerprint: string | null;
+	visibleCharacterCount: number;
+	truncated: boolean;
 };
 type ManagerRenderSize = {
 	width: number | string | null | false;
@@ -228,6 +277,7 @@ type ManagerSection = {
 	prev(): ManagerSection | undefined;
 };
 type ManagerView = {
+	document?: Document;
 	section: ManagerSection;
 	contents: Contents;
 	onDisplayed?: () => void;
@@ -741,7 +791,7 @@ class DefaultViewManager {
 		}
 	}
 
-	display(section: ManagerSection, target?: string | number): Promise<void> {
+	display(section: ManagerSection, target?: string | number, options?: { persistResourceCorrelation?: unknown }): Promise<void> {
 
 		var displaying = new Deferred<void>();
 		var displayed = displaying.promise;
@@ -796,7 +846,11 @@ class DefaultViewManager {
 			forceRight = true;
 		}
 
-		this.add(section, forceRight)
+		const requestWithCorrelation = options?.persistResourceCorrelation &&
+			typeof (this.request as { withPersistCorrelation?: (value: unknown) => unknown })?.withPersistCorrelation === 'function'
+			? (this.request as { withPersistCorrelation: (value: unknown) => unknown }).withPersistCorrelation(options?.persistResourceCorrelation)
+			: this.request;
+		this.add(section, forceRight, requestWithCorrelation)
 			.then(function(view: ManagerView){
 
 				// Move to correct place within the section, if needed
@@ -959,7 +1013,7 @@ class DefaultViewManager {
 		this.scrollTo(distX, distY, true);
 	}
 
-	add(section: ManagerSection, forceRight?: boolean): Promise<ManagerView> {
+	add(section: ManagerSection, forceRight?: boolean, requestOverride?: unknown): Promise<ManagerView> {
 		var view = this.createView(section, forceRight);
 
 		this.views.append(view);
@@ -976,10 +1030,10 @@ class DefaultViewManager {
 			this.updateWritingMode(mode);
 		});
 
-		return view.display(this.request);
+		return view.display(requestOverride || this.request);
 	}
 
-	append(section: unknown, forceRight?: boolean): ManagerView | Promise<ManagerView> {
+	append(section: unknown, forceRight?: boolean, requestOverride?: unknown): ManagerView | Promise<ManagerView> {
 		var view = this.createView(section, forceRight);
 		this.views.append(view);
 
@@ -994,7 +1048,7 @@ class DefaultViewManager {
 			this.updateWritingMode(mode);
 		});
 
-		return view.display(this.request);
+		return view.display(requestOverride || this.request);
 	}
 
 	prepend(section: unknown, forceRight?: boolean): ManagerView | Promise<ManagerView> {
@@ -1282,7 +1336,10 @@ class DefaultViewManager {
 		// A Section survives view recreation; different sections never share a ledger.
 		const owner = view.section;
 		this._verticalRlTerminalLayouts ??= new WeakMap();
-		const state = resolveVerticalRlTerminalContinuation(this._verticalRlTerminalLayouts.get(owner), key)!;
+		const state = resolveVerticalRlTerminalContinuationWithObservation(
+			this._verticalRlTerminalLayouts.get(owner), key,
+			{ owner: this, section: owner, view, document: view.contents?.document }
+		)!;
 		this._verticalRlTerminalLayouts.set(owner, state);
 		if (this._verticalRlActiveTerminalLayout !== state) {
 			if (this._verticalRlActiveTerminalLayout) {
@@ -1986,6 +2043,164 @@ class DefaultViewManager {
 		return Math.max(0, Math.min(maxScroll, (previous as number) + step));
 	}
 
+	/**
+	 * 以目前 document 的可見文字作為暫態 semantic class oracle。
+	 *
+	 * 這裡只在同一次 restore invocation 內比較候選，不把 DOM、幾何或 source
+	 * offsets 寫回 descriptor。候選若無法以完整、同座標域的可見文字集合分辨，
+	 * restore 仍維持 fail-closed。
+	 */
+	getVerticalRlSemanticCandidateObservation(
+		view: { iframe?: { getBoundingClientRect?: () => DOMRect | DOMRectReadOnly }; contents?: { document?: Document; window?: Window } },
+		physicalStart: number,
+		physicalEnd: number
+	): VerticalRlSemanticCandidateObservation {
+		const document = view?.contents?.document;
+		const viewWindow = view?.contents?.window;
+		const iframe = view?.iframe;
+		const iframeRect = iframe?.getBoundingClientRect?.();
+		const containerRect = this.container?.getBoundingClientRect?.();
+		const body = document?.body;
+		const walkerFactory = document?.createTreeWalker;
+		if (
+			!document || !viewWindow || !body || typeof walkerFactory !== "function" ||
+			!iframeRect || !Number.isFinite(physicalStart) || !Number.isFinite(physicalEnd) ||
+			physicalEnd <= physicalStart
+		) {
+			return {
+				status: "unavailable",
+				reason: "semantic-observation-input-unavailable",
+				fingerprint: null,
+				visibleCharacterCount: 0,
+				truncated: false
+			};
+		}
+
+		const iframeLeft = Number(iframeRect.left);
+		const origin = iframeLeft >= 0 ? iframeLeft : 0;
+		const clipLeft = origin + physicalStart;
+		const clipRight = origin + physicalEnd;
+		const clipTop = Number.isFinite(Number(containerRect?.top))
+			? Number(containerRect?.top) - Number(iframeRect.top)
+			: 0;
+		const clipBottom = Number.isFinite(Number(containerRect?.bottom))
+			? Number(containerRect?.bottom) - Number(iframeRect.top)
+			: Number(iframeRect.bottom) - Number(iframeRect.top);
+		if (
+			!Number.isFinite(clipLeft) || !Number.isFinite(clipRight) ||
+			!Number.isFinite(clipTop) || !Number.isFinite(clipBottom) ||
+			clipRight <= clipLeft || clipBottom <= clipTop
+		) {
+			return {
+				status: "unavailable",
+				reason: "semantic-observation-clip-unavailable",
+				fingerprint: null,
+				visibleCharacterCount: 0,
+				truncated: false
+			};
+		}
+
+		const intersects = (rect: TextRect): boolean => {
+			const left = Number(rect.left);
+			const right = Number(rect.right);
+			const top = Number(rect.top);
+			const bottom = Number(rect.bottom);
+			return Number.isFinite(left) && Number.isFinite(right) && Number.isFinite(top) &&
+				Number.isFinite(bottom) && right > left && bottom > top &&
+				right > clipLeft && left < clipRight && bottom > clipTop && top < clipBottom;
+		};
+		let hash = 2166136261;
+		const addHash = (value: string): void => {
+			for (let index = 0; index < value.length; index += 1) {
+				hash ^= value.charCodeAt(index);
+				hash = Math.imul(hash, 16777619);
+			}
+		};
+		const walker = walkerFactory.call(document, body, NodeFilter.SHOW_TEXT);
+		if (!walker || typeof walker.nextNode !== "function") {
+			return {
+				status: "unavailable",
+				reason: "semantic-observation-walker-unavailable",
+				fingerprint: null,
+				visibleCharacterCount: 0,
+				truncated: false
+			};
+		}
+
+		const maxInspectedCharacters = 12000;
+		let inspectedCharacters = 0;
+		let visibleCharacterCount = 0;
+		let textNodeOrdinal = 0;
+		let node: Node | null;
+		while ((node = walker.nextNode())) {
+			if (node.nodeType !== Node.TEXT_NODE) {
+				continue;
+			}
+			const text = String(node.nodeValue || "");
+			const parent = (node as Text).parentElement;
+			if (parent && typeof viewWindow.getComputedStyle === "function") {
+				const style = viewWindow.getComputedStyle(parent);
+				if (style?.display === "none" || style?.visibility === "hidden") {
+					textNodeOrdinal += 1;
+					continue;
+				}
+			}
+			for (let offset = 0; offset < text.length; offset += 1) {
+				inspectedCharacters += 1;
+				if (inspectedCharacters > maxInspectedCharacters) {
+					return {
+						status: "unavailable",
+						reason: "semantic-observation-quota",
+						fingerprint: null,
+						visibleCharacterCount,
+						truncated: true
+					};
+				}
+				if (/\s/u.test(text[offset])) {
+					continue;
+				}
+				let range: Range;
+				try {
+					range = document.createRange();
+					range.setStart(node, offset);
+					range.setEnd(node, offset + 1);
+					const rects = Array.from(range.getClientRects?.() || []) as TextRect[];
+					if (rects.some(intersects)) {
+						visibleCharacterCount += 1;
+						addHash(`${textNodeOrdinal}:${offset}:${text.charCodeAt(offset)};`);
+					}
+				} catch (_) {
+					return {
+						status: "unavailable",
+						reason: "semantic-observation-range-failed",
+						fingerprint: null,
+						visibleCharacterCount,
+						truncated: false
+					};
+				}
+			}
+			textNodeOrdinal += 1;
+		}
+
+		if (visibleCharacterCount === 0) {
+			return {
+				status: "unavailable",
+				reason: "semantic-observation-empty-window",
+				fingerprint: null,
+				visibleCharacterCount,
+				truncated: false
+			};
+		}
+
+		return {
+			status: "complete",
+			reason: null,
+			fingerprint: (hash >>> 0).toString(16).padStart(8, "0"),
+			visibleCharacterCount,
+			truncated: false
+		};
+	}
+
 	getLogicalOffsetForPageIndex(pageIndex: number, totalPages: number, maxScroll: number): number {
 		let advance = this.getPageAdvance() || 0;
 		let boundaryShift = this.getPageBoundaryShift();
@@ -2247,6 +2462,424 @@ class DefaultViewManager {
 		return base + (this.getVerticalRlTerminalLayout()?.continuationCount || 0);
 	}
 
+	createSemanticWindowDescriptor(
+		location: ManagerLocationItem | null | undefined,
+		sourceIdentity: SemanticWindowSourceIdentity
+	): SemanticWindowDescriptorV1 | null {
+		if (!this.isRtlVerticalPaginated() || !location?.mapping?.start || !location.mapping.end) {
+			return null;
+		}
+		const view = this.views && (this.views.first() || this.views.last());
+		const section = view?.section;
+		const publicationIdentifier = String(sourceIdentity?.publicationIdentifier || "").trim();
+		const publicationModified = String(sourceIdentity?.publicationModified || "").trim();
+		if (!section || !publicationIdentifier || !publicationModified || location.href !== section.href) {
+			return null;
+		}
+		const contentWidth = this.getVerticalRlVisualContentWidth(view);
+		const visibleWidth = this.layout.pageWidth || this.layout.width || this.getPageAdvance();
+		const maxPhysicalStart = Math.max(0, contentWidth - visibleWidth);
+		const logicalOffset = this.getNormalizedLogicalScrollLeft();
+		const physicalStart = Math.max(0, Math.min(maxPhysicalStart, maxPhysicalStart - logicalOffset));
+		appendVerticalRlScrollTrace("semantic-window-created", {
+			logicalPageIndex: this.getCurrentPageIndex(),
+			totalPages: this.getTotalPagesForCurrentView(),
+			logicalOffset,
+			contentWidth,
+			visibleWidth,
+			physicalStart,
+			physicalEnd: Math.min(contentWidth, physicalStart + visibleWidth),
+			currentDocument: true
+		});
+
+		return {
+			type: "epubjs-semantic-window",
+			version: 1,
+			...(view?.contents?.document && view?.iframe ? (() => {
+				const semanticCut = captureSemanticCut(view.contents.document, view.iframe, section.cfiBase);
+				return semanticCut ? { semanticCut } : {};
+			})() : {}),
+			source: {
+				publicationIdentifier,
+				publicationModified,
+				href: section.href,
+				cfiBase: section.cfiBase
+			},
+			layout: {
+				flow: "paginated",
+				axis: "horizontal",
+				direction: "rtl",
+				writingMode: "vertical-rl"
+			},
+			logicalPageIndex: this.getCurrentPageIndex(),
+			anchors: {
+				readingStart: { cfi: location.mapping.start, role: "reading-start" },
+				readingEndExclusive: { cfi: location.mapping.end, role: "reading-end-exclusive" }
+			}
+		};
+	}
+
+	restoreSemanticWindowDescriptor(
+		descriptor: SemanticWindowDescriptorV1 | null | undefined,
+		sourceIdentity: SemanticWindowSourceIdentity,
+		restoreContext: SemanticWindowRestoreContext = {}
+	): SemanticWindowRestoreResult {
+		if (!descriptor || descriptor.type !== "epubjs-semantic-window" || descriptor.version !== 1) {
+			return { status: "not-applicable", reason: "unsupported-or-legacy" };
+		}
+		if (!this.isRtlVerticalPaginated()) {
+			return { status: "not-applicable", reason: "incompatible-layout" };
+		}
+		const view = this.views && (this.views.first() || this.views.last());
+		const section = view?.section;
+		const contents = view?.contents;
+		if (!section || !contents?.document || !contents.range) {
+			return { status: "unavailable", reason: "missing-current-view" };
+		}
+		const restoreInvocationId = typeof restoreContext.restoreInvocationId === "string" &&
+			/^[A-Za-z0-9_.:-]{1,128}$/.test(restoreContext.restoreInvocationId)
+			? restoreContext.restoreInvocationId
+			: null;
+		const semanticWindowDescriptorFingerprint = typeof restoreContext.semanticWindowDescriptorFingerprint === "string" &&
+			/^[0-9a-f]{8}$/.test(restoreContext.semanticWindowDescriptorFingerprint)
+			? restoreContext.semanticWindowDescriptorFingerprint
+			: null;
+		const traceTerminal = (reason: string, detail: Record<string, unknown> = {}): void => {
+			appendVerticalRlScrollTrace("semantic-window-restore-candidate", {
+				restoreInvocationId,
+				semanticWindowDescriptorFingerprint,
+				candidateCount: 0,
+				mappingExecuted: false,
+				mappingStatus: "not-evaluated",
+				startMatches: null,
+				endMatches: null,
+				resolvedStartMatches: null,
+				resolvedEndMatches: null,
+				comparisonValidity: "unknown",
+				terminalReason: reason,
+				...detail
+			});
+		};
+		if (
+			descriptor.source.publicationIdentifier !== String(sourceIdentity?.publicationIdentifier || "").trim() ||
+			descriptor.source.publicationModified !== String(sourceIdentity?.publicationModified || "").trim() ||
+			descriptor.source.href !== section.href ||
+			descriptor.source.cfiBase !== section.cfiBase
+		) {
+			return { status: "not-applicable", reason: "source-mismatch" };
+		}
+		if (
+			descriptor.layout.flow !== "paginated" || descriptor.layout.axis !== "horizontal" ||
+			descriptor.layout.direction !== "rtl" || descriptor.layout.writingMode !== "vertical-rl" ||
+			descriptor.anchors.readingStart.role !== "reading-start" ||
+			descriptor.anchors.readingEndExclusive.role !== "reading-end-exclusive"
+		) {
+			return { status: "not-applicable", reason: "invalid-contract" };
+		}
+
+		if (descriptor.semanticCut) {
+			const width = this.layout.pageWidth || this.layout.width || this.getPageAdvance();
+			const maxStart = Math.max(0, this.getVerticalRlVisualContentWidth(view) - width);
+			const resolution = resolveSemanticCut(contents.document, view.iframe, descriptor.semanticCut, maxStart, section.cfiBase);
+			if (resolution.status !== 'qualified' || typeof resolution.physicalStart !== 'number') {
+				traceTerminal(resolution.reason || 'semantic-cut-unavailable');
+				return { status: 'unavailable', reason: resolution.reason || 'semantic-cut-unavailable' };
+			}
+			const index = Number(descriptor.logicalPageIndex);
+			if (!Number.isInteger(index) || index <= 0) return { status: 'unavailable', reason: 'invalid-page-index' };
+			this.scrollToLogicalPageInLayout(index, { semanticWindowLogicalOffset: maxStart - resolution.physicalStart }, true);
+			const actual = captureSemanticCut(contents.document, view.iframe, section.cfiBase);
+			if (!actual || JSON.stringify(actual) !== JSON.stringify(descriptor.semanticCut)) {
+				traceTerminal('semantic-cut-post-apply-mismatch');
+				return { status: 'unavailable', reason: 'semantic-cut-post-apply-mismatch' };
+			}
+			traceTerminal('semantic-window-restored', { semanticCutVersion: 1, comparisonValidity: 'valid', currentDocument: true });
+			return { status: 'applied', reason: 'semantic-window-restored' };
+		}
+
+		let resolvedStart: ReturnType<Contents["range"]>;
+		let resolvedEnd: ReturnType<Contents["range"]>;
+		try {
+			resolvedStart = contents.range(descriptor.anchors.readingStart.cfi);
+			resolvedEnd = contents.range(descriptor.anchors.readingEndExclusive.cfi);
+		} catch (_) {
+			traceTerminal("anchor-resolution-failed", { anchorResolution: "invalid" });
+			return { status: "unavailable", reason: "anchor-resolution-failed" };
+		}
+		if (!resolvedStart || !resolvedEnd || !("cloneRange" in resolvedStart) || !("cloneRange" in resolvedEnd)) {
+			traceTerminal("anchor-resolution-failed", { anchorResolution: "invalid" });
+			return { status: "unavailable", reason: "anchor-resolution-failed" };
+		}
+		const startRange = resolvedStart;
+		const endRange = resolvedEnd;
+		if (
+			!startRange || !endRange ||
+			startRange.startContainer?.ownerDocument !== contents.document ||
+			endRange.endContainer?.ownerDocument !== contents.document
+		) {
+			traceTerminal("stale-document", {
+				anchorResolution: "valid",
+				currentDocument: false
+			});
+			return { status: "unavailable", reason: "stale-document" };
+		}
+		const getAnchorRect = (range: Range, role: "start" | "end"): DOMRect | DOMRectReadOnly | null => {
+			const probe = range.cloneRange();
+			probe.collapse(role === "start");
+			if (probe.collapsed && probe.startContainer.nodeType === Node.TEXT_NODE) {
+				const length = probe.startContainer.textContent?.length || 0;
+				if (role === "start" && probe.startOffset < length) {
+					probe.setEnd(probe.startContainer, probe.startOffset + 1);
+				} else if (role === "end" && probe.startOffset > 0) {
+					probe.setStart(probe.startContainer, probe.startOffset - 1);
+				}
+			}
+			const rects = Array.from(probe.getClientRects()).filter((rect) => rect.width > 0 && rect.height > 0);
+			return role === "start" ? (rects[0] || null) : (rects[rects.length - 1] || null);
+		};
+		const startAnchorRect = getAnchorRect(startRange, "start");
+		const endAnchorRect = getAnchorRect(endRange, "end");
+		if (!startAnchorRect || !Number.isFinite(startAnchorRect.right) || startAnchorRect.right <= 0) {
+			traceTerminal("anchor-geometry-unavailable", {
+				anchorResolution: "valid",
+				currentDocument: true
+			});
+			return { status: "unavailable", reason: "anchor-geometry-unavailable" };
+		}
+
+		const targetIndex = Number(descriptor.logicalPageIndex);
+		if (!Number.isInteger(targetIndex) || targetIndex <= 0) {
+			return { status: "not-applicable", reason: "invalid-page-index" };
+		}
+		const totalPages = this.getTotalPagesForCurrentView();
+		const maxScroll = this.getMaxLogicalScrollLeft();
+		const baseOffset = this.getLogicalOffsetForPageIndex(targetIndex, totalPages, maxScroll);
+		const contentWidth = this.getVerticalRlVisualContentWidth(view);
+		const visibleWidth = this.layout.pageWidth || this.layout.width || this.getPageAdvance();
+		const maxPhysicalStart = Math.max(0, contentWidth - visibleWidth);
+		const startConstraint = getVerticalRlSequentialRightBoundaryConstraintHelper(
+			targetIndex, startAnchorRect.right, 0, 0, 0, 0, 0, 0
+		);
+		const candidateSeeds = [baseOffset];
+		if (endAnchorRect) {
+			candidateSeeds.push(
+				maxPhysicalStart - endAnchorRect.left,
+				maxPhysicalStart - endAnchorRect.right
+			);
+		}
+		candidateSeeds.push(
+			maxPhysicalStart - Math.max(0, startAnchorRect.left - visibleWidth),
+			maxPhysicalStart - Math.max(0, startAnchorRect.right - visibleWidth)
+		);
+		const originalSnapCache = this._verticalRlBoundarySnapCache
+			? { ...this._verticalRlBoundarySnapCache }
+			: this._verticalRlBoundarySnapCache;
+		const candidates = Array.from(new Set(candidateSeeds
+			.filter((seed) => Number.isFinite(seed))
+			.map((seed) => Math.max(0, Math.min(maxScroll, seed)))))
+			.map((seed, index) => {
+				this._verticalRlBoundarySnapCache = originalSnapCache
+					? { ...originalSnapCache }
+					: originalSnapCache;
+				let snapped: number;
+				try {
+					snapped = this.snapVerticalRlLogicalOffsetToTextBoundary(
+						seed,
+						maxScroll,
+						index === 0 ? (startConstraint || {}) : {}
+					);
+				} catch (error) {
+					this._verticalRlBoundarySnapCache = originalSnapCache
+						? { ...originalSnapCache }
+						: originalSnapCache;
+					throw error;
+				}
+				if (!Number.isFinite(snapped)) {
+					return null;
+				}
+				const logicalOffset = Math.max(0, Math.min(maxScroll, snapped));
+				const physicalStart = Math.max(0, Math.min(maxPhysicalStart, maxPhysicalStart - logicalOffset));
+				const physicalEnd = Math.min(contentWidth, physicalStart + visibleWidth);
+				let mapping: { start: string; end: string };
+				try {
+					mapping = this.mapping.page(
+						contents,
+						section.cfiBase,
+						physicalStart,
+						physicalEnd
+					);
+				} catch (error) {
+					this._verticalRlBoundarySnapCache = originalSnapCache
+						? { ...originalSnapCache }
+						: originalSnapCache;
+					throw error;
+				}
+				return {
+					logicalOffset,
+					physicalStart,
+					physicalEnd,
+					mapping,
+					snapCache: this._verticalRlBoundarySnapCache
+						? { ...this._verticalRlBoundarySnapCache }
+						: this._verticalRlBoundarySnapCache
+				};
+			})
+			.filter((candidate): candidate is {
+				logicalOffset: number;
+				physicalStart: number;
+				physicalEnd: number;
+				mapping: { start: string; end: string };
+				snapCache: VerticalRlBoundarySnapCacheEntry | null | undefined;
+			} => Boolean(candidate?.mapping));
+		this._verticalRlBoundarySnapCache = originalSnapCache
+			? { ...originalSnapCache }
+			: originalSnapCache;
+		const matchingCandidates = candidates.filter((candidate) => (
+			candidate.mapping.start === descriptor.anchors.readingStart.cfi &&
+			candidate.mapping.end === descriptor.anchors.readingEndExclusive.cfi
+		));
+		const observedMatchingCandidates = matchingCandidates.map((candidate) => ({
+			...candidate,
+			semanticObservation: this.getVerticalRlSemanticCandidateObservation(
+				view,
+				candidate.physicalStart,
+				candidate.physicalEnd
+			)
+		}));
+		const candidatesByBoundary = new Map<string, typeof matchingCandidates[number]>();
+		for (const candidate of matchingCandidates) {
+			const boundaryKey = `${candidate.physicalStart}:${candidate.physicalEnd}`;
+			if (!candidatesByBoundary.has(boundaryKey)) {
+				candidatesByBoundary.set(boundaryKey, candidate);
+			}
+		}
+		const semanticClasses = new Map<string, typeof observedMatchingCandidates[number]>();
+		for (const candidate of observedMatchingCandidates) {
+			if (candidate.semanticObservation.status !== "complete" || !candidate.semanticObservation.fingerprint) {
+				continue;
+			}
+			if (!semanticClasses.has(candidate.semanticObservation.fingerprint)) {
+				semanticClasses.set(candidate.semanticObservation.fingerprint, candidate);
+			}
+		}
+		const allSemanticCandidatesComplete = observedMatchingCandidates.length > 0 &&
+			observedMatchingCandidates.every((candidate) => candidate.semanticObservation.status === "complete");
+		const canonicalCandidateForClass = (classCandidate: typeof observedMatchingCandidates[number]): typeof matchingCandidates[number] => {
+			const sameClass = observedMatchingCandidates
+				.filter((candidate) => candidate.semanticObservation.fingerprint === classCandidate.semanticObservation.fingerprint)
+				.sort((left, right) => left.physicalStart - right.physicalStart || left.physicalEnd - right.physicalEnd || left.logicalOffset - right.logicalOffset);
+			return sameClass[0] || classCandidate;
+		};
+		const acceptedCandidate = candidatesByBoundary.size === 1
+			? Array.from(candidatesByBoundary.values())[0]
+			: allSemanticCandidatesComplete && semanticClasses.size === 1
+				? canonicalCandidateForClass(Array.from(semanticClasses.values())[0])
+				: null;
+		const candidateSummaries = candidates.map((candidate) => ({
+			logicalOffset: candidate.logicalOffset,
+			physicalStart: candidate.physicalStart,
+			physicalEnd: candidate.physicalEnd,
+			startMatches: candidate.mapping.start === descriptor.anchors.readingStart.cfi,
+			endMatches: candidate.mapping.end === descriptor.anchors.readingEndExclusive.cfi,
+			semanticObservation: observedMatchingCandidates.find((matchingCandidate) => (
+				matchingCandidate.logicalOffset === candidate.logicalOffset &&
+				matchingCandidate.physicalStart === candidate.physicalStart &&
+				matchingCandidate.physicalEnd === candidate.physicalEnd
+			))?.semanticObservation.status ?? "not-evaluated",
+			semanticFingerprint: observedMatchingCandidates.find((matchingCandidate) => (
+				matchingCandidate.logicalOffset === candidate.logicalOffset &&
+				matchingCandidate.physicalStart === candidate.physicalStart &&
+				matchingCandidate.physicalEnd === candidate.physicalEnd
+			))?.semanticObservation.fingerprint ?? null,
+			semanticVisibleCharacterCount: observedMatchingCandidates.find((matchingCandidate) => (
+				matchingCandidate.logicalOffset === candidate.logicalOffset &&
+				matchingCandidate.physicalStart === candidate.physicalStart &&
+				matchingCandidate.physicalEnd === candidate.physicalEnd
+			))?.semanticObservation.visibleCharacterCount ?? null
+		}));
+		const diagnosticCandidate = acceptedCandidate || candidates[0] || null;
+		const snappedOffset = diagnosticCandidate?.logicalOffset ?? null;
+		const physicalStart = diagnosticCandidate?.physicalStart ?? null;
+		const mapping = diagnosticCandidate?.mapping;
+		const startMatches = mapping?.start === descriptor.anchors.readingStart.cfi;
+		const endMatches = mapping?.end === descriptor.anchors.readingEndExclusive.cfi;
+		let resolvedStartMatches: boolean | null = null;
+		let resolvedEndMatches: boolean | null = null;
+		if (mapping?.start && mapping.end) {
+			try {
+				const mappedStartRange = contents.range(mapping.start);
+				const mappedEndRange = contents.range(mapping.end);
+				resolvedStartMatches = mappedStartRange.startContainer === startRange.startContainer &&
+					mappedStartRange.startOffset === startRange.startOffset;
+				resolvedEndMatches = mappedEndRange.endContainer === endRange.endContainer &&
+					mappedEndRange.endOffset === endRange.endOffset;
+			} catch (_) {
+				resolvedStartMatches = null;
+				resolvedEndMatches = null;
+			}
+		}
+		appendVerticalRlScrollTrace("semantic-window-restore-candidate", {
+			restoreInvocationId,
+			semanticWindowDescriptorFingerprint,
+			candidateCount: candidates.length,
+			mappingExecuted: true,
+			mappingStatus: "completed",
+			targetIndex,
+			totalPages,
+			maxScroll,
+			baseOffset,
+			snappedOffset,
+			contentWidth,
+			visibleWidth,
+			physicalStart,
+			physicalEnd: diagnosticCandidate?.physicalEnd ?? null,
+			anchorRight: startAnchorRect.right,
+			endAnchorLeft: endAnchorRect?.left ?? null,
+			endAnchorRight: endAnchorRect?.right ?? null,
+			startMatches,
+			endMatches,
+			resolvedStartMatches,
+			resolvedEndMatches,
+			comparisonValidity: resolvedStartMatches === null || resolvedEndMatches === null ? "unknown" : "valid",
+			candidateSummaries,
+			matchingBoundaryCount: candidatesByBoundary.size,
+			semanticClassCount: allSemanticCandidatesComplete ? semanticClasses.size : null,
+			semanticEquivalenceEvaluated: allSemanticCandidatesComplete,
+			acceptanceReason: acceptedCandidate
+				? candidatesByBoundary.size === 1
+					? "unique-canonical-boundary"
+					: "equivalent-semantic-boundary"
+				: matchingCandidates.length > 0
+					? allSemanticCandidatesComplete
+						? "unproven-distinct-semantic-boundaries"
+						: "semantic-equivalence-unavailable"
+					: "no-strict-dual-cfi-match",
+			terminalReason: acceptedCandidate ? "semantic-window-restored" : "ambiguous-semantic-window",
+			currentDocument: true
+		});
+		if (!acceptedCandidate || !startMatches || !endMatches) {
+			this._verticalRlBoundarySnapCache = originalSnapCache
+				? { ...originalSnapCache }
+				: originalSnapCache;
+			return { status: "unavailable", reason: "ambiguous-semantic-window" };
+		}
+
+		this._verticalRlBoundarySnapCache = acceptedCandidate.snapCache
+			? { ...acceptedCandidate.snapCache }
+			: acceptedCandidate.snapCache;
+		try {
+			this.scrollToLogicalPageInLayout(targetIndex, {
+				semanticWindowLogicalOffset: acceptedCandidate.logicalOffset
+			});
+		} catch (error) {
+			this._verticalRlBoundarySnapCache = originalSnapCache
+				? { ...originalSnapCache }
+				: originalSnapCache;
+			throw error;
+		}
+		return { status: "applied", reason: "semantic-window-restored" };
+	}
+
 	/**
 	 * 依已記錄的實際頁位置判斷目前頁索引。
 	 *
@@ -2346,7 +2979,7 @@ class DefaultViewManager {
 		this.scrollToLogicalPageInLayout(pageIndex, options);
 	}
 
-	private scrollToLogicalPageInLayout(pageIndex: number | null, options: SnapLimits = {}): void {
+	private scrollToLogicalPageInLayout(pageIndex: number | null, options: SnapLimits = {}, preserveSourceCut = false): void {
 		let preSyncView = this.views && (this.views.first() || this.views.last());
 		let preSyncIframeWidth = preSyncView && preSyncView.iframe
 			? Math.max(
@@ -2431,12 +3064,20 @@ class DefaultViewManager {
 		let sequentialBoundaryConstraint = null;
 		let logicalOffsetCacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
 		let ignoreCachedLogicalOffset = Boolean(options && options.ignoreCachedLogicalOffset);
+		const semanticWindowLogicalOffsetInput = options && options.semanticWindowLogicalOffset;
+		let hasSemanticWindowLogicalOffset = typeof semanticWindowLogicalOffsetInput === "number" &&
+			Number.isFinite(semanticWindowLogicalOffsetInput);
+		let semanticWindowLogicalOffset = hasSemanticWindowLogicalOffset
+			? semanticWindowLogicalOffsetInput
+			: 0;
 		const terminalLayout = this.getVerticalRlTerminalLayout();
 		const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey);
 		const preserveContinuationOffset = recordedOffset !== null &&
 			Boolean(terminalLayout?.continuationCount) &&
 			targetIndex >= this.getBaseGeometryPageCount() - 1 && targetIndex < totalPages - 1;
-		let cachedLogicalOffset = ignoreCachedLogicalOffset && !preserveContinuationOffset
+		let cachedLogicalOffset = hasSemanticWindowLogicalOffset
+			? Math.max(0, Math.min(maxScroll, semanticWindowLogicalOffset))
+			: ignoreCachedLogicalOffset && !preserveContinuationOffset
 			? null
 			: recordedOffset;
 		if (this.isRtlVerticalPaginated() && targetIndex > 0) {
@@ -2481,7 +3122,7 @@ class DefaultViewManager {
 				// 強制右邊界（例如收尾頁）有自己的定位契約，維持理論網格推算。
 				? this.getLogicalOffsetForPageIndex(targetIndex, totalPages, maxScroll)
 				: this.getVerticalRlPageOffset(targetIndex, totalPages, maxScroll);
-		if (!preserveContinuationOffset && (cachedLogicalOffset === null || sequentialBoundaryConstraint)) {
+		if (!hasSemanticWindowLogicalOffset && !preserveContinuationOffset && (cachedLogicalOffset === null || sequentialBoundaryConstraint)) {
 			if (
 				this.isRtlVerticalPaginated() &&
 				targetIndex > 0 &&
@@ -2497,9 +3138,15 @@ class DefaultViewManager {
 				}
 			}
 		}
-		if (terminalLayout && promoteVerticalRlTerminalContinuation(
+		if (terminalLayout && promoteVerticalRlTerminalContinuationWithObservation(
 			terminalLayout, this.getBaseGeometryPageCount(), targetIndex,
-			logicalOffset, maxScroll, this.getPageSnapTolerance()
+			logicalOffset, maxScroll, this.getPageSnapTolerance(),
+			{
+				owner: preSyncView || this,
+				section: preSyncView?.section,
+				view: preSyncView,
+				document: preSyncView?.document || preSyncView?.contents?.document || null
+			}
 		)) {
 			this._verticalRlPageIndexLookupKey = null;
 		}
@@ -2549,7 +3196,14 @@ class DefaultViewManager {
 			containerScrollWidth: this.container && this.container.scrollWidth,
 			iframeWidth: readPreSyncIframeWidth()
 		});
-		this.queueVerticalRlBoundarySnapRetry(targetIndex);
+		if (hasSemanticWindowLogicalOffset && preserveSourceCut) {
+			// A source-verified semantic cut is not a page-edge approximation.
+			// Invalidate older retries; ordinary navigation retains its own retry path.
+			this._verticalRlBoundarySnapRetryToken = (this._verticalRlBoundarySnapRetryToken || 0) + 1;
+			clearTimeout(this._verticalRlBoundarySnapAfterScroll);
+		} else {
+			this.queueVerticalRlBoundarySnapRetry(targetIndex);
+		}
 		// layout 穩定後重算遮罩。首次 syncVerticalRlViewportClip() 發生在 layout
 		// 尚未定案時（頁數仍在變動），算出的遮罩偏寬，會遮蔽超出必要範圍的頁緣內容。
 		//
@@ -2708,6 +3362,10 @@ class DefaultViewManager {
 					return;
 				}
 
+				appendVerticalRlScrollTrace("boundary-retry-apply", {
+					targetIndex, attempt, currentOffset, logicalOffset, snappedOffset,
+					shouldUseCachedLogicalOffset, token
+				});
 				this.cacheVerticalRlLogicalPageOffset(targetIndex, snappedOffset, logicalOffsetCacheKey);
 
 				let left = snappedOffset;
@@ -2781,7 +3439,7 @@ class DefaultViewManager {
 			}.bind(this));
 	}
 
-	next(): Promise<unknown> | void {
+	next(options?: { persistResourceCorrelation?: unknown }): Promise<unknown> | void {
 		var next: ManagerSection | undefined;
 		var left: number;
 
@@ -2852,7 +3510,10 @@ class DefaultViewManager {
 				forceRight = true;
 			}
 
-				return (this.append(next, forceRight) as Promise<ManagerView>)
+				const requestWithCorrelation = typeof (this.request as { withPersistCorrelation?: (value: unknown) => unknown })?.withPersistCorrelation === 'function'
+					? (this.request as { withPersistCorrelation: (value: unknown) => unknown }).withPersistCorrelation(options?.persistResourceCorrelation)
+					: this.request;
+				return (this.append(next, forceRight, requestWithCorrelation) as Promise<ManagerView>)
 					.then(function(){
 						return this.handleNextPrePaginated(forceRight, next, this.append);
 					}.bind(this), (err: unknown) => {
@@ -2988,6 +3649,9 @@ class DefaultViewManager {
 	}
 
 	currentLocation(): Array<ManagerLocationItem | null | undefined> {
+		let boundaryToken;
+		try { boundaryToken = globalThis.__PERSIST_RENDERER_BOUNDARY__?.enter("manager:current-location"); } catch (_) {}
+		try {
 		if (this.shouldUpdateLayoutForLocation()) {
 			this.updateLayout();
 		}
@@ -3008,7 +3672,12 @@ class DefaultViewManager {
 			}),
 			container: this.resizeSettleContainerSnapshot()
 		});
+		try { globalThis.__PERSIST_RENDERER_BOUNDARY__?.returned(boundaryToken); } catch (_) {}
 		return this.location;
+		} catch (error) {
+			try { globalThis.__PERSIST_RENDERER_BOUNDARY__?.threw(boundaryToken); } catch (_) {}
+			throw error;
+		}
 	}
 
 	scrolledLocation(): ManagerLocationItem[] {
@@ -3129,9 +3798,10 @@ class DefaultViewManager {
 				let visiblePageWidth = this.layout.pageWidth || this.layout.width || pageAdvance;
 				let contentWidth = width;
 				let maxPhysicalStart = Math.max(0, contentWidth - visiblePageWidth);
+				let appliedLogicalOffset = this.getNormalizedLogicalScrollLeft();
 				let physicalStart = Math.max(
 					0,
-					Math.min(maxPhysicalStart, maxPhysicalStart - (currentPageIndex * pageAdvance))
+					Math.min(maxPhysicalStart, maxPhysicalStart - appliedLogicalOffset)
 				);
 				let physicalEnd = Math.min(contentWidth, physicalStart + visiblePageWidth);
 				totalPages = this.getTotalPagesForCurrentView();
