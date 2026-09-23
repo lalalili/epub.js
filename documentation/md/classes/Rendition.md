@@ -160,6 +160,22 @@
 
 ***
 
+### createSemanticWindowDescriptor()
+
+> **createSemanticWindowDescriptor**(`location`): `Record`\<`string`, `unknown`\>
+
+#### Parameters
+
+##### location
+
+[`Location`](../interfaces/Location.md)
+
+#### Returns
+
+`Record`\<`string`, `unknown`\>
+
+***
+
 ### currentLocation()
 
 > **currentLocation**(): [`Location`](../interfaces/Location.md) \| `Promise`\<[`Location`](../interfaces/Location.md)\>
@@ -224,31 +240,21 @@
 
 ### display()
 
-#### Call Signature
+> **display**(`target?`, `options?`): `Promise`\<`void`\>
 
-> **display**(`target?`): `Promise`\<`void`\>
+#### Parameters
 
-##### Parameters
+##### target?
 
-###### target?
+`string` \| `number`
 
-`string`
+##### options?
 
-##### Returns
+###### persistResourceCorrelation?
 
-`Promise`\<`void`\>
+`unknown`
 
-#### Call Signature
-
-> **display**(`target?`): `Promise`\<`void`\>
-
-##### Parameters
-
-###### target?
-
-`number`
-
-##### Returns
+#### Returns
 
 `Promise`\<`void`\>
 
@@ -446,7 +452,15 @@
 
 ### next()
 
-> **next**(): `Promise`\<`void`\>
+> **next**(`options?`): `Promise`\<`void`\>
+
+#### Parameters
+
+##### options?
+
+###### persistResourceCorrelation?
+
+`unknown`
 
 #### Returns
 
@@ -663,6 +677,40 @@
 #### Returns
 
 `string`
+
+***
+
+### restoreSemanticWindowDescriptor()
+
+> **restoreSemanticWindowDescriptor**(`descriptor`, `context?`): `object`
+
+#### Parameters
+
+##### descriptor
+
+`Record`\<`string`, `unknown`\>
+
+##### context?
+
+###### restoreInvocationId?
+
+`string`
+
+###### semanticWindowDescriptorFingerprint?
+
+`string`
+
+#### Returns
+
+`object`
+
+##### reason
+
+> **reason**: `string`
+
+##### status
+
+> **status**: `string`
 
 ***
 

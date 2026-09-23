@@ -1374,11 +1374,10 @@ assert(
 );
 assert(
 	renditionSource.includes("attachTo(element: Element | string): Promise<void>") &&
-		renditionSource.includes("display(target?: string | number): Promise<void>") &&
-		renditionSource.includes("_display(target?: string | number): Promise<Section | undefined> | undefined") &&
+		renditionSource.includes("display(target?: string | number, options?: { persistResourceCorrelation?: unknown }): Promise<void>") &&
+		renditionSource.includes("_display(target?: string | number, options?: { persistResourceCorrelation?: unknown }): Promise<Section | undefined> | undefined") &&
 		renditionTypes.includes("attachTo(element: Element | string): Promise<void>") &&
-		renditionTypes.includes("display(target?: string): Promise<void>") &&
-		renditionTypes.includes("display(target?: number): Promise<void>"),
+		renditionTypes.includes("display(target?: string | number, options?: { persistResourceCorrelation?: unknown }): Promise<void>"),
 	"Rendition source and declarations must keep attach/display return type parity"
 );
 assert(
@@ -1630,18 +1629,18 @@ assert(
 		managerSource.includes("_contentWidth?: number") &&
 		managerSource.includes("_viewportFillingSingleMediaPage?: boolean") &&
 		managerSource.includes("createView(section: unknown, forceRight?: boolean): ManagerView") &&
-		managerSource.includes("display(section: ManagerSection, target?: string | number): Promise<void>") &&
+		managerSource.includes("display(section: ManagerSection, target?: string | number, options?: { persistResourceCorrelation?: unknown }): Promise<void>") &&
 		managerSource.includes("var displaying = new Deferred<void>()") &&
 		managerSource.includes("var visible: ManagerView | undefined = this.views.find(section)") &&
 		managerSource.includes(".then(function(view: ManagerView)") &&
 		managerSource.includes("}.bind(this), (err: unknown) => {") &&
 		managerSource.includes("afterDisplayed(view: ManagerView): void") &&
 		managerSource.includes("afterResized(view: ManagerView): void") &&
-		managerSource.includes("add(section: ManagerSection, forceRight?: boolean): Promise<ManagerView>") &&
-		managerSource.includes("append(section: unknown, forceRight?: boolean): ManagerView | Promise<ManagerView>") &&
+		managerSource.includes("add(section: ManagerSection, forceRight?: boolean, requestOverride?: unknown): Promise<ManagerView>") &&
+		managerSource.includes("append(section: unknown, forceRight?: boolean, requestOverride?: unknown): ManagerView | Promise<ManagerView>") &&
 		managerSource.includes("prepend(section: unknown, forceRight?: boolean): ManagerView | Promise<ManagerView>") &&
 		managerSource.includes("return (this.prepend(section, forceRight) as Promise<ManagerView>)") &&
-		managerSource.includes("return (this.append(next, forceRight) as Promise<ManagerView>)") &&
+		managerSource.includes("return (this.append(next, forceRight, requestWithCorrelation) as Promise<ManagerView>)") &&
 		!managerSource.includes("createView(section: any") &&
 		!managerSource.includes("display(section: any") &&
 		!managerSource.includes("target?: any") &&
@@ -1734,7 +1733,7 @@ assert(
 	"Default manager end-display helper must keep section and rejection bridge typed without any"
 );
 assert(
-	managerSource.includes("next(): Promise<unknown> | void") &&
+	managerSource.includes("next(options?: { persistResourceCorrelation?: unknown }): Promise<unknown> | void") &&
 		managerSource.includes("var next: ManagerSection | undefined") &&
 		managerSource.includes("var left: number") &&
 		managerSource.includes('next.properties!.includes("page-spread-right")') &&

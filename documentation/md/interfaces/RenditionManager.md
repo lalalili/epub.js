@@ -58,6 +58,32 @@
 
 ***
 
+### createSemanticWindowDescriptor()?
+
+> `optional` **createSemanticWindowDescriptor**(`location`, `sourceIdentity`): `Record`\<`string`, `unknown`\>
+
+#### Parameters
+
+##### location
+
+[`ManagerLocationItem`](ManagerLocationItem.md)
+
+##### sourceIdentity
+
+###### publicationIdentifier
+
+`string`
+
+###### publicationModified
+
+`string`
+
+#### Returns
+
+`Record`\<`string`, `unknown`\>
+
+***
+
 ### currentLocation()
 
 > **currentLocation**(): [`ManagerLocationItem`](ManagerLocationItem.md)[] \| `Promise`\<[`ManagerLocationItem`](ManagerLocationItem.md)[]\>
@@ -96,7 +122,7 @@
 
 ### display()
 
-> **display**(`section`, `target?`): `Promise`\<`void`\>
+> **display**(`section`, `target?`, `options?`): `Promise`\<`void`\>
 
 #### Parameters
 
@@ -107,6 +133,12 @@
 ##### target?
 
 `string` \| `number`
+
+##### options?
+
+###### persistResourceCorrelation?
+
+`unknown`
 
 #### Returns
 
@@ -293,6 +325,50 @@
 #### Returns
 
 `void`
+
+***
+
+### restoreSemanticWindowDescriptor()?
+
+> `optional` **restoreSemanticWindowDescriptor**(`descriptor`, `sourceIdentity`, `context?`): `object`
+
+#### Parameters
+
+##### descriptor
+
+`Record`\<`string`, `unknown`\>
+
+##### sourceIdentity
+
+###### publicationIdentifier
+
+`string`
+
+###### publicationModified
+
+`string`
+
+##### context?
+
+###### restoreInvocationId?
+
+`string`
+
+###### semanticWindowDescriptorFingerprint?
+
+`string`
+
+#### Returns
+
+`object`
+
+##### reason
+
+> **reason**: `string`
+
+##### status
+
+> **status**: `string`
 
 ***
 

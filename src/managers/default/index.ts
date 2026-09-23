@@ -8,10 +8,19 @@ import scrollType from "../../utils/scrolltype";
 import Mapping from "../../mapping";
 import { captureSemanticCut, resolveSemanticCut, type SemanticCut } from '../../rendering/semantic-cut';
 import {
-	promoteVerticalRlTerminalContinuationWithObservation,
+	aggregateVerticalRlTerminalTailState,
+	promoteVerticalRlTerminalContinuation,
 	resolveVerticalRlTerminalContinuationWithObservation,
+	isVerticalRlTerminalContinuationGeometryCandidate,
+	type VerticalRlTerminalTailState,
 	type VerticalRlTerminalContinuationState
 } from "../../rendering/terminal-continuation";
+import {
+	getVerticalRlEffectiveClip,
+	getVerticalRlRuntimeIdentity,
+	resolveVerticalRlTerminalTail,
+	type VerticalRlTerminalTailResolution
+} from "../../rendering/terminal-tail";
 import Queue from "../../utils/queue";
 import EpubCFI from "../../epubcfi";
 import type Contents from "../../contents";
@@ -106,6 +115,71 @@ export interface SemanticWindowRestoreContext {
 type VerticalRlDebugWindow = Window & {
 	__EPUB_VRL_DEBUG__?: boolean;
 	__EPUB_VRL_SCROLL_TRACE__?: Array<Record<string, unknown>>;
+	__EPUB_VRL_TERMINAL_TRACE__?: Array<Record<string, unknown>>;
+};
+
+type VerticalRlTerminalTailObservation = {
+	resolution: VerticalRlTerminalTailResolution | null;
+	effectiveClip: ReturnType<typeof getVerticalRlEffectiveClip>;
+	frameIdentity: number | null;
+	documentIdentity: number | null;
+};
+
+type VerticalRlTerminalTailSnapshot = {
+	tailState: VerticalRlTerminalTailState;
+	terminalOwnerKind: string | null;
+	terminalOwnerTag: string | null;
+	terminalOwnerIdentity: number | null;
+	ownerConnected: boolean | null;
+	ownerDocumentIdentity: number | null;
+	frameIdentity: number | null;
+	documentIdentity: number | null;
+	ownerRect: unknown;
+	effectiveClip: unknown;
+	ownerClipRelation: string;
+};
+
+const getVerticalRlTerminalOwnerClipRelation = (
+	observation: VerticalRlTerminalTailObservation | null
+): string => {
+	let candidate = observation?.resolution?.candidate;
+	let clip = observation?.effectiveClip;
+	let rect = candidate?.rect;
+	if (!candidate || !clip || !rect) {
+		return "unknown";
+	}
+	if (candidate.intersection?.positiveArea) {
+		return "intersects";
+	}
+	if (rect.right <= clip.left) {
+		return "future-left";
+	}
+	if (rect.left >= clip.right) {
+		return "past-right";
+	}
+
+	return "crosses-without-positive-area";
+};
+
+const getVerticalRlTerminalTailSnapshot = (
+	observation: VerticalRlTerminalTailObservation | null
+): VerticalRlTerminalTailSnapshot => {
+	let resolution = observation?.resolution;
+	let candidate = resolution?.candidate;
+
+	return {
+		tailState: resolution?.state || "unknown",
+		terminalOwnerKind: candidate?.kind || null,
+		terminalOwnerTag: candidate?.tag || null,
+		terminalOwnerIdentity: candidate?.ownerIdentity ?? null,
+		ownerConnected: candidate ? candidate.connected : null,
+		ownerDocumentIdentity: candidate?.ownerDocumentIdentity ?? null,
+		frameIdentity: observation?.frameIdentity ?? null,
+		documentIdentity: observation?.documentIdentity ?? null,
+		ownerRect: candidate?.rect || null,
+		effectiveClip: observation?.effectiveClip || null,
+		ownerClipRelation: getVerticalRlTerminalOwnerClipRelation(observation)
+	};
 };
 
 /**
@@ -142,6 +216,32 @@ const appendVerticalRlScrollTrace = (stage: string, detail: Record<string, unkno
 		}
 	} catch (_) {
 		// Diagnostics must never change Reader behavior.
+	}
+};
+
+/**
+ * Record terminal continuation timing without participating in the decision.
+ *
+ * The trace is intentionally separate from the existing scroll trace so a
+ * diagnostic reader can compare the pre-scroll resolver result with the
+ * post-scroll DOM state without changing pagination behavior.
+ */
+const appendVerticalRlTerminalTrace = (event: string, detail: Record<string, unknown>): void => {
+	if (typeof window === "undefined" || !(window as VerticalRlDebugWindow).__EPUB_VRL_DEBUG__) {
+		return;
+	}
+
+	let debugWindow = window as VerticalRlDebugWindow;
+	if (!Array.isArray(debugWindow.__EPUB_VRL_TERMINAL_TRACE__)) {
+		debugWindow.__EPUB_VRL_TERMINAL_TRACE__ = [];
+	}
+	debugWindow.__EPUB_VRL_TERMINAL_TRACE__.push({
+		event,
+		capturedAt: Date.now(),
+		...detail
+	});
+	if (debugWindow.__EPUB_VRL_TERMINAL_TRACE__.length > 4000) {
+		debugWindow.__EPUB_VRL_TERMINAL_TRACE__.splice(0, debugWindow.__EPUB_VRL_TERMINAL_TRACE__.length - 4000);
 	}
 };
 type SnapLimits = {
@@ -1172,6 +1272,63 @@ class DefaultViewManager {
 			left: Math.max(0, Number.isFinite(left) ? left : (Number.isFinite(combined) ? combined : 0)),
 			right: Math.max(0, Number.isFinite(right) ? right : 0)
 		};
+	}
+
+	/**
+	 * Resolve the active document's terminal semantic owner after a geometry
+	 * continuation candidate has already been established.
+	 *
+	 * This reads only the currently applied DOM mask. It intentionally avoids
+	 * pagination getters so tail inspection cannot materialize another layout.
+	 */
+	private resolveVerticalRlTerminalTailObservation(): VerticalRlTerminalTailObservation {
+		let view = this.views && (this.views.first() || this.views.last());
+		let iframe = view && view.iframe;
+		let contentsDocument = view && view.contents && view.contents.document;
+
+		if (!this.container || !iframe || !contentsDocument) {
+			return {
+				resolution: null,
+				effectiveClip: null,
+				frameIdentity: null,
+				documentIdentity: null
+			};
+		}
+
+		try {
+			let frameRect = iframe.getBoundingClientRect();
+			let effectiveClip = getVerticalRlEffectiveClip(this.container);
+			if (!effectiveClip) {
+				return {
+					resolution: null,
+					effectiveClip: null,
+					frameIdentity: getVerticalRlRuntimeIdentity(iframe),
+					documentIdentity: getVerticalRlRuntimeIdentity(contentsDocument)
+				};
+			}
+
+			return {
+				resolution: resolveVerticalRlTerminalTail({
+					document: contentsDocument,
+					frameRect,
+					effectiveClip
+				}),
+				effectiveClip,
+				frameIdentity: getVerticalRlRuntimeIdentity(iframe),
+				documentIdentity: getVerticalRlRuntimeIdentity(contentsDocument)
+			};
+		} catch (_error) {
+			return {
+				resolution: null,
+				effectiveClip: null,
+				frameIdentity: getVerticalRlRuntimeIdentity(iframe),
+				documentIdentity: getVerticalRlRuntimeIdentity(contentsDocument)
+			};
+		}
+	}
+
+	private resolveVerticalRlTerminalTailState(): VerticalRlTerminalTailState {
+		return this.resolveVerticalRlTerminalTailObservation().resolution?.state || "unknown";
 	}
 
 	computeVerticalRlEdgeMaskWidths(): EdgeMaskWidths {
@@ -3138,18 +3295,32 @@ class DefaultViewManager {
 				}
 			}
 		}
-		if (terminalLayout && promoteVerticalRlTerminalContinuationWithObservation(
-			terminalLayout, this.getBaseGeometryPageCount(), targetIndex,
-			logicalOffset, maxScroll, this.getPageSnapTolerance(),
-			{
-				owner: preSyncView || this,
-				section: preSyncView?.section,
-				view: preSyncView,
-				document: preSyncView?.document || preSyncView?.contents?.document || null
-			}
-		)) {
-			this._verticalRlPageIndexLookupKey = null;
+		let basePageCount = this.getBaseGeometryPageCount();
+		let snapTolerance = this.getPageSnapTolerance();
+		let geometryCandidate = terminalLayout && isVerticalRlTerminalContinuationGeometryCandidate(
+			terminalLayout,
+			basePageCount,
+			targetIndex,
+			logicalOffset,
+			maxScroll,
+			snapTolerance
+		);
+		let terminalTailStateBeforeScroll: VerticalRlTerminalTailState = "unknown";
+		let terminalTailObservationBeforeScroll: VerticalRlTerminalTailObservation | null = null;
+		if (geometryCandidate) {
+			terminalTailObservationBeforeScroll = this.resolveVerticalRlTerminalTailObservation();
+			terminalTailStateBeforeScroll = terminalTailObservationBeforeScroll.resolution?.state || "unknown";
 		}
+		let continuationCountBefore = terminalLayout?.continuationCount || 0;
+		let currentPageIndexBefore = terminalLayout && geometryCandidate
+			? this.getCurrentPageIndex()
+			: null;
+		let currentLogicalOffset = terminalLayout && geometryCandidate
+			? this.getNormalizedLogicalScrollLeft()
+			: null;
+		let promotionResult = false;
+		let terminalTailStateAfterApply: VerticalRlTerminalTailState = "unknown";
+		let terminalTailObservationAfterApply: VerticalRlTerminalTailObservation | null = null;
 		this._verticalRlSequentialBoundaryConstraint = sequentialBoundaryConstraint;
 		if (this.isRtlVerticalPaginated()) {
 			this.cacheVerticalRlLogicalPageOffset(targetIndex, logicalOffset, logicalOffsetCacheKey);
@@ -3189,6 +3360,86 @@ class DefaultViewManager {
 			} finally {
 				this._verticalRlBoundarySnapApplying = false;
 			}
+		}
+		if (geometryCandidate) {
+			terminalTailObservationAfterApply = this.resolveVerticalRlTerminalTailObservation();
+			terminalTailStateAfterApply = terminalTailObservationAfterApply.resolution?.state || "unknown";
+			let beforeTailSnapshot = getVerticalRlTerminalTailSnapshot(terminalTailObservationBeforeScroll);
+			let afterTailSnapshot = getVerticalRlTerminalTailSnapshot(terminalTailObservationAfterApply);
+			let sameTerminalOwner = beforeTailSnapshot.terminalOwnerIdentity !== null &&
+				afterTailSnapshot.terminalOwnerIdentity !== null &&
+				beforeTailSnapshot.terminalOwnerIdentity === afterTailSnapshot.terminalOwnerIdentity;
+			let sameOwnerDocument = beforeTailSnapshot.ownerDocumentIdentity !== null &&
+				afterTailSnapshot.ownerDocumentIdentity !== null &&
+				beforeTailSnapshot.ownerDocumentIdentity === afterTailSnapshot.ownerDocumentIdentity;
+			let sameFrame = beforeTailSnapshot.frameIdentity !== null &&
+				afterTailSnapshot.frameIdentity !== null &&
+				beforeTailSnapshot.frameIdentity === afterTailSnapshot.frameIdentity;
+			let ownerStillConnected = afterTailSnapshot.ownerConnected === true;
+			appendVerticalRlTerminalTrace("vertical-rl-terminal-tail-transaction", {
+				before: beforeTailSnapshot,
+				after: afterTailSnapshot,
+				sameTerminalOwner,
+				sameOwnerDocument,
+				sameFrame,
+				ownerStillConnected
+			});
+			let terminalTailStateForPromotion = aggregateVerticalRlTerminalTailState({
+				before: terminalTailStateBeforeScroll,
+				after: terminalTailStateAfterApply,
+				sameTerminalOwner,
+				sameOwnerDocument,
+				ownerStillConnected
+			});
+			promotionResult = terminalLayout ? promoteVerticalRlTerminalContinuation(
+				terminalLayout, basePageCount, targetIndex,
+				logicalOffset, maxScroll, snapTolerance, terminalTailStateForPromotion
+			) : false;
+			if (promotionResult) {
+				this._verticalRlPageIndexLookupKey = null;
+				this.syncVerticalRlViewportClip();
+			}
+			let beforeCandidate = terminalTailObservationBeforeScroll?.resolution?.candidate;
+			let afterCandidate = terminalTailObservationAfterApply.resolution?.candidate;
+			appendVerticalRlTerminalTrace("vertical-rl-terminal-promotion-decision", {
+				currentPageIndexBefore,
+				targetIndex,
+				basePageCount,
+				continuationCountBefore,
+				currentLogicalOffset,
+				targetLogicalOffset: logicalOffset,
+				maxLogicalScroll: maxScroll,
+				remainingLogicalScroll: maxScroll - logicalOffset,
+				tailStateBeforeScroll: terminalTailStateBeforeScroll,
+				tailStateAfterApply: terminalTailStateAfterApply,
+				tailStateForPromotion: terminalTailStateForPromotion,
+				terminalOwnerKind: beforeCandidate?.kind || null,
+				terminalOwnerTag: beforeCandidate?.tag || null,
+				ownerRect: beforeCandidate?.rect || null,
+				effectiveClip: terminalTailObservationBeforeScroll?.effectiveClip || null,
+				positiveIntersection: beforeCandidate?.intersection?.positiveArea || false,
+				resolverReason: terminalTailObservationAfterApply.resolution?.reason || "unavailable",
+				afterApplyTerminalOwnerKind: afterCandidate?.kind || null,
+				afterApplyTerminalOwnerTag: afterCandidate?.tag || null,
+				afterApplyOwnerRect: afterCandidate?.rect || null,
+				afterApplyEffectiveClip: terminalTailObservationAfterApply.effectiveClip || null,
+				afterApplyPositiveIntersection: afterCandidate?.intersection?.positiveArea || false,
+				promotionResult,
+				continuationCountAfter: terminalLayout?.continuationCount || 0
+			});
+			appendVerticalRlTerminalTrace("vertical-rl-terminal-target-settled", {
+				targetIndex,
+				continuationCount: terminalLayout?.continuationCount || 0,
+				tailStateAfterScroll: terminalTailStateAfterApply,
+				tailStateAfterApply: terminalTailStateAfterApply,
+				tailStateForPromotion: terminalTailStateForPromotion,
+				terminalOwnerKind: afterCandidate?.kind || null,
+				terminalOwnerTag: afterCandidate?.tag || null,
+				ownerRect: afterCandidate?.rect || null,
+				effectiveClip: terminalTailObservationAfterApply.effectiveClip || null,
+				positiveIntersection: afterCandidate?.intersection?.positiveArea || false,
+				promotionResult
+			});
 		}
 		appendVerticalRlScrollTrace("complete", {
 			targetIndex,
