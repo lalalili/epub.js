@@ -3942,6 +3942,7 @@ describe("Vertical RL manager pagination", function() {
 
 	it("covers sub-pixel vertical-rl viewport edges with the mask overlay", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
+		manager.isRtlVerticalPaginated = function() { return true; };
 		let parent = document.createElement("div");
 		let container = document.createElement("div");
 
@@ -3983,6 +3984,29 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(container.dataset.epubVrlEdgeMask, "16");
 		assert.equal(container.dataset.epubVrlEdgeMaskRight, "14");
 
+		parent.remove();
+	});
+
+	it("clears a vertical edge mask when the active chapter is horizontal", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let parent = document.createElement("div");
+		let container = document.createElement("div");
+		parent.appendChild(container);
+		document.body.appendChild(parent);
+		manager.container = container;
+		manager.isRtlVerticalPaginated = function() { return true; };
+		manager.getVerticalRlEdgeMaskWidths = function() { return { left: 330, right: 0 }; };
+		manager.getVerticalRlEdgeMaskColor = function() { return "white"; };
+		manager.syncVerticalRlViewportClip();
+		expect(parent.querySelector(".epub-vrl-edge-mask")).not.toBeNull();
+
+		manager.isRtlVerticalPaginated = function() { return false; };
+		manager.syncVerticalRlViewportClip();
+
+		expect(parent.querySelector(".epub-vrl-edge-mask")).toBeNull();
+		expect(container.dataset.epubVrlEdgeMask).toBeUndefined();
+		expect(container.dataset.epubVrlEdgeMaskLeft).toBeUndefined();
+		expect(container.dataset.epubVrlEdgeMaskRight).toBeUndefined();
 		parent.remove();
 	});
 

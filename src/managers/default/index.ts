@@ -1990,6 +1990,15 @@ class DefaultViewManager {
 		if (!this.container || !this.container.style) {
 			return;
 		}
+		if (!this.isRtlVerticalPaginated()) {
+			this.removeVerticalRlViewportClip();
+			if (this.container.dataset) {
+				delete this.container.dataset.epubVrlEdgeMask;
+				delete this.container.dataset.epubVrlEdgeMaskLeft;
+				delete this.container.dataset.epubVrlEdgeMaskRight;
+			}
+			return;
+		}
 
 		let maskWidths = this.expandVerticalRlLeftMaskToVisibleLine(this.getVerticalRlEdgeMaskWidths());
 		this.recordVerticalRlAppliedLeftMask(Math.max(0, Number(maskWidths.left) || 0));

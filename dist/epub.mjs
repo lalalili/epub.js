@@ -9408,6 +9408,10 @@ var ui = class {
 	}
 	syncVerticalRlViewportClip() {
 		if (!this.container || !this.container.style) return;
+		if (!this.isRtlVerticalPaginated()) {
+			this.removeVerticalRlViewportClip(), this.container.dataset && (delete this.container.dataset.epubVrlEdgeMask, delete this.container.dataset.epubVrlEdgeMaskLeft, delete this.container.dataset.epubVrlEdgeMaskRight);
+			return;
+		}
 		let e = this.expandVerticalRlLeftMaskToVisibleLine(this.getVerticalRlEdgeMaskWidths());
 		if (this.recordVerticalRlAppliedLeftMask(Math.max(0, Number(e.left) || 0)), !e.left && !e.right) {
 			this.removeVerticalRlViewportClip(), this.container.dataset && this.container.dataset.epubVrlEdgeMask && (delete this.container.dataset.epubVrlEdgeMask, delete this.container.dataset.epubVrlEdgeMaskLeft, delete this.container.dataset.epubVrlEdgeMaskRight);
