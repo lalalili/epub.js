@@ -100,6 +100,7 @@ export type RenditionViewsBridge = IframeView[] | {
 export interface RenditionManager {
 	container?: HTMLElement;
 	layout?: Layout;
+	settings?: RenditionOptions;
 	views?: RenditionViewsBridge;
 	_layoutDirty?: boolean;
 	render(element: Element, size?: { width: number | string | null; height: number | string | null }): void;
@@ -454,6 +455,9 @@ class Rendition {
 
 		// Parse metadata to get layout props
 		this.settings.globalLayoutProperties = this.determineLayoutProperties(this.book.package.metadata);
+		if (this.manager.settings) {
+			this.manager.settings.globalLayoutProperties = this.settings.globalLayoutProperties;
+		}
 
 		this.flow(this.settings.globalLayoutProperties.flow);
 
@@ -958,7 +962,7 @@ class Rendition {
 	layout(settings?: LayoutProperties | Record<string, unknown>): Layout | undefined {
 		if (settings) {
 			const layoutSettings = settings as LayoutSettings;
-			this._layout = new Layout(layoutSettings);
+			this._layout = new Layout({ ...layoutSettings });
 			this._layout.spread(layoutSettings.spread, this.settings.minSpreadWidth);
 
 			// this.mapping = new Mapping(this._layout.props);
@@ -989,7 +993,11 @@ class Rendition {
 		}
 
 		if (this._layout) {
+			this._layout.settings.spread = spread;
 			this._layout.spread(spread, min);
+		}
+		if (this.manager?.settings) {
+			this.manager.settings.spread = spread;
 		}
 
 		if (this.manager && this.manager.isRendered()) {

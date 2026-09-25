@@ -373,6 +373,7 @@ type ManagerSection = {
 	properties?: {
 		includes(value: string): boolean;
 	};
+	reconcileLayoutSettings?: (globalLayout: { layout: string; spread: string; orientation: string }) => { layout: string; spread: string; orientation: string };
 	next(): ManagerSection | undefined;
 	prev(): ManagerSection | undefined;
 };
@@ -473,6 +474,8 @@ class DefaultViewManager {
 	declare _resizeSettleTrace?: ResizeSettleTraceEntry[];
 	declare _resizeSettleTraceSequence?: number;
 	declare _resizeSettleTraceGeneration?: number;
+	private _pendingHorizontalTarget?: { view: ManagerView; offset: ManagerOffset; width: number };
+	private _pendingVerticalRlTarget?: { view: ManagerView; target: string; width: number };
 	declare _verticalRlPreviousParentPosition?: string;
 	declare location: Array<ManagerLocationItem | null | undefined>;
 	declare name: string;
@@ -902,6 +905,7 @@ class DefaultViewManager {
 		}
 
 		// If the window is resized before rendered, call resize with original target
+		this._pendingVerticalRlTarget = undefined;
 		this.target = target;
 		this.recordResizeSettleTrace("display:start", {
 			href: section.href || null,
@@ -914,6 +918,15 @@ class DefaultViewManager {
 		});
 
 		// Check to make sure the section we want isn't already shown
+		this.syncSectionLayout(section);
+		if (this.layout.name === "pre-paginated" && this.layout.divisor === 2 && section.properties?.includes("page-spread-right")) {
+			const previous = section.prev();
+			if (previous?.properties?.includes("page-spread-left")) {
+				section = previous;
+				target = undefined;
+				this.target = undefined;
+			}
+		}
 		var visible: ManagerView | undefined = this.views.find(section);
 
 		// View is already shown, just move to correct location in view
@@ -931,7 +944,7 @@ class DefaultViewManager {
 				let offset = visible.locationOf(target);
 				let width = visible.width();
 				this.traceTargetOwnership(visible, target, offset);
-				this.moveTo(offset, width);
+				this.moveToDisplayTarget(visible, target, offset, width);
 			}
 
 			displaying.resolve();
@@ -958,7 +971,11 @@ class DefaultViewManager {
 					let offset = view.locationOf(target);
 					let width = view.width();
 					this.traceTargetOwnership(view, target, offset);
-					this.moveTo(offset, width);
+					this.moveToDisplayTarget(view, target, offset, width);
+					if (this.layout.name === "reflowable" && this.layout.divisor > 1 &&
+						this.settings.axis === "horizontal" && offset.left >= this.container.scrollWidth) {
+						this._pendingHorizontalTarget = { view, offset, width };
+					}
 				}
 
 			}.bind(this), (err: unknown) => {
@@ -986,6 +1003,20 @@ class DefaultViewManager {
 		return displayed;
 	}
 
+	moveToDisplayTarget(view: ManagerView, target: string | number, offset: ManagerOffset, width: number): void {
+		this.moveTo(offset, width);
+		if (!this.isRtlVerticalPaginated() || typeof target !== "string" || !this.epubcfiTarget(target)) {
+			return;
+		}
+
+		let currentWidth = view.width();
+		if (currentWidth !== width) {
+			this.moveTo(view.locationOf(target), currentWidth);
+			currentWidth = view.width();
+		}
+		this._pendingVerticalRlTarget = { view, target, width: currentWidth };
+	}
+
 	afterDisplayed(view: ManagerView): void {
 		if (this.isRtlVerticalPaginated()) {
 			this.queueVerticalRlBoundarySnapRetryForCurrentOffset();
@@ -994,6 +1025,17 @@ class DefaultViewManager {
 	}
 
 	afterResized(view: ManagerView): void {
+		const verticalTarget = this._pendingVerticalRlTarget;
+		if (verticalTarget?.view === view && view.width() !== verticalTarget.width) {
+			this._pendingVerticalRlTarget = undefined;
+			const offset = view.locationOf(verticalTarget.target);
+			this.moveTo(offset, view.width());
+		}
+		const pending = this._pendingHorizontalTarget;
+		if (pending?.view === view && this.container.scrollWidth > pending.offset.left) {
+			this._pendingHorizontalTarget = undefined;
+			this.moveTo(pending.offset, pending.width);
+		}
 		this.syncVerticalRlViewportClip();
 		this.emit(EVENTS.MANAGERS.RESIZE, view.section);
 	}
@@ -3700,6 +3742,7 @@ class DefaultViewManager {
 	}
 
 	next(options?: { persistResourceCorrelation?: unknown }): Promise<unknown> | void {
+		this._pendingVerticalRlTarget = undefined;
 		var next: ManagerSection | undefined;
 		var left: number;
 
@@ -3762,6 +3805,7 @@ class DefaultViewManager {
 
 		if(next) {
 			this.clear();
+			this.syncSectionLayout(next);
 			// The new section may have a different writing-mode from the old section. Thus, we need to update layout.
 			this.updateLayout();
 
@@ -3797,6 +3841,7 @@ class DefaultViewManager {
 	}
 
 	prev(): Promise<unknown> | void {
+		this._pendingVerticalRlTarget = undefined;
 		var prev: ManagerSection | undefined;
 		var left: number;
 		let dir = this.settings.direction;
@@ -3873,6 +3918,7 @@ class DefaultViewManager {
 
 		if(prev) {
 			this.clear();
+			this.syncSectionLayout(prev);
 			// The new section may have a different writing-mode from the old section. Thus, we need to update layout.
 			this.updateLayout();
 
@@ -3898,6 +3944,8 @@ class DefaultViewManager {
 	}
 
 	clear () {
+		this._pendingHorizontalTarget = undefined;
+		this._pendingVerticalRlTarget = undefined;
 
 		// this.q.clear();
 
@@ -4264,6 +4312,26 @@ class DefaultViewManager {
 			this.display(this.views.first().section);
 		}
 		 // this.manager.layout(this.layout.format);
+	}
+
+	syncSectionLayout(section: ManagerSection): void {
+		const global = this.settings.globalLayoutProperties as { layout: string; spread: string; orientation: string } | undefined;
+		if (!global || !this.layout || typeof section.reconcileLayoutSettings !== "function") {
+			return;
+		}
+
+		const sectionLayout = section.reconcileLayoutSettings(global);
+		const spread = this.settings.spread === "none" ? "none" : sectionLayout.spread;
+		if (this.layout.name === sectionLayout.layout && this.layout.settings.spread === spread) {
+			return;
+		}
+
+		this.layout.name = sectionLayout.layout;
+		this.layout.settings.layout = sectionLayout.layout;
+		this.layout.settings.spread = spread;
+		this.layout.update({ name: sectionLayout.layout });
+		this.layout.spread(spread);
+		this.updateLayout();
 	}
 
 	shouldUpdateLayoutForLocation() {

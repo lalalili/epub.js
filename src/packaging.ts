@@ -44,7 +44,7 @@ export type PackagingManifest = PackagingManifestObject;
 export interface PackagingSpineItem {
 	id?: string | null;
 	idref?: string | null;
-	linear?: string;
+	linear?: string | boolean;
 	properties?: string[];
 	index?: number;
 	href?: string;
@@ -444,7 +444,11 @@ class Packaging {
 		let spine = json.readingOrder || json.spine;
 		this.spine = spine.map((item, index) =>{
 			item.index = index;
-			item.linear = item.linear || "yes";
+			item.linear = item.linear === false || item.linear === "no" ? "no" : "yes";
+			const rawProperties = item.properties as unknown;
+			if (typeof rawProperties === "string") {
+				item.properties = rawProperties.trim().split(/\s+/).filter(Boolean);
+			}
 			return item;
 		});
 

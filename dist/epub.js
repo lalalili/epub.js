@@ -8519,7 +8519,9 @@
 			let spine = json.readingOrder || json.spine;
 			this.spine = spine.map((item, index) => {
 				item.index = index;
-				item.linear = item.linear || "yes";
+				item.linear = item.linear === false || item.linear === "no" ? "no" : "yes";
+				const rawProperties = item.properties;
+				if (typeof rawProperties === "string") item.properties = rawProperties.trim().split(/\s+/).filter(Boolean);
 				return item;
 			});
 			json.resources.forEach((item, index) => {
@@ -12473,6 +12475,9 @@
 			var height = this.lockedHeight;
 			var columns;
 			const previousContentWidth = Number(this._contentWidth || 0);
+			let measurementScrollContainer = null;
+			let measurementScrollLeft = 0;
+			let narrowedForVerticalMeasurement = false;
 			if (!this.iframe || this._expanding) return;
 			this._expanding = true;
 			if (this.layout.name === "pre-paginated") {
@@ -12499,6 +12504,12 @@
 				this._viewportFillingSingleMediaPage = viewportFillingSingleMediaPage;
 				if (!viewportFillingSingleMediaPage && this.settings.flow === "paginated" && this.contents.writingMode && this.contents.writingMode() === "vertical-rl" && this.contents.verticalRlPageMetrics) {
 					if (this.iframe.style && this.element && this.element.style && visiblePageWidth > 0) {
+						const currentWidth = Number.parseFloat(this.element.style.width || "") || 0;
+						narrowedForVerticalMeasurement = currentWidth > visiblePageWidth;
+						if (currentWidth > visiblePageWidth && this.element.parentElement?.scrollLeft) {
+							measurementScrollContainer = this.element.parentElement;
+							measurementScrollLeft = measurementScrollContainer.scrollLeft;
+						}
 						this.element.style.width = visiblePageWidth + "px";
 						this.iframe.style.width = visiblePageWidth + "px";
 					}
@@ -12558,7 +12569,8 @@
 				height = this.contents.textHeight();
 				if (this.settings.flow === "paginated" && height % this.layout.height > 0) height = Math.ceil(height / this.layout.height) * this.layout.height;
 			}
-			if (this._needsReframe || width != this._width || height != this._height) this.reframe(width, height);
+			if (this._needsReframe || width != this._width || height != this._height || narrowedForVerticalMeasurement) this.reframe(width, height);
+			if (measurementScrollContainer && measurementScrollContainer.scrollWidth > measurementScrollContainer.clientWidth) measurementScrollContainer.scrollLeft = measurementScrollLeft;
 			this._expanding = false;
 		}
 		reframe(width, height) {
@@ -14914,6 +14926,8 @@
 	var DefaultViewManager = class {
 		_verticalRlTerminalLayouts;
 		_verticalRlActiveTerminalLayout;
+		_pendingHorizontalTarget;
+		_pendingVerticalRlTarget;
 		constructor(options) {
 			this.name = "default";
 			this.optsSettings = options.settings;
@@ -15174,6 +15188,7 @@
 			var displaying = new Deferred();
 			var displayed = displaying.promise;
 			if (target === section.href || isNumber$1(target)) target = void 0;
+			this._pendingVerticalRlTarget = void 0;
 			this.target = target;
 			this.recordResizeSettleTrace("display:start", {
 				href: section.href || null,
@@ -15181,6 +15196,15 @@
 				caller: (/* @__PURE__ */ new Error()).stack?.split("\n").slice(1, 6).join("\n") || null,
 				container: this.resizeSettleContainerSnapshot()
 			});
+			this.syncSectionLayout(section);
+			if (this.layout.name === "pre-paginated" && this.layout.divisor === 2 && section.properties?.includes("page-spread-right")) {
+				const previous = section.prev();
+				if (previous?.properties?.includes("page-spread-left")) {
+					section = previous;
+					target = void 0;
+					this.target = void 0;
+				}
+			}
 			var visible = this.views.find(section);
 			if (visible && section && this.layout.name !== "pre-paginated") {
 				let offset = visible.offset();
@@ -15193,7 +15217,7 @@
 					let offset = visible.locationOf(target);
 					let width = visible.width();
 					this.traceTargetOwnership(visible, target, offset);
-					this.moveTo(offset, width);
+					this.moveToDisplayTarget(visible, target, offset, width);
 				}
 				displaying.resolve();
 				return displayed;
@@ -15207,7 +15231,12 @@
 					let offset = view.locationOf(target);
 					let width = view.width();
 					this.traceTargetOwnership(view, target, offset);
-					this.moveTo(offset, width);
+					this.moveToDisplayTarget(view, target, offset, width);
+					if (this.layout.name === "reflowable" && this.layout.divisor > 1 && this.settings.axis === "horizontal" && offset.left >= this.container.scrollWidth) this._pendingHorizontalTarget = {
+						view,
+						offset,
+						width
+					};
 				}
 			}.bind(this), (err) => {
 				displaying.reject(err);
@@ -15220,11 +15249,36 @@
 			}.bind(this));
 			return displayed;
 		}
+		moveToDisplayTarget(view, target, offset, width) {
+			this.moveTo(offset, width);
+			if (!this.isRtlVerticalPaginated() || typeof target !== "string" || !this.epubcfiTarget(target)) return;
+			let currentWidth = view.width();
+			if (currentWidth !== width) {
+				this.moveTo(view.locationOf(target), currentWidth);
+				currentWidth = view.width();
+			}
+			this._pendingVerticalRlTarget = {
+				view,
+				target,
+				width: currentWidth
+			};
+		}
 		afterDisplayed(view) {
 			if (this.isRtlVerticalPaginated()) this.queueVerticalRlBoundarySnapRetryForCurrentOffset();
 			this.emit(EVENTS.MANAGERS.ADDED, view);
 		}
 		afterResized(view) {
+			const verticalTarget = this._pendingVerticalRlTarget;
+			if (verticalTarget?.view === view && view.width() !== verticalTarget.width) {
+				this._pendingVerticalRlTarget = void 0;
+				const offset = view.locationOf(verticalTarget.target);
+				this.moveTo(offset, view.width());
+			}
+			const pending = this._pendingHorizontalTarget;
+			if (pending?.view === view && this.container.scrollWidth > pending.offset.left) {
+				this._pendingHorizontalTarget = void 0;
+				this.moveTo(pending.offset, pending.width);
+			}
 			this.syncVerticalRlViewportClip();
 			this.emit(EVENTS.MANAGERS.RESIZE, view.section);
 		}
@@ -16874,6 +16928,7 @@
 			}.bind(this));
 		}
 		next(options) {
+			this._pendingVerticalRlTarget = void 0;
 			var next;
 			let dir = this.settings.direction;
 			if (!this.views.length) return;
@@ -16901,6 +16956,7 @@
 			} else if (!next) next = this.views.last().section.next();
 			if (next) {
 				this.clear();
+				this.syncSectionLayout(next);
 				this.updateLayout();
 				let forceRight = false;
 				if (this.layout.name === "pre-paginated" && this.layout.divisor === 2 && next.properties.includes("page-spread-right")) forceRight = true;
@@ -16916,6 +16972,7 @@
 			}
 		}
 		prev() {
+			this._pendingVerticalRlTarget = void 0;
 			var prev;
 			var left;
 			let dir = this.settings.direction;
@@ -16951,6 +17008,7 @@
 			} else if (!prev) prev = this.views.first().section.prev();
 			if (prev) {
 				this.clear();
+				this.syncSectionLayout(prev);
 				this.updateLayout();
 				let forceRight = false;
 				if (this.layout.name === "pre-paginated" && this.layout.divisor === 2 && typeof prev.prev() !== "object") forceRight = true;
@@ -16965,6 +17023,8 @@
 			return null;
 		}
 		clear() {
+			this._pendingHorizontalTarget = void 0;
+			this._pendingVerticalRlTarget = void 0;
 			if (this.views) {
 				this.views.hide();
 				this.scrollTo(0, 0, true);
@@ -17223,6 +17283,19 @@
 			this._layoutDirty = true;
 			this.updateLayout();
 			if (this.views && this.views.length > 0 && this.layout.name === "pre-paginated") this.display(this.views.first().section);
+		}
+		syncSectionLayout(section) {
+			const global = this.settings.globalLayoutProperties;
+			if (!global || !this.layout || typeof section.reconcileLayoutSettings !== "function") return;
+			const sectionLayout = section.reconcileLayoutSettings(global);
+			const spread = this.settings.spread === "none" ? "none" : sectionLayout.spread;
+			if (this.layout.name === sectionLayout.layout && this.layout.settings.spread === spread) return;
+			this.layout.name = sectionLayout.layout;
+			this.layout.settings.layout = sectionLayout.layout;
+			this.layout.settings.spread = spread;
+			this.layout.update({ name: sectionLayout.layout });
+			this.layout.spread(spread);
+			this.updateLayout();
 		}
 		shouldUpdateLayoutForLocation() {
 			if (!this.stage || !this.layout) return false;
@@ -18123,6 +18196,7 @@
 			}
 			this.direction(this.book.package.metadata.direction || this.settings.defaultDirection);
 			this.settings.globalLayoutProperties = this.determineLayoutProperties(this.book.package.metadata);
+			if (this.manager.settings) this.manager.settings.globalLayoutProperties = this.settings.globalLayoutProperties;
 			this.flow(this.settings.globalLayoutProperties.flow);
 			this.layout(this.settings.globalLayoutProperties);
 			this.manager.on(EVENTS.MANAGERS.ADDED, this.afterDisplayed.bind(this));
@@ -18433,7 +18507,7 @@
 		layout(settings) {
 			if (settings) {
 				const layoutSettings = settings;
-				this._layout = new Layout(layoutSettings);
+				this._layout = new Layout({ ...layoutSettings });
 				this._layout.spread(layoutSettings.spread, this.settings.minSpreadWidth);
 				this._layout.on(EVENTS.LAYOUT.UPDATED, (props, changed) => {
 					this.emit(EVENTS.RENDITION.LAYOUT, props, changed);
@@ -18450,7 +18524,11 @@
 		spread(spread, min) {
 			this.settings.spread = spread;
 			if (min) this.settings.minSpreadWidth = min;
-			if (this._layout) this._layout.spread(spread, min);
+			if (this._layout) {
+				this._layout.settings.spread = spread;
+				this._layout.spread(spread, min);
+			}
+			if (this.manager?.settings) this.manager.settings.spread = spread;
 			if (this.manager && this.manager.isRendered()) this.manager.updateLayout();
 		}
 		/**

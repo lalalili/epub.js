@@ -678,6 +678,66 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getCurrentPageIndex(), 2);
 	});
 
+	it("remaps a displayed vertical-rl CFI after the view finishes expanding", async function() {
+		const manager = Object.create(DefaultViewManager.prototype);
+		const target = "epubcfi(/2/38[Section0019.xhtml]!/4/10/9:64)";
+		const section = { href: "Section0019.xhtml", properties: [] };
+		const moves = [];
+		let settled = false;
+		const view = {
+			section,
+			width: () => settled ? 8893 : 6289,
+			locationOf: () => ({ left: settled ? 8113 : 5510, top: 0 })
+		};
+		manager.settings = { axis: "horizontal", direction: "rtl" };
+		manager.layout = { name: "reflowable", divisor: 1 };
+		manager.container = { scrollWidth: 6289 };
+		manager.views = { find: () => undefined, show: () => {} };
+		manager.clear = () => {};
+		manager.syncSectionLayout = () => {};
+		manager.add = async () => view;
+		manager.handleNextPrePaginated = () => undefined;
+		manager.isRtlVerticalPaginated = () => true;
+		manager.scrollToLogicalPage = () => {};
+		manager.traceTargetOwnership = () => {};
+		manager.syncVerticalRlViewportClip = () => {};
+		manager.emit = () => {};
+		manager.moveTo = (offset) => moves.push(offset.left);
+
+		await manager.display(section, target);
+		expect(moves).toEqual([5510]);
+		manager.afterResized(view);
+		expect(moves).toEqual([5510]);
+
+		settled = true;
+		manager.container.scrollWidth = 8893;
+		manager.afterResized(view);
+		expect(moves).toEqual([5510, 8113]);
+		manager.afterResized(view);
+		expect(moves).toEqual([5510, 8113]);
+	});
+
+	it("remaps a vertical-rl CFI when the view expands during its first move", function() {
+		const manager = Object.create(DefaultViewManager.prototype);
+		const target = "epubcfi(/2/38[Section0019.xhtml]!/4/10/9:64)";
+		const moves = [];
+		let settled = false;
+		const view = {
+			width: () => settled ? 8893 : 6289,
+			locationOf: () => ({ left: settled ? 8113 : 5510, top: 0 })
+		};
+		manager.settings = { axis: "horizontal", direction: "rtl" };
+		manager.layout = { name: "reflowable", divisor: 1 };
+		manager.isRtlVerticalPaginated = () => true;
+		manager.moveTo = (offset) => {
+			moves.push(offset.left);
+			settled = true;
+		};
+
+		manager.moveToDisplayTarget(view, target, view.locationOf(target), view.width());
+		expect(moves).toEqual([5510, 8113]);
+	});
+
 	it("prefers the strict vertical-rl page that contains a hash anchor before snap tolerance", function() {
 		let manager = createManagerAtLogicalOffset(0);
 

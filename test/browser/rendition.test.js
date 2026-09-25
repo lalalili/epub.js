@@ -206,6 +206,20 @@ describe("Rendition", () => {
 		expect(rendition.resolveLinkHref("chapter.xhtml#anchor")).toBe("chapter.xhtml#anchor");
 	});
 
+	it("keeps global layout metadata separate from active section layout", () => {
+		const rendition = createRendition();
+		const global = {
+			layout: "reflowable", spread: "auto", orientation: "auto",
+			flow: "paginated", viewport: "", minSpreadWidth: 800, direction: "ltr"
+		};
+		rendition.settings = { minSpreadWidth: 800 };
+		rendition.manager = { applyLayout() {} };
+
+		rendition.layout(global);
+		rendition._layout.settings.layout = "pre-paginated";
+		expect(global.layout).toBe("reflowable");
+	});
+
 	it("injects the package identifier when metadata is available", () => {
 		let rendition = createRendition();
 		let doc = new DOMParser().parseFromString("<html><head></head><body></body></html>", "text/html");

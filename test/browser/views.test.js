@@ -167,6 +167,60 @@ describe("Views", () => {
 		expect(view._viewportFillingSingleMediaPage).toBe(true);
 	});
 
+	it("keeps RTL scroll position while measuring an existing vertical iframe", () => {
+		const container = document.createElement("div");
+		container.dir = "rtl";
+		container.style.cssText = "width: 400px; height: 600px; overflow: auto";
+		document.body.appendChild(container);
+		try {
+			const view = new IframeView({ index: 0, href: "chapter.xhtml" }, {
+				axis: "horizontal",
+				flow: "paginated",
+				width: 400,
+				height: 600,
+				layout: {
+					name: "reflowable",
+					pageWidth: 400,
+					viewportPageWidth: 400,
+					width: 400,
+					columnWidth: 400,
+					divisor: 1,
+					update: () => {}
+				}
+			});
+			view.iframe = document.createElement("iframe");
+			view.element.appendChild(view.iframe);
+			container.appendChild(view.element);
+			view.element.style.width = "3000px";
+			view.iframe.style.width = "3000px";
+			view._width = 3000;
+			view._height = 600;
+			view._contentWidth = 3000;
+			view.lockedWidth = 400;
+			view.lockedHeight = 600;
+			view.contents = {
+				textWidth: () => 3000,
+				writingMode: () => "vertical-rl",
+				verticalRlPageMetrics: () => {
+					void container.scrollWidth;
+					return {
+						rawWidth: 3000,
+						snappedContentWidth: 3000,
+						effectivePageAdvance: 400,
+						pageWidth: 400,
+						viewportPageWidth: 400
+					};
+				}
+			};
+			container.scrollLeft = -800;
+			view.expand();
+			expect(container.scrollLeft).toBe(-800);
+			expect(view.element.style.width).toBe("3000px");
+		} finally {
+			container.remove();
+		}
+	});
+
 	it("records force-even pages separately from navigable reflowable content", () => {
 		let view = new IframeView({ index: 0, href: "chapter.xhtml" }, {
 			axis: "horizontal",

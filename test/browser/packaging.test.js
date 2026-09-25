@@ -2,6 +2,23 @@ import { describe, expect, it } from "vitest";
 import Packaging from "../../src/packaging";
 
 describe("Packaging", () => {
+	it("normalizes JSON reading-order linear flags for spine navigation", () => {
+		const packaging = new Packaging();
+		const result = packaging.load({
+			metadata: {},
+			readingOrder: [
+				{ href: "left.xhtml", linear: true, properties: "page-spread-left rendition:layout-pre-paginated" },
+				{ href: "right.xhtml", linear: true, properties: ["page-spread-right"] },
+				{ href: "appendix.xhtml", linear: false, properties: [] }
+			],
+			resources: [],
+			toc: []
+		});
+
+		expect(result.spine.map((item) => item.linear)).toEqual(["yes", "yes", "no"]);
+		expect(result.spine[0].properties).toEqual(["page-spread-left", "rendition:layout-pre-paginated"]);
+	});
+
 	function parsePackage(markup) {
 		var parser = new DOMParser();
 		var doc = parser.parseFromString(markup, "application/xml");

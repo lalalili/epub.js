@@ -481,6 +481,9 @@ class IframeView {
 		var height = this.lockedHeight;
 		var columns;
 		const previousContentWidth = Number(this._contentWidth || 0);
+		let measurementScrollContainer: HTMLElement | null = null;
+		let measurementScrollLeft = 0;
+		let narrowedForVerticalMeasurement = false;
 
 		if(!this.iframe || this._expanding) return;
 
@@ -543,6 +546,12 @@ class IframeView {
 				this.contents.verticalRlPageMetrics
 			) {
 				if (this.iframe.style && this.element && this.element.style && visiblePageWidth > 0) {
+					const currentWidth = Number.parseFloat(this.element.style.width || "") || 0;
+					narrowedForVerticalMeasurement = currentWidth > visiblePageWidth;
+					if (currentWidth > visiblePageWidth && this.element.parentElement?.scrollLeft) {
+						measurementScrollContainer = this.element.parentElement;
+						measurementScrollLeft = measurementScrollContainer.scrollLeft;
+					}
 					this.element.style.width = visiblePageWidth + "px";
 					this.iframe.style.width = visiblePageWidth + "px";
 				}
@@ -640,8 +649,12 @@ class IframeView {
 
 		// Only Resize if dimensions have changed or
 		// if Frame is still hidden, so needs reframing
-		if(this._needsReframe || width != this._width || height != this._height){
+		if(this._needsReframe || width != this._width || height != this._height || narrowedForVerticalMeasurement){
 			this.reframe(width, height);
+		}
+		if (measurementScrollContainer &&
+			measurementScrollContainer.scrollWidth > measurementScrollContainer.clientWidth) {
+			measurementScrollContainer.scrollLeft = measurementScrollLeft;
 		}
 
 		this._expanding = false;
