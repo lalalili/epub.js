@@ -236,6 +236,8 @@ class Rendition {
 	starting?: CoreDeferred<void>;
 	started?: Promise<void>;
 	displaying?: CoreDeferred<Section | undefined>;
+	private preferredSingleFixedPageCfi?: string;
+	private displayingResizeTarget = false;
 
 	constructor(book: Book, options?: RenditionOptions) {
 
@@ -523,6 +525,9 @@ class Rendition {
 	 * @return {Promise}
 	 */
 	display(target?: string | number, options?: { persistResourceCorrelation?: unknown }): Promise<void> {
+		if (!this.displayingResizeTarget) {
+			this.preferredSingleFixedPageCfi = undefined;
+		}
 		if (this.displaying) {
 			this.displaying.resolve!(undefined);
 		}
@@ -704,19 +709,33 @@ class Rendition {
 			height: size.height
 		}, epubcfi);
 
-		let resolvedCfi = epubcfi || (this.location && this.location.start
+		const currentStart = this.location?.start;
+		const currentSection = currentStart?.href ? this.book?.spine?.get(currentStart.href) : null;
+		if (this.manager?.layout?.name === "pre-paginated" && this.manager.layout.divisor === 2 &&
+			currentSection?.properties?.includes("page-spread-right") && currentStart?.cfi) {
+			this.preferredSingleFixedPageCfi = currentStart.cfi;
+		}
+		const restoreSingleFixedPage = this.manager?.layout?.name === "pre-paginated" &&
+			this.manager.layout.divisor === 1 && this.preferredSingleFixedPageCfi;
+		let resolvedCfi = restoreSingleFixedPage || epubcfi || (this.location && this.location.start
 			? this.location.start.cfi
 			: null);
+		if (restoreSingleFixedPage) {
+			this.preferredSingleFixedPageCfi = undefined;
+		}
 		this.manager?.recordResizeSettleTrace?.("rendition:resize-resolved", {
 			inputCfi: epubcfi || null,
 			locationCfi: this.location && this.location.start ? this.location.start.cfi : null,
 			resolvedCfi
 		});
 
-		if (epubcfi) {
-			this.display(epubcfi);
-		} else if (this.location && this.location.start) {
-			this.display(this.location.start.cfi);
+		if (resolvedCfi) {
+			this.displayingResizeTarget = true;
+			try {
+				this.display(resolvedCfi);
+			} finally {
+				this.displayingResizeTarget = false;
+			}
 		}
 
 	}
@@ -782,6 +801,7 @@ class Rendition {
 	 * @return {Promise}
 	 */
 	next(options?: { persistResourceCorrelation?: unknown }): Promise<void> {
+		this.preferredSingleFixedPageCfi = undefined;
 		return this.q.enqueue(this.manager.next.bind(this.manager), options)
 			.then(this.reportLocation.bind(this));
 	}
@@ -791,6 +811,7 @@ class Rendition {
 	 * @return {Promise}
 	 */
 	prev(): Promise<void> {
+		this.preferredSingleFixedPageCfi = undefined;
 		return this.q.enqueue(this.manager.prev.bind(this.manager))
 			.then(this.reportLocation.bind(this));
 	}

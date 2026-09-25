@@ -18041,6 +18041,8 @@
 		starting;
 		started;
 		displaying;
+		preferredSingleFixedPageCfi;
+		displayingResizeTarget = false;
 		constructor(book, options) {
 			this.settings = extend$1(this.settings || {}, {
 				width: null,
@@ -18241,6 +18243,7 @@
 		* @return {Promise}
 		*/
 		display(target, options) {
+			if (!this.displayingResizeTarget) this.preferredSingleFixedPageCfi = void 0;
 			if (this.displaying) this.displaying.resolve(void 0);
 			return this.q.enqueue(this._display, target, options);
 		}
@@ -18341,14 +18344,25 @@
 				width: size.width,
 				height: size.height
 			}, epubcfi);
-			let resolvedCfi = epubcfi || (this.location && this.location.start ? this.location.start.cfi : null);
+			const currentStart = this.location?.start;
+			const currentSection = currentStart?.href ? this.book?.spine?.get(currentStart.href) : null;
+			if (this.manager?.layout?.name === "pre-paginated" && this.manager.layout.divisor === 2 && currentSection?.properties?.includes("page-spread-right") && currentStart?.cfi) this.preferredSingleFixedPageCfi = currentStart.cfi;
+			const restoreSingleFixedPage = this.manager?.layout?.name === "pre-paginated" && this.manager.layout.divisor === 1 && this.preferredSingleFixedPageCfi;
+			let resolvedCfi = restoreSingleFixedPage || epubcfi || (this.location && this.location.start ? this.location.start.cfi : null);
+			if (restoreSingleFixedPage) this.preferredSingleFixedPageCfi = void 0;
 			this.manager?.recordResizeSettleTrace?.("rendition:resize-resolved", {
 				inputCfi: epubcfi || null,
 				locationCfi: this.location && this.location.start ? this.location.start.cfi : null,
 				resolvedCfi
 			});
-			if (epubcfi) this.display(epubcfi);
-			else if (this.location && this.location.start) this.display(this.location.start.cfi);
+			if (resolvedCfi) {
+				this.displayingResizeTarget = true;
+				try {
+					this.display(resolvedCfi);
+				} finally {
+					this.displayingResizeTarget = false;
+				}
+			}
 		}
 		/**
 		* Report orientation events and display the last seen location
@@ -18398,6 +18412,7 @@
 		* @return {Promise}
 		*/
 		next(options) {
+			this.preferredSingleFixedPageCfi = void 0;
 			return this.q.enqueue(this.manager.next.bind(this.manager), options).then(this.reportLocation.bind(this));
 		}
 		/**
@@ -18405,6 +18420,7 @@
 		* @return {Promise}
 		*/
 		prev() {
+			this.preferredSingleFixedPageCfi = void 0;
 			return this.q.enqueue(this.manager.prev.bind(this.manager)).then(this.reportLocation.bind(this));
 		}
 		debugVerticalRlPage() {

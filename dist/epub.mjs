@@ -10784,6 +10784,8 @@ var Di = class {
 	starting;
 	started;
 	displaying;
+	preferredSingleFixedPageCfi;
+	displayingResizeTarget = !1;
 	constructor(e, t) {
 		this.settings = I(this.settings || {}, {
 			width: null,
@@ -10854,7 +10856,7 @@ var Di = class {
 		}.bind(this));
 	}
 	display(e, t) {
-		return this.displaying && this.displaying.resolve(void 0), this.q.enqueue(this._display, e, t);
+		return this.displayingResizeTarget || (this.preferredSingleFixedPageCfi = void 0), this.displaying && this.displaying.resolve(void 0), this.q.enqueue(this._display, e, t);
 	}
 	_display(e, t) {
 		if (this.book) {
@@ -10883,12 +10885,21 @@ var Di = class {
 			width: e.width,
 			height: e.height
 		}, t);
-		let n = t || (this.location && this.location.start ? this.location.start.cfi : null);
-		this.manager?.recordResizeSettleTrace?.("rendition:resize-resolved", {
+		let n = this.location?.start, r = n?.href ? this.book?.spine?.get(n.href) : null;
+		this.manager?.layout?.name === "pre-paginated" && this.manager.layout.divisor === 2 && r?.properties?.includes("page-spread-right") && n?.cfi && (this.preferredSingleFixedPageCfi = n.cfi);
+		let i = this.manager?.layout?.name === "pre-paginated" && this.manager.layout.divisor === 1 && this.preferredSingleFixedPageCfi, a = i || t || (this.location && this.location.start ? this.location.start.cfi : null);
+		if (i && (this.preferredSingleFixedPageCfi = void 0), this.manager?.recordResizeSettleTrace?.("rendition:resize-resolved", {
 			inputCfi: t || null,
 			locationCfi: this.location && this.location.start ? this.location.start.cfi : null,
-			resolvedCfi: n
-		}), t ? this.display(t) : this.location && this.location.start && this.display(this.location.start.cfi);
+			resolvedCfi: a
+		}), a) {
+			this.displayingResizeTarget = !0;
+			try {
+				this.display(a);
+			} finally {
+				this.displayingResizeTarget = !1;
+			}
+		}
 	}
 	onOrientationChange(e) {
 		this.emit($.RENDITION.ORIENTATION_CHANGE, e);
@@ -10907,10 +10918,10 @@ var Di = class {
 		this.manager.clear();
 	}
 	next(e) {
-		return this.q.enqueue(this.manager.next.bind(this.manager), e).then(this.reportLocation.bind(this));
+		return this.preferredSingleFixedPageCfi = void 0, this.q.enqueue(this.manager.next.bind(this.manager), e).then(this.reportLocation.bind(this));
 	}
 	prev() {
-		return this.q.enqueue(this.manager.prev.bind(this.manager)).then(this.reportLocation.bind(this));
+		return this.preferredSingleFixedPageCfi = void 0, this.q.enqueue(this.manager.prev.bind(this.manager)).then(this.reportLocation.bind(this));
 	}
 	debugVerticalRlPage() {
 		let e = this.manager, t = Ei(e && e.views), n = t && t.contents, r = e && e.container, i = e && e.layout ? e.layout.pageWidth : null, a = n && n.debugVerticalRlMetrics ? n.debugVerticalRlMetrics(i) : {}, o = e && e.getPageAdvance ? e.getPageAdvance() : i, s = e && e.getTotalPagesForCurrentView ? e.getTotalPagesForCurrentView() : null, c = e && e.getCurrentPageIndex ? e.getCurrentPageIndex() : null, l = e && e.getNormalizedLogicalScrollLeft ? e.getNormalizedLogicalScrollLeft() : null, u = e && e.layout && (e.layout.pageWidth || e.layout.width) || o, d = t && t.width ? t.width() : null, f = Number.isFinite(d) && Number.isFinite(u) ? Math.max(0, d - u) : null, p = Number.isFinite(f) && Number.isFinite(c) && Number.isFinite(o) ? Math.max(0, Math.min(f, f - c * o)) : null, m = Number.isFinite(d) && Number.isFinite(p) && Number.isFinite(u) ? Math.min(d, p + u) : null, h = Object.assign({}, a, {
