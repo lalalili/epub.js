@@ -972,7 +972,8 @@ class DefaultViewManager {
 					let width = view.width();
 					this.traceTargetOwnership(view, target, offset);
 					this.moveToDisplayTarget(view, target, offset, width);
-					if (this.layout.name === "reflowable" && this.layout.divisor > 1 &&
+					if (this.layout.name === "reflowable" &&
+						(this.layout.divisor > 1 || this.settings.direction === "ltr") &&
 						this.settings.axis === "horizontal" && offset.left >= this.container.scrollWidth) {
 						this._pendingHorizontalTarget = { view, offset, width };
 					}
