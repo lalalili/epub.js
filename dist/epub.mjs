@@ -7225,7 +7225,7 @@ var Qt = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, $t = cla
 				if (u && u.snappedContentWidth > 0) {
 					let e = i > c && u.snappedContentWidth > i && u.rawWidth <= i + 4, n = i > c && u.snappedContentWidth > i * 4;
 					t = e || n ? i : u.snappedContentWidth;
-				} else e > 0 && c > 0 ? t = (Math.max(1, Math.ceil(Math.max(0, t - c) / e) + 1) - 1) * e + c : t % this.layout.pageWidth > 0 && (t = Math.ceil(t / this.layout.pageWidth) * this.layout.pageWidth);
+				} else e > 0 && c > 0 ? (this.layout.divisor > 1 && !d && e < c && (e = c), t = (Math.max(1, Math.ceil(Math.max(0, t - c) / e) + 1) - 1) * e + c) : t % this.layout.pageWidth > 0 && (t = Math.ceil(t / this.layout.pageWidth) * this.layout.pageWidth);
 				this._contentWidth = t, this.settings.forceEvenPages && !d && (r = this.layout.effectivePageAdvance && this.layout.effectivePageAdvance !== this.layout.pageWidth ? this.layout.count(t).pages : t / this.layout.pageWidth, this.layout.divisor > 1 && this.layout.name === "reflowable" && r % 2 > 0 && (t += this.layout.effectivePageAdvance || this.layout.pageWidth, this._forceEvenPageAdded = !0)), u && Qt() && window.console && window.console.debug && window.console.debug("[epubjs:vertical-rl:expand]", {
 					href: this.section && this.section.href,
 					rawWidth: u.rawWidth,
@@ -9656,7 +9656,7 @@ var ui = class {
 		let e = this.views && (this.views.first() || this.views.last());
 		if (!e || e._viewportFillingSingleMediaPage) return 1;
 		let t = this.getNavigableWidthForView(e), n = this.getPageAdvance(), r = this.layout.pageWidth || this.layout.width || n;
-		if (this.layout.effectivePageAdvance && this.layout.effectivePageAdvance !== this.layout.pageWidth) {
+		if (!this.isRtlVerticalPaginated() && this.layout.divisor > 1 && this.layout.viewportPageWidth && (r = this.layout.viewportPageWidth), this.layout.effectivePageAdvance && this.layout.effectivePageAdvance !== this.layout.pageWidth) {
 			let e = Math.max(0, t - r);
 			return e > 0 ? Math.max(1, this.countPagesWithFractionalTolerance(e, n) + 1) : 1;
 		}

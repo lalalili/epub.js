@@ -185,6 +185,55 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getCurrentPageIndex(), 1);
 	});
 
+	function configureTwoColumnSpread(manager) {
+		// Desktop two-column spread: one column is 660px, one spread advance is 1320px.
+		manager.layout.divisor = 2;
+		manager.layout.pageWidth = 660;
+		manager.layout.width = 1320;
+		manager.layout.viewportPageWidth = 1320;
+		manager.layout.effectivePageAdvance = 1320;
+		manager.layout.delta = 1320;
+		manager.container.clientWidth = 1320;
+		manager.container.offsetWidth = 1320;
+	}
+
+	it("counts horizontal two-column spreads by spread width, not column width", function() {
+		let manager = createHorizontalManager({
+			contentWidth: 2640,
+			iframeWidth: 2640
+		});
+		configureTwoColumnSpread(manager);
+
+		assert.equal(manager.getTotalPagesForCurrentView(), 2);
+	});
+
+	it("moves to the next spine item from the last horizontal two-column spread", async function() {
+		let appended = false;
+		let manager = createHorizontalManager({
+			contentWidth: 2640,
+			iframeWidth: 2640,
+			scrollLeft: 1320,
+			nextSection: {
+				properties: []
+			}
+		});
+		configureTwoColumnSpread(manager);
+
+		manager.clear = function() {};
+		manager.updateLayout = function() {};
+		manager.append = function() {
+			appended = true;
+			return Promise.resolve();
+		};
+		manager.handleNextPrePaginated = function() {
+			return Promise.resolve();
+		};
+
+		await manager.next();
+
+		assert.equal(appended, true);
+	});
+
 	it("moves to the next spine item instead of scrolling into a force-even blank page", async function() {
 		let appended = false;
 		let manager = createHorizontalManager({

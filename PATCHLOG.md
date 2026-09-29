@@ -2,6 +2,14 @@
 
 This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
+## 2026-09-29
+
+### EPUB-SPREAD-001 horizontal two-column spread page count
+- Why: desktop two-column reflowable books counted one phantom spread at chapter end (`pageWidth` is one column while spreads advance by the viewport), so "next" scrolled to the clamped max and never advanced to the next spine item; `expand()` also stepped content width by one column, leaving the rail ending half-way through a spread (9789570538366).
+- Diff Scope: `DefaultViewManager.getBaseGeometryPageCount()` and the non-vertical-rl `IframeView.expand()` fallback use the viewport spread width when `divisor > 1`. vertical-rl (`pageMetrics`, `isRtlVerticalPaginated()`) paths unchanged.
+- Test: two-column manager count/next fixtures and spread-snapped `expand()` fixture; full browser suite; cptw true-book 9789570538366 desktop new-books spec and vertical-regression gate.
+- Rollback: revert this commit and rebuild artifacts.
+
 ## 2026-09-23
 
 ### EPUB-PERSIST-001 semantic restore and request ownership

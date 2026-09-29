@@ -601,6 +601,11 @@ class IframeView {
 					? previousContentWidth
 					: pageMetrics.snappedContentWidth;
 			} else if (pageAdvance > 0 && visiblePageWidth > 0) {
+				// Spreads advance by the whole viewport; stepping by one column would
+				// leave the rail ending half-way through a spread.
+				if (this.layout.divisor > 1 && !viewportFillingSingleMediaPage && pageAdvance < visiblePageWidth) {
+					pageAdvance = visiblePageWidth;
+				}
 				const pages = Math.max(1, Math.ceil(Math.max(0, width - visiblePageWidth) / pageAdvance) + 1);
 				width = ((pages - 1) * pageAdvance) + visiblePageWidth;
 			} else if (width % this.layout.pageWidth > 0) {

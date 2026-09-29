@@ -258,6 +258,49 @@ describe("Views", () => {
 		expect(view._forceEvenPageAdded).toBe(true);
 	});
 
+	it("snaps horizontal two-column content width to whole spreads", () => {
+		let view = new IframeView({ index: 0, href: "chapter.xhtml" }, {
+			axis: "horizontal",
+			flow: "paginated",
+			width: 1320,
+			height: 761,
+			layout: {
+				name: "reflowable",
+				pageWidth: 660,
+				viewportPageWidth: 1320,
+				effectivePageAdvance: 1320,
+				delta: 1320,
+				width: 1320,
+				columnWidth: 550,
+				divisor: 2,
+				count: (totalLength) => {
+					let spreads = Math.ceil(totalLength / 1320);
+					return { spreads, pages: spreads * 2 };
+				},
+				update: () => {}
+			},
+			forceEvenPages: true
+		});
+
+		view.iframe = document.createElement("iframe");
+		view.element.appendChild(view.iframe);
+		view.lockedWidth = 1320;
+		view.lockedHeight = 761;
+		view._width = 0;
+		view._height = 0;
+		view.contents = {
+			// Five 660px columns of text: the last spread is half filled.
+			textWidth: () => 3245,
+			isViewportFillingSingleMediaPage: () => false,
+			writingMode: () => "horizontal-tb"
+		};
+
+		view.expand();
+
+		expect(view.width()).toBe(3960);
+		expect(view.width() % 1320).toBe(0);
+	});
+
 	it("locks iframe views through direct layout and type helpers", () => {
 		let view = new IframeView({ index: 0, href: "chapter.xhtml" }, {
 			axis: "vertical",

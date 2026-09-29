@@ -12543,8 +12543,10 @@
 					const rawWidthTracksPreviousFrame = previousContentWidth > visiblePageWidth && pageMetrics.snappedContentWidth > previousContentWidth && pageMetrics.rawWidth <= previousContentWidth + 4;
 					const repeatedMeasurementHasRunawayGrowth = previousContentWidth > visiblePageWidth && pageMetrics.snappedContentWidth > previousContentWidth * 4;
 					width = rawWidthTracksPreviousFrame || repeatedMeasurementHasRunawayGrowth ? previousContentWidth : pageMetrics.snappedContentWidth;
-				} else if (pageAdvance > 0 && visiblePageWidth > 0) width = (Math.max(1, Math.ceil(Math.max(0, width - visiblePageWidth) / pageAdvance) + 1) - 1) * pageAdvance + visiblePageWidth;
-				else if (width % this.layout.pageWidth > 0) width = Math.ceil(width / this.layout.pageWidth) * this.layout.pageWidth;
+				} else if (pageAdvance > 0 && visiblePageWidth > 0) {
+					if (this.layout.divisor > 1 && !viewportFillingSingleMediaPage && pageAdvance < visiblePageWidth) pageAdvance = visiblePageWidth;
+					width = (Math.max(1, Math.ceil(Math.max(0, width - visiblePageWidth) / pageAdvance) + 1) - 1) * pageAdvance + visiblePageWidth;
+				} else if (width % this.layout.pageWidth > 0) width = Math.ceil(width / this.layout.pageWidth) * this.layout.pageWidth;
 				this._contentWidth = width;
 				if (this.settings.forceEvenPages && !viewportFillingSingleMediaPage) {
 					columns = this.layout.effectivePageAdvance && this.layout.effectivePageAdvance !== this.layout.pageWidth ? this.layout.count(width).pages : width / this.layout.pageWidth;
@@ -16209,6 +16211,7 @@
 			let width = this.getNavigableWidthForView(view);
 			let advance = this.getPageAdvance();
 			let pageWidth = this.layout.pageWidth || this.layout.width || advance;
+			if (!this.isRtlVerticalPaginated() && this.layout.divisor > 1 && this.layout.viewportPageWidth) pageWidth = this.layout.viewportPageWidth;
 			if (this.layout.effectivePageAdvance && this.layout.effectivePageAdvance !== this.layout.pageWidth) {
 				let remainingLength = Math.max(0, width - pageWidth);
 				return remainingLength > 0 ? Math.max(1, this.countPagesWithFractionalTolerance(remainingLength, advance) + 1) : 1;
