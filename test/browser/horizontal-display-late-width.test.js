@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import DefaultViewManager from "../../src/managers/default";
+import { EVENTS } from "../../src/utils/constants";
 
 describe("horizontal display target while content width settles", () => {
 	it("reaches a late CFI after a single-page view expands", async () => {
@@ -38,7 +39,8 @@ describe("horizontal display target while content width settles", () => {
 		manager.traceTargetOwnership = () => {};
 		manager.recordResizeSettleTrace = () => {};
 		manager.syncVerticalRlViewportClip = () => {};
-		manager.emit = () => {};
+		const emitted = [];
+		manager.emit = (event, detail) => emitted.push({ event, detail });
 		manager.scrollTo = (left) => {
 			manager.container.scrollLeft = Math.min(left,
 				manager.container.scrollWidth - manager.container.clientWidth);
@@ -52,5 +54,8 @@ describe("horizontal display target while content width settles", () => {
 		manager.afterResized(view);
 
 		expect(manager.container.scrollLeft).toBeCloseTo(2358.54, 1);
+		expect(emitted.some(({ event, detail }) =>
+			event === EVENTS.MANAGERS.SCROLLED && Math.abs(detail.left - 2358.54) < 0.1
+		)).toBe(true);
 	});
 });

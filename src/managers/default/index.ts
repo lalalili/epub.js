@@ -1036,6 +1036,10 @@ class DefaultViewManager {
 		if (pending?.view === view && this.container.scrollWidth > pending.offset.left) {
 			this._pendingHorizontalTarget = undefined;
 			this.moveTo(pending.offset, pending.width);
+			this.emit(EVENTS.MANAGERS.SCROLLED, {
+				top: this.container.scrollTop,
+				left: this.container.scrollLeft
+			});
 		}
 		this.syncVerticalRlViewportClip();
 		this.emit(EVENTS.MANAGERS.RESIZE, view.section);
