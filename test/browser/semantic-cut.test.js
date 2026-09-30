@@ -35,6 +35,22 @@ describe('bounded semantic cut', () => {
     frame.style.left = '-' + result.physicalStart + 'px';
     expect(captureSemanticCut(doc,frame,'/6/2')).toEqual(cut);
   });
+  it('restores a translated cut with its effective left inset and source-proven masks', async () => {
+    const {frame, doc} = await fixture();
+    host.dataset.epubVrlEdgeMaskLeft = '25';
+    host.dataset.epubVrlEdgeMaskRight = '0';
+    const cut = captureSemanticCut(doc, frame, '/6/2');
+    frame.style.left = '-183px';
+    const result = resolveSemanticCut(doc, frame, cut, 287, '/6/2');
+    expect(result.status).toBe('qualified');
+    frame.style.left = '-' + result.physicalStart + 'px';
+    expect(captureSemanticCut(doc, frame, '/6/2')).toEqual(cut);
+    host.dataset.epubVrlEdgeMaskLeft = '12';
+    host.dataset.epubVrlEdgeMaskRight = '13';
+    host.dataset.epubVrlEdgeMaskLeft = String(result.maskWidths.left);
+    host.dataset.epubVrlEdgeMaskRight = String(result.maskWidths.right);
+    expect(captureSemanticCut(doc, frame, '/6/2')).toEqual(cut);
+  });
   it('captures the applied product mask rather than hidden neighboring content', async () => {
     const {frame, doc} = await fixture();
     const unmasked = captureSemanticCut(doc, frame, '/6/2');

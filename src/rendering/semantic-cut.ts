@@ -78,7 +78,10 @@ export function resolveSemanticCut(doc:Document,frame:HTMLIFrameElement,cut:Sema
   if(ranges.some(r=>!r||r.collapsed||r.startContainer.ownerDocument!==doc||r.endContainer.ownerDocument!==doc))return {status:'unavailable',reason:'invalid-semantic-source-range'};
   const desired=items.map(g=>ranges.some(r=>r.comparePoint(g.node,g.start)===0&&r.comparePoint(g.node,g.end)===0));
   if(!desired.some(Boolean))return {status:'unavailable',reason:'empty-semantic-cut'};
-  const width=clip.right-clip.left;let lo=0,hi=maxStart;
+  const baseClip=localSemanticClip(frame,false);if(!baseClip)return {status:'unavailable',reason:'stale-document'};
+  const maskWidths={left:clip.left-baseClip.left,right:baseClip.right-clip.right};
+  // Solver placement names the effective edge; scrolling names the unmasked viewport edge.
+  const width=clip.right-clip.left;let lo=maskWidths.left,hi=maxStart+maskWidths.left;
   // A glyph with multiple visible fragments is not guessed; this bounded lane fails closed.
   const rects=items.map(g=>g.rects.filter(r=>r.bottom>clip.top&&r.top<clip.bottom));
   for(let i=0;i<items.length;i++)if(desired[i]){
@@ -110,6 +113,7 @@ export function resolveSemanticCut(doc:Document,frame:HTMLIFrameElement,cut:Sema
   const start=(intervals[0][0]+intervals[0][1])/2;
   const target={...clip,left:start,right:start+width};
   if(items.some((g,i)=>g.rects.some(r=>hit(r,target))!==desired[i]))return {status:'unavailable',reason:'semantic-cut-validation-failed'};
-  return {status:'qualified',physicalStart:start};
+  return {status:'qualified',physicalStart:start-maskWidths.left,
+   ...(maskWidths.left||maskWidths.right?{maskWidths}:{})};
  }catch{return {status:'unavailable',reason:'semantic-cut-resolution-failed'};}
 }
