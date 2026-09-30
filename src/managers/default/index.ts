@@ -1472,7 +1472,9 @@ class DefaultViewManager {
 		let advance = this.getPageAdvance() || 0;
 		let visibleWidth = this.layout.pageWidth || this.layout.width || advance || this.container.clientWidth || 0;
 		let currentOffset = this.getNormalizedLogicalScrollLeft();
-		let currentMaskWidths = this.getVerticalRlRenderedEdgeMaskWidths();
+		let currentMaskWidths = this.container.dataset?.epubVrlEdgeMaskLeft !== undefined
+			? this.getVerticalRlAppliedEdgeMaskWidths()
+			: this.getVerticalRlRenderedEdgeMaskWidths();
 		let currentLeftMask = Number(currentMaskWidths && currentMaskWidths.left) || 0;
 
 		return getVerticalRlCurrentEffectiveLeftBoundaryHelper(
@@ -1489,7 +1491,9 @@ class DefaultViewManager {
 		}
 		const view = this.views.first() || this.views.last();
 		const contentWidth = view ? this.getVerticalRlVisualContentWidth(view) : 0;
-		const masks = this.getVerticalRlRenderedEdgeMaskWidths();
+		const masks = this.container.dataset?.epubVrlEdgeMaskRight !== undefined
+			? this.getVerticalRlAppliedEdgeMaskWidths()
+			: this.getVerticalRlRenderedEdgeMaskWidths();
 		return contentWidth - this.getNormalizedLogicalScrollLeft() - (Number(masks?.right) || 0);
 	}
 

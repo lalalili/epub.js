@@ -8157,3 +8157,20 @@ describe("Vertical RL manager pagination", function() {
 	});
 
 });
+
+
+describe("applied vertical-rl mask boundary authority", function() {
+	it("uses the active consumer mask for sequential page boundaries", function() {
+		const manager = Object.create(DefaultViewManager.prototype);
+		manager.container = { clientWidth: 393, dataset: { epubVrlEdgeMaskLeft: "0", epubVrlEdgeMaskRight: "19" } };
+		manager.layout = { pageWidth: 393.0909118652344 };
+		manager.views = { first: () => ({}) };
+		manager.isRtlVerticalPaginated = () => true;
+		manager.getPageAdvance = () => 384;
+		manager.getVerticalRlVisualContentWidth = () => 13832;
+		manager.getNormalizedLogicalScrollLeft = () => 13438.9091796875;
+		manager.getVerticalRlRenderedEdgeMaskWidths = () => ({ left: 9, right: 96 });
+		expect(manager.getVerticalRlCurrentEffectiveRightBoundary()).toBeCloseTo(374.0908203125, 8);
+		expect(manager.getVerticalRlCurrentEffectiveLeftBoundary()).toBeNull();
+	});
+});
