@@ -42,6 +42,13 @@ export function localSemanticClip(frame:HTMLIFrameElement):Box|null {
   const s=p.ownerDocument.defaultView!.getComputedStyle(p),r=p.getBoundingClientRect();
   if(/hidden|clip|auto|scroll/.test(s.overflowX)){c.left=Math.max(c.left,r.left);c.right=Math.min(c.right,r.right);}
   if(/hidden|clip|auto|scroll/.test(s.overflowY)){c.top=Math.max(c.top,r.top);c.bottom=Math.min(c.bottom,r.bottom);}
+  // Product masks are painted outside iframe overflow and still exclude semantic content.
+  const data=(p as HTMLElement).dataset;
+  if(data?.epubVrlEdgeMaskLeft!==undefined || data?.epubVrlEdgeMaskRight!==undefined){
+   const left=Number(data.epubVrlEdgeMaskLeft||0),right=Number(data.epubVrlEdgeMaskRight||0);
+   if(Number.isFinite(left)&&left>=0)c.left=Math.max(c.left,r.left+left);
+   if(Number.isFinite(right)&&right>=0)c.right=Math.min(c.right,r.right-right);
+  }
  }
  return c.right>c.left&&c.bottom>c.top?{left:c.left-f.left,right:c.right-f.left,top:c.top-f.top,bottom:c.bottom-f.top}:null;
 }
