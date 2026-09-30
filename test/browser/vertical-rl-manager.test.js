@@ -4,6 +4,7 @@ import DefaultViewManager from "../../src/managers/default";
 import IframeView from "../../src/managers/views/iframe";
 import Rendition from "../../src/rendition";
 import { replaceLinks } from "../../src/utils/replacements";
+import { collectVisibleTextClientRects } from "../../src/platform/traversal";
 
 const assert = {
 	deepEqual(actual, expected, message) {
@@ -700,6 +701,530 @@ describe("Vertical RL manager pagination", function() {
 
 		assert.equal(manager.container.scrollLeft, -snappedOffset);
 		assert.equal(snapCalls, 1);
+	});
+
+	it("preserves a learned vertical-rl boundary when returning to a previous page", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let pageAdvance = 360;
+		let contentWidth = 8308;
+		let targetPage = 18;
+		let cachedOffset = 6303.27294921875;
+		let snappedOffset = 6292;
+		let snapCalls = 0;
+		let view = {
+			width: function() {
+				return contentWidth;
+			},
+			contents: {
+				writingMode: function() {
+					return "vertical-rl";
+				}
+			}
+		};
+
+		manager.container = {
+			clientWidth: 393,
+			scrollWidth: contentWidth,
+			scrollLeft: 0,
+			scrollTop: 0
+		};
+		manager.layout = {
+			effectivePageAdvance: pageAdvance,
+			delta: pageAdvance,
+			pageWidth: pageAdvance,
+			width: pageAdvance,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			length: 1,
+			first: function() {
+				return view;
+			},
+			last: function() {
+				return view;
+			}
+		};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.queueVerticalRlBoundarySnapRetry = function() {};
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function(logicalOffset) {
+			snapCalls += 1;
+			return snappedOffset;
+		};
+		manager.scrollTo = function(left) {
+			this.container.scrollLeft = left;
+		};
+
+		let totalPages = manager.getTotalPagesForCurrentView();
+		let maxScroll = manager.getMaxLogicalScrollLeft();
+		let cacheKey = manager.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
+		manager.cacheVerticalRlLogicalPageOffset(targetPage, cachedOffset, cacheKey);
+
+		manager.getCurrentPageIndex = () => targetPage + 1;
+		manager.prev();
+
+		assert.equal(manager.container.scrollLeft, -cachedOffset);
+		assert.equal(snapCalls, 0);
+
+		manager.scrollToLogicalPage(targetPage, { ignoreCachedLogicalOffset: true });
+
+		assert.equal(manager.container.scrollLeft, -snappedOffset);
+		assert.equal(snapCalls, 1);
+	});
+
+	it("covers a text column between reverse adjacent effective boundaries", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let pageAdvance = 360;
+		let contentWidth = 8308;
+		let targetPage = 7;
+		let cachedOffset = 2486.181884765625;
+		let snappedOffset = cachedOffset;
+		let snapCalls = 0;
+		let view = {
+			width: function() {
+				return contentWidth;
+			},
+			contents: {
+				writingMode: function() {
+					return "vertical-rl";
+				}
+			}
+		};
+
+		manager.container = {
+			clientWidth: 393,
+			scrollWidth: contentWidth,
+			scrollLeft: 0,
+			scrollTop: 0
+		};
+		manager.layout = {
+			effectivePageAdvance: pageAdvance,
+			delta: pageAdvance,
+			pageWidth: 393.0909118652344,
+			width: pageAdvance,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			length: 1,
+			first: function() {
+				return view;
+			},
+			last: function() {
+				return view;
+			}
+		};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.queueVerticalRlBoundarySnapRetry = function() {};
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function(logicalOffset) {
+			snapCalls += 1;
+			return snappedOffset;
+		};
+		manager.scrollTo = function(left) {
+			this.container.scrollLeft = left;
+		};
+
+		manager.getVerticalRlTerminalLayout = () => null;
+		manager.waitForVerticalRlLayoutReady = () => Promise.resolve();
+		manager.getVerticalRlRenderedEdgeMaskWidths = () => ({
+			left: -manager.container.scrollLeft > 2500 ? 33 : 21,
+			right: 23
+		});
+		const textNode = { nodeValue: "測試文字", parentElement: {} };
+		view.contents.window = { getComputedStyle: () => ({ display: "block", visibility: "visible" }) };
+		view.contents.document = {
+			body: {},
+			createTreeWalker: () => {
+				let yielded = false;
+				return { nextNode: () => { if (yielded) return null; yielded = true; return textNode; } };
+			},
+			createRange: () => ({
+				selectNodeContents: () => {},
+				getClientRects: () => [{ left: 5428, right: 5449.09130859375, top: 0, bottom: 648, width: 21.09130859375, height: 648 }],
+				detach: () => {}
+			})
+		};
+		let totalPages = manager.getTotalPagesForCurrentView();
+		let maxScroll = manager.getMaxLogicalScrollLeft();
+		let cacheKey = manager.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
+		manager.cacheVerticalRlLogicalPageOffset(targetPage, cachedOffset, cacheKey);
+		manager.getCurrentPageIndex = () => targetPage;
+		manager.scrollToLogicalPage(targetPage, {
+			preserveCachedBoundary: true,
+			sequentialLeftBoundary: 5426.000091552734
+		});
+		assert.ok(manager.getVerticalRlCurrentEffectiveLeftBoundary() <= 5426.000091552734);
+		assert.ok(manager.getVerticalRlCurrentEffectiveLeftBoundary() < 5428);
+	});
+
+	it("keeps a restored next-page column out of the previous page", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let pageAdvance = 360;
+		let contentWidth = 8308;
+		let targetPage = 7;
+		let cachedOffset = 2526.181884765625;
+		let snappedOffset = cachedOffset;
+		let snapCalls = 0;
+		let view = {
+			width: function() {
+				return contentWidth;
+			},
+			contents: {
+				writingMode: function() {
+					return "vertical-rl";
+				}
+			}
+		};
+
+		manager.container = {
+			clientWidth: 393,
+			scrollWidth: contentWidth,
+			scrollLeft: 0,
+			scrollTop: 0
+		};
+		manager.layout = {
+			effectivePageAdvance: pageAdvance,
+			delta: pageAdvance,
+			pageWidth: 393.0909118652344,
+			width: pageAdvance,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			length: 1,
+			first: function() {
+				return view;
+			},
+			last: function() {
+				return view;
+			}
+		};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.queueVerticalRlBoundarySnapRetry = function() {};
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function(logicalOffset) {
+			snapCalls += 1;
+			return snappedOffset;
+		};
+		manager.scrollTo = function(left) {
+			this.container.scrollLeft = left;
+		};
+
+		manager.getVerticalRlTerminalLayout = () => null;
+		manager.waitForVerticalRlLayoutReady = () => Promise.resolve();
+		manager.getVerticalRlRenderedEdgeMaskWidths = () => ({
+			left: -manager.container.scrollLeft > 2500 ? 33 : 21,
+			right: 23
+		});
+		const textNode = { nodeValue: "測試文字", parentElement: {} };
+		view.contents.window = { getComputedStyle: () => ({ display: "block", visibility: "visible" }) };
+		view.contents.document = {
+			body: {},
+			createTreeWalker: () => {
+				let yielded = false;
+				return { nextNode: () => { if (yielded) return null; yielded = true; return textNode; } };
+			},
+			createRange: () => ({
+				selectNodeContents: () => {},
+				getClientRects: () => [{ left: 5428, right: 5449.09130859375, top: 0, bottom: 648, width: 21.09130859375, height: 648 }],
+				detach: () => {}
+			})
+		};
+		let totalPages = manager.getTotalPagesForCurrentView();
+		let maxScroll = manager.getMaxLogicalScrollLeft();
+		let cacheKey = manager.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
+		manager.cacheVerticalRlLogicalPageOffset(targetPage, cachedOffset, cacheKey);
+		manager.getCurrentPageIndex = () => targetPage;
+		manager.scrollToLogicalPage(targetPage, {
+			preserveCachedBoundary: true,
+			sequentialLeftBoundary: 5450.273040771484
+		});
+		assert.ok(manager.getVerticalRlCurrentEffectiveLeftBoundary() >= 5450.273040771484);
+	});
+
+	it("preserves a newly aligned reverse boundary without a prior cache", async function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let pageAdvance = 360;
+		let contentWidth = 8308;
+		let targetPage = 7;
+		let cachedOffset = 2486.181884765625;
+		let snappedOffset = cachedOffset;
+		let snapCalls = 0;
+		let view = {
+			width: function() {
+				return contentWidth;
+			},
+			contents: {
+				writingMode: function() {
+					return "vertical-rl";
+				}
+			}
+		};
+
+		manager.container = {
+			clientWidth: 393,
+			scrollWidth: contentWidth,
+			scrollLeft: 0,
+			scrollTop: 0
+		};
+		manager.layout = {
+			effectivePageAdvance: pageAdvance,
+			delta: pageAdvance,
+			pageWidth: 393.0909118652344,
+			width: pageAdvance,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			length: 1,
+			first: function() {
+				return view;
+			},
+			last: function() {
+				return view;
+			}
+		};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.queueVerticalRlBoundarySnapRetry = function() {};
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function(logicalOffset) {
+			snapCalls += 1;
+			return snappedOffset;
+		};
+		manager.scrollTo = function(left) {
+			this.container.scrollLeft = left;
+		};
+
+		manager.getVerticalRlTerminalLayout = () => null;
+		manager.waitForVerticalRlLayoutReady = () => Promise.resolve();
+		manager.getVerticalRlRenderedEdgeMaskWidths = () => ({
+			left: -manager.container.scrollLeft > 2500 ? 33 : 21,
+			right: 23
+		});
+		const textNode = { nodeValue: "測試文字", parentElement: {} };
+		view.contents.window = { getComputedStyle: () => ({ display: "block", visibility: "visible" }) };
+		view.contents.document = {
+			body: {},
+			createTreeWalker: () => {
+				let yielded = false;
+				return { nextNode: () => { if (yielded) return null; yielded = true; return textNode; } };
+			},
+			createRange: () => ({
+				selectNodeContents: () => {},
+				getClientRects: () => [{ left: 5428, right: 5449.09130859375, top: 0, bottom: 648, width: 21.09130859375, height: 648 }],
+				detach: () => {}
+			})
+		};
+		let totalPages = manager.getTotalPagesForCurrentView();
+		let maxScroll = manager.getMaxLogicalScrollLeft();
+		let cacheKey = manager.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
+
+		manager.getCurrentPageIndex = () => targetPage;
+		manager.scrollToLogicalPage(targetPage, {
+			preserveCachedBoundary: true,
+			sequentialLeftBoundary: 5426.000091552734
+		});
+		const alignedOffset = manager.container.scrollLeft;
+		view.iframe = {};
+		manager.settings.verticalRlBoundarySnapRetryDelays = [];
+		manager.queueVerticalRlBoundarySnapRetry = DefaultViewManager.prototype.queueVerticalRlBoundarySnapRetry;
+		manager.queueVerticalRlBoundarySnapRetry(targetPage);
+		await new Promise(resolve => setTimeout(resolve, 20));
+		assert.equal(manager.container.scrollLeft, alignedOffset);
+		assert.ok(manager.getVerticalRlCurrentEffectiveLeftBoundary() <= 5426.000091552734);
+	});
+
+	it("keeps a reverse landing when the boundary gap contains no text", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let pageAdvance = 360;
+		let contentWidth = 8308;
+		let targetPage = 7;
+		let cachedOffset = 2486.181884765625;
+		let snappedOffset = cachedOffset;
+		let snapCalls = 0;
+		let view = {
+			width: function() {
+				return contentWidth;
+			},
+			contents: {
+				writingMode: function() {
+					return "vertical-rl";
+				}
+			}
+		};
+
+		manager.container = {
+			clientWidth: 393,
+			scrollWidth: contentWidth,
+			scrollLeft: 0,
+			scrollTop: 0
+		};
+		manager.layout = {
+			effectivePageAdvance: pageAdvance,
+			delta: pageAdvance,
+			pageWidth: 393.0909118652344,
+			width: pageAdvance,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl"
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			length: 1,
+			first: function() {
+				return view;
+			},
+			last: function() {
+				return view;
+			}
+		};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.queueVerticalRlBoundarySnapRetry = function() {};
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function(logicalOffset) {
+			snapCalls += 1;
+			return snappedOffset;
+		};
+		manager.scrollTo = function(left) {
+			this.container.scrollLeft = left;
+		};
+
+		manager.getVerticalRlTerminalLayout = () => null;
+		manager.waitForVerticalRlLayoutReady = () => Promise.resolve();
+		manager.getVerticalRlRenderedEdgeMaskWidths = () => ({
+			left: -manager.container.scrollLeft > 2500 ? 33 : 21,
+			right: 23
+		});
+		const textNode = { nodeValue: "測試文字", parentElement: {} };
+		view.contents.window = { getComputedStyle: () => ({ display: "block", visibility: "visible" }) };
+		view.contents.document = {
+			body: {},
+			createTreeWalker: () => {
+				let yielded = false;
+				return { nextNode: () => { if (yielded) return null; yielded = true; return textNode; } };
+			},
+			createRange: () => ({
+				selectNodeContents: () => {},
+				getClientRects: () => [{ left: 5480, right: 5501.09130859375, top: 0, bottom: 648, width: 21.09130859375, height: 648 }],
+				detach: () => {}
+			})
+		};
+		let totalPages = manager.getTotalPagesForCurrentView();
+		let maxScroll = manager.getMaxLogicalScrollLeft();
+		let cacheKey = manager.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
+		manager.cacheVerticalRlLogicalPageOffset(targetPage, cachedOffset, cacheKey);
+		manager.getCurrentPageIndex = () => targetPage;
+		manager.scrollToLogicalPage(targetPage, {
+			preserveCachedBoundary: true,
+			sequentialLeftBoundary: 5426.000091552734
+		});
+		assert.equal(manager.container.scrollLeft, -cachedOffset);
+	});
+
+	it("preserves a source-verified semantic window through an automatic retry", async function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let pageAdvance = 360;
+		let contentWidth = 8308;
+		let targetPage = 16;
+		let cachedOffset = 5752.639068603516;
+		let snappedOffset = 5725.639068603516;
+		let snapCalls = 0;
+		let view = {
+			width: function() {
+				return contentWidth;
+			},
+			contents: {
+				writingMode: function() {
+					return "vertical-rl";
+				}
+			}
+		};
+
+		manager.container = {
+			clientWidth: 393,
+			scrollWidth: contentWidth,
+			scrollLeft: 0,
+			scrollTop: 0
+		};
+		manager.layout = {
+			effectivePageAdvance: pageAdvance,
+			delta: pageAdvance,
+			pageWidth: pageAdvance,
+			width: pageAdvance,
+			pageBoundaryShift: 0,
+			edgeGuardPx: 0
+		};
+		manager.settings = {
+			axis: "horizontal",
+			direction: "rtl",
+			rtlScrollType: "negative",
+			writingMode: "vertical-rl",
+			verticalRlBoundarySnapRetryDelays: []
+		};
+		manager.isPaginated = true;
+		manager.views = {
+			length: 1,
+			first: function() {
+				return view;
+			},
+			last: function() {
+				return view;
+			}
+		};
+		manager.syncVerticalRlViewportClip = function() {};
+		manager.waitForVerticalRlLayoutReady = () => Promise.resolve();
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function(logicalOffset) {
+			snapCalls += 1;
+			return snappedOffset;
+		};
+		manager.scrollTo = function(left) {
+			this.container.scrollLeft = left;
+		};
+
+		manager.getCurrentPageIndex = () => targetPage;
+		manager.scrollToLogicalPageInLayout(targetPage, {
+			semanticWindowLogicalOffset: cachedOffset
+		}, true);
+		assert.equal(manager.container.scrollLeft, -cachedOffset);
+
+		view.iframe = {};
+		view.contents.document = { body: {} };
+		view.contents.window = {};
+		manager.queueVerticalRlBoundarySnapRetryForCurrentOffset();
+		await new Promise(resolve => setTimeout(resolve, 20));
+
+		assert.equal(manager.container.scrollLeft, -cachedOffset);
+		assert.equal(snapCalls, 0);
 	});
 
 	it("moves to the vertical-rl logical page that contains an anchor target", function() {
@@ -2313,6 +2838,123 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(syncCalls, 1);
 	});
 
+	it("keeps a learned reverse landing through the automatic after-scroll retry", async function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let syncCalls = 0;
+
+		manager.container = { scrollLeft: -6276 };
+		manager.settings = {
+			direction: "rtl",
+			rtlScrollType: "negative",
+			verticalRlBoundarySnapRetryDelays: []
+		};
+		manager.isRtlVerticalPaginated = function() { return true; };
+		manager.getTotalPagesForCurrentView = function() { return 23; };
+		manager.getMaxLogicalScrollLeft = function() { return 7915; };
+		manager.getNormalizedLogicalScrollLeft = function() { return 6276; };
+		manager.getVerticalRlLogicalPageOffsetCacheKey = function() { return "key"; };
+		manager.getCachedVerticalRlLogicalPageOffset = function() { return 6276; };
+		manager.getPageSnapTolerance = function() { return 1; };
+		manager.getPageBoundaryShift = function() { return 0; };
+		manager.getCurrentPageIndex = function() { return 18; };
+		manager.getLogicalOffsetForPageIndex = function() { return 6276; };
+		manager.waitForVerticalRlLayoutReady = function() { return Promise.resolve(); };
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function() { return 6252.727142333984; };
+		manager.scrollTo = function(left) { this.container.scrollLeft = left; };
+		manager.syncVerticalRlViewportClip = function() { syncCalls += 1; };
+		manager.views = {
+			first: function() {
+				return { iframe: {}, contents: { document: { body: {} }, window: {} } };
+			},
+			last: function() { return this.first(); }
+		};
+
+		manager._verticalRlPreservedPageBoundary = { pageIndex: 18, layoutKey: "key" };
+		manager.queueVerticalRlBoundarySnapRetryForCurrentOffset();
+		await new Promise(resolve => setTimeout(resolve, 20));
+
+		assert.equal(manager.container.scrollLeft, -6276);
+		assert.equal(syncCalls, 2);
+	});
+
+	it("remeasures an automatic reverse retry after the layout key changes", async function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let syncCalls = 0;
+
+		manager.container = { scrollLeft: -6276 };
+		manager.settings = {
+			direction: "rtl",
+			rtlScrollType: "negative",
+			verticalRlBoundarySnapRetryDelays: []
+		};
+		manager.isRtlVerticalPaginated = function() { return true; };
+		manager.getTotalPagesForCurrentView = function() { return 23; };
+		manager.getMaxLogicalScrollLeft = function() { return 7915; };
+		manager.getNormalizedLogicalScrollLeft = function() { return 6276; };
+		manager.getVerticalRlLogicalPageOffsetCacheKey = function() { return "key"; };
+		manager.getCachedVerticalRlLogicalPageOffset = function() { return 6276; };
+		manager.getPageSnapTolerance = function() { return 1; };
+		manager.getPageBoundaryShift = function() { return 0; };
+		manager.getCurrentPageIndex = function() { return 18; };
+		manager.getLogicalOffsetForPageIndex = function() { return 6276; };
+		manager.waitForVerticalRlLayoutReady = function() { return Promise.resolve(); };
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function() { return 6252.727142333984; };
+		manager.scrollTo = function(left) { this.container.scrollLeft = left; };
+		manager.syncVerticalRlViewportClip = function() { syncCalls += 1; };
+		manager.views = {
+			first: function() {
+				return { iframe: {}, contents: { document: { body: {} }, window: {} } };
+			},
+			last: function() { return this.first(); }
+		};
+
+		manager._verticalRlPreservedPageBoundary = { pageIndex: 18, layoutKey: "previous-layout" };
+		manager.queueVerticalRlBoundarySnapRetryForCurrentOffset();
+		await new Promise(resolve => setTimeout(resolve, 20));
+
+		assert.equal(manager.container.scrollLeft, -6252.727142333984);
+
+	});
+
+	it("remeasures a reverse boundary when its layout cache is unavailable", async function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let syncCalls = 0;
+
+		manager.container = { scrollLeft: -6276 };
+		manager.settings = {
+			direction: "rtl",
+			rtlScrollType: "negative",
+			verticalRlBoundarySnapRetryDelays: []
+		};
+		manager.isRtlVerticalPaginated = function() { return true; };
+		manager.getTotalPagesForCurrentView = function() { return 23; };
+		manager.getMaxLogicalScrollLeft = function() { return 7915; };
+		manager.getNormalizedLogicalScrollLeft = function() { return 6276; };
+		manager.getVerticalRlLogicalPageOffsetCacheKey = function() { return "key"; };
+		manager.getCachedVerticalRlLogicalPageOffset = function() { return null; };
+		manager.getVerticalRlPageOffset = function() { return 6276; };
+		manager.getPageSnapTolerance = function() { return 1; };
+		manager.getPageBoundaryShift = function() { return 0; };
+		manager.getCurrentPageIndex = function() { return 18; };
+		manager.getLogicalOffsetForPageIndex = function() { return 6276; };
+		manager.waitForVerticalRlLayoutReady = function() { return Promise.resolve(); };
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = function() { return 6252.727142333984; };
+		manager.scrollTo = function(left) { this.container.scrollLeft = left; };
+		manager.syncVerticalRlViewportClip = function() { syncCalls += 1; };
+		manager.views = {
+			first: function() {
+				return { iframe: {}, contents: { document: { body: {} }, window: {} } };
+			},
+			last: function() { return this.first(); }
+		};
+
+		manager.queueVerticalRlBoundarySnapRetry(18, { preserveCachedBoundary: true });
+		await Promise.resolve();
+		await Promise.resolve();
+
+		assert.equal(manager.container.scrollLeft, -6252.727142333984);
+	});
+
 	it("refreshes the vertical-rl viewport clip after the target layout settles", async function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let syncCalls = 0;
@@ -2467,11 +3109,14 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(capturedLeft, null);
 	});
 
-	it("does not snap a preferred sequential boundary past the previous effective page edge", function() {
+	it.each([
+		{ label: "desktop boundary", contentWidth: 10344, pageWidth: 1296, advance: 1296, boundary: 7769.45458984375 },
+		{ label: "native fractional boundary", contentWidth: 8308, pageWidth: 393.0909118652344, advance: 360, boundary: 1792.9999084472656, glyphLeft: 1771.8182373046875, glyphRight: 1792.9091796875, dpr: 2.75 }
+	])("does not snap a preferred sequential boundary past the previous effective page edge ($label)", function(profile) {
 		let manager = Object.create(DefaultViewManager.prototype);
-		let contentWidth = 10344;
-		let pageWidth = 1296;
-		let preferredRightBoundary = 7769.45458984375;
+		let contentWidth = profile.contentWidth;
+		let pageWidth = profile.pageWidth;
+		let preferredRightBoundary = profile.boundary;
 		let logicalOffset = contentWidth - preferredRightBoundary;
 		let textNode = {
 			nodeValue: "這一行跨過上一頁的有效左界線，下一頁不應再被往內推。",
@@ -2482,14 +3127,15 @@ describe("Vertical RL manager pagination", function() {
 		manager.container = {
 			clientWidth: pageWidth,
 			scrollWidth: contentWidth,
-			scrollLeft: -logicalOffset
+			scrollLeft: -logicalOffset,
+			getBoundingClientRect: () => ({ left: 0, right: pageWidth, top: 0, bottom: 654.1818237304688 })
 		};
 		manager.layout = {
-			effectivePageAdvance: pageWidth,
-			delta: pageWidth,
+			effectivePageAdvance: profile.advance,
+			delta: profile.advance,
 			pageWidth,
 			width: pageWidth,
-			edgeGuardPx: 4,
+			edgeGuardPx: profile.dpr ? 0 : 4,
 			pageBoundaryShift: 0
 		};
 		manager.settings = {
@@ -2518,6 +3164,7 @@ describe("Vertical RL manager pagination", function() {
 							return "vertical-rl";
 						},
 						window: {
+						devicePixelRatio: profile.dpr,
 							getComputedStyle: function() {
 								return {
 									display: "block",
@@ -2547,12 +3194,12 @@ describe("Vertical RL manager pagination", function() {
 									},
 									getClientRects: function() {
 										return [{
-											left: preferredRightBoundary - 10.5,
-											right: preferredRightBoundary + 12.5,
-											top: 40,
-											bottom: 740,
-											width: 23,
-											height: 700
+											left: profile.glyphLeft ?? preferredRightBoundary - 10.5,
+											right: profile.glyphRight ?? preferredRightBoundary + 12.5,
+											top: profile.dpr ? 0 : 40,
+											bottom: profile.dpr ? 648 : 740,
+											width: profile.dpr ? profile.glyphRight - profile.glyphLeft : 23,
+											height: profile.dpr ? 648 : 700
 										}];
 									},
 									detach: function() {}
@@ -2574,6 +3221,12 @@ describe("Vertical RL manager pagination", function() {
 		let rawRight = contentWidth - snapped;
 
 		assert.ok(Math.abs(rawRight - preferredRightBoundary) <= 1, rawRight);
+		if (profile.dpr) {
+			// Android WebView measured the requested 6515.00009 offset at 6515.27295.
+			const appliedOffset = Math.ceil(snapped * profile.dpr) / profile.dpr;
+			assert.ok(contentWidth - appliedOffset >= profile.glyphRight,
+				"Native scroll quantization must not exclude the next page's first column");
+		}
 	});
 
 	it("does not cache a no-op vertical-rl boundary snap before text rects are ready", function() {
@@ -7424,4 +8077,83 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(maskWidths.left, 19);
 		assert.equal(maskWidths.right, 0);
 	});
+	it("assigns a column to the previous page when the restored next boundary cuts through it", function() {
+		const manager = Object.create(DefaultViewManager.prototype);
+		const column = { left: 6142.7275390625, right: 6163.818359375, top: 36, bottom: 648, width: 21.0908203125, height: 612 };
+		const textNode = { nodeValue: "測試文字", parentElement: {} };
+		const doc = {
+			body: {},
+			createTreeWalker: () => {
+				let yielded = false;
+				return { nextNode: () => { if (yielded) return null; yielded = true; return textNode; } };
+			},
+			createRange: () => ({ selectNodeContents: () => {}, getClientRects: () => [column], detach: () => {} })
+		};
+		const view = { contents: { document: doc, window: { getComputedStyle: () => ({ display: "block", visibility: "visible" }) } } };
+		let offset = 1766.1817626953125;
+		manager.views = { first: () => view, last: () => view };
+		manager.container = { scrollLeft: -offset };
+		manager.settings = { rtlScrollType: "negative" };
+		manager.isRtlVerticalPaginated = () => true;
+		manager.getVerticalRlCurrentEffectiveLeftBoundary = () => 7947.909088134766 - offset;
+		manager.getNormalizedLogicalScrollLeft = () => offset;
+		manager.getMaxLogicalScrollLeft = () => 7915;
+		manager.getTotalPagesForCurrentView = () => 23;
+		manager.getVerticalRlLogicalPageOffsetCacheKey = () => "unchanged-layout";
+		manager.cacheVerticalRlLogicalPageOffset = () => {};
+		manager.scrollTo = left => { offset = -left; manager.container.scrollLeft = left; };
+		manager.syncVerticalRlViewportClip = () => {};
+		assert.equal(manager.alignVerticalRlPreviousPageBoundary(5, 6160), true);
+		assert.ok(manager.getVerticalRlCurrentEffectiveLeftBoundary() <= column.left,
+			"the previous page must contain the whole column excluded by the restored next page");
+	});
+
+	it("keeps the chapter beginning at zero when a reverse seam crosses the first-page left column", function() {
+		const manager = Object.create(DefaultViewManager.prototype);
+		const column = { left: 7936.5458984375, right: 7957.63671875, top: 36, bottom: 648, width: 21.0908203125, height: 612 };
+		const textNode = { nodeValue: "測試文字", parentElement: {} };
+		const doc = {
+			body: {},
+			createTreeWalker: () => {
+				let yielded = false;
+				return { nextNode: () => { if (yielded) return null; yielded = true; return textNode; } };
+			},
+			createRange: () => ({ selectNodeContents: () => {}, getClientRects: () => [column], detach: () => {} })
+		};
+		const view = { contents: { document: doc, window: { getComputedStyle: () => ({ display: "block", visibility: "visible" }) } } };
+		let offset = 0;
+		manager.views = { first: () => view, last: () => view };
+		manager.container = { scrollLeft: 0 };
+		manager.settings = { rtlScrollType: "negative" };
+		manager.isRtlVerticalPaginated = () => true;
+		manager.getVerticalRlCurrentEffectiveLeftBoundary = () => 7958.909088134766 - offset;
+		manager.getNormalizedLogicalScrollLeft = () => offset;
+		manager.getMaxLogicalScrollLeft = () => 7915;
+		manager.getTotalPagesForCurrentView = () => 23;
+		manager.getVerticalRlLogicalPageOffsetCacheKey = () => "unchanged-layout";
+		manager.cacheVerticalRlLogicalPageOffset = () => {};
+		manager.scrollTo = left => { offset = -left; manager.container.scrollLeft = left; };
+		manager.syncVerticalRlViewportClip = () => {};
+		assert.equal(manager.alignVerticalRlPreviousPageBoundary(0, 7953.818176269531), false);
+		assert.equal(offset, 0, "the reverse seam must not move the title outside the chapter-start viewport");
+	});
+
+	it("includes a visible single-character anchor when collecting vertical boundary geometry", function() {
+		const doc = document.implementation.createHTMLDocument("boundary fixture");
+		const anchor = doc.createElement("a");
+		anchor.textContent = "↩";
+		doc.body.appendChild(anchor);
+		doc.createRange = () => ({
+			selectNodeContents: () => {},
+			getClientRects: () => [{ left: 4039.818359375, right: 4060.9091796875, top: 0, bottom: 13.5, width: 21.0908203125, height: 13.5 }],
+			detach: () => {}
+		});
+		const win = { getComputedStyle: () => ({ display: "inline", visibility: "visible" }) };
+		assert.equal(collectVisibleTextClientRects(doc, win, doc.body).length, 0,
+			"the existing generic collector contract remains unchanged");
+		const rects = collectVisibleTextClientRects(doc, win, doc.body, { minimumTextLength: 1 });
+		assert.equal(rects.length, 1, "visible one-character links must participate in boundary ownership");
+		assert.equal(rects[0].right, 4060.9091796875);
+	});
+
 });

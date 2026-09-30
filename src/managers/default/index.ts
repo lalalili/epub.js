@@ -257,7 +257,9 @@ type SnapLimits = {
 	maxRightBoundary?: number;
 	preferredRightBoundary?: number;
 	ignoreCachedLogicalOffset?: boolean;
+	preserveCachedBoundary?: boolean;
 	sequentialRightBoundary?: number;
+	sequentialLeftBoundary?: number;
 	useCurrentOffset?: boolean;
 	pageIndex?: number;
 	semanticWindowLogicalOffset?: number;
@@ -467,6 +469,7 @@ class DefaultViewManager {
 	declare _verticalRlPageIndexLookupOffset?: number | null;
 	declare _verticalRlPageIndexLookupResult?: number | null;
 	declare _verticalRlBoundarySnapCache?: VerticalRlBoundarySnapCacheEntry | null;
+	declare _verticalRlPreservedPageBoundary?: { pageIndex: number; layoutKey: string } | null;
 	declare _verticalRlSequentialBoundaryConstraint?: VerticalRlSequentialBoundaryConstraint | null;
 	declare _verticalRlBoundarySnapRetryToken?: number;
 	declare _verticalRlBoundarySnapApplying?: boolean;
@@ -1480,6 +1483,93 @@ class DefaultViewManager {
 		);
 	}
 
+	getVerticalRlCurrentEffectiveRightBoundary(): number | null {
+		if (!this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) {
+			return null;
+		}
+		const view = this.views.first() || this.views.last();
+		const contentWidth = view ? this.getVerticalRlVisualContentWidth(view) : 0;
+		const masks = this.getVerticalRlRenderedEdgeMaskWidths();
+		return contentWidth - this.getNormalizedLogicalScrollLeft() - (Number(masks?.right) || 0);
+	}
+
+	private alignVerticalRlPreviousPageBoundary(pageIndex: number, boundary: number): boolean {
+		appendVerticalRlScrollTrace("reverse-boundary-inspect", {
+			pageIndex, boundary, vertical: this.isRtlVerticalPaginated(),
+			leftBoundary: this.getVerticalRlCurrentEffectiveLeftBoundary()
+		});
+		if (pageIndex <= 0 || !this.isRtlVerticalPaginated() || !Number.isFinite(boundary) || boundary <= 0) {
+			return false;
+		}
+		const view = this.views && (this.views.first() || this.views.last());
+		const doc = view?.contents?.document;
+		const win = view?.contents?.window;
+		if (!doc?.body || !win) {
+			return false;
+		}
+		const rects = collectVisibleTextClientRects(doc, win, doc.body, { minimumTextLength: 1 });
+		const observedLeftBoundary = this.getVerticalRlCurrentEffectiveLeftBoundary();
+		appendVerticalRlScrollTrace("reverse-boundary-rects", {
+			pageIndex, boundary, rectCount: rects?.length ?? null,
+			leftBoundary: observedLeftBoundary,
+			intersections: rects?.filter(rect => {
+				const left = observedLeftBoundary;
+				return left !== null && rect.right > Math.min(boundary, left) && rect.left < Math.max(boundary, left);
+			}).map(rect => ({ left: rect.left, right: rect.right })) ?? []
+		});
+		if (!rects) {
+			return false;
+		}
+		const requestedBoundary = boundary;
+		for (let attempt = 0; attempt < rects.length; attempt += 1) {
+			const straddlers = rects.filter(rect => rect.left < boundary && rect.right > boundary);
+			if (!straddlers.length) {
+				break;
+			}
+			boundary = Math.min(...straddlers.map(rect => rect.left));
+		}
+		appendVerticalRlScrollTrace("reverse-boundary-column-owner", { pageIndex, requestedBoundary, boundary });
+		const cacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(
+			this.getTotalPagesForCurrentView(), this.getMaxLogicalScrollLeft()
+		);
+		let changed = false;
+		for (let attempt = 0; attempt < 4; attempt += 1) {
+			const leftBoundary = this.getVerticalRlCurrentEffectiveLeftBoundary();
+			if (leftBoundary === null || leftBoundary === boundary ||
+				!rects.some(rect => rect.right > Math.min(boundary, leftBoundary) &&
+					rect.left < Math.max(boundary, leftBoundary))) {
+				break;
+			}
+			const maxScroll = this.getMaxLogicalScrollLeft();
+			const currentKey = this.getVerticalRlLogicalPageOffsetCacheKey(this.getTotalPagesForCurrentView(), maxScroll);
+			if (!cacheKey || currentKey !== cacheKey) {
+				break;
+			}
+			const currentOffset = this.getNormalizedLogicalScrollLeft();
+			const offset = Math.max(0, Math.min(maxScroll, currentOffset + leftBoundary - boundary));
+			if (offset === currentOffset) {
+				break;
+			}
+			let left = offset;
+			if (this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0) {
+				left = -offset;
+			} else if (this.settings.rtlScrollType === "default") {
+				left = maxScroll - offset;
+			}
+			this.cacheVerticalRlLogicalPageOffset(pageIndex, offset, cacheKey);
+			this._verticalRlBoundarySnapApplying = true;
+			try {
+				this.scrollTo(left, 0, true);
+			} finally {
+				this._verticalRlBoundarySnapApplying = false;
+			}
+			this.syncVerticalRlViewportClip();
+			changed = true;
+			appendVerticalRlScrollTrace("reverse-boundary-align", { pageIndex, boundary, leftBoundary, currentOffset, offset, attempt });
+		}
+		return changed;
+	}
+
 	getVerticalRlLogicalPageOffsetCacheKey(_totalPages: number, maxScroll: number): string | null {
 		if (!this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) {
 			return null;
@@ -1676,6 +1766,7 @@ class DefaultViewManager {
 		let left = Math.max(0, Number(maskWidths.left) || 0);
 		let right = Math.max(0, Number(maskWidths.right) || 0);
 		let textRects = collectVisibleTextClientRects(doc, win, body, {
+			minimumTextLength: 1,
 			limit: 1000,
 			countInvalidRects: true
 		});
@@ -1834,6 +1925,7 @@ class DefaultViewManager {
 		let canExpandClippedRawRight = viewportInput.canExpandClippedRawRight;
 		let rightPaintGuardMax = viewportInput.rightPaintGuardMax;
 		let textRects = collectVisibleTextClientRects(doc, win, body, {
+			minimumTextLength: 1,
 			limit: 1000
 		});
 		if (!textRects) {
@@ -2469,6 +2561,7 @@ class DefaultViewManager {
 		let iframeRect = iframe.getBoundingClientRect();
 		let structuralGutterMask = this.getVerticalRlStructuralEdgeMaskWidthsForLogicalOffset(logicalOffset, contentWidth, visibleWidth);
 		let textRects = collectVisibleTextClientRects(doc, win, body, {
+			minimumTextLength: 1,
 			limit: 1000
 		});
 		if (!textRects) {
@@ -2495,6 +2588,21 @@ class DefaultViewManager {
 			preflight.maxRightBoundaryOptions,
 			preflight.rightBoundaryOptions
 		);
+		const preferredBoundary = preflight.rightBoundaryOptions.preferredRightBoundary;
+		const maxBoundary = preflight.rightBoundaryOptions.maxRightBoundary;
+		const dpr = Number(win.devicePixelRatio);
+		if (preflight.rightBoundaryOptions.hasPreferredRightBoundary &&
+			preflight.rightBoundaryOptions.hasMaxRightBoundary &&
+			preferredBoundary === maxBoundary && Number.isFinite(dpr) && dpr > 0) {
+			// A sequential source edge must survive WebView's device-pixel scroll
+			// quantization. Rounding inward can make a complete column straddle
+			// the raw right edge and acquire a mask on both adjacent pages.
+			const boundaryOffset = Math.max(0, Math.min(maxScroll, contentWidth - preferredBoundary));
+			snapResult.snapped = Math.floor(Math.min(snapResult.snapped, boundaryOffset) * dpr) / dpr;
+			if (snapResult.cacheEntry) {
+				snapResult.cacheEntry.value = snapResult.snapped;
+			}
+		}
 		if (snapResult.cacheEntry) {
 			this._verticalRlBoundarySnapCache = snapResult.cacheEntry;
 		}
@@ -3384,6 +3492,16 @@ class DefaultViewManager {
 		let terminalTailStateAfterApply: VerticalRlTerminalTailState = "unknown";
 		let terminalTailObservationAfterApply: VerticalRlTerminalTailObservation | null = null;
 		this._verticalRlSequentialBoundaryConstraint = sequentialBoundaryConstraint;
+		this._verticalRlPreservedPageBoundary = (options.preserveCachedBoundary ||
+			(hasSemanticWindowLogicalOffset && preserveSourceCut)) &&
+			cachedLogicalOffset !== null && logicalOffsetCacheKey !== null
+			? { pageIndex: targetIndex, layoutKey: logicalOffsetCacheKey }
+			: null;
+		appendVerticalRlScrollTrace("reverse-boundary-preservation", {
+			targetIndex, logicalOffsetCacheKey, cachedLogicalOffset, recordedOffset,
+			preserveRequested: Boolean(options.preserveCachedBoundary),
+			preservedPageBoundary: this._verticalRlPreservedPageBoundary
+		});
 		if (this.isRtlVerticalPaginated()) {
 			this.cacheVerticalRlLogicalPageOffset(targetIndex, logicalOffset, logicalOffsetCacheKey);
 		}
@@ -3503,6 +3621,17 @@ class DefaultViewManager {
 				promotionResult
 			});
 		}
+		if (!hasSemanticWindowLogicalOffset && this.alignVerticalRlPreviousPageBoundary(
+			targetIndex, Number(options.sequentialLeftBoundary)
+		)) {
+			logicalOffset = this.getNormalizedLogicalScrollLeft();
+			left = this.container.scrollLeft;
+			const alignedKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, this.getMaxLogicalScrollLeft());
+			if (alignedKey) {
+				this.cacheVerticalRlLogicalPageOffset(targetIndex, logicalOffset, alignedKey);
+				this._verticalRlPreservedPageBoundary = { pageIndex: targetIndex, layoutKey: alignedKey };
+			}
+		}
 		appendVerticalRlScrollTrace("complete", {
 			targetIndex,
 			containerScrollLeft: this.container && this.container.scrollLeft,
@@ -3617,8 +3746,14 @@ class DefaultViewManager {
 					: options.useCurrentOffset
 						? Math.max(0, Math.min(maxScroll, currentOffset))
 						: this.getVerticalRlPageOffset(targetIndex, currentTotalPages, maxScroll);
+				const preservedPageBoundary = this._verticalRlPreservedPageBoundary;
+				const preserveCachedBoundary = shouldUseCachedLogicalOffset && Boolean(
+					preservedPageBoundary &&
+					preservedPageBoundary.pageIndex === targetIndex &&
+					preservedPageBoundary.layoutKey === logicalOffsetCacheKey
+				);
 				let shouldSnapCurrentOffsetToPageGrid = (
-					options.useCurrentOffset &&
+					!preserveCachedBoundary && options.useCurrentOffset &&
 					this.getPageBoundaryShift() === 0 &&
 					this.container
 				);
@@ -3644,7 +3779,9 @@ class DefaultViewManager {
 					view.contents.document.body &&
 					view.contents.window
 				);
-				let shouldMeasureBoundary = !shouldUseCachedLogicalOffset || canMeasureCachedLogicalOffset;
+				let shouldMeasureBoundary = !shouldUseCachedLogicalOffset || (
+					canMeasureCachedLogicalOffset && !preserveCachedBoundary
+				);
 				let snappedOffset = shouldMeasureBoundary
 					? this.snapVerticalRlLogicalOffsetToTextBoundary(
 						logicalOffset,
@@ -3677,7 +3814,8 @@ class DefaultViewManager {
 
 				appendVerticalRlScrollTrace("boundary-retry-apply", {
 					targetIndex, attempt, currentOffset, logicalOffset, snappedOffset,
-					shouldUseCachedLogicalOffset, token
+					shouldUseCachedLogicalOffset, preserveCachedBoundary, logicalOffsetCacheKey, preservedPageBoundary,
+					useCurrentOffset: Boolean(options.useCurrentOffset), token
 				});
 				this.cacheVerticalRlLogicalPageOffset(targetIndex, snappedOffset, logicalOffsetCacheKey);
 
@@ -3864,7 +4002,8 @@ class DefaultViewManager {
 
 			if (pageIndex > 0) {
 				this.scrollToLogicalPage(pageIndex - 1, {
-					ignoreCachedLogicalOffset: true
+					preserveCachedBoundary: true,
+					sequentialLeftBoundary: this.getVerticalRlCurrentEffectiveRightBoundary() ?? undefined
 				});
 				return;
 			} else {

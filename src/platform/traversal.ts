@@ -50,15 +50,16 @@ export function treeWalker(root: TraversalRoot, func: NodeCallback, filter: Tree
 	}
 }
 
-export function createVisibleTextWalker(doc: Document, win: Window, root: HTMLElement): TreeWalker | null {
+export function createVisibleTextWalker(doc: Document, win: Window, root: HTMLElement, options: { minimumTextLength?: number } = {}): TreeWalker | null {
 	if (!doc || !win || !root || typeof doc.createTreeWalker !== "function") {
 		return null;
 	}
 
+	const minimumTextLength = Math.max(1, Math.floor(Number(options.minimumTextLength) || 2));
 	return doc.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
 		acceptNode(node: Text) {
 			let text = String(node.nodeValue || "").replace(/\s+/g, "");
-			if (text.length < 2) {
+			if (text.length < minimumTextLength) {
 				return NodeFilter.FILTER_REJECT;
 			}
 
@@ -81,9 +82,9 @@ export function collectVisibleTextClientRects(
 	doc: Document,
 	win: Window,
 	root: HTMLElement,
-	options: { limit?: number; countInvalidRects?: boolean } = {}
+	options: { limit?: number; countInvalidRects?: boolean; minimumTextLength?: number } = {}
 ): VisibleTextClientRect[] | null {
-	const walker = createVisibleTextWalker(doc, win, root);
+	const walker = createVisibleTextWalker(doc, win, root, options);
 	if (!walker) {
 		return null;
 	}
