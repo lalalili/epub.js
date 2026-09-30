@@ -127,3 +127,41 @@ describe("raw-left-snap: aggregate over rects", () => {
 		).toEqual({ shift: 11, left: 51 });
 	});
 });
+
+describe("raw-left-snap: capped boundary ownership", () => {
+	it("keeps a rendered combined-upright glyph whole when expansion exceeds the mask limit", async () => {
+		const span = document.createElement("span");
+		span.textContent = "[12]";
+		Object.assign(span.style, { position: "absolute", left: "80px", top: "20px", writingMode: "vertical-rl", textCombineUpright: "all", fontSize: "18px", fontFamily: "serif" });
+		document.body.appendChild(span);
+		try {
+			await document.fonts.ready;
+			const range = document.createRange();
+			range.selectNodeContents(span);
+			const first = range.getBoundingClientRect();
+			span.style.left = `${80 + 89.171875 - first.right}px`;
+			const rect = range.getBoundingClientRect();
+			const decision = getVerticalRlRawLeftSnapDecisionForRects(
+				[{ left: rect.left, right: rect.right }], 0, 374.390625, 87, 87, 287.390625, false, false, true, 4
+			);
+			expect(decision.left).toBeLessThanOrEqual(87);
+			expect(decision.left).toBeGreaterThanOrEqual(0);
+			expect(rect.left < decision.left && rect.right > decision.left).toBe(false);
+		} finally {
+			span.remove();
+		}
+	});
+
+	it("does not expose a glyph that already straddles the physical viewport edge", () => {
+		const rects = [{ left: 69.375, right: 89.171875 }, { left: -2, right: 71 }];
+		const decision = getVerticalRlRawLeftSnapDecisionForRects(rects, 0, 374.390625, 87, 87, 287.390625, false, false, true, 4);
+		expect(decision.left).toBe(87);
+	});
+
+	it("retreats across overlapping glyph intervals without cutting either interval", () => {
+		const rects = [{ left: 69.375, right: 89.171875 }, { left: 57, right: 76 }];
+		const decision = getVerticalRlRawLeftSnapDecisionForRects(rects, 0, 374.390625, 87, 87, 287.390625, false, false, true, 4);
+		expect(decision.left).toBe(56);
+		expect(rects.some(rect => rect.left < decision.left && rect.right > decision.left)).toBe(false);
+	});
+});

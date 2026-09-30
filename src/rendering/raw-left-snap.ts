@@ -310,8 +310,24 @@ export function getVerticalRlRawLeftSnapDecisionForRects(
 		edgeTolerance
 	);
 
-	return {
-		shift,
-		left: getVerticalRlSnappedLeftEdgeMask(left, shift, leftMaxMask)
-	};
+	const snappedLeft = getVerticalRlSnappedLeftEdgeMask(left, shift, leftMaxMask);
+	if (shift > 0 && snappedLeft < left + shift) {
+		// A capped expansion must not leave the boundary inside a rendered glyph.
+		// Retreat through overlapping intervals; retain the original decision if
+		// no safe boundary exists inside the current viewport.
+		let safeLeft = snappedLeft;
+		for (let attempt = 0; attempt <= rects.length; attempt++) {
+			const edge = rawLeft + safeLeft;
+			const crossings = rects.filter(rect => rect.left < edge && rect.right > edge);
+			if (!crossings.length) {
+				return { shift: safeLeft - left, left: safeLeft };
+			}
+			const nextLeft = Math.floor(Math.min(...crossings.map(rect => rect.left)) - rawLeft - 1);
+			if (nextLeft < 0 || nextLeft >= safeLeft) {
+				break;
+			}
+			safeLeft = nextLeft;
+		}
+	}
+	return { shift, left: snappedLeft };
 }
