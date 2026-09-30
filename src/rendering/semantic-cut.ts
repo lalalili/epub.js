@@ -35,7 +35,7 @@ function glyphs(doc:Document):{items:Glyph[];digest:string} {
  }
  return {items,digest:semanticDigest(text)};
 }
-export function localSemanticClip(frame:HTMLIFrameElement):Box|null {
+export function localSemanticClip(frame:HTMLIFrameElement,includeProductMasks=true):Box|null {
  const f=frame.getBoundingClientRect(),win=frame.ownerDocument.defaultView!;
  const c={left:Math.max(0,f.left),right:Math.min(win.innerWidth,f.right),top:Math.max(0,f.top),bottom:Math.min(win.innerHeight,f.bottom)};
  for(let p:Element|null=frame.parentElement;p;p=p.parentElement||(p.getRootNode() as ShadowRoot).host){
@@ -44,7 +44,7 @@ export function localSemanticClip(frame:HTMLIFrameElement):Box|null {
   if(/hidden|clip|auto|scroll/.test(s.overflowY)){c.top=Math.max(c.top,r.top);c.bottom=Math.min(c.bottom,r.bottom);}
   // Product masks are painted outside iframe overflow and still exclude semantic content.
   const data=(p as HTMLElement).dataset;
-  if(data?.epubVrlEdgeMaskLeft!==undefined || data?.epubVrlEdgeMaskRight!==undefined){
+  if(includeProductMasks && (data?.epubVrlEdgeMaskLeft!==undefined || data?.epubVrlEdgeMaskRight!==undefined)){
    const left=Number(data.epubVrlEdgeMaskLeft||0),right=Number(data.epubVrlEdgeMaskRight||0);
    if(Number.isFinite(left)&&left>=0)c.left=Math.max(c.left,r.left+left);
    if(Number.isFinite(right)&&right>=0)c.right=Math.min(c.right,r.right-right);
@@ -66,7 +66,7 @@ export function captureSemanticCut(doc:Document,frame:HTMLIFrameElement,cfiBase:
   return runs.length>0&&runs.length<=32&&JSON.stringify(cut).length<=3000?cut:null;
  }catch{return null;}
 }
-export function resolveSemanticCut(doc:Document,frame:HTMLIFrameElement,cut:SemanticCut,maxStart:number,cfiBase:string):{status:string;physicalStart?:number;reason?:string} {
+export function resolveSemanticCut(doc:Document,frame:HTMLIFrameElement,cut:SemanticCut,maxStart:number,cfiBase:string,options:{allowCurrentTerminalMask?:boolean}={}):{status:string;physicalStart?:number;maskWidths?:{left:number;right:number};reason?:string} {
  try{
   if(cut?.version!==1||cut.algorithm!=='cfi-runs-sha256-v1'||!Array.isArray(cut.runs)||!cut.runs.length||cut.runs.length>32||JSON.stringify(cut).length>3000)return {status:'unavailable',reason:'invalid-semantic-cut'};
   if(!Number.isFinite(maxStart)||maxStart<0||!cfiBase||new Set(cut.runs).size!==cut.runs.length||cut.runs.some(c=>typeof c!=='string'||!c.startsWith('epubcfi('+cfiBase+'!')))return {status:'unavailable',reason:'invalid-semantic-source-range'};
@@ -85,14 +85,28 @@ export function resolveSemanticCut(doc:Document,frame:HTMLIFrameElement,cut:Sema
    if(rects[i].length!==1)return {status:'unavailable',reason:'ambiguous-glyph-fragments'};
    lo=Math.max(lo,rects[i][0].left-width);hi=Math.min(hi,rects[i][0].right);
   }
-  if(!(lo<hi))return {status:'unavailable',reason:'semantic-cut-not-reprojectable'};
+  const reconstructCurrentMask=()=>{
+   if(!options.allowCurrentTerminalMask)return null;
+   const base=localSemanticClip(frame,false);if(!base)return null;
+   const selected=rects.filter((_,i)=>desired[i]).flat();
+   if(!selected.length||selected.some(r=>r.left<base.left||r.right>base.right||r.top<base.top||r.bottom>base.bottom))return null;
+   const wantedLeft=Math.min(...selected.map(r=>r.left)),wantedRight=Math.max(...selected.map(r=>r.right));
+   const excluded=rects.filter((_,i)=>!desired[i]).flat().filter(r=>hit(r,base));
+   const leftNeighbors=excluded.filter(r=>r.right<=wantedLeft),rightNeighbors=excluded.filter(r=>r.left>=wantedRight);
+   const left=leftNeighbors.length?(Math.max(...leftNeighbors.map(r=>r.right))+wantedLeft)/2:base.left;
+   const right=rightNeighbors.length?(wantedRight+Math.min(...rightNeighbors.map(r=>r.left)))/2:base.right;
+   const target={...base,left,right};
+   if(!(left<right)||items.some((g,i)=>g.rects.some(r=>hit(r,target))!==desired[i]))return null;
+   return {status:'qualified',physicalStart:base.left,maskWidths:{left:left-base.left,right:base.right-right}};
+  };
+  if(!(lo<hi))return reconstructCurrentMask()||{status:'unavailable',reason:'semantic-cut-not-reprojectable'};
   let intervals:[[number,number]]|Array<[number,number]>=[[lo,hi]];
   for(let i=0;i<items.length;i++)if(!desired[i])for(const r of rects[i]){
    const a=r.left-width,b=r.right;intervals=intervals.flatMap(([l,h]):Array<[number,number]>=>b<=l||a>=h?[[l,h]]:[[l,Math.min(h,a)],[Math.max(l,b),h]].filter(([x,y])=>x<y) as Array<[number,number]>);
    if(intervals.length>128)return {status:'unavailable',reason:'semantic-interval-quota'};
   }
   // Distinct disjoint placements remain ambiguous, even with matching anchors.
-  if(intervals.length!==1)return {status:'unavailable',reason:'ambiguous-semantic-cut'};
+  if(intervals.length!==1)return reconstructCurrentMask()||{status:'unavailable',reason:'ambiguous-semantic-cut'};
   const start=(intervals[0][0]+intervals[0][1])/2;
   const target={...clip,left:start,right:start+width};
   if(items.some((g,i)=>g.rects.some(r=>hit(r,target))!==desired[i]))return {status:'unavailable',reason:'semantic-cut-validation-failed'};

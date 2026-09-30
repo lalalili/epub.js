@@ -48,6 +48,26 @@ describe('bounded semantic cut', () => {
     host.dataset.epubVrlEdgeMaskRight = '0';
     expect(captureSemanticCut(doc, frame, '/6/2')).toEqual(unmasked);
   });
+  it('reconstructs a terminal mask from the source cut after the painted mask is lost', async () => {
+    const {frame, doc} = await fixture();
+    frame.style.left = '0px';
+    host.dataset.epubVrlEdgeMaskRight = '60';
+    const cut = captureSemanticCut(doc, frame, '/6/2');
+    host.dataset.epubVrlEdgeMaskRight = '0';
+    const result = resolveSemanticCut(doc, frame, cut, 287, '/6/2', {allowCurrentTerminalMask: true});
+    expect(result.status).toBe('qualified');
+    expect(result.physicalStart).toBe(0);
+    expect(result.maskWidths.left).toBe(0);
+    const wanted = doc.createRange();
+    wanted.selectNodeContents(doc.body.children[2]);
+    const excluded = doc.createRange();
+    excluded.selectNodeContents(doc.body.children[3]);
+    const restoredRight = host.clientWidth - result.maskWidths.right;
+    expect(restoredRight).toBeGreaterThanOrEqual(wanted.getBoundingClientRect().right);
+    expect(restoredRight).toBeLessThanOrEqual(excluded.getBoundingClientRect().left);
+    host.dataset.epubVrlEdgeMaskRight = String(result.maskWidths.right);
+    expect(captureSemanticCut(doc, frame, '/6/2')).toEqual(cut);
+  });
   it('rejects changed source, wrong spine, malformed cuts and stale documents', async () => {
     const {frame,doc} = await fixture();
     const cut = captureSemanticCut(doc,frame,'/6/2');

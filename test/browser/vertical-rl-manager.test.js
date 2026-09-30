@@ -8197,3 +8197,30 @@ describe("sequential terminal overlap ownership", function() {
 		expect(manager.getVerticalRlProvenRightMaskAllowance()).toBe(96);
 	});
 });
+
+
+describe("restored semantic mask ownership", function() {
+  it("retains source-proven terminal masking only on its original document and geometry", function() {
+    const manager = Object.create(DefaultViewManager.prototype);
+    const doc = {};
+    const view = {contents: {document: doc}};
+    manager.container = {clientWidth: 393, clientHeight: 654};
+    manager.views = {first: () => view};
+    manager.isRtlVerticalPaginated = () => true;
+    manager.getCurrentPageIndex = () => 35;
+    manager.getNormalizedLogicalScrollLeft = () => 13438.909;
+    manager._verticalRlRestoredSemanticMask = {pageIndex: 35, offset: 13438.909, width: 393, height: 654, view, document: doc, masks: {left: 0, right: 179.818}};
+    expect(manager.computeVerticalRlEdgeMaskWidths()).toEqual({left: 0, right: 179.818});
+    expect(manager.getVerticalRlProvenRightMaskAllowance()).toBe(179.818);
+    manager.getNormalizedLogicalScrollLeft = () => 13000;
+    expect(manager.getVerticalRlRestoredSemanticMaskWidths()).toBeNull();
+    manager.getNormalizedLogicalScrollLeft = () => NaN;
+    expect(manager.getVerticalRlRestoredSemanticMaskWidths()).toBeNull();
+    manager.getNormalizedLogicalScrollLeft = () => 13438.909;
+    manager.container.clientWidth = 914;
+    expect(manager.getVerticalRlRestoredSemanticMaskWidths()).toBeNull();
+    manager.container.clientWidth = 393;
+    view.contents.document = {};
+    expect(manager.getVerticalRlRestoredSemanticMaskWidths()).toBeNull();
+  });
+});

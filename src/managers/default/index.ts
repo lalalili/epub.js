@@ -471,6 +471,7 @@ class DefaultViewManager {
 	declare _verticalRlBoundarySnapCache?: VerticalRlBoundarySnapCacheEntry | null;
 	declare _verticalRlPreservedPageBoundary?: { pageIndex: number; layoutKey: string } | null;
 	declare _verticalRlSequentialBoundaryConstraint?: VerticalRlSequentialBoundaryConstraint | null;
+	declare _verticalRlRestoredSemanticMask?: { pageIndex: number; offset: number; width: number; height: number; view: unknown; document: unknown; masks: EdgeMaskWidths } | null;
 	declare _verticalRlBoundarySnapRetryToken?: number;
 	declare _verticalRlBoundarySnapApplying?: boolean;
 	declare _verticalRlViewportClipOverlay?: HTMLDivElement;
@@ -1382,6 +1383,8 @@ class DefaultViewManager {
 	}
 
 	computeVerticalRlEdgeMaskWidths(): EdgeMaskWidths {
+		const restored = this.getVerticalRlRestoredSemanticMaskWidths();
+		if (restored) return restored;
 		const sequentialTerminalMask = this.getVerticalRlSequentialTerminalRightMaskWidth();
 		if (sequentialTerminalMask !== null) {
 			return { left: 0, right: sequentialTerminalMask };
@@ -2018,6 +2021,20 @@ class DefaultViewManager {
 		}
 	}
 
+	getVerticalRlRestoredSemanticMaskWidths(): EdgeMaskWidths | null {
+		const saved = this._verticalRlRestoredSemanticMask;
+		if (!saved || !this.isRtlVerticalPaginated() || !this.container || !this.views) return null;
+		const view = this.views.first() || this.views.last();
+		const offset = this.getNormalizedLogicalScrollLeft();
+		if (!Number.isFinite(offset) || !Number.isFinite(saved.offset) || saved.document !== view?.contents?.document || saved.view !== view || saved.pageIndex !== this.getCurrentPageIndex() ||
+			saved.width !== this.container.clientWidth || saved.height !== this.container.clientHeight ||
+			Math.abs(saved.offset - offset) > 1) return null;
+		const { left, right } = saved.masks;
+		if (!Number.isFinite(left) || !Number.isFinite(right) || left < 0 || right < 0 ||
+			left + right >= saved.width) return null;
+		return { left, right };
+	}
+
 	/** Resolve overlap ownership only for a sequential target clamped at the terminal scroll limit. */
 	getVerticalRlSequentialTerminalRightMaskWidth(): number | null {
 		const constraint = this._verticalRlSequentialBoundaryConstraint;
@@ -2060,6 +2077,8 @@ class DefaultViewManager {
 	 * @return {number|null}
 	 */
 	getVerticalRlProvenRightMaskAllowance(): number | null {
+		const restored = this.getVerticalRlRestoredSemanticMaskWidths();
+		if (restored) return restored.right;
 		const sequentialTerminalMask = this.getVerticalRlSequentialTerminalRightMaskWidth();
 		if (sequentialTerminalMask !== null) {
 			return sequentialTerminalMask;
@@ -2128,6 +2147,8 @@ class DefaultViewManager {
 	 * @return {number|null}
 	 */
 	getVerticalRlProvenLeftMaskAllowance(): number | null {
+		const restored = this.getVerticalRlRestoredSemanticMaskWidths();
+		if (restored) return restored.left;
 		if (!this.isRtlVerticalPaginated()) {
 			return null;
 		}
@@ -2183,6 +2204,8 @@ class DefaultViewManager {
 		if (sequentialTerminalMask !== null) {
 			maskWidths = { left: 0, right: sequentialTerminalMask };
 		}
+		const restored = this.getVerticalRlRestoredSemanticMaskWidths();
+		if (restored) maskWidths = restored;
 		this.recordVerticalRlAppliedLeftMask(Math.max(0, Number(maskWidths.left) || 0));
 		if (!maskWidths.left && !maskWidths.right) {
 			this.removeVerticalRlViewportClip();
@@ -2950,7 +2973,9 @@ class DefaultViewManager {
 		if (descriptor.semanticCut) {
 			const width = this.layout.pageWidth || this.layout.width || this.getPageAdvance();
 			const maxStart = Math.max(0, this.getVerticalRlVisualContentWidth(view) - width);
-			const resolution = resolveSemanticCut(contents.document, view.iframe, descriptor.semanticCut, maxStart, section.cfiBase);
+			const resolution = resolveSemanticCut(contents.document, view.iframe, descriptor.semanticCut, maxStart, section.cfiBase, {
+				allowCurrentTerminalMask: this.getCurrentPageIndex() === this.getTotalPagesForCurrentView() - 1
+			});
 			if (resolution.status !== 'qualified' || typeof resolution.physicalStart !== 'number') {
 				traceTerminal(resolution.reason || 'semantic-cut-unavailable');
 				return { status: 'unavailable', reason: resolution.reason || 'semantic-cut-unavailable' };
@@ -2958,8 +2983,18 @@ class DefaultViewManager {
 			const index = Number(descriptor.logicalPageIndex);
 			if (!Number.isInteger(index) || index <= 0) return { status: 'unavailable', reason: 'invalid-page-index' };
 			this.scrollToLogicalPageInLayout(index, { semanticWindowLogicalOffset: maxStart - resolution.physicalStart }, true);
+			if (resolution.maskWidths) {
+				this._verticalRlRestoredSemanticMask = {
+					pageIndex: this.getCurrentPageIndex(), offset: this.getNormalizedLogicalScrollLeft(),
+					width: this.container.clientWidth, height: this.container.clientHeight,
+					view, document: contents.document, masks: resolution.maskWidths
+				};
+				this.syncVerticalRlViewportClip();
+			}
 			const actual = captureSemanticCut(contents.document, view.iframe, section.cfiBase);
 			if (!actual || JSON.stringify(actual) !== JSON.stringify(descriptor.semanticCut)) {
+				this._verticalRlRestoredSemanticMask = null;
+				this.syncVerticalRlViewportClip();
 				traceTerminal('semantic-cut-post-apply-mismatch');
 				return { status: 'unavailable', reason: 'semantic-cut-post-apply-mismatch' };
 			}
@@ -3350,6 +3385,7 @@ class DefaultViewManager {
 	}
 
 	private scrollToLogicalPageInLayout(pageIndex: number | null, options: SnapLimits = {}, preserveSourceCut = false): void {
+		if (!preserveSourceCut) this._verticalRlRestoredSemanticMask = null;
 		let preSyncView = this.views && (this.views.first() || this.views.last());
 		let preSyncIframeWidth = preSyncView && preSyncView.iframe
 			? Math.max(
