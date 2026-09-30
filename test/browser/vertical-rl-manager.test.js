@@ -8174,3 +8174,26 @@ describe("applied vertical-rl mask boundary authority", function() {
 		expect(manager.getVerticalRlCurrentEffectiveLeftBoundary()).toBeNull();
 	});
 });
+
+
+describe("sequential terminal overlap ownership", function() {
+	it("allows the proven terminal overlap beyond the ordinary quarter-width cap", function() {
+		const manager = Object.create(DefaultViewManager.prototype);
+		manager.container = { clientWidth: 393 };
+		manager.layout = { pageWidth: 393.0909118652344 };
+		manager.views = { first: () => ({}) };
+		manager.isRtlVerticalPaginated = () => true;
+		manager.getPageAdvance = () => 384;
+		manager.getCurrentPageIndex = () => 36;
+		manager.getTotalPagesForCurrentView = () => 37;
+		manager.getMaxLogicalScrollLeft = () => 13439;
+		manager.getNormalizedLogicalScrollLeft = () => 13438.9091796875;
+		manager.getVerticalRlVisualContentWidth = () => 13832;
+		manager.getRecordedVerticalRlAppliedLeftMask = () => 16;
+		manager.getVerticalRlPageOffset = index => index === 36 ? 13438.9091796875 : 13250.181640625;
+		manager._verticalRlSequentialBoundaryConstraint = { pageIndex: 36, maxRightBoundary: 204.72744750976562, preferredRightBoundary: 204.72744750976562 };
+		expect(manager.getVerticalRlProvenRightMaskAllowance()).toBe(189);
+		manager._verticalRlSequentialBoundaryConstraint = null;
+		expect(manager.getVerticalRlProvenRightMaskAllowance()).toBe(96);
+	});
+});

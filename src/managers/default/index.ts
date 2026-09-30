@@ -1382,6 +1382,10 @@ class DefaultViewManager {
 	}
 
 	computeVerticalRlEdgeMaskWidths(): EdgeMaskWidths {
+		const sequentialTerminalMask = this.getVerticalRlSequentialTerminalRightMaskWidth();
+		if (sequentialTerminalMask !== null) {
+			return { left: 0, right: sequentialTerminalMask };
+		}
 		let advance = this.getPageAdvance() || 0;
 		let visibleWidth = this.container ? this.container.clientWidth || 0 : 0;
 		let bleed = visibleWidth - advance;
@@ -2014,6 +2018,33 @@ class DefaultViewManager {
 		}
 	}
 
+	/** Resolve overlap ownership only for a sequential target clamped at the terminal scroll limit. */
+	getVerticalRlSequentialTerminalRightMaskWidth(): number | null {
+		const constraint = this._verticalRlSequentialBoundaryConstraint;
+		if (!constraint || !this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) {
+			return null;
+		}
+		const pageIndex = this.getCurrentPageIndex();
+		const totalPages = this.getTotalPagesForCurrentView();
+		if (pageIndex <= 0 || pageIndex !== totalPages - 1 || constraint.pageIndex !== pageIndex) {
+			return null;
+		}
+		const offset = this.getNormalizedLogicalScrollLeft();
+		const maxScroll = this.getMaxLogicalScrollLeft();
+		if (!Number.isFinite(offset) || !Number.isFinite(maxScroll) || Math.abs(maxScroll - offset) > 1) {
+			return null;
+		}
+		const view = this.views.first() || this.views.last();
+		const width = view ? this.getVerticalRlVisualContentWidth(view) : 0;
+		const visibleWidth = this.layout.pageWidth || this.layout.width || this.container.clientWidth;
+		const boundary = constraint.maxRightBoundary;
+		const overlap = width - offset - boundary;
+		if (!Number.isFinite(boundary) || boundary <= 0 || !Number.isFinite(overlap) || overlap <= 0 || overlap >= visibleWidth) {
+			return null;
+		}
+		return Math.ceil(overlap);
+	}
+
 	/**
 	 * 取得「可證實」的右遮罩允許量：前一頁確實完整顯示過的重疊區寬度。
 	 *
@@ -2029,6 +2060,10 @@ class DefaultViewManager {
 	 * @return {number|null}
 	 */
 	getVerticalRlProvenRightMaskAllowance(): number | null {
+		const sequentialTerminalMask = this.getVerticalRlSequentialTerminalRightMaskWidth();
+		if (sequentialTerminalMask !== null) {
+			return sequentialTerminalMask;
+		}
 		if (!this.isRtlVerticalPaginated()) {
 			return null;
 		}
@@ -2144,6 +2179,10 @@ class DefaultViewManager {
 		}
 
 		let maskWidths = this.expandVerticalRlLeftMaskToVisibleLine(this.getVerticalRlEdgeMaskWidths());
+		const sequentialTerminalMask = this.getVerticalRlSequentialTerminalRightMaskWidth();
+		if (sequentialTerminalMask !== null) {
+			maskWidths = { left: 0, right: sequentialTerminalMask };
+		}
 		this.recordVerticalRlAppliedLeftMask(Math.max(0, Number(maskWidths.left) || 0));
 		if (!maskWidths.left && !maskWidths.right) {
 			this.removeVerticalRlViewportClip();
