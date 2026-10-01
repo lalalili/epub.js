@@ -8155,6 +8155,46 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(maskWidths.left, 19);
 		assert.equal(maskWidths.right, 0);
 	});
+	it.each([
+		{ dpr: 1, cachedLayout: "unchanged-layout", expectedAlignment: false },
+		{ dpr: 2.75, cachedLayout: "unchanged-layout", expectedAlignment: true },
+		{ dpr: 1, cachedLayout: "obsolete-layout", expectedAlignment: true },
+		{ dpr: 1, cachedLayout: null, expectedAlignment: true }
+	])("preserves a cached reverse fence only within its device-pixel rounding difference ($dpr, $cachedLayout)", function({ dpr, cachedLayout, expectedAlignment }) {
+		const manager = Object.create(DefaultViewManager.prototype);
+		const column = { left: 2279.953125, right: 2305.953125, top: 0, bottom: 738, width: 26, height: 738 };
+		const textNode = { nodeValue: "測試文字", parentElement: {} };
+		const doc = {
+			body: {},
+			createTreeWalker: () => {
+				let yielded = false;
+				return { nextNode: () => { if (yielded) return null; yielded = true; return textNode; } };
+			},
+			createRange: () => ({ selectNodeContents: () => {}, getClientRects: () => [column], detach: () => {} })
+		};
+		const view = { contents: { document: doc, window: { devicePixelRatio: dpr, getComputedStyle: () => ({ display: "block", visibility: "visible" }) } } };
+		let offset = 1259;
+		manager.views = { first: () => view, last: () => view };
+		manager.container = { scrollLeft: -offset };
+		manager.settings = { rtlScrollType: "negative" };
+		manager.isRtlVerticalPaginated = () => true;
+		manager.getVerticalRlCurrentEffectiveLeftBoundary = () => 3562.609375 - offset;
+		manager.getNormalizedLogicalScrollLeft = () => offset;
+		manager.getMaxLogicalScrollLeft = () => 3476;
+		manager.getTotalPagesForCurrentView = () => 11;
+		manager.getVerticalRlLogicalPageOffsetCacheKey = () => "unchanged-layout";
+		manager._verticalRlPreservedPageBoundary = cachedLayout ? { pageIndex: 4, layoutKey: cachedLayout } : null;
+		manager.cacheVerticalRlLogicalPageOffset = () => {};
+		manager.scrollTo = left => { offset = -left; manager.container.scrollLeft = left; };
+		manager.syncVerticalRlViewportClip = () => {};
+		assert.equal(manager.alignVerticalRlPreviousPageBoundary(4, 2303), expectedAlignment);
+		if (expectedAlignment) {
+			assert.ok(offset > 1259);
+		} else {
+			assert.equal(offset, 1259, "a fractional rounding difference must not transfer a whole source column");
+		}
+	});
+
 	it("assigns a column to the previous page when the restored next boundary cuts through it", function() {
 		const manager = Object.create(DefaultViewManager.prototype);
 		const column = { left: 6142.7275390625, right: 6163.818359375, top: 36, bottom: 648, width: 21.0908203125, height: 612 };

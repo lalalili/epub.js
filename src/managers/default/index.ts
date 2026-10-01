@@ -1522,8 +1522,24 @@ class DefaultViewManager {
 		if (!doc?.body || !win) {
 			return false;
 		}
-		const rects = collectVisibleTextClientRects(doc, win, doc.body, { minimumTextLength: 1 });
 		const observedLeftBoundary = this.getVerticalRlCurrentEffectiveLeftBoundary();
+		const preservedBoundary = this._verticalRlPreservedPageBoundary;
+		const devicePixelRatio = Number(win.devicePixelRatio);
+		const layoutKey = this.getVerticalRlLogicalPageOffsetCacheKey(
+			this.getTotalPagesForCurrentView(), this.getMaxLogicalScrollLeft()
+		);
+		// Preserve the learned source fence across scroll quantization before
+		// expanding a fractional rounding gap into an entire column.
+		if (preservedBoundary?.pageIndex === pageIndex && layoutKey !== null &&
+			preservedBoundary.layoutKey === layoutKey && observedLeftBoundary !== null &&
+			Number.isFinite(devicePixelRatio) && devicePixelRatio > 0 &&
+			Math.abs(observedLeftBoundary - boundary) < 1 / devicePixelRatio) {
+			appendVerticalRlScrollTrace("reverse-boundary-preserved-quantization", {
+				pageIndex, boundary, observedLeftBoundary, devicePixelRatio, layoutKey
+			});
+			return false;
+		}
+		const rects = collectVisibleTextClientRects(doc, win, doc.body, { minimumTextLength: 1 });
 		appendVerticalRlScrollTrace("reverse-boundary-rects", {
 			pageIndex, boundary, rectCount: rects?.length ?? null,
 			leftBoundary: observedLeftBoundary,
