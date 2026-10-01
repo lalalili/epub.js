@@ -2625,6 +2625,11 @@ class DefaultViewManager {
 			return logicalOffset;
 		}
 		if (preflight.cacheLookup.cachedSnap !== null) {
+			appendVerticalRlScrollTrace("boundary-snap-cache-hit", {
+				logicalOffset, cachedSnap: preflight.cacheLookup.cachedSnap,
+				contentWidth, visibleWidth, maxScroll,
+				rightBoundaryOptions: preflight.rightBoundaryOptions
+			});
 			return preflight.cacheLookup.cachedSnap;
 		}
 
@@ -2658,6 +2663,7 @@ class DefaultViewManager {
 			preflight.maxRightBoundaryOptions,
 			preflight.rightBoundaryOptions
 		);
+		const pipelineSnappedOffset = snapResult.snapped;
 		const preferredBoundary = preflight.rightBoundaryOptions.preferredRightBoundary;
 		const maxBoundary = preflight.rightBoundaryOptions.maxRightBoundary;
 		const dpr = Number(win.devicePixelRatio);
@@ -2673,6 +2679,11 @@ class DefaultViewManager {
 				snapResult.cacheEntry.value = snapResult.snapped;
 			}
 		}
+		appendVerticalRlScrollTrace("boundary-snap-pipeline", {
+			logicalOffset, pipelineSnappedOffset, finalSnappedOffset: snapResult.snapped,
+			contentWidth, visibleWidth, maxScroll, structuralGutterMask,
+			rightBoundaryOptions: preflight.rightBoundaryOptions, devicePixelRatio: dpr
+		});
 		if (snapResult.cacheEntry) {
 			this._verticalRlBoundarySnapCache = snapResult.cacheEntry;
 		}
