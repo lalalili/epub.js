@@ -507,6 +507,66 @@ describe("Vertical RL manager pagination", function() {
 		return manager;
 	}
 
+	it("reports boundary retries pending until the layout-ready attempt completes", async function() {
+		let manager = createManagerAtLogicalOffset(240);
+		let finishLayout;
+		manager.settings.verticalRlBoundarySnapRetryDelays = [];
+		manager.waitForVerticalRlLayoutReady = () => new Promise(resolve => { finishLayout = resolve; });
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = offset => offset;
+		manager.snapVerticalRlLogicalOffsetFromEdgeMask = offset => offset;
+		manager.syncVerticalRlViewportClip = () => {};
+
+		assert.equal(manager.isVerticalRlBoundarySnapRetryPending(), false);
+		manager.queueVerticalRlBoundarySnapRetry(1);
+		assert.equal(manager.isVerticalRlBoundarySnapRetryPending(), true);
+		finishLayout();
+		await Promise.resolve();
+		assert.equal(manager.isVerticalRlBoundarySnapRetryPending(), false);
+	});
+
+	it("keeps the producer pending between scheduled boundary attempts", async function() {
+		let manager = createManagerAtLogicalOffset(240);
+		let finishSecondAttempt;
+		let attempts = 0;
+		manager.settings.verticalRlBoundarySnapRetryDelays = [0];
+		manager.waitForVerticalRlLayoutReady = () => {
+			attempts += 1;
+			return attempts === 1 ? Promise.resolve() : new Promise(resolve => { finishSecondAttempt = resolve; });
+		};
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = offset => offset;
+		manager.snapVerticalRlLogicalOffsetFromEdgeMask = offset => offset;
+		manager.syncVerticalRlViewportClip = () => {};
+		manager.queueVerticalRlBoundarySnapRetry(1, { useCurrentOffset: true });
+		await Promise.resolve();
+		assert.equal(manager.isVerticalRlBoundarySnapRetryPending(), true);
+		await new Promise(resolve => setTimeout(resolve, 20));
+		assert.equal(attempts, 2);
+		assert.equal(manager.isVerticalRlBoundarySnapRetryPending(), true);
+		finishSecondAttempt();
+		await Promise.resolve();
+		assert.equal(manager.isVerticalRlBoundarySnapRetryPending(), false);
+	});
+
+	it("does not let an obsolete retry clear the new retry pending state", async function() {
+		let manager = createManagerAtLogicalOffset(240);
+		let ready = [];
+		manager.settings.verticalRlBoundarySnapRetryDelays = [];
+		manager.waitForVerticalRlLayoutReady = () => new Promise(resolve => { ready.push(resolve); });
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = offset => offset;
+		manager.snapVerticalRlLogicalOffsetFromEdgeMask = offset => offset;
+		manager.syncVerticalRlViewportClip = () => {};
+		manager.queueVerticalRlBoundarySnapRetry(1);
+		manager.queueVerticalRlBoundarySnapRetry(1);
+		ready[0]();
+		await Promise.resolve();
+		assert.equal(manager.isVerticalRlBoundarySnapRetryPending(), true);
+		ready[1]();
+		await Promise.resolve();
+		assert.equal(manager.isVerticalRlBoundarySnapRetryPending(), false);
+		manager.queueVerticalRlBoundarySnapRetry(0);
+		assert.equal(manager.isVerticalRlBoundarySnapRetryPending(), false);
+	});
+
 	it("treats a max-scroll-clamped offset as the last visual page", function() {
 		let manager = createManagerAtLogicalOffset(445);
 

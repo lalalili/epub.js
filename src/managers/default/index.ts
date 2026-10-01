@@ -473,6 +473,8 @@ class DefaultViewManager {
 	declare _verticalRlSequentialBoundaryConstraint?: VerticalRlSequentialBoundaryConstraint | null;
 	declare _verticalRlRestoredSemanticMask?: { pageIndex: number; offset: number; width: number; height: number; view: unknown; document: unknown; masks: EdgeMaskWidths } | null;
 	declare _verticalRlBoundarySnapRetryToken?: number;
+	private _verticalRlBoundarySnapRetryPendingToken?: number | null;
+	private _verticalRlBoundarySnapAfterScrollPending?: boolean;
 	declare _verticalRlBoundarySnapApplying?: boolean;
 	declare _verticalRlViewportClipOverlay?: HTMLDivElement;
 	declare _resizeSettleTrace?: ResizeSettleTraceEntry[];
@@ -745,6 +747,8 @@ class DefaultViewManager {
 		clearTimeout(this.afterScrolled);
 		// 直排的邊界 snap 重試也要一起取消，否則銷毀後它仍會醒來並操作已拆掉的 stage。
 		clearTimeout(this._verticalRlBoundarySnapAfterScroll);
+		this._verticalRlBoundarySnapAfterScrollPending = false;
+		this._verticalRlBoundarySnapRetryToken = (this._verticalRlBoundarySnapRetryToken || 0) + 1;
 
 		this.clear();
 
@@ -3722,6 +3726,7 @@ class DefaultViewManager {
 			// Invalidate older retries; ordinary navigation retains its own retry path.
 			this._verticalRlBoundarySnapRetryToken = (this._verticalRlBoundarySnapRetryToken || 0) + 1;
 			clearTimeout(this._verticalRlBoundarySnapAfterScroll);
+			this._verticalRlBoundarySnapAfterScrollPending = false;
 		} else {
 			this.queueVerticalRlBoundarySnapRetry(targetIndex);
 		}
@@ -3781,6 +3786,13 @@ class DefaultViewManager {
 		}).then(nextFrame);
 	}
 
+	isVerticalRlBoundarySnapRetryPending(): boolean {
+		return Boolean(this._verticalRlBoundarySnapAfterScrollPending) || (
+			this._verticalRlBoundarySnapRetryPendingToken != null &&
+			this._verticalRlBoundarySnapRetryPendingToken === this._verticalRlBoundarySnapRetryToken
+		);
+	}
+
 	queueVerticalRlBoundarySnapRetry(pageIndex: number, options: SnapLimits = {}): void {
 		if (!this.isRtlVerticalPaginated() || !this.container) {
 			return;
@@ -3790,6 +3802,7 @@ class DefaultViewManager {
 		let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
 		let token = (this._verticalRlBoundarySnapRetryToken || 0) + 1;
 		this._verticalRlBoundarySnapRetryToken = token;
+		this._verticalRlBoundarySnapRetryPendingToken = null;
 
 		if (targetIndex <= 0 || targetIndex >= totalPages - 1) {
 			return;
@@ -3802,12 +3815,19 @@ class DefaultViewManager {
 			return;
 		}
 
+		this._verticalRlBoundarySnapRetryPendingToken = token;
+		const complete = () => {
+			if (this._verticalRlBoundarySnapRetryPendingToken === token) {
+				this._verticalRlBoundarySnapRetryPendingToken = null;
+			}
+		};
 		let retryDelays = Array.isArray(this.settings && this.settings.verticalRlBoundarySnapRetryDelays)
 			? this.settings.verticalRlBoundarySnapRetryDelays
 			: [250, 750, 1500, 3000, 6000, 9000];
 			let retryAttempt = function(attempt: number){
 			this.waitForVerticalRlLayoutReady().then(function(){
 				if (this._verticalRlBoundarySnapRetryToken !== token || !this.container) {
+					complete();
 					return;
 				}
 
@@ -3887,6 +3907,8 @@ class DefaultViewManager {
 						setTimeout(function(){
 							retryAttempt(attempt + 1);
 						}, delay);
+					} else {
+						complete();
 					}
 					return;
 				}
@@ -3914,6 +3936,7 @@ class DefaultViewManager {
 					this._verticalRlBoundarySnapApplying = false;
 				}
 				this.syncVerticalRlViewportClip();
+				complete();
 			}.bind(this));
 		}.bind(this);
 
@@ -3926,7 +3949,9 @@ class DefaultViewManager {
 		}
 
 		clearTimeout(this._verticalRlBoundarySnapAfterScroll);
+		this._verticalRlBoundarySnapAfterScrollPending = true;
 		this._verticalRlBoundarySnapAfterScroll = setTimeout(function(){
+			this._verticalRlBoundarySnapAfterScrollPending = false;
 			if (!this.isRtlVerticalPaginated() || !this.container) {
 				return;
 			}
