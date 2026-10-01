@@ -4485,6 +4485,7 @@ class DefaultViewManager {
 			scrollLeft = window.scrollX;
 		}
 
+		const scrollPositionChanged = scrollTop !== this.scrollTop || scrollLeft !== this.scrollLeft;
 		this.scrollTop = scrollTop;
 		this.scrollLeft = scrollLeft;
 		this.target = undefined;
@@ -4509,7 +4510,7 @@ class DefaultViewManager {
 			this.ignore = false;
 		}
 
-		if (!ignored && !this._verticalRlBoundarySnapApplying && this.isRtlVerticalPaginated()) {
+		if (scrollPositionChanged && !ignored && !this._verticalRlBoundarySnapApplying && this.isRtlVerticalPaginated()) {
 			this.queueVerticalRlBoundarySnapRetryForCurrentOffset();
 		}
 

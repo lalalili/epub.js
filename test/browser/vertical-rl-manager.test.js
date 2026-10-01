@@ -4038,6 +4038,24 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(Math.round(manager.container.scrollLeft), -7773);
 	});
 
+	it("does not restart boundary retries for a restored measurement scroll at identical coordinates", function() {
+		let manager = Object.create(DefaultViewManager.prototype);
+		let queued = 0;
+		manager.container = {scrollLeft: -945, scrollTop: 0};
+		manager.scrollLeft = -945;
+		manager.scrollTop = 0;
+		manager.settings = {fullsize: false};
+		manager.emit = function() {};
+		manager.isRtlVerticalPaginated = function() { return true; };
+		manager.queueVerticalRlBoundarySnapRetryForCurrentOffset = function() { queued++; };
+		manager.onScroll();
+		assert.equal(queued, 0);
+		manager.container.scrollLeft = -1287;
+		manager.onScroll();
+		assert.equal(queued, 1);
+		clearTimeout(manager.afterScrolled);
+	});
+
 	it("does not queue current-offset snapping for silent vertical-rl programmatic scrolls", function() {
 		let manager = Object.create(DefaultViewManager.prototype);
 		let queued = false;
