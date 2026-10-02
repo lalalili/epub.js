@@ -5510,9 +5510,10 @@ describe("Vertical RL manager pagination", function() {
 								return {
 									selectNodeContents: function() {},
 									getClientRects: function() {
+										// Express the measured host position in the iframe Range coordinate space.
 										return [{
-											left: 1522.6846,
-											right: 1545.4119,
+											left: 1522.6846 + 7581.1787,
+											right: 1545.4119 + 7581.1787,
 											width: 22.727,
 											height: 700
 										}];
@@ -5599,14 +5600,15 @@ describe("Vertical RL manager pagination", function() {
 								return {
 									selectNodeContents: function() {},
 									getClientRects: function() {
+										// Express the measured host position in the iframe Range coordinate space.
 										return [{
-											left: 1522.6846,
-											right: 1545.4119,
+											left: 1522.6846 + 8876.6328,
+											right: 1545.4119 + 8876.6328,
 											width: 22.7273,
 											height: 680
 										}, {
-											left: 1486.6903,
-											right: 1509.4176,
+											left: 1486.6903 + 8876.6328,
+											right: 1509.4176 + 8876.6328,
 											width: 22.7273,
 											height: 60
 										}];
@@ -5697,22 +5699,23 @@ describe("Vertical RL manager pagination", function() {
 									},
 									getClientRects: function() {
 										if (selectedNode === previousLineNode) {
+											// Express the measured host position in the iframe Range coordinate space.
 											return [{
-												left: 1502.3289,
-												right: 1525.0569,
+												left: 1502.3289 + 10172.9971,
+												right: 1525.0569 + 10172.9971,
 												width: 22.728,
 												height: 680
 											}];
 										}
 
 										return [{
-											left: 1522.6846,
-											right: 1545.4119,
+											left: 1522.6846 + 10172.9971,
+											right: 1545.4119 + 10172.9971,
 											width: 22.7273,
 											height: 680
 										}, {
-											left: 1486.6903,
-											right: 1509.4176,
+											left: 1486.6903 + 10172.9971,
+											right: 1509.4176 + 10172.9971,
 											width: 22.7273,
 											height: 60
 										}];
@@ -5827,17 +5830,18 @@ describe("Vertical RL manager pagination", function() {
 									},
 									getClientRects: function() {
 										if (selectedNode === previousLineNode) {
+											// Express the measured host position in the iframe Range coordinate space.
 											return [{
-												left: 1486.6903,
-												right: 1509.4176,
+												left: 1486.6903 + 10172.9971,
+												right: 1509.4176 + 10172.9971,
 												width: 22.7273,
 												height: 60
 											}];
 										}
 
 										return [{
-											left: 1522.6846,
-											right: 1545.4119,
+											left: 1522.6846 + 10172.9971,
+											right: 1545.4119 + 10172.9971,
 											width: 22.7273,
 											height: 680
 										}];
@@ -6675,9 +6679,10 @@ describe("Vertical RL manager pagination", function() {
 								return {
 									selectNodeContents: function() {},
 									getClientRects: function() {
+										// Express the measured host position in the iframe Range coordinate space.
 										return [{
-											left: 216.335205078125,
-											right: 239.0625,
+											left: 216.335205078125 + 1091.4488525390625,
+											right: 239.0625 + 1091.4488525390625,
 											width: 22.727294921875,
 											height: 680
 										}];

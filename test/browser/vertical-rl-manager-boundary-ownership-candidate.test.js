@@ -186,6 +186,60 @@ describe("vertical-rl manager boundary ownership candidate", () => {
 		};
 	}
 
+	it("measures Range rectangles in the iframe viewport even when the host iframe is shifted", async () => {
+		const {iframe,frameDocument,textNode} = createFixture();
+		textNode.nodeValue = "Range";
+		textNode.parentElement.style.writingMode = "horizontal-tb";
+		textNode.parentElement.style.width = "100px";
+		textNode.parentElement.style.height = "100px";
+		await settle(frameDocument);
+		const before = collectVisibleTextClientRects(frameDocument,frameDocument.defaultView,frameDocument.body);
+		iframe.style.transform = "translateX(-1347.796875px)";
+		await settle(frameDocument);
+		const after = collectVisibleTextClientRects(frameDocument,frameDocument.defaultView,frameDocument.body);
+		expect(iframe.getBoundingClientRect().left).toBeLessThan(0);
+		expect(before.length).toBeGreaterThan(0);
+		expect(after).toEqual(before);
+		const range = frameDocument.createRange();
+		range.selectNodeContents(textNode);
+		expect(after[0].left).toBe(range.getClientRects()[0].left);
+	});
+
+	it("keeps iframe-local cold mask ranges from becoming phantom visible columns", () => {
+		// Sanitized paired Range measurements from the named cold boundary.
+		const intervals = [
+			[1452.4375,1478.4375], [1423.640625,1449.640625],
+			[1394.84375,1420.84375], [1366.046875,1392.046875],
+			[1366.046875,1392.046875], [1337.25,1363.25],
+			[124.359375,150.359375], [95.5625,121.5625],
+			[66.765625,92.765625], [37.96875,63.96875],
+			[9.171875,35.171875], [9.171875,35.171875]
+		];
+		const rects = intervals.map(([left,right]) => ({left,right,top:0,bottom:738,width:right-left,height:738}));
+		const textNode = {nodeValue:"文",parentElement:{}};
+		const doc = {
+			body: {},
+			createTreeWalker: () => {
+				let yielded = false;
+				return {nextNode: () => yielded ? null : (yielded = true, textNode)};
+			},
+			createRange: () => ({selectNodeContents: () => {},getClientRects: () => rects,detach: () => {}})
+		};
+		const manager = Object.create(DefaultViewManager.prototype);
+		manager.container = {getBoundingClientRect: () => ({left:7.8125,right:382.203125})};
+		manager.layout = {edgeGuardPx:2};
+		manager.views = {first: () => ({
+			iframe:{getBoundingClientRect: () => ({left:-1347.796875})},
+			contents:{document:doc,window:{getComputedStyle: () => ({display:"block",visibility:"visible"})}}
+		})};
+		const widths = manager.snapVerticalRlEdgeMaskWidths({left:26,right:48},87,{
+			nextPageStep:261,previousPageStep:287,leftMaxMask:87,rightMaxMask:48
+		});
+		const boundary = 1355.609375 + widths.left;
+		expect(rects.some(rect => rect.left < boundary && rect.right > boundary)).toBe(false);
+		expect(boundary).toBeLessThan(1423.640625);
+	});
+
 	it("records manager raw-boundary snap output and ownership correction", async () => {
 		const { container, frameDocument, iframe, nativeCreateRange, textNode } = createFixture();
 		await settle(frameDocument);

@@ -55,7 +55,6 @@ import {
 	getVerticalRlRectDistanceToLogicalViewport as getVerticalRlRectDistanceToLogicalViewportHelper,
 	getVerticalRlLogicalPageOffsetCacheKey as getVerticalRlLogicalPageOffsetCacheKeyHelper,
 	getVerticalRlViewportRect as getVerticalRlViewportRectHelper,
-	getVerticalRlViewportRects as getVerticalRlViewportRectsHelper,
 	hasVerticalRlStructuralPageGutter as hasVerticalRlStructuralPageGutterHelper,
 	getVerticalRlBoundarySnapPreflight as getVerticalRlBoundarySnapPreflightHelper,
 	runVerticalRlEdgeMaskSnapLoop as runVerticalRlEdgeMaskSnapLoopHelper,
@@ -1962,7 +1961,9 @@ class DefaultViewManager {
 		if (!textRects) {
 			return widths;
 		}
-		let rects = getVerticalRlViewportRectsHelper(textRects, rawLeft, rawRight, iframeRect.left);
+		// Ranges collected from the iframe document already use iframe-local coordinates.
+		// Choosing a host-shifted candidate can move offscreen columns into this viewport.
+		let rects = textRects;
 
 		const debugMaskSnap = typeof window !== "undefined" && (window as VerticalRlDebugWindow).__EPUB_VRL_DEBUG__;
 		const leftSnapSteps: Array<{ inputLeft: number; shift: number; outputLeft: number }> = [];
@@ -2019,6 +2020,9 @@ class DefaultViewManager {
 				edgeTolerance, hasStructuralEdgeGuard, textRectCount: textRects.length,
 				leftSnapSteps,
 				leftZoneRects: rects.filter(rect => rect.left < rawLeft + leftMaxMask + edgeTolerance + 32 && rect.right > rawLeft),
+				iframeLeft: iframeRect.left,
+				leftZoneRectSources: rects.map((rect, index) => ({ source: textRects[index], mapped: rect }))
+					.filter(({ mapped }) => mapped.left < rawLeft + leftMaxMask + edgeTolerance + 32 && mapped.right > rawLeft),
 				boundaryRects: rects.filter(rect =>
 					(rect.left < rawLeft + viewportInput.left && rect.right > rawLeft + viewportInput.left) ||
 					(rect.left < rawLeft + left && rect.right > rawLeft + left)

@@ -170,14 +170,23 @@ describe("raw-left-snap: capped boundary ownership", () => {
 describe("raw-left-snap: measured cold boundary", () => {
 	it("keeps the measured source interval intact after repeated snapping", () => {
 		const rects = [
-			{ left: 1423.640625, right: 1449.640625 },
-			{ left: 1366.046875, right: 1392.046875 },
-			{ left: 1356.96875, right: 1382.96875 }
+			{"left": 1452.4375, "right": 1478.4375},
+			{"left": 1423.640625, "right": 1449.640625},
+			{"left": 1394.84375, "right": 1420.84375},
+			{"left": 1366.046875, "right": 1392.046875},
+			{"left": 1366.046875, "right": 1392.046875},
+			{"left": 1337.25, "right": 1363.25},
+			{"left": 124.359375, "right": 150.359375},
+			{"left": 95.5625, "right": 121.5625},
+			{"left": 66.765625, "right": 92.765625},
+			{"left": 37.96875, "right": 63.96875},
+			{"left": 9.171875, "right": 35.171875},
+			{"left": 9.171875, "right": 35.171875}
 		];
 		let left = 26;
 		for (let attempt = 0; attempt < 4; attempt++) {
 			left = getVerticalRlRawLeftSnapDecisionForRects(
-				rects, 1355.609375, 1730, left, 87, 261, false, false, false, 4
+				rects, 1355.609375, 1730, left, 87, 261, false, false, true, 4
 			).left;
 		}
 		expect(rects.some(rect => rect.left < 1355.609375 + left && rect.right > 1355.609375 + left)).toBe(false);
