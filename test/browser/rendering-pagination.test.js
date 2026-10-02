@@ -701,12 +701,18 @@ describe("rendering pagination helpers", () => {
 	});
 
 	it("selects vertical-rl raw-left snap decisions across rect collections", () => {
-		expect(getVerticalRlRawLeftSnapDecisionForRects([
+		const cappedRects = [
 			{ left: 120, right: 180 },
 			{ left: 152, right: 180 }
-		], 100, 1000, 40, 70, 800, false, false, false, 4)).toEqual({
-			shift: 41,
-			left: 70
+		];
+		const cappedDecision = getVerticalRlRawLeftSnapDecisionForRects(
+			cappedRects, 100, 1000, 40, 70, 800, false, false, false, 4
+		);
+		expect(cappedRects.some(rect => rect.left < 100 + 70 && rect.right > 100 + 70)).toBe(true);
+		expect(cappedRects.some(rect => rect.left < 100 + cappedDecision.left && rect.right > 100 + cappedDecision.left)).toBe(false);
+		expect(cappedDecision).toEqual({
+			shift: -21,
+			left: 19
 		});
 		expect(getVerticalRlRawLeftSnapDecisionForRects([
 			{ left: 120, right: 140 }

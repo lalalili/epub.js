@@ -64,11 +64,11 @@ function createManager(view) {
 }
 
 describe("manager viewport snap pipeline", () => {
-	it("translates iframe viewport coordinates before applying the right-edge snap", () => {
+	it("uses iframe-local Range coordinates before applying the right-edge snap", () => {
 		const manager = createManager(createTextRectView([
 			{
-				left: 1522.6846,
-				right: 1545.4119,
+				left: 1522.6846 + 8876.6328,
+				right: 1545.4119 + 8876.6328,
 				width: 22.7273,
 				height: 680
 			}
