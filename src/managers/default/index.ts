@@ -1964,7 +1964,10 @@ class DefaultViewManager {
 		}
 		let rects = getVerticalRlViewportRectsHelper(textRects, rawLeft, rawRight, iframeRect.left);
 
+		const debugMaskSnap = typeof window !== "undefined" && (window as VerticalRlDebugWindow).__EPUB_VRL_DEBUG__;
+		const leftSnapSteps: Array<{ inputLeft: number; shift: number; outputLeft: number }> = [];
 		const snapLeft = () => {
+			const inputLeft = left;
 			let decision = getVerticalRlRawLeftSnapDecisionForRectsHelper(
 				rects,
 				rawLeft,
@@ -1978,6 +1981,7 @@ class DefaultViewManager {
 				edgeTolerance
 			);
 			let shift = decision.shift;
+			if (debugMaskSnap) leftSnapSteps.push({ inputLeft, shift, outputLeft: decision.left });
 			if (shift !== 0) {
 				left = decision.left;
 			}
@@ -2012,6 +2016,9 @@ class DefaultViewManager {
 				requestedLeft: viewportInput.left, requestedRight: viewportInput.right,
 				nextPageStep, previousPageStep, forceRawLeftMask, allowRawLeftMask,
 				left, right, rawScrollLeft: this.container.scrollLeft,
+				edgeTolerance, hasStructuralEdgeGuard, textRectCount: textRects.length,
+				leftSnapSteps,
+				leftZoneRects: rects.filter(rect => rect.left < rawLeft + leftMaxMask + edgeTolerance + 32 && rect.right > rawLeft),
 				boundaryRects: rects.filter(rect =>
 					(rect.left < rawLeft + viewportInput.left && rect.right > rawLeft + viewportInput.left) ||
 					(rect.left < rawLeft + left && rect.right > rawLeft + left)

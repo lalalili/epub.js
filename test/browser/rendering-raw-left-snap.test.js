@@ -165,3 +165,21 @@ describe("raw-left-snap: capped boundary ownership", () => {
 		expect(rects.some(rect => rect.left < decision.left && rect.right > decision.left)).toBe(false);
 	});
 });
+
+
+describe("raw-left-snap: measured cold boundary", () => {
+	it("keeps the measured source interval intact after repeated snapping", () => {
+		const rects = [
+			{ left: 1423.640625, right: 1449.640625 },
+			{ left: 1366.046875, right: 1392.046875 },
+			{ left: 1356.96875, right: 1382.96875 }
+		];
+		let left = 26;
+		for (let attempt = 0; attempt < 4; attempt++) {
+			left = getVerticalRlRawLeftSnapDecisionForRects(
+				rects, 1355.609375, 1730, left, 87, 261, false, false, false, 4
+			).left;
+		}
+		expect(rects.some(rect => rect.left < 1355.609375 + left && rect.right > 1355.609375 + left)).toBe(false);
+	});
+});
