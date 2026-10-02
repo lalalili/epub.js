@@ -4057,9 +4057,12 @@ class DefaultViewManager {
 			let totalPages = this.getTotalPagesForCurrentView();
 
 			if (pageIndex < totalPages - 1) {
-				this.scrollToLogicalPage(pageIndex + 1, {
-					sequentialRightBoundary: this.getVerticalRlCurrentEffectiveLeftBoundary()
-				});
+				const targetIndex = pageIndex + 1;
+				const cacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, this.getMaxLogicalScrollLeft());
+				const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, cacheKey);
+				this.scrollToLogicalPage(targetIndex, recordedOffset !== null
+					? { preserveCachedBoundary: true }
+					: { sequentialRightBoundary: this.getVerticalRlCurrentEffectiveLeftBoundary() });
 				return;
 			} else {
 				next = this.views.last().section.next();

@@ -1412,7 +1412,7 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getCurrentPageIndex(), 1);
 	});
 
-	it("reuses a recorded forward boundary after the previous page mask changes", function() {
+	it("reuses a recorded forward boundary through next after the previous page mask changes", function() {
 		const manager = createManagerAtLogicalOffset(2120);
 		manager.container.clientWidth = 374.39;
 		manager.container.scrollWidth = 3850;
@@ -1430,9 +1430,28 @@ describe("Vertical RL manager pagination", function() {
 			throw new Error("a recorded forward boundary must not be recomputed from the changed mask");
 		};
 
-		manager.scrollToLogicalPage(8);
+		manager.views.length = 1;
+		manager.getVerticalRlCurrentEffectiveLeftBoundary = () => 1422.609375;
+		manager.next();
 
 		expect(manager.container.scrollLeft).toBe(-2407);
+	});
+
+	it("keeps the sequential content boundary on the first forward visit", function() {
+		const manager = createManagerAtLogicalOffset(2120);
+		manager.views.length = 1;
+		manager.getCurrentPageIndex = () => 7;
+		manager.getTotalPagesForCurrentView = () => 11;
+		manager.getMaxLogicalScrollLeft = () => 3476;
+		manager.getVerticalRlLogicalPageOffsetCacheKey = () => "current-layout";
+		manager._verticalRlLogicalPageOffsetCache = { key: "previous-layout", offsets: { 8: 2407 } };
+		manager.getVerticalRlCurrentEffectiveLeftBoundary = () => 1422.609375;
+		let target;
+		manager.scrollToLogicalPage = (index, options) => { target = { index, options }; };
+
+		manager.next();
+
+		expect(target).toEqual({ index: 8, options: { sequentialRightBoundary: 1422.609375 } });
 	});
 
 	it("uses the actual logical page step when a boundary shift changes the next offset", function() {
