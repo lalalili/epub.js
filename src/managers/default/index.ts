@@ -460,7 +460,7 @@ class DefaultViewManager {
 	declare layout: Layout;
 	declare mapping: Mapping;
 	declare _verticalRlLogicalPageOffsetCache?: VerticalRlLogicalPageOffsetCache | null;
-	private _verticalRlTerminalLayouts?: WeakMap<object, VerticalRlTerminalContinuationState>;
+	private _verticalRlTerminalLayouts?: WeakMap<object, Map<string, VerticalRlTerminalContinuationState>>;
 	private _verticalRlActiveTerminalLayout?: VerticalRlTerminalContinuationState;
 	declare _verticalRlAppliedLeftMaskLedger?: Record<string, number> | null;
 	declare _verticalRlAppliedLeftMaskLedgerKey?: string | null;
@@ -852,6 +852,13 @@ class DefaultViewManager {
 		this._stageSize = stageSize;
 
 		this._bounds = this.bounds();
+
+		// An actual stage resize starts a new pagination epoch. Returning to an
+		// earlier size must not revive continuation measured before that resize.
+		this._verticalRlTerminalLayouts = undefined;
+		this._verticalRlActiveTerminalLayout = undefined;
+		this._verticalRlLogicalPageOffsetCache = null;
+		this._verticalRlPageIndexLookupKey = null;
 
 		// Clear current views
 		this.clear();
@@ -1660,11 +1667,18 @@ class DefaultViewManager {
 		// A Section survives view recreation; different sections never share a ledger.
 		const owner = view.section;
 		this._verticalRlTerminalLayouts ??= new WeakMap();
+		let layouts = this._verticalRlTerminalLayouts.get(owner);
+		if (!layouts) {
+			layouts = new Map();
+			this._verticalRlTerminalLayouts.set(owner, layouts);
+		}
+		// View recreation traverses temporary rails before recovering the same
+		// geometry. Keep those keys separate from its learned continuation ledger.
 		const state = resolveVerticalRlTerminalContinuationWithObservation(
-			this._verticalRlTerminalLayouts.get(owner), key,
+			layouts.get(key), key,
 			{ owner: this, section: owner, view, document: view.contents?.document }
 		)!;
-		this._verticalRlTerminalLayouts.set(owner, state);
+		layouts.set(key, state);
 		if (this._verticalRlActiveTerminalLayout !== state) {
 			if (this._verticalRlActiveTerminalLayout) {
 				this._verticalRlActiveTerminalLayout.offsetCache = this._verticalRlLogicalPageOffsetCache || null;
