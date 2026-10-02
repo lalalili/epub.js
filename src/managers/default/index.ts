@@ -2006,6 +2006,18 @@ class DefaultViewManager {
 
 		runVerticalRlEdgeMaskSnapLoopHelper(snapLeft, snapRight, 4);
 
+		if (typeof window !== "undefined" && (window as VerticalRlDebugWindow).__EPUB_VRL_DEBUG__) {
+			appendVerticalRlScrollTrace("edge-mask-snap-decision", {
+				rawLeft, rawRight, maxMask, leftMaxMask, rightMaxMask,
+				requestedLeft: viewportInput.left, requestedRight: viewportInput.right,
+				nextPageStep, previousPageStep, forceRawLeftMask, allowRawLeftMask,
+				left, right, rawScrollLeft: this.container.scrollLeft,
+				boundaryRects: rects.filter(rect =>
+					(rect.left < rawLeft + viewportInput.left && rect.right > rawLeft + viewportInput.left) ||
+					(rect.left < rawLeft + left && rect.right > rawLeft + left)
+				).slice(0, 12)
+			});
+		}
 		return { left, right };
 	}
 
@@ -2219,7 +2231,8 @@ class DefaultViewManager {
 			return;
 		}
 
-		let maskWidths = this.expandVerticalRlLeftMaskToVisibleLine(this.getVerticalRlEdgeMaskWidths());
+		const computedEdgeWidths = this.getVerticalRlEdgeMaskWidths();
+		let maskWidths = this.expandVerticalRlLeftMaskToVisibleLine(computedEdgeWidths);
 		const sequentialTerminalMask = this.getVerticalRlSequentialTerminalRightMaskWidth();
 		if (sequentialTerminalMask !== null) {
 			maskWidths = { left: 0, right: sequentialTerminalMask };
@@ -2227,6 +2240,13 @@ class DefaultViewManager {
 		const restored = this.getVerticalRlRestoredSemanticMaskWidths();
 		if (restored) maskWidths = restored;
 		this.recordVerticalRlAppliedLeftMask(Math.max(0, Number(maskWidths.left) || 0));
+		appendVerticalRlScrollTrace("edge-mask-applied", {
+			rawScrollLeft: this.container.scrollLeft,
+			pageIndex: this._verticalRlPageIndexLookupResult,
+			computedLeft: computedEdgeWidths.left, computedRight: computedEdgeWidths.right,
+			left: maskWidths.left, right: maskWidths.right,
+			restoredSemanticMask: Boolean(restored), sequentialTerminalMask
+		});
 		if (!maskWidths.left && !maskWidths.right) {
 			this.removeVerticalRlViewportClip();
 			if (this.container.dataset && this.container.dataset.epubVrlEdgeMask) {
