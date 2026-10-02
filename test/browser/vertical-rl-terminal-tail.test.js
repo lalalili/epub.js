@@ -524,7 +524,7 @@ const fixtureE = {
 	kind: "text",
 	columns: 90,
 	geometryTailWidth: 64,
-	tailShift: 40,
+	tailShift: 70,
 };
 
 it.each(tailFixtures)("qualifies $name terminal tail contract", async (options) => {
@@ -569,6 +569,8 @@ it("defers Fixture E promotion until the target terminal tail settles", async ()
 	expect(report.tailStateBefore.state).toBe("unreached");
 	expect(report.promotionPoint.continuationCountBefore).toBe(0);
 	expect(report.promotionObserved).toBe(false);
+	expect(report.afterFirstPromotion.tailRect.left).toBeGreaterThanOrEqual(report.afterFirstPromotion.effectiveClip.left);
+	expect(report.afterFirstPromotion.tailRect.right).toBeLessThanOrEqual(report.afterFirstPromotion.effectiveClip.right);
 	expect(report.afterFirstPromotion.tailState.state).toBe("reached");
 	expect(report.promotionPoint.trace.length).toBeGreaterThan(0);
 	const decision = report.terminalTrace.find((entry) => entry.event === "vertical-rl-terminal-promotion-decision");
@@ -599,6 +601,17 @@ it("keeps repeated reached and unreached terminal decisions idempotent", () => {
 	expect(promoteVerticalRlTerminalContinuation(unreached, 4, 3, 240, 480, 12, "unreached")).toBe(false);
 	expect(unreached.continuationCount).toBe(1);
 });
+
+it("promotes the original Fixture E geometry when the target tail remains outside the applied mask", async () => {
+	const report = await runCase({ ...fixtureE, name: "fixture-e-target-tail-still-masked", tailShift: 40 });
+
+	expect(report.tailStateBefore.state).toBe("unreached");
+	expect(report.afterFirstPromotion.tailRect.right).toBeLessThanOrEqual(report.afterFirstPromotion.effectiveClip.left);
+	expect(report.afterFirstPromotion.tailState.state).toBe("unreached");
+	expect(report.promotionObserved).toBe(true);
+	expect(report.terminalTailReachedAfterPromotion).toBe(true);
+	expect(report.cumulativeUnionCount).toBe(fixtureE.columns);
+}, 120000);
 
 it("returns unknown and never authorizes suppression when the tail geometry is unavailable", () => {
 	const isolatedDocument = document.implementation.createHTMLDocument("unknown-tail");

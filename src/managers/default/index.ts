@@ -3764,7 +3764,7 @@ class DefaultViewManager {
 				promotionResult
 			});
 		}
-		if (!hasSemanticWindowLogicalOffset && this.alignVerticalRlPreviousPageBoundary(
+		if (!hasSemanticWindowLogicalOffset && !preserveContinuationOffset && this.alignVerticalRlPreviousPageBoundary(
 			targetIndex, Number(options.sequentialLeftBoundary)
 		)) {
 			logicalOffset = this.getNormalizedLogicalScrollLeft();
