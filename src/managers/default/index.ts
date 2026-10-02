@@ -3550,7 +3550,9 @@ class DefaultViewManager {
 					0,
 					0
 				);
-			} else if (targetIndex < totalPages - 1) {
+			} else if (targetIndex < totalPages - 1 && cachedLogicalOffset === null) {
+				// Ordinary forward navigation must reuse a boundary already observed
+				// in this layout. A changed mask must not redefine the same page.
 				let currentIndex = this.getCurrentPageIndex();
 				if (currentIndex === targetIndex - 1) {
 					let view = this.views && (this.views.first() || this.views.last());

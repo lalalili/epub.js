@@ -1412,6 +1412,29 @@ describe("Vertical RL manager pagination", function() {
 		assert.equal(manager.getCurrentPageIndex(), 1);
 	});
 
+	it("reuses a recorded forward boundary after the previous page mask changes", function() {
+		const manager = createManagerAtLogicalOffset(2120);
+		manager.container.clientWidth = 374.39;
+		manager.container.scrollWidth = 3850;
+		manager.layout = { effectivePageAdvance: 348, delta: 348, pageWidth: 374.39, width: 374.39, edgeGuardPx: 8 };
+		manager.getTotalPagesForCurrentView = () => 11;
+		manager.getMaxLogicalScrollLeft = () => 3476;
+		manager.getCurrentPageIndex = () => 7;
+		manager.getVerticalRlVisualContentWidth = () => 3850;
+		manager.getVerticalRlLogicalPageOffsetCacheKey = () => "recorded-layout";
+		manager.getCachedVerticalRlLogicalPageOffset = index => index === 8 ? 2407 : null;
+		manager.getVerticalRlRenderedEdgeMaskWidths = () => ({ left: 67, right: 1 });
+		manager.syncVerticalRlViewportClip = () => {};
+		manager.queueVerticalRlBoundarySnapRetry = () => {};
+		manager.snapVerticalRlLogicalOffsetToTextBoundary = () => {
+			throw new Error("a recorded forward boundary must not be recomputed from the changed mask");
+		};
+
+		manager.scrollToLogicalPage(8);
+
+		expect(manager.container.scrollLeft).toBe(-2407);
+	});
+
 	it("uses the actual logical page step when a boundary shift changes the next offset", function() {
 		let manager = createManagerAtLogicalOffset(0);
 
