@@ -186,10 +186,10 @@ describe("vertical-rl manager boundary ownership candidate", () => {
 		};
 	}
 
-	it("measures Range rectangles in the iframe viewport even when the host iframe is shifted", async () => {
+	it.each(["horizontal-tb", "vertical-rl"])("measures %s Range rectangles in the iframe viewport when the host iframe is shifted", async (writingMode) => {
 		const {iframe,frameDocument,textNode} = createFixture();
 		textNode.nodeValue = "Range";
-		textNode.parentElement.style.writingMode = "horizontal-tb";
+		textNode.parentElement.style.writingMode = writingMode;
 		textNode.parentElement.style.width = "100px";
 		textNode.parentElement.style.height = "100px";
 		await settle(frameDocument);
