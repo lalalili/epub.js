@@ -4085,9 +4085,16 @@ class DefaultViewManager {
 				const targetIndex = pageIndex + 1;
 				const cacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, this.getMaxLogicalScrollLeft());
 				const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, cacheKey);
-				this.scrollToLogicalPage(targetIndex, recordedOffset !== null
-					? { preserveCachedBoundary: true }
-					: { sequentialRightBoundary: this.getVerticalRlCurrentEffectiveLeftBoundary() });
+				const visibleWidth = this.layout?.pageWidth || this.container?.clientWidth || 0;
+				const cachedBoundaryCreatesGap = recordedOffset !== null && visibleWidth > 0 &&
+					recordedOffset - this.getNormalizedLogicalScrollLeft() > visibleWidth + this.getPageSnapTolerance();
+				// A restored future offset is not necessarily adjacent to this page.
+				// Preserve recorded neighbors, but recalculate a boundary that skips a viewport.
+				this.scrollToLogicalPage(targetIndex, cachedBoundaryCreatesGap
+					? { ignoreCachedLogicalOffset: true, sequentialRightBoundary: this.getVerticalRlCurrentEffectiveLeftBoundary() }
+					: recordedOffset !== null
+						? { preserveCachedBoundary: true }
+						: { sequentialRightBoundary: this.getVerticalRlCurrentEffectiveLeftBoundary() });
 				return;
 			} else {
 				next = this.views.last().section.next();
