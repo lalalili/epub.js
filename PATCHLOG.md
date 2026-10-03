@@ -2,6 +2,15 @@
 
 This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
+## 2026-10-03
+
+### EPUB-G5-001 release build security gate
+- Why: the full dependency audit blocked release through the Babel 7 CLI watcher and documentation dependencies.
+- Diff Scope: migrate the Babel build toolchain to version 8, retain CommonJS compatibility output and usage-based core-js polyfills, and update the affected brace-expansion and markdown-it dependencies. Preserve unrelated locked dependency versions.
+- Test: full `verify:release` on Node 22.23.2; all package contracts; 81 browser files, 899 passing tests and one existing skip; both dependency audits report zero vulnerabilities; pack dry-run passes.
+- Evidence: this build gate supports the G5 source candidate; it does not establish full G5, formal persistence A–E, production, or physical Android qualification.
+- Rollback: revert the build-tool migration and regenerate distribution artifacts; the prior dependency audit failure will return.
+
 ## 2026-09-29
 
 ### EPUB-SPREAD-001 horizontal two-column spread page count

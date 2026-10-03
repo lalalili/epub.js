@@ -761,10 +761,11 @@
 		var node;
 		while (node = walker.nextNode()) func(node);
 	}
-	function createVisibleTextWalker(doc, win, root) {
+	function createVisibleTextWalker(doc, win, root, options = {}) {
 		if (!doc || !win || !root || typeof doc.createTreeWalker !== "function") return null;
+		const minimumTextLength = Math.max(1, Math.floor(Number(options.minimumTextLength) || 2));
 		return doc.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode(node) {
-			if (String(node.nodeValue || "").replace(/\s+/g, "").length < 2) return NodeFilter.FILTER_REJECT;
+			if (String(node.nodeValue || "").replace(/\s+/g, "").length < minimumTextLength) return NodeFilter.FILTER_REJECT;
 			let parent = node.parentElement;
 			if (!parent) return NodeFilter.FILTER_REJECT;
 			let style = win.getComputedStyle(parent);
@@ -773,7 +774,7 @@
 		} });
 	}
 	function collectVisibleTextClientRects(doc, win, root, options = {}) {
-		const walker = createVisibleTextWalker(doc, win, root);
+		const walker = createVisibleTextWalker(doc, win, root, options);
 		if (!walker) return null;
 		const limit = Math.max(0, Number(options.limit) || 1e3);
 		const countInvalidRects = Boolean(options.countInvalidRects);
@@ -13096,7 +13097,7 @@
 		}
 		return h.map((v) => v.toString(16).padStart(8, "0")).join("");
 	}
-	function glyphs(doc) {
+	function glyphs(doc, captureClip) {
 		const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT), items = [];
 		let text = "";
 		for (let n = walker.nextNode(); n; n = walker.nextNode()) {
@@ -13108,6 +13109,11 @@
 			for (let p = node.parentElement; p; p = p.parentElement) {
 				const s = doc.defaultView.getComputedStyle(p);
 				if (s.display === "none" || s.visibility !== "visible" || Number(s.opacity) === 0) visible = false;
+			}
+			if (visible && captureClip) {
+				const bounds = doc.createRange();
+				bounds.selectNodeContents(node);
+				visible = [...bounds.getClientRects()].some((r) => r.width > 0 && r.height > 0 && hit(r, captureClip));
 			}
 			let pos = 0;
 			for (const char of node.data) {
@@ -13130,7 +13136,7 @@
 			digest: semanticDigest(text)
 		};
 	}
-	function localSemanticClip(frame) {
+	function localSemanticClip(frame, includeProductMasks = true) {
 		const f = frame.getBoundingClientRect(), win = frame.ownerDocument.defaultView;
 		const c = {
 			left: Math.max(0, f.left),
@@ -13148,6 +13154,12 @@
 				c.top = Math.max(c.top, r.top);
 				c.bottom = Math.min(c.bottom, r.bottom);
 			}
+			const data = p.dataset;
+			if (includeProductMasks && (data?.epubVrlEdgeMaskLeft !== void 0 || data?.epubVrlEdgeMaskRight !== void 0)) {
+				const left = Number(data.epubVrlEdgeMaskLeft || 0), right = Number(data.epubVrlEdgeMaskRight || 0);
+				if (Number.isFinite(left) && left >= 0) c.left = Math.max(c.left, r.left + left);
+				if (Number.isFinite(right) && right >= 0) c.right = Math.min(c.right, r.right - right);
+			}
 		}
 		return c.right > c.left && c.bottom > c.top ? {
 			left: c.left - f.left,
@@ -13161,7 +13173,7 @@
 		try {
 			const clip = localSemanticClip(frame);
 			if (!clip || frame.contentDocument !== doc) return null;
-			const { items, digest } = glyphs(doc);
+			const { items, digest } = glyphs(doc, clip);
 			const runs = [];
 			let range = null, last = null;
 			const flush = () => {
@@ -13194,7 +13206,7 @@
 			return null;
 		}
 	}
-	function resolveSemanticCut(doc, frame, cut, maxStart, cfiBase) {
+	function resolveSemanticCut(doc, frame, cut, maxStart, cfiBase, options = {}) {
 		try {
 			if (cut?.version !== 1 || cut.algorithm !== "cfi-runs-sha256-v1" || !Array.isArray(cut.runs) || !cut.runs.length || cut.runs.length > 32 || JSON.stringify(cut).length > 3e3) return {
 				status: "unavailable",
@@ -13229,8 +13241,17 @@
 				status: "unavailable",
 				reason: "empty-semantic-cut"
 			};
+			const baseClip = localSemanticClip(frame, false);
+			if (!baseClip) return {
+				status: "unavailable",
+				reason: "stale-document"
+			};
+			const maskWidths = {
+				left: clip.left - baseClip.left,
+				right: baseClip.right - clip.right
+			};
 			const width = clip.right - clip.left;
-			let lo = 0, hi = maxStart;
+			let lo = maskWidths.left, hi = maxStart + maskWidths.left;
 			const rects = items.map((g) => g.rects.filter((r) => r.bottom > clip.top && r.top < clip.bottom));
 			for (let i = 0; i < items.length; i++) if (desired[i]) {
 				if (rects[i].length !== 1) return {
@@ -13240,7 +13261,33 @@
 				lo = Math.max(lo, rects[i][0].left - width);
 				hi = Math.min(hi, rects[i][0].right);
 			}
-			if (!(lo < hi)) return {
+			const reconstructCurrentMask = () => {
+				if (!options.allowCurrentTerminalMask) return null;
+				const base = localSemanticClip(frame, false);
+				if (!base) return null;
+				const selected = rects.filter((_, i) => desired[i]).flat();
+				if (!selected.length || selected.some((r) => r.left < base.left || r.right > base.right || r.top < base.top || r.bottom > base.bottom)) return null;
+				const wantedLeft = Math.min(...selected.map((r) => r.left)), wantedRight = Math.max(...selected.map((r) => r.right));
+				const excluded = rects.filter((_, i) => !desired[i]).flat().filter((r) => hit(r, base));
+				const leftNeighbors = excluded.filter((r) => r.right <= wantedLeft), rightNeighbors = excluded.filter((r) => r.left >= wantedRight);
+				const left = leftNeighbors.length ? (Math.max(...leftNeighbors.map((r) => r.right)) + wantedLeft) / 2 : base.left;
+				const right = rightNeighbors.length ? (wantedRight + Math.min(...rightNeighbors.map((r) => r.left))) / 2 : base.right;
+				const target = {
+					...base,
+					left,
+					right
+				};
+				if (!(left < right) || items.some((g, i) => g.rects.some((r) => hit(r, target)) !== desired[i])) return null;
+				return {
+					status: "qualified",
+					physicalStart: base.left,
+					maskWidths: {
+						left: left - base.left,
+						right: base.right - right
+					}
+				};
+			};
+			if (!(lo < hi)) return reconstructCurrentMask() || {
 				status: "unavailable",
 				reason: "semantic-cut-not-reprojectable"
 			};
@@ -13253,7 +13300,7 @@
 					reason: "semantic-interval-quota"
 				};
 			}
-			if (intervals.length !== 1) return {
+			if (intervals.length !== 1) return reconstructCurrentMask() || {
 				status: "unavailable",
 				reason: "ambiguous-semantic-cut"
 			};
@@ -13269,7 +13316,8 @@
 			};
 			return {
 				status: "qualified",
-				physicalStart: start
+				physicalStart: start - maskWidths.left,
+				...maskWidths.left || maskWidths.right ? { maskWidths } : {}
 			};
 		} catch {
 			return {
@@ -14047,9 +14095,24 @@
 	}
 	function getVerticalRlRawLeftSnapDecisionForRects(rects, rawLeft, rawRight, left, leftMaxMask, nextPageStep, forceRawLeftMask, allowRawLeftMask, hasStructuralEdgeGuard, edgeTolerance) {
 		const shift = getVerticalRlRawLeftSnapShiftForRects(rects, rawLeft, rawRight, rawLeft + left, left, nextPageStep, forceRawLeftMask, allowRawLeftMask, hasStructuralEdgeGuard, edgeTolerance);
+		const snappedLeft = getVerticalRlSnappedLeftEdgeMask(left, shift, leftMaxMask);
+		if (shift > 0 && snappedLeft < left + shift) {
+			let safeLeft = snappedLeft;
+			for (let attempt = 0; attempt <= rects.length; attempt++) {
+				const edge = rawLeft + safeLeft;
+				const crossings = rects.filter((rect) => rect.left < edge && rect.right > edge);
+				if (!crossings.length) return {
+					shift: safeLeft - left,
+					left: safeLeft
+				};
+				const nextLeft = Math.floor(Math.min(...crossings.map((rect) => rect.left)) - rawLeft - 1);
+				if (nextLeft < 0 || nextLeft >= safeLeft) break;
+				safeLeft = nextLeft;
+			}
+		}
 		return {
 			shift,
-			left: getVerticalRlSnappedLeftEdgeMask(left, shift, leftMaxMask)
+			left: snappedLeft
 		};
 	}
 	//#endregion
@@ -14313,9 +14376,6 @@
 			left: rectCoordinates.left,
 			right: rectCoordinates.right
 		};
-	}
-	function getVerticalRlViewportRects(rects, rawLeft, rawRight, iframeLeft, tolerance = .5) {
-		return (rects || []).map((rect) => getVerticalRlViewportRect(rect, rawLeft, rawRight, iframeLeft, tolerance));
 	}
 	function getVerticalRlClosestViewportRectCoordinates(rectLeft, rectRight, shiftedLeft, shiftedRight, viewports, tolerance = .5) {
 		const directLeft = Number(rectLeft) || 0;
@@ -14928,6 +14988,8 @@
 	var DefaultViewManager = class {
 		_verticalRlTerminalLayouts;
 		_verticalRlActiveTerminalLayout;
+		_verticalRlBoundarySnapRetryPendingToken;
+		_verticalRlBoundarySnapAfterScrollPending;
 		_pendingHorizontalTarget;
 		_pendingVerticalRlTarget;
 		constructor(options) {
@@ -15101,6 +15163,8 @@
 			clearTimeout(this.resizeTimeout);
 			clearTimeout(this.afterScrolled);
 			clearTimeout(this._verticalRlBoundarySnapAfterScroll);
+			this._verticalRlBoundarySnapAfterScrollPending = false;
+			this._verticalRlBoundarySnapRetryToken = (this._verticalRlBoundarySnapRetryToken || 0) + 1;
 			this.clear();
 			this.removeEventListeners();
 			this.removeVerticalRlViewportClip();
@@ -15156,6 +15220,10 @@
 			});
 			this._stageSize = stageSize;
 			this._bounds = this.bounds();
+			this._verticalRlTerminalLayouts = void 0;
+			this._verticalRlActiveTerminalLayout = void 0;
+			this._verticalRlLogicalPageOffsetCache = null;
+			this._verticalRlPageIndexLookupKey = null;
 			this.clear();
 			this.viewSettings.width = this._stageSize.width;
 			this.viewSettings.height = this._stageSize.height;
@@ -15234,7 +15302,7 @@
 					let width = view.width();
 					this.traceTargetOwnership(view, target, offset);
 					this.moveToDisplayTarget(view, target, offset, width);
-					if (this.layout.name === "reflowable" && this.layout.divisor > 1 && this.settings.axis === "horizontal" && offset.left >= this.container.scrollWidth) this._pendingHorizontalTarget = {
+					if (this.layout.name === "reflowable" && (this.layout.divisor > 1 || this.settings.direction === "ltr") && this.settings.axis === "horizontal" && offset.left >= this.container.scrollWidth) this._pendingHorizontalTarget = {
 						view,
 						offset,
 						width
@@ -15280,6 +15348,10 @@
 			if (pending?.view === view && this.container.scrollWidth > pending.offset.left) {
 				this._pendingHorizontalTarget = void 0;
 				this.moveTo(pending.offset, pending.width);
+				this.emit(EVENTS.MANAGERS.SCROLLED, {
+					top: this.container.scrollTop,
+					left: this.container.scrollLeft
+				});
 			}
 			this.syncVerticalRlViewportClip();
 			this.emit(EVENTS.MANAGERS.RESIZE, view.section);
@@ -15497,6 +15569,13 @@
 			return this.resolveVerticalRlTerminalTailObservation().resolution?.state || "unknown";
 		}
 		computeVerticalRlEdgeMaskWidths() {
+			const restored = this.getVerticalRlRestoredSemanticMaskWidths();
+			if (restored) return restored;
+			const sequentialTerminalMask = this.getVerticalRlSequentialTerminalRightMaskWidth();
+			if (sequentialTerminalMask !== null) return {
+				left: 0,
+				right: sequentialTerminalMask
+			};
 			let advance = this.getPageAdvance() || 0;
 			let visibleWidth = this.container ? this.container.clientWidth || 0 : 0;
 			let bleed = visibleWidth - advance;
@@ -15528,8 +15607,21 @@
 					rightMaxMask: structuralMask.rightMaxMask
 				});
 			}
+			let measuredRects;
+			const textRects = () => {
+				if (measuredRects === void 0) {
+					const view = this.views && (this.views.first() || this.views.last());
+					const doc = view && view.contents && view.contents.document;
+					const win = view && view.contents && view.contents.window;
+					measuredRects = doc && win && doc.body ? collectVisibleTextClientRects(doc, win, doc.body, {
+						minimumTextLength: 1,
+						limit: 1e3
+					}) : null;
+				}
+				return measuredRects;
+			};
 			if (currentPageIndex > 0) {
-				let previousPageLeftMask = this.getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask);
+				let previousPageLeftMask = this.getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask, textRects);
 				right = getVerticalRlPreviousPageRightMask(visibleWidth, previousPageStep, previousPageLeftMask, maxMask);
 			}
 			let edgeMask = getVerticalRlEdgeMaskSnapInput(left, right, maxMask, previousPageStep);
@@ -15538,6 +15630,7 @@
 				right: 0
 			};
 			return this.snapVerticalRlEdgeMaskWidths(edgeMask.widths, edgeMask.maxMask, {
+				textRects,
 				previousPageStep: edgeMask.previousPageStep,
 				rightMaxMask: edgeMask.rightMaxMask
 			});
@@ -15554,8 +15647,101 @@
 			let advance = this.getPageAdvance() || 0;
 			let visibleWidth = this.layout.pageWidth || this.layout.width || advance || this.container.clientWidth || 0;
 			let currentOffset = this.getNormalizedLogicalScrollLeft();
-			let currentMaskWidths = this.getVerticalRlRenderedEdgeMaskWidths();
+			let currentMaskWidths = this.container.dataset?.epubVrlEdgeMaskLeft !== void 0 ? this.getVerticalRlAppliedEdgeMaskWidths() : this.getVerticalRlRenderedEdgeMaskWidths();
 			return getVerticalRlCurrentEffectiveLeftBoundary(contentWidth, currentOffset, visibleWidth, Number(currentMaskWidths && currentMaskWidths.left) || 0);
+		}
+		getVerticalRlCurrentEffectiveRightBoundary() {
+			if (!this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) return null;
+			const view = this.views.first() || this.views.last();
+			const contentWidth = view ? this.getVerticalRlVisualContentWidth(view) : 0;
+			const masks = this.container.dataset?.epubVrlEdgeMaskRight !== void 0 ? this.getVerticalRlAppliedEdgeMaskWidths() : this.getVerticalRlRenderedEdgeMaskWidths();
+			return contentWidth - this.getNormalizedLogicalScrollLeft() - (Number(masks?.right) || 0);
+		}
+		alignVerticalRlPreviousPageBoundary(pageIndex, boundary) {
+			appendVerticalRlScrollTrace("reverse-boundary-inspect", {
+				pageIndex,
+				boundary,
+				vertical: this.isRtlVerticalPaginated(),
+				leftBoundary: this.getVerticalRlCurrentEffectiveLeftBoundary()
+			});
+			if (pageIndex <= 0 || !this.isRtlVerticalPaginated() || !Number.isFinite(boundary) || boundary <= 0) return false;
+			const view = this.views && (this.views.first() || this.views.last());
+			const doc = view?.contents?.document;
+			const win = view?.contents?.window;
+			if (!doc?.body || !win) return false;
+			const observedLeftBoundary = this.getVerticalRlCurrentEffectiveLeftBoundary();
+			const preservedBoundary = this._verticalRlPreservedPageBoundary;
+			const devicePixelRatio = Number(win.devicePixelRatio);
+			const layoutKey = this.getVerticalRlLogicalPageOffsetCacheKey(this.getTotalPagesForCurrentView(), this.getMaxLogicalScrollLeft());
+			if (preservedBoundary?.pageIndex === pageIndex && layoutKey !== null && preservedBoundary.layoutKey === layoutKey && observedLeftBoundary !== null && Number.isFinite(devicePixelRatio) && devicePixelRatio > 0 && Math.abs(observedLeftBoundary - boundary) < 1 / devicePixelRatio) {
+				appendVerticalRlScrollTrace("reverse-boundary-preserved-quantization", {
+					pageIndex,
+					boundary,
+					observedLeftBoundary,
+					devicePixelRatio,
+					layoutKey
+				});
+				return false;
+			}
+			const rects = collectVisibleTextClientRects(doc, win, doc.body, { minimumTextLength: 1 });
+			appendVerticalRlScrollTrace("reverse-boundary-rects", {
+				pageIndex,
+				boundary,
+				rectCount: rects?.length ?? null,
+				leftBoundary: observedLeftBoundary,
+				intersections: rects?.filter((rect) => {
+					const left = observedLeftBoundary;
+					return left !== null && rect.right > Math.min(boundary, left) && rect.left < Math.max(boundary, left);
+				}).map((rect) => ({
+					left: rect.left,
+					right: rect.right
+				})) ?? []
+			});
+			if (!rects) return false;
+			const requestedBoundary = boundary;
+			for (let attempt = 0; attempt < rects.length; attempt += 1) {
+				const straddlers = rects.filter((rect) => rect.left < boundary && rect.right > boundary);
+				if (!straddlers.length) break;
+				boundary = Math.min(...straddlers.map((rect) => rect.left));
+			}
+			appendVerticalRlScrollTrace("reverse-boundary-column-owner", {
+				pageIndex,
+				requestedBoundary,
+				boundary
+			});
+			const cacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(this.getTotalPagesForCurrentView(), this.getMaxLogicalScrollLeft());
+			let changed = false;
+			for (let attempt = 0; attempt < 4; attempt += 1) {
+				const leftBoundary = this.getVerticalRlCurrentEffectiveLeftBoundary();
+				if (leftBoundary === null || leftBoundary === boundary || !rects.some((rect) => rect.right > Math.min(boundary, leftBoundary) && rect.left < Math.max(boundary, leftBoundary))) break;
+				const maxScroll = this.getMaxLogicalScrollLeft();
+				const currentKey = this.getVerticalRlLogicalPageOffsetCacheKey(this.getTotalPagesForCurrentView(), maxScroll);
+				if (!cacheKey || currentKey !== cacheKey) break;
+				const currentOffset = this.getNormalizedLogicalScrollLeft();
+				const offset = Math.max(0, Math.min(maxScroll, currentOffset + leftBoundary - boundary));
+				if (offset === currentOffset) break;
+				let left = offset;
+				if (this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0) left = -offset;
+				else if (this.settings.rtlScrollType === "default") left = maxScroll - offset;
+				this.cacheVerticalRlLogicalPageOffset(pageIndex, offset, cacheKey);
+				this._verticalRlBoundarySnapApplying = true;
+				try {
+					this.scrollTo(left, 0, true);
+				} finally {
+					this._verticalRlBoundarySnapApplying = false;
+				}
+				this.syncVerticalRlViewportClip();
+				changed = true;
+				appendVerticalRlScrollTrace("reverse-boundary-align", {
+					pageIndex,
+					boundary,
+					leftBoundary,
+					currentOffset,
+					offset,
+					attempt
+				});
+			}
+			return changed;
 		}
 		getVerticalRlLogicalPageOffsetCacheKey(_totalPages, maxScroll) {
 			if (!this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) return null;
@@ -15585,13 +15771,18 @@
 			if (!key) return null;
 			const owner = view.section;
 			this._verticalRlTerminalLayouts ??= /* @__PURE__ */ new WeakMap();
-			const state = resolveVerticalRlTerminalContinuationWithObservation(this._verticalRlTerminalLayouts.get(owner), key, {
+			let layouts = this._verticalRlTerminalLayouts.get(owner);
+			if (!layouts) {
+				layouts = /* @__PURE__ */ new Map();
+				this._verticalRlTerminalLayouts.set(owner, layouts);
+			}
+			const state = resolveVerticalRlTerminalContinuationWithObservation(layouts.get(key), key, {
 				owner: this,
 				section: owner,
 				view,
 				document: view.contents?.document
 			});
-			this._verticalRlTerminalLayouts.set(owner, state);
+			layouts.set(key, state);
 			if (this._verticalRlActiveTerminalLayout !== state) {
 				if (this._verticalRlActiveTerminalLayout) this._verticalRlActiveTerminalLayout.offsetCache = this._verticalRlLogicalPageOffsetCache || null;
 				else if (this._verticalRlLogicalPageOffsetCache?.key === key) state.offsetCache = this._verticalRlLogicalPageOffsetCache;
@@ -15631,7 +15822,7 @@
 				forceRawLeftMask: cleanPageMask.forceRawLeftMask
 			});
 		}
-		getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask) {
+		getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask, textRects) {
 			if (!previousPageStep || !this.container || !this.views) return Math.min(left, maxMask);
 			let view = this.views.first() || this.views.last();
 			let iframe = view && view.iframe;
@@ -15641,6 +15832,7 @@
 			let previousMask = getPreviousVerticalRlLeftMaskInput(previousPageStep, left, maxMask, containerRect.left, containerRect.right, iframeRect.left);
 			if (!previousMask) return Math.min(left, maxMask);
 			let snapped = this.snapVerticalRlEdgeMaskWidths(previousMask.widths, previousMask.maxMask, {
+				textRects,
 				rawLeft: previousMask.rawLeft,
 				rawRight: previousMask.rawRight,
 				nextPageStep: previousMask.nextPageStep,
@@ -15669,6 +15861,7 @@
 			let left = Math.max(0, Number(maskWidths.left) || 0);
 			let right = Math.max(0, Number(maskWidths.right) || 0);
 			let textRects = collectVisibleTextClientRects(doc, win, body, {
+				minimumTextLength: 1,
 				limit: 1e3,
 				countInvalidRects: true
 			});
@@ -15741,12 +15934,23 @@
 			let hasStructuralEdgeGuard = viewportInput.hasStructuralEdgeGuard;
 			let canExpandClippedRawRight = viewportInput.canExpandClippedRawRight;
 			let rightPaintGuardMax = viewportInput.rightPaintGuardMax;
-			let textRects = collectVisibleTextClientRects(doc, win, body, { limit: 1e3 });
+			let textRects = limits.textRects ? limits.textRects() : collectVisibleTextClientRects(doc, win, body, {
+				minimumTextLength: 1,
+				limit: 1e3
+			});
 			if (!textRects) return widths;
-			let rects = getVerticalRlViewportRects(textRects, rawLeft, rawRight, iframeRect.left);
+			let rects = textRects;
+			const debugMaskSnap = typeof window !== "undefined" && window.__EPUB_VRL_DEBUG__;
+			const leftSnapSteps = [];
 			const snapLeft = () => {
+				const inputLeft = left;
 				let decision = getVerticalRlRawLeftSnapDecisionForRects(rects, rawLeft, rawRight, left, leftMaxMask, nextPageStep, forceRawLeftMask, allowRawLeftMask, hasStructuralEdgeGuard, edgeTolerance);
 				let shift = decision.shift;
+				if (debugMaskSnap) leftSnapSteps.push({
+					inputLeft,
+					shift,
+					outputLeft: decision.left
+				});
 				if (shift !== 0) left = decision.left;
 				return shift;
 			};
@@ -15757,6 +15961,33 @@
 				return shift;
 			};
 			runVerticalRlEdgeMaskSnapLoop(snapLeft, snapRight, 4);
+			if (typeof window !== "undefined" && window.__EPUB_VRL_DEBUG__) appendVerticalRlScrollTrace("edge-mask-snap-decision", {
+				rawLeft,
+				rawRight,
+				maxMask,
+				leftMaxMask,
+				rightMaxMask,
+				requestedLeft: viewportInput.left,
+				requestedRight: viewportInput.right,
+				nextPageStep,
+				previousPageStep,
+				forceRawLeftMask,
+				allowRawLeftMask,
+				left,
+				right,
+				rawScrollLeft: this.container.scrollLeft,
+				edgeTolerance,
+				hasStructuralEdgeGuard,
+				textRectCount: textRects.length,
+				leftSnapSteps,
+				leftZoneRects: rects.filter((rect) => rect.left < rawLeft + leftMaxMask + edgeTolerance + 32 && rect.right > rawLeft),
+				iframeLeft: iframeRect.left,
+				leftZoneRectSources: rects.map((rect, index) => ({
+					source: textRects[index],
+					mapped: rect
+				})).filter(({ mapped }) => mapped.left < rawLeft + leftMaxMask + edgeTolerance + 32 && mapped.right > rawLeft),
+				boundaryRects: rects.filter((rect) => rect.left < rawLeft + viewportInput.left && rect.right > rawLeft + viewportInput.left || rect.left < rawLeft + left && rect.right > rawLeft + left).slice(0, 12)
+			});
 			return {
 				left,
 				right
@@ -15783,6 +16014,37 @@
 				this._verticalRlAppliedLeftMaskLedger[String(pageIndex)] = leftMask;
 			} catch (error) {}
 		}
+		getVerticalRlRestoredSemanticMaskWidths() {
+			const saved = this._verticalRlRestoredSemanticMask;
+			if (!saved || !this.isRtlVerticalPaginated() || !this.container || !this.views) return null;
+			const view = this.views.first() || this.views.last();
+			const offset = this.getNormalizedLogicalScrollLeft();
+			if (!Number.isFinite(offset) || !Number.isFinite(saved.offset) || saved.document !== view?.contents?.document || saved.view !== view || saved.pageIndex !== this.getCurrentPageIndex() || saved.width !== this.container.clientWidth || saved.height !== this.container.clientHeight || Math.abs(saved.offset - offset) > 1) return null;
+			const { left, right } = saved.masks;
+			if (!Number.isFinite(left) || !Number.isFinite(right) || left < 0 || right < 0 || left + right >= saved.width) return null;
+			return {
+				left,
+				right
+			};
+		}
+		/** Resolve overlap ownership only for a sequential target clamped at the terminal scroll limit. */
+		getVerticalRlSequentialTerminalRightMaskWidth() {
+			const constraint = this._verticalRlSequentialBoundaryConstraint;
+			if (!constraint || !this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) return null;
+			const pageIndex = this.getCurrentPageIndex();
+			const totalPages = this.getTotalPagesForCurrentView();
+			if (pageIndex <= 0 || pageIndex !== totalPages - 1 || constraint.pageIndex !== pageIndex) return null;
+			const offset = this.getNormalizedLogicalScrollLeft();
+			const maxScroll = this.getMaxLogicalScrollLeft();
+			if (!Number.isFinite(offset) || !Number.isFinite(maxScroll) || Math.abs(maxScroll - offset) > 1) return null;
+			const view = this.views.first() || this.views.last();
+			const width = view ? this.getVerticalRlVisualContentWidth(view) : 0;
+			const visibleWidth = this.layout.pageWidth || this.layout.width || this.container.clientWidth;
+			const boundary = constraint.maxRightBoundary;
+			const overlap = width - offset - boundary;
+			if (!Number.isFinite(boundary) || boundary <= 0 || !Number.isFinite(overlap) || overlap <= 0 || overlap >= visibleWidth) return null;
+			return Math.ceil(overlap);
+		}
 		/**
 		* 取得「可證實」的右遮罩允許量：前一頁確實完整顯示過的重疊區寬度。
 		*
@@ -15798,6 +16060,10 @@
 		* @return {number|null}
 		*/
 		getVerticalRlProvenRightMaskAllowance() {
+			const restored = this.getVerticalRlRestoredSemanticMaskWidths();
+			if (restored) return restored.right;
+			const sequentialTerminalMask = this.getVerticalRlSequentialTerminalRightMaskWidth();
+			if (sequentialTerminalMask !== null) return sequentialTerminalMask;
 			if (!this.isRtlVerticalPaginated()) return null;
 			try {
 				let advance = this.getPageAdvance() || 0;
@@ -15830,6 +16096,8 @@
 		* @return {number|null}
 		*/
 		getVerticalRlProvenLeftMaskAllowance() {
+			const restored = this.getVerticalRlRestoredSemanticMaskWidths();
+			if (restored) return restored.left;
 			if (!this.isRtlVerticalPaginated()) return null;
 			try {
 				let totalPages = this.getTotalPagesForCurrentView();
@@ -15863,8 +16131,26 @@
 				}
 				return;
 			}
-			let maskWidths = this.expandVerticalRlLeftMaskToVisibleLine(this.getVerticalRlEdgeMaskWidths());
+			const computedEdgeWidths = this.getVerticalRlEdgeMaskWidths();
+			let maskWidths = this.expandVerticalRlLeftMaskToVisibleLine(computedEdgeWidths);
+			const sequentialTerminalMask = this.getVerticalRlSequentialTerminalRightMaskWidth();
+			if (sequentialTerminalMask !== null) maskWidths = {
+				left: 0,
+				right: sequentialTerminalMask
+			};
+			const restored = this.getVerticalRlRestoredSemanticMaskWidths();
+			if (restored) maskWidths = restored;
 			this.recordVerticalRlAppliedLeftMask(Math.max(0, Number(maskWidths.left) || 0));
+			appendVerticalRlScrollTrace("edge-mask-applied", {
+				rawScrollLeft: this.container.scrollLeft,
+				pageIndex: this._verticalRlPageIndexLookupResult,
+				computedLeft: computedEdgeWidths.left,
+				computedRight: computedEdgeWidths.right,
+				left: maskWidths.left,
+				right: maskWidths.right,
+				restoredSemanticMask: Boolean(restored),
+				sequentialTerminalMask
+			});
 			if (!maskWidths.left && !maskWidths.right) {
 				this.removeVerticalRlViewportClip();
 				if (this.container.dataset && this.container.dataset.epubVrlEdgeMask) {
@@ -16128,13 +16414,46 @@
 			});
 			logicalOffset = preflight.logicalOffset;
 			if (!preflight.shouldMeasureText || !preflight.cacheLookup) return logicalOffset;
-			if (preflight.cacheLookup.cachedSnap !== null) return preflight.cacheLookup.cachedSnap;
+			if (preflight.cacheLookup.cachedSnap !== null) {
+				appendVerticalRlScrollTrace("boundary-snap-cache-hit", {
+					logicalOffset,
+					cachedSnap: preflight.cacheLookup.cachedSnap,
+					contentWidth,
+					visibleWidth,
+					maxScroll,
+					rightBoundaryOptions: preflight.rightBoundaryOptions
+				});
+				return preflight.cacheLookup.cachedSnap;
+			}
 			let iframeRect = iframe.getBoundingClientRect();
 			let structuralGutterMask = this.getVerticalRlStructuralEdgeMaskWidthsForLogicalOffset(logicalOffset, contentWidth, visibleWidth);
-			let textRects = collectVisibleTextClientRects(doc, win, body, { limit: 1e3 });
+			let textRects = collectVisibleTextClientRects(doc, win, body, {
+				minimumTextLength: 1,
+				limit: 1e3
+			});
 			if (!textRects) return null;
 			let measurementInputs = getVerticalRlBoundarySnapMeasurementInputs(textRects, iframeRect.left, logicalOffset, contentWidth, visibleWidth, this.layout && this.layout.edgeGuardPx, structuralGutterMask, this.getPageAdvance(), this.getPageBoundaryShift());
 			let snapResult = getVerticalRlBoundarySnapPipelineResult(preflight.cacheLookup.cacheKey, measurementInputs, logicalOffset, contentWidth, visibleWidth, maxScroll, preflight.maxRightBoundaryOptions, preflight.rightBoundaryOptions);
+			const pipelineSnappedOffset = snapResult.snapped;
+			const preferredBoundary = preflight.rightBoundaryOptions.preferredRightBoundary;
+			const maxBoundary = preflight.rightBoundaryOptions.maxRightBoundary;
+			const dpr = Number(win.devicePixelRatio);
+			if (preflight.rightBoundaryOptions.hasPreferredRightBoundary && preflight.rightBoundaryOptions.hasMaxRightBoundary && preferredBoundary === maxBoundary && Number.isFinite(dpr) && dpr > 0) {
+				const boundaryOffset = Math.max(0, Math.min(maxScroll, contentWidth - preferredBoundary));
+				snapResult.snapped = Math.floor(Math.min(snapResult.snapped, boundaryOffset) * dpr) / dpr;
+				if (snapResult.cacheEntry) snapResult.cacheEntry.value = snapResult.snapped;
+			}
+			appendVerticalRlScrollTrace("boundary-snap-pipeline", {
+				logicalOffset,
+				pipelineSnappedOffset,
+				finalSnappedOffset: snapResult.snapped,
+				contentWidth,
+				visibleWidth,
+				maxScroll,
+				structuralGutterMask,
+				rightBoundaryOptions: preflight.rightBoundaryOptions,
+				devicePixelRatio: dpr
+			});
 			if (snapResult.cacheEntry) this._verticalRlBoundarySnapCache = snapResult.cacheEntry;
 			return snapResult.snapped;
 		}
@@ -16320,7 +16639,7 @@
 			if (descriptor.semanticCut) {
 				const width = this.layout.pageWidth || this.layout.width || this.getPageAdvance();
 				const maxStart = Math.max(0, this.getVerticalRlVisualContentWidth(view) - width);
-				const resolution = resolveSemanticCut(contents.document, view.iframe, descriptor.semanticCut, maxStart, section.cfiBase);
+				const resolution = resolveSemanticCut(contents.document, view.iframe, descriptor.semanticCut, maxStart, section.cfiBase, { allowCurrentTerminalMask: this.getCurrentPageIndex() === this.getTotalPagesForCurrentView() - 1 });
 				if (resolution.status !== "qualified" || typeof resolution.physicalStart !== "number") {
 					traceTerminal(resolution.reason || "semantic-cut-unavailable");
 					return {
@@ -16334,8 +16653,22 @@
 					reason: "invalid-page-index"
 				};
 				this.scrollToLogicalPageInLayout(index, { semanticWindowLogicalOffset: maxStart - resolution.physicalStart }, true);
+				if (resolution.maskWidths) {
+					this._verticalRlRestoredSemanticMask = {
+						pageIndex: this.getCurrentPageIndex(),
+						offset: this.getNormalizedLogicalScrollLeft(),
+						width: this.container.clientWidth,
+						height: this.container.clientHeight,
+						view,
+						document: contents.document,
+						masks: resolution.maskWidths
+					};
+					this.syncVerticalRlViewportClip();
+				}
 				const actual = captureSemanticCut(contents.document, view.iframe, section.cfiBase);
 				if (!actual || JSON.stringify(actual) !== JSON.stringify(descriptor.semanticCut)) {
+					this._verticalRlRestoredSemanticMask = null;
+					this.syncVerticalRlViewportClip();
 					traceTerminal("semantic-cut-post-apply-mismatch");
 					return {
 						status: "unavailable",
@@ -16598,6 +16931,7 @@
 			this.scrollToLogicalPageInLayout(pageIndex, options);
 		}
 		scrollToLogicalPageInLayout(pageIndex, options = {}, preserveSourceCut = false) {
+			if (!preserveSourceCut) this._verticalRlRestoredSemanticMask = null;
 			let preSyncView = this.views && (this.views.first() || this.views.last());
 			let preSyncIframeWidth = preSyncView && preSyncView.iframe ? Math.max(Number(preSyncView.iframe.getBoundingClientRect && preSyncView.iframe.getBoundingClientRect().width) || 0, parseFloat(preSyncView.iframe.style && preSyncView.iframe.style.width) || 0) : 0;
 			let preSyncElementWidth = preSyncView && preSyncView.element ? Math.max(Number(preSyncView.element.getBoundingClientRect && preSyncView.element.getBoundingClientRect().width) || 0, parseFloat(preSyncView.element.style && preSyncView.element.style.width) || 0) : 0;
@@ -16649,7 +16983,7 @@
 			if (this.isRtlVerticalPaginated() && targetIndex > 0) {
 				let forcedRightBoundary = Number(options && options.sequentialRightBoundary);
 				if (Number.isFinite(forcedRightBoundary) && forcedRightBoundary > 0) sequentialBoundaryConstraint = getVerticalRlSequentialRightBoundaryConstraint(targetIndex, forcedRightBoundary, 0, 0, 0, 0, 0, 0);
-				else if (targetIndex < totalPages - 1) {
+				else if (targetIndex < totalPages - 1 && cachedLogicalOffset === null) {
 					let currentIndex = this.getCurrentPageIndex();
 					if (currentIndex === targetIndex - 1) {
 						let view = this.views && (this.views.first() || this.views.last());
@@ -16685,6 +17019,18 @@
 			let terminalTailStateAfterApply = "unknown";
 			let terminalTailObservationAfterApply = null;
 			this._verticalRlSequentialBoundaryConstraint = sequentialBoundaryConstraint;
+			this._verticalRlPreservedPageBoundary = (options.preserveCachedBoundary || hasSemanticWindowLogicalOffset && preserveSourceCut) && cachedLogicalOffset !== null && logicalOffsetCacheKey !== null ? {
+				pageIndex: targetIndex,
+				layoutKey: logicalOffsetCacheKey
+			} : null;
+			appendVerticalRlScrollTrace("reverse-boundary-preservation", {
+				targetIndex,
+				logicalOffsetCacheKey,
+				cachedLogicalOffset,
+				recordedOffset,
+				preserveRequested: Boolean(options.preserveCachedBoundary),
+				preservedPageBoundary: this._verticalRlPreservedPageBoundary
+			});
 			if (this.isRtlVerticalPaginated()) this.cacheVerticalRlLogicalPageOffset(targetIndex, logicalOffset, logicalOffsetCacheKey);
 			let left = logicalOffset;
 			if (this.settings.direction === "rtl") {
@@ -16786,6 +17132,18 @@
 					promotionResult
 				});
 			}
+			if (!hasSemanticWindowLogicalOffset && !preserveContinuationOffset && this.alignVerticalRlPreviousPageBoundary(targetIndex, Number(options.sequentialLeftBoundary))) {
+				logicalOffset = this.getNormalizedLogicalScrollLeft();
+				left = this.container.scrollLeft;
+				const alignedKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, this.getMaxLogicalScrollLeft());
+				if (alignedKey) {
+					this.cacheVerticalRlLogicalPageOffset(targetIndex, logicalOffset, alignedKey);
+					this._verticalRlPreservedPageBoundary = {
+						pageIndex: targetIndex,
+						layoutKey: alignedKey
+					};
+				}
+			}
 			appendVerticalRlScrollTrace("complete", {
 				targetIndex,
 				containerScrollLeft: this.container && this.container.scrollLeft,
@@ -16795,6 +17153,7 @@
 			if (hasSemanticWindowLogicalOffset && preserveSourceCut) {
 				this._verticalRlBoundarySnapRetryToken = (this._verticalRlBoundarySnapRetryToken || 0) + 1;
 				clearTimeout(this._verticalRlBoundarySnapAfterScroll);
+				this._verticalRlBoundarySnapAfterScrollPending = false;
 			} else this.queueVerticalRlBoundarySnapRetry(targetIndex);
 			this.waitForVerticalRlLayoutReady().then(function() {
 				if (this.container && this.getCurrentPageIndex() === targetIndex) {
@@ -16829,15 +17188,23 @@
 				return fontReadyOrTimeout;
 			}).then(nextFrame);
 		}
+		isVerticalRlBoundarySnapRetryPending() {
+			return Boolean(this._verticalRlBoundarySnapAfterScrollPending) || this._verticalRlBoundarySnapRetryPendingToken != null && this._verticalRlBoundarySnapRetryPendingToken === this._verticalRlBoundarySnapRetryToken;
+		}
 		queueVerticalRlBoundarySnapRetry(pageIndex, options = {}) {
 			if (!this.isRtlVerticalPaginated() || !this.container) return;
 			let totalPages = this.getTotalPagesForCurrentView();
 			let targetIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
 			let token = (this._verticalRlBoundarySnapRetryToken || 0) + 1;
 			this._verticalRlBoundarySnapRetryToken = token;
+			this._verticalRlBoundarySnapRetryPendingToken = null;
 			if (targetIndex <= 0 || targetIndex >= totalPages - 1) return;
 			const terminalLayout = this.getVerticalRlTerminalLayout();
 			if (terminalLayout && terminalLayout.continuationCount > 0 && targetIndex >= this.getBaseGeometryPageCount() - 1 && this.getCachedVerticalRlLogicalPageOffset(targetIndex, terminalLayout.layoutKey) !== null) return;
+			this._verticalRlBoundarySnapRetryPendingToken = token;
+			const complete = () => {
+				if (this._verticalRlBoundarySnapRetryPendingToken === token) this._verticalRlBoundarySnapRetryPendingToken = null;
+			};
 			let retryDelays = Array.isArray(this.settings && this.settings.verticalRlBoundarySnapRetryDelays) ? this.settings.verticalRlBoundarySnapRetryDelays : [
 				250,
 				750,
@@ -16848,7 +17215,10 @@
 			];
 			let retryAttempt = function(attempt) {
 				this.waitForVerticalRlLayoutReady().then(function() {
-					if (this._verticalRlBoundarySnapRetryToken !== token || !this.container) return;
+					if (this._verticalRlBoundarySnapRetryToken !== token || !this.container) {
+						complete();
+						return;
+					}
 					let currentTotalPages = this.getTotalPagesForCurrentView();
 					let maxScroll = this.getMaxLogicalScrollLeft();
 					let currentOffset = this.getNormalizedLogicalScrollLeft();
@@ -16856,7 +17226,9 @@
 					let cachedLogicalOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey);
 					let shouldUseCachedLogicalOffset = cachedLogicalOffset !== null && (!options.useCurrentOffset || Math.abs(currentOffset - cachedLogicalOffset) <= this.getPageSnapTolerance());
 					let logicalOffset = shouldUseCachedLogicalOffset ? cachedLogicalOffset : options.useCurrentOffset ? Math.max(0, Math.min(maxScroll, currentOffset)) : this.getVerticalRlPageOffset(targetIndex, currentTotalPages, maxScroll);
-					if (options.useCurrentOffset && this.getPageBoundaryShift() === 0 && this.container) {
+					const preservedPageBoundary = this._verticalRlPreservedPageBoundary;
+					const preserveCachedBoundary = shouldUseCachedLogicalOffset && Boolean(preservedPageBoundary && preservedPageBoundary.pageIndex === targetIndex && preservedPageBoundary.layoutKey === logicalOffsetCacheKey);
+					if (!preserveCachedBoundary && options.useCurrentOffset && this.getPageBoundaryShift() === 0 && this.container) {
 						let currentIndex = this.getCurrentPageIndex();
 						let pageOffset = this.getVerticalRlPageOffset(currentIndex, currentTotalPages, maxScroll);
 						if (Math.abs(currentOffset - pageOffset) <= this.getPageSnapTolerance()) logicalOffset = pageOffset;
@@ -16864,7 +17236,7 @@
 					let sequentialBoundaryConstraint = this._verticalRlSequentialBoundaryConstraint && this._verticalRlSequentialBoundaryConstraint.pageIndex === targetIndex ? this._verticalRlSequentialBoundaryConstraint : {};
 					let view = this.views && (this.views.first() || this.views.last());
 					let canMeasureCachedLogicalOffset = Boolean(view && view.iframe && view.contents && view.contents.document && view.contents.document.body && view.contents.window);
-					let snappedOffset = !shouldUseCachedLogicalOffset || canMeasureCachedLogicalOffset ? this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll, sequentialBoundaryConstraint) : logicalOffset;
+					let snappedOffset = !shouldUseCachedLogicalOffset || canMeasureCachedLogicalOffset && !preserveCachedBoundary ? this.snapVerticalRlLogicalOffsetToTextBoundary(logicalOffset, maxScroll, sequentialBoundaryConstraint) : logicalOffset;
 					if (!Number.isFinite(Number(snappedOffset))) snappedOffset = logicalOffset;
 					if (!shouldUseCachedLogicalOffset && Math.abs(snappedOffset - logicalOffset) <= 1) snappedOffset = this.snapVerticalRlLogicalOffsetFromEdgeMask(logicalOffset, maxScroll);
 					if (Math.abs(snappedOffset - logicalOffset) <= 1) snappedOffset = logicalOffset;
@@ -16874,6 +17246,7 @@
 						if (Number.isFinite(delay) && delay >= 0) setTimeout(function() {
 							retryAttempt(attempt + 1);
 						}, delay);
+						else complete();
 						return;
 					}
 					appendVerticalRlScrollTrace("boundary-retry-apply", {
@@ -16883,6 +17256,10 @@
 						logicalOffset,
 						snappedOffset,
 						shouldUseCachedLogicalOffset,
+						preserveCachedBoundary,
+						logicalOffsetCacheKey,
+						preservedPageBoundary,
+						useCurrentOffset: Boolean(options.useCurrentOffset),
 						token
 					});
 					this.cacheVerticalRlLogicalPageOffset(targetIndex, snappedOffset, logicalOffsetCacheKey);
@@ -16898,6 +17275,7 @@
 						this._verticalRlBoundarySnapApplying = false;
 					}
 					this.syncVerticalRlViewportClip();
+					complete();
 				}.bind(this));
 			}.bind(this);
 			retryAttempt(0);
@@ -16905,7 +17283,9 @@
 		queueVerticalRlBoundarySnapRetryForCurrentOffset() {
 			if (!this.isRtlVerticalPaginated() || !this.container) return;
 			clearTimeout(this._verticalRlBoundarySnapAfterScroll);
+			this._verticalRlBoundarySnapAfterScrollPending = true;
 			this._verticalRlBoundarySnapAfterScroll = setTimeout(function() {
+				this._verticalRlBoundarySnapAfterScrollPending = false;
 				if (!this.isRtlVerticalPaginated() || !this.container) return;
 				this.syncVerticalRlViewportClip();
 				this.queueVerticalRlBoundarySnapRetry(this.getCurrentPageIndex(), { useCurrentOffset: true });
@@ -16937,8 +17317,17 @@
 			if (!this.views.length) return;
 			if (this.isRtlVerticalPaginated()) {
 				let pageIndex = this.getCurrentPageIndex();
-				if (pageIndex < this.getTotalPagesForCurrentView() - 1) {
-					this.scrollToLogicalPage(pageIndex + 1, { sequentialRightBoundary: this.getVerticalRlCurrentEffectiveLeftBoundary() });
+				let totalPages = this.getTotalPagesForCurrentView();
+				if (pageIndex < totalPages - 1) {
+					const targetIndex = pageIndex + 1;
+					const cacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, this.getMaxLogicalScrollLeft());
+					const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, cacheKey);
+					const visibleWidth = this.layout?.pageWidth || this.container?.clientWidth || 0;
+					const cachedBoundaryCreatesGap = recordedOffset !== null && visibleWidth > 0 && recordedOffset - this.getNormalizedLogicalScrollLeft() > visibleWidth + this.getPageSnapTolerance();
+					this.scrollToLogicalPage(targetIndex, cachedBoundaryCreatesGap ? {
+						ignoreCachedLogicalOffset: true,
+						sequentialRightBoundary: this.getVerticalRlCurrentEffectiveLeftBoundary()
+					} : recordedOffset !== null ? { preserveCachedBoundary: true } : { sequentialRightBoundary: this.getVerticalRlCurrentEffectiveLeftBoundary() });
 					return;
 				} else next = this.views.last().section.next();
 			}
@@ -16983,7 +17372,10 @@
 			if (this.isRtlVerticalPaginated()) {
 				let pageIndex = this.getCurrentPageIndex();
 				if (pageIndex > 0) {
-					this.scrollToLogicalPage(pageIndex - 1, { ignoreCachedLogicalOffset: true });
+					this.scrollToLogicalPage(pageIndex - 1, {
+						preserveCachedBoundary: true,
+						sequentialLeftBoundary: this.getVerticalRlCurrentEffectiveRightBoundary() ?? void 0
+					});
 					return;
 				} else prev = this.views.first().section.prev();
 			}
@@ -17254,6 +17646,7 @@
 				scrollTop = window.scrollY;
 				scrollLeft = window.scrollX;
 			}
+			const scrollPositionChanged = scrollTop !== this.scrollTop || scrollLeft !== this.scrollLeft;
 			this.scrollTop = scrollTop;
 			this.scrollLeft = scrollLeft;
 			this.target = void 0;
@@ -17270,7 +17663,7 @@
 					});
 				}.bind(this), 20);
 			} else this.ignore = false;
-			if (!ignored && !this._verticalRlBoundarySnapApplying && this.isRtlVerticalPaginated()) this.queueVerticalRlBoundarySnapRetryForCurrentOffset();
+			if (scrollPositionChanged && !ignored && !this._verticalRlBoundarySnapApplying && this.isRtlVerticalPaginated()) this.queueVerticalRlBoundarySnapRetryForCurrentOffset();
 		}
 		bounds() {
 			if (!this.stage) return this._bounds || {

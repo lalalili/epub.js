@@ -72,19 +72,21 @@
   "author": "fchasen@gmail.com",
   "license": "BSD-2-Clause",
   "overrides": {
-    "brace-expansion": "^5.0.9",
+    "brace-expansion": "^5.0.12",
     "diff": "^8.0.3",
     "serialize-javascript": "^7.0.5",
     "tmp": "^0.2.6",
-    "uuid": "^11.1.1"
+    "uuid": "^11.1.1",
+    "markdown-it": "^14.3.1"
   },
   "devDependencies": {
-    "@babel/cli": "^7.29.7",
-    "@babel/core": "^7.29.7",
-    "@babel/preset-env": "^7.29.7",
-    "@babel/preset-typescript": "^7.29.7",
+    "@babel/cli": "^8.0.6",
+    "@babel/core": "^8.0.6",
+    "@babel/preset-env": "^8.0.6",
+    "@babel/preset-typescript": "^8.0.1",
     "@babel/runtime": "^7.29.7",
     "@vitest/browser-playwright": "^4.1.10",
+    "babel-plugin-polyfill-corejs3": "^1.0.0",
     "eslint": "^8.57.1",
     "playwright": "^1.60.0",
     "typedoc": "^0.28.19",
