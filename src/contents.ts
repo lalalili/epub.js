@@ -253,20 +253,29 @@ const snapVerticalRlContentWidthToTextBoundaries = ({
 	return best.crossings < initialCrossings ? Math.ceil(best.width) : snappedContentWidth;
 };
 
+type VerticalRlFrameReflowEvidence = {
+	sourceKey: string;
+	frameWidth: number;
+	paintLeft: number;
+	followsFrame: boolean;
+};
+
 const stabilizeVerticalRlSnappedContentWidth = ({
 	previous,
 	snappedContentWidth,
 	pageLength,
 	totalPages,
 	lineWidth,
-	rawWidth
+	rawWidth,
+	frameReflow
 }: {
-	previous?: { width?: number; totalPages?: number; pageLength?: number } | null;
+	previous?: { width?: number; totalPages?: number; pageLength?: number; frameReflow?: VerticalRlFrameReflowEvidence } | null;
 	snappedContentWidth: number;
 	pageLength: number;
 	totalPages: number;
 	lineWidth?: number | null;
 	rawWidth?: number | null;
+	frameReflow?: VerticalRlFrameReflowEvidence;
 }): number => {
 	const width = Number(snappedContentWidth);
 	const previousWidth = Number(previous && previous.width);
@@ -281,6 +290,20 @@ const stabilizeVerticalRlSnappedContentWidth = ({
 		Math.abs(Number(previous.pageLength || 0) - Number(pageLength || 0)) > 1
 	) {
 		return snappedContentWidth;
+	}
+
+	const previousFrame = previous.frameReflow;
+	if (frameReflow && previousFrame && previous.totalPages === totalPages &&
+		frameReflow.sourceKey === previousFrame.sourceKey) {
+		const frameDelta = frameReflow.frameWidth - previousFrame.frameWidth;
+		const paintDelta = frameReflow.paintLeft - previousFrame.paintLeft;
+		// Reframing right-anchored text translates its boxes without reflowing it.
+		// Chasing those translated coordinates changes the same page's cache key.
+		frameReflow.followsFrame = Math.abs(paintDelta - frameDelta) < 0.001 &&
+			(Math.abs(frameDelta) > 0.001 || previousFrame.followsFrame);
+		if (frameReflow.followsFrame) {
+			return previousWidth;
+		}
 	}
 
 	const frameWidthIsBeingRemeasuredAsContent = Boolean(
@@ -478,7 +501,8 @@ class Contents {
 	declare sectionHref: string;
 	declare _verticalRlMetricsCache: VerticalRlMetricsCache | null;
 	declare _verticalRlPageMetricsCache: VerticalRlPageMetricsCache | null;
-	declare _verticalRlStableSnappedContentWidth?: { pageLength: number; totalPages: number; width: number } | null;
+	declare _verticalRlStableSnappedContentWidth?: { pageLength: number; totalPages: number; width: number; frameReflow?: VerticalRlFrameReflowEvidence } | null;
+	declare _verticalRlFrameOriginWidth?: { pageLength: number; totalPages: number; width: number; frameReflow?: VerticalRlFrameReflowEvidence };
 	declare _verticalRlColumnsSignature?: string;
 	declare _verticalRlCssValues?: Record<string, string>;
 	declare _verticalRlStylesheetRuleSignatures?: Record<string, string>;
@@ -2196,19 +2220,46 @@ class Contents {
 			rawWidth,
 			lineBoxes: metrics.lineBoxes
 		});
+		const frameStyle = content && this.window ? this.window.getComputedStyle(content) : null;
+		const frameWidth = this.documentElement?.clientWidth;
+		const frameReflow: VerticalRlFrameReflowEvidence | undefined =
+			frameStyle?.writingMode === "vertical-rl" && this.document.fonts?.status === "loaded" &&
+			Number.isFinite(frameWidth) && Number.isFinite(rect.left) &&
+			Number.isFinite(rect.paintWidth) && metrics.lineBoxes.length > 0
+				? {
+					sourceKey: JSON.stringify([
+						safePageWidth, Number.isFinite(safePageHeight) && safePageHeight > 0
+							? safePageHeight : content.clientHeight || this.documentElement.clientHeight,
+						rect.paintWidth, rect.bottom - rect.top,
+						frameStyle.fontSize, frameStyle.lineHeight, frameStyle.fontFamily,
+						frameStyle.letterSpacing, frameStyle.direction,
+						metrics.lineBoxes.map(box => [box.left - rect.left, box.right - rect.left, box.width])
+					]),
+					frameWidth: frameWidth!, paintLeft: rect.left, followsFrame: false
+				}
+				: undefined;
+		const frameOriginWidth = this._verticalRlFrameOriginWidth;
+		const sameFrameSource = frameReflow && frameOriginWidth?.frameReflow &&
+			frameReflow.sourceKey === frameOriginWidth.frameReflow.sourceKey &&
+			frameOriginWidth.totalPages === totalPages && frameOriginWidth.pageLength === pageLength;
 		snappedContentWidth = stabilizeVerticalRlSnappedContentWidth({
-			previous: this._verticalRlStableSnappedContentWidth,
+			previous: this._verticalRlStableSnappedContentWidth || (sameFrameSource ? frameOriginWidth : null),
 			snappedContentWidth,
 			pageLength,
 			totalPages,
 			lineWidth: metrics.lineWidth,
-			rawWidth
+			rawWidth,
+			frameReflow
 		});
 		this._verticalRlStableSnappedContentWidth = {
 			pageLength,
 			totalPages,
-			width: snappedContentWidth
+			width: snappedContentWidth,
+			frameReflow
 		};
+		// Cache invalidation may precede a frame-only remeasure. The source key
+		// independently validates whether the prior frame evidence still applies.
+		this._verticalRlFrameOriginWidth = frameReflow ? this._verticalRlStableSnappedContentWidth : undefined;
 		const pageBoundaryShift = edgeGuardPx;
 		const result = {
 			rawWidth,
