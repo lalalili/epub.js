@@ -22,12 +22,18 @@ export function semanticDigest(text:string):string {
  }
  return h.map(v=>v.toString(16).padStart(8,'0')).join('');
 }
-function glyphs(doc:Document):{items:Glyph[];digest:string} {
+function glyphs(doc:Document,captureClip?:Box):{items:Glyph[];digest:string} {
  const walker=doc.createTreeWalker(doc.body,NodeFilter.SHOW_TEXT),items:Glyph[]=[];let text='';
  for(let n=walker.nextNode();n;n=walker.nextNode()){
   const node=n as Text;if(node.parentElement?.closest('script,style,noscript'))continue;
   text+=node.data;if(text.length>LIMIT)throw Error('semantic-cut-quota');
   let visible=true;for(let p=node.parentElement;p;p=p.parentElement){const s=doc.defaultView!.getComputedStyle(p);if(s.display==='none'||s.visibility!=='visible'||Number(s.opacity)===0)visible=false;}
+  // Only capture may reject an entire text node outside the effective viewport.
+  // Resolution still needs every glyph to prove a placement and its neighbors.
+  if(visible&&captureClip){
+   const bounds=doc.createRange();bounds.selectNodeContents(node);
+   visible=[...bounds.getClientRects()].some(r=>r.width>0&&r.height>0&&hit(r,captureClip));
+  }
   let pos=0;for(const char of node.data){const start=pos;pos+=char.length;if(/\s/u.test(char))continue;
    const r=doc.createRange();r.setStart(node,start);r.setEnd(node,pos);
    items.push({node,start,end:pos,rects:visible?[...r.getClientRects()].filter(b=>b.width>0&&b.height>0):[]});
@@ -56,7 +62,7 @@ const hit=(r:Box,c:Box)=>r.right>c.left&&r.left<c.right&&r.bottom>c.top&&r.top<c
 export function captureSemanticCut(doc:Document,frame:HTMLIFrameElement,cfiBase:string):SemanticCut|null {
  try{
   const clip=localSemanticClip(frame);if(!clip||frame.contentDocument!==doc)return null;
-  const {items,digest}=glyphs(doc);const runs:string[]=[];let range:Range|null=null,last:Glyph|null=null;
+  const {items,digest}=glyphs(doc,clip);const runs:string[]=[];let range:Range|null=null,last:Glyph|null=null;
   const flush=()=>{if(range)runs.push(new EpubCFI(range,cfiBase).toString());range=null;};
   for(const g of items){if(!g.rects.some(r=>hit(r,clip))){flush();last=null;continue;}
    if(!range||last?.node!==g.node){flush();range=doc.createRange();range.setStart(g.node,g.start);}

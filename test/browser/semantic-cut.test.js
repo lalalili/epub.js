@@ -19,6 +19,36 @@ async function fixture() {
 }
 
 describe('bounded semantic cut', () => {
+  it('captures exact visible runs without measuring every offscreen character, and remeasures after navigation', async () => {
+    const {frame, doc} = await fixture();
+    const far = doc.createElement('span');
+    far.style.cssText = 'display:inline-block;width:2000px';
+    far.textContent = '中文😀'.repeat(100);
+    doc.body.append(far);
+    const original = doc.defaultView.Range.prototype.getClientRects;
+    let farReads = 0;
+    doc.defaultView.Range.prototype.getClientRects = function (...args) {
+      if (this.startContainer === far.firstChild) farReads += 1;
+      return original.apply(this, args);
+    };
+    try {
+      const cut = captureSemanticCut(doc, frame, '/6/2');
+      const {default: EpubCFI} = await import('../../src/epubcfi');
+      const text = value => value.runs.map(cfi => new EpubCFI(cfi).toRange(doc).toString()).join('');
+      expect(text(cut)).toBe('cdefgh');
+      expect(cut.sourceDigest).toBe(semanticDigest(doc.body.textContent));
+      expect(farReads).toBe(1);
+      frame.style.left = '-320px';
+      const moved = captureSemanticCut(doc, frame, '/6/2');
+      expect(text(moved)).toContain('中文');
+      expect(farReads).toBeGreaterThan(100);
+      expect(moved.sourceDigest).toBe(cut.sourceDigest);
+      far.textContent += '修';
+      expect(captureSemanticCut(doc, frame, '/6/2').sourceDigest).not.toBe(cut.sourceDigest);
+    } finally {
+      doc.defaultView.Range.prototype.getClientRects = original;
+    }
+  });
   it('matches independent WebCrypto SHA-256 including unicode and padding boundaries', async () => {
     for (const value of ['', 'abc', '中文😀', ...[55,56,64,12000].map(n => 'x'.repeat(n))]) {
       const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
