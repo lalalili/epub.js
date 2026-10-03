@@ -4,6 +4,7 @@ import { extend } from "../../core/collections";
 import { isNumber } from "../../core/types";
 import { windowBounds } from "../../platform/layout";
 import { collectVisibleTextClientRects } from "../../platform/traversal";
+import type { VisibleTextClientRect } from "../../platform/traversal";
 import scrollType from "../../utils/scrolltype";
 import Mapping from "../../mapping";
 import { captureSemanticCut, resolveSemanticCut, type SemanticCut } from '../../rendering/semantic-cut';
@@ -244,6 +245,7 @@ const appendVerticalRlTerminalTrace = (event: string, detail: Record<string, unk
 	}
 };
 type SnapLimits = {
+	textRects?: () => VisibleTextClientRect[] | null;
 	rawLeft?: number;
 	rawRight?: number;
 	leftMaxMask?: number;
@@ -1446,8 +1448,22 @@ class DefaultViewManager {
 			});
 		}
 
+		// Both boundaries are measured synchronously in the same document. Reuse
+		// its ranges only for this calculation; the next call measures afresh.
+		let measuredRects: VisibleTextClientRect[] | null | undefined;
+		const textRects = () => {
+			if (measuredRects === undefined) {
+				const view = this.views && (this.views.first() || this.views.last());
+				const doc = view && view.contents && view.contents.document;
+				const win = view && view.contents && view.contents.window;
+				measuredRects = doc && win && doc.body
+					? collectVisibleTextClientRects(doc, win, doc.body, { minimumTextLength: 1, limit: 1000 })
+					: null;
+			}
+			return measuredRects;
+		};
 		if (currentPageIndex > 0) {
-			let previousPageLeftMask = this.getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask);
+			let previousPageLeftMask = this.getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask, textRects);
 			right = getVerticalRlPreviousPageRightMaskHelper(
 				visibleWidth,
 				previousPageStep,
@@ -1462,6 +1478,7 @@ class DefaultViewManager {
 		}
 
 		return this.snapVerticalRlEdgeMaskWidths(edgeMask.widths, edgeMask.maxMask, {
+			textRects,
 			previousPageStep: edgeMask.previousPageStep,
 			rightMaxMask: edgeMask.rightMaxMask
 		});
@@ -1741,7 +1758,7 @@ class DefaultViewManager {
 		});
 	}
 
-	getPreviousVerticalRlLeftMask(previousPageStep: number, left: number, maxMask: number): number {
+	getPreviousVerticalRlLeftMask(previousPageStep: number, left: number, maxMask: number, textRects?: () => VisibleTextClientRect[] | null): number {
 		if (!previousPageStep || !this.container || !this.views) {
 			return Math.min(left, maxMask);
 		}
@@ -1767,6 +1784,7 @@ class DefaultViewManager {
 		}
 
 		let snapped = this.snapVerticalRlEdgeMaskWidths(previousMask.widths, previousMask.maxMask, {
+			textRects,
 			rawLeft: previousMask.rawLeft,
 			rawRight: previousMask.rawRight,
 			nextPageStep: previousMask.nextPageStep,
@@ -1968,7 +1986,7 @@ class DefaultViewManager {
 		let hasStructuralEdgeGuard = viewportInput.hasStructuralEdgeGuard;
 		let canExpandClippedRawRight = viewportInput.canExpandClippedRawRight;
 		let rightPaintGuardMax = viewportInput.rightPaintGuardMax;
-		let textRects = collectVisibleTextClientRects(doc, win, body, {
+		let textRects = limits.textRects ? limits.textRects() : collectVisibleTextClientRects(doc, win, body, {
 			minimumTextLength: 1,
 			limit: 1000
 		});

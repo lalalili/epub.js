@@ -4981,6 +4981,7 @@ describe("Vertical RL manager pagination", function() {
 			parentElement: {}
 		};
 		let yielded = false;
+		let rangeReads = 0;
 
 		manager.container = {
 			clientWidth: 1062,
@@ -5016,6 +5017,7 @@ describe("Vertical RL manager pagination", function() {
 						document: {
 							body: {},
 							createTreeWalker: function() {
+								yielded = false;
 								return {
 									nextNode: function() {
 										if (yielded) {
@@ -5030,6 +5032,7 @@ describe("Vertical RL manager pagination", function() {
 								return {
 									selectNodeContents: function() {},
 									getClientRects: function() {
+										rangeReads += 1;
 										return [{
 											left: 2106.3,
 											right: 2126.3,
@@ -5074,6 +5077,9 @@ describe("Vertical RL manager pagination", function() {
 
 		assert.equal(maskWidths.left, 18);
 		assert.equal(maskWidths.right, 2);
+		assert.equal(rangeReads, 1, "previous and current mask must share one synchronous range measurement");
+		assert.deepEqual(manager.getVerticalRlEdgeMaskWidths(), maskWidths);
+		assert.equal(rangeReads, 2, "a new mask calculation must measure the document afresh");
 	});
 
 	it("does not hide a previous-page clipped line again at the current right edge", function() {
