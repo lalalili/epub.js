@@ -13513,6 +13513,7 @@
 	}
 	function classify(candidate, effectiveClip, writingMode) {
 		if (!candidate.connected || !candidate.ownerDocumentIsCurrent || !candidate.geometryPositive || !candidate.rect || !candidate.intersection) return "unknown";
+		if (writingMode === "vertical-rl" && candidate.kind === "text" && candidate.rect.left < effectiveClip.left) return "unreached";
 		if (candidate.intersection.positiveArea) return "reached";
 		if (writingMode === "vertical-rl" && candidate.rect.right <= effectiveClip.left) return "unreached";
 		return "unknown";

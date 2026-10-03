@@ -4,6 +4,12 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-10-03
 
+### EPUB-G5-001 partially masked terminal text
+- Why: the same terminal fixture with Liberation Mono reproduced the CI failure: the tail Range spans x=2..20 while the effective left clip is x=12. Positive intersection suppressed continuation and semantic coverage stopped at 89 of 90 units.
+- Diff Scope: classify vertical-rl text extending left of the effective clip as unreached before accepting positive intersection. Replaced-element behavior is unchanged. Keep separate fully masked and partially intersecting terminal fixtures instead of assuming a generic monospace font has fixed metrics.
+- Test: the partial-tail fixture now promotes continuation and covers 90 of 90 units; nine focused terminal tests and the full release gate pass (900 browser tests, one existing skip). This is raw Range and semantic coverage evidence, not a raster proof or full true-book G5 qualification.
+- Rollback: revert this terminal classification change and rebuild artifacts.
+
 ### EPUB-G5-001 release build security gate
 - Why: the full dependency audit blocked release through the Babel 7 CLI watcher and documentation dependencies.
 - Diff Scope: migrate the Babel build toolchain to version 8, retain CommonJS compatibility output and usage-based core-js polyfills, and update the affected brace-expansion and markdown-it dependencies. Preserve unrelated locked dependency versions.

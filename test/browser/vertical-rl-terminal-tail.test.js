@@ -259,12 +259,12 @@ function diagnosticState(manager, semanticIds, tailId) {
 	};
 }
 
-async function createFixture({ name, kind, columns, geometryTailWidth, tailShift }) {
+async function createFixture({ name, kind, columns, geometryTailWidth, tailShift, fontFamily = "monospace" }) {
 	const zip = new JSZip();
 	zip.file("mimetype", "application/epub+zip");
 	zip.file("META-INF/container.xml", '<?xml version="1.0"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/></rootfiles></container>');
 	zip.file("OPS/package.opf", '<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="id"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="terminal-authority-fixture">terminal-authority-fixture</dc:identifier><dc:title>Terminal authority</dc:title><dc:language>en</dc:language></metadata><manifest><item id="one" href="one.xhtml" media-type="application/xhtml+xml"/><item id="two" href="two.xhtml" media-type="application/xhtml+xml"/></manifest><spine page-progression-direction="rtl"><itemref idref="one"/><itemref idref="two"/></spine></package>');
-	const style = `html,body{margin:0;padding:0;writing-mode:vertical-rl;direction:ltr;font:16px/31px monospace;text-orientation:upright}p{margin:0;padding:0}span{white-space:nowrap}.geometry-tail{display:block;width:${geometryTailWidth}px;height:1px;visibility:hidden}.semantic-tail{position:relative;left:${tailShift}px}.replaced-tail{display:inline-block;position:relative;left:${tailShift}px;width:23px;height:16px;vertical-align:top}`;
+	const style = `html,body{margin:0;padding:0;writing-mode:vertical-rl;direction:ltr;font:16px/31px ${fontFamily};text-orientation:upright}p{margin:0;padding:0}span{white-space:nowrap}.geometry-tail{display:block;width:${geometryTailWidth}px;height:1px;visibility:hidden}.semantic-tail{position:relative;left:${tailShift}px}.replaced-tail{display:inline-block;position:relative;left:${tailShift}px;width:23px;height:16px;vertical-align:top}`;
 	const textMarkup = Array.from({ length: columns }, (_, index) => `<p><span data-semantic-id="unit-${index}">${index === columns - 1 ? "A" : "ABCDEFGHI"}</span></p>`).join("");
 	const replacedMarkup = kind === "replaced"
 		? `<p><svg data-semantic-id="tail-owner" class="replaced-tail" width="23" height="144" viewBox="0 0 23 144" role="img" aria-label="terminal owner"><rect width="23" height="144" fill="black"/></svg></p>`
@@ -603,10 +603,21 @@ it("keeps repeated reached and unreached terminal decisions idempotent", () => {
 });
 
 it("promotes the original Fixture E geometry when the target tail remains outside the applied mask", async () => {
-	const report = await runCase({ ...fixtureE, name: "fixture-e-target-tail-still-masked", tailShift: 40 });
+	const report = await runCase({ ...fixtureE, name: "fixture-e-target-tail-still-masked", tailShift: 20 });
 
 	expect(report.tailStateBefore.state).toBe("unreached");
 	expect(report.afterFirstPromotion.tailRect.right).toBeLessThanOrEqual(report.afterFirstPromotion.effectiveClip.left);
+	expect(report.afterFirstPromotion.tailState.state).toBe("unreached");
+	expect(report.promotionObserved).toBe(true);
+	expect(report.terminalTailReachedAfterPromotion).toBe(true);
+	expect(report.cumulativeUnionCount).toBe(fixtureE.columns);
+}, 120000);
+
+it("does not suppress continuation for a text tail intersecting the left mask", async () => {
+	const report = await runCase({ ...fixtureE, name: "fixture-e-partially-masked-text-tail", tailShift: 40, fontFamily: '\"Liberation Mono\", monospace' });
+	console.info("vertical-rl-partial-terminal-tail", JSON.stringify(sanitizeReport(report)));
+	expect(report.afterFirstPromotion.tailRect.left).toBeLessThan(report.afterFirstPromotion.effectiveClip.left);
+	expect(report.afterFirstPromotion.tailRect.right).toBeGreaterThan(report.afterFirstPromotion.effectiveClip.left);
 	expect(report.afterFirstPromotion.tailState.state).toBe("unreached");
 	expect(report.promotionObserved).toBe(true);
 	expect(report.terminalTailReachedAfterPromotion).toBe(true);
