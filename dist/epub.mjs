@@ -10266,6 +10266,17 @@ var li = class {
 		let E = this.getBaseGeometryPageCount(), D = this.getPageSnapTolerance(), O = x && pn(x, E, p, T, m, D), k = "unknown", A = null;
 		O && (A = this.resolveVerticalRlTerminalTailObservation(), k = A.resolution?.state || "unknown");
 		let j = x?.continuationCount || 0, M = x && O ? this.getCurrentPageIndex() : null, N = x && O ? this.getNormalizedLogicalScrollLeft() : null, P = !1, F = "unknown", I = null;
+		if (x?.layoutKey === g && p === u - 1 && Math.abs(m - T) <= 1) {
+			if (h) x.terminalRightBoundaries ??= {}, x.terminalRightBoundaries[p] = h.maxRightBoundary;
+			else if (w !== null) {
+				let e = x.terminalRightBoundaries?.[p];
+				typeof e == "number" && Number.isFinite(e) && e > 0 && (h = {
+					pageIndex: p,
+					maxRightBoundary: e,
+					preferredRightBoundary: e
+				});
+			}
+		}
 		this._verticalRlSequentialBoundaryConstraint = h, this._verticalRlPreservedPageBoundary = (t.preserveCachedBoundary || y && n) && w !== null && g !== null ? {
 			pageIndex: p,
 			layoutKey: g

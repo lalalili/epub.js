@@ -4,6 +4,13 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-10-04
 
+### EPUB-G5-001 terminal return boundary ownership
+- Why: the native real-book terminal frame retained its offset but widened its effective right clip on return, repeating 39 source positions already witnessed on the previous page. An Engine-only continuation fixture independently returns four extra source units when it remembers the offset without the learned terminal right boundary.
+- Diff Scope: keep the learned terminal right boundary in the existing Section/layout ledger and restore it only for a matching cached terminal offset at the end of that rail. New sections and changed geometry retain independent ledgers.
+- Test: the strict returned-source-window assertion fails before and passes after; all five continuation tests and the full browser suite pass (903 passes, one existing skip). Lint, typecheck and canonical build pass. New built-consumer Web/Android evidence remains pending.
+- Evidence: numeric geometry and source hashes are recorded in the host G5 case; no ISBN-specific behavior or test relaxation. This is not full G5, formal A-E, production or physical Android closure.
+- Rollback: revert the terminal boundary ledger change and regenerate distribution artifacts.
+
 ### EPUB-G5-001 cached-neighbor viewport gap
 - Why: a learned future offset advanced 418.1816px through a 393.0909px native viewport. Page-index tolerance admitted this jump and left 35 ordinary source characters outside both adjacent effective clips. A core-only fixture independently reproduces omitted source units when the excess advance is smaller than page-index tolerance.
 - Diff Scope: use a 1px measurement tolerance for cached-neighbor viewport-gap admission. Page-index lookup tolerance, typography, masks and book source remain unchanged.
