@@ -10487,7 +10487,7 @@ var li = class {
 			if (this.isRtlVerticalPaginated()) {
 				let e = this.getCurrentPageIndex(), n = this.getTotalPagesForCurrentView();
 				if (e < n - 1) {
-					let t = e + 1, r = this.getVerticalRlLogicalPageOffsetCacheKey(n, this.getMaxLogicalScrollLeft()), i = this.getCachedVerticalRlLogicalPageOffset(t, r), a = this.layout?.pageWidth || this.container?.clientWidth || 0, o = i !== null && a > 0 && i - this.getNormalizedLogicalScrollLeft() > a + this.getPageSnapTolerance();
+					let t = e + 1, r = this.getVerticalRlLogicalPageOffsetCacheKey(n, this.getMaxLogicalScrollLeft()), i = this.getCachedVerticalRlLogicalPageOffset(t, r), a = this.layout?.pageWidth || this.container?.clientWidth || 0, o = i !== null && a > 0 && i - this.getNormalizedLogicalScrollLeft() > a + 1;
 					this.scrollToLogicalPage(t, o ? {
 						ignoreCachedLogicalOffset: !0,
 						sequentialRightBoundary: this.getVerticalRlCurrentEffectiveLeftBoundary()

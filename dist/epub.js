@@ -17359,7 +17359,7 @@
 					const cacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, this.getMaxLogicalScrollLeft());
 					const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, cacheKey);
 					const visibleWidth = this.layout?.pageWidth || this.container?.clientWidth || 0;
-					const cachedBoundaryCreatesGap = recordedOffset !== null && visibleWidth > 0 && recordedOffset - this.getNormalizedLogicalScrollLeft() > visibleWidth + this.getPageSnapTolerance();
+					const cachedBoundaryCreatesGap = recordedOffset !== null && visibleWidth > 0 && recordedOffset - this.getNormalizedLogicalScrollLeft() > visibleWidth + 1;
 					this.scrollToLogicalPage(targetIndex, cachedBoundaryCreatesGap ? {
 						ignoreCachedLogicalOffset: true,
 						sequentialRightBoundary: this.getVerticalRlCurrentEffectiveLeftBoundary()

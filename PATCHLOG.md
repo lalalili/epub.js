@@ -4,6 +4,13 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-10-04
 
+### EPUB-G5-001 cached-neighbor viewport gap
+- Why: a learned future offset advanced 418.1816px through a 393.0909px native viewport. Page-index tolerance admitted this jump and left 35 ordinary source characters outside both adjacent effective clips. A core-only fixture independently reproduces omitted source units when the excess advance is smaller than page-index tolerance.
+- Diff Scope: use a 1px measurement tolerance for cached-neighbor viewport-gap admission. Page-index lookup tolerance, typography, masks and book source remain unchanged.
+- Test: 156 focused browser tests; full 82-file suite with 903 passes and one existing skip; lint, typecheck and canonical build pass. The paired Reader's actual loaded new Web candidate passes 8069 ui-small canonical forward/reverse navigation; same-profile Android target coverage remains under verification.
+- Evidence: the native failure, raw Range geometry, screenshots and correct iframe caret identity are retained privately with sanitized source hashes in the host regression case. This is not full G5, formal A-E, production or physical Android closure.
+- Rollback: revert the gap admission change and regenerate distribution artifacts.
+
 ### EPUB-G5-001 frame-origin measurement stability
 - Why: translating a vertical-rl iframe was incorrectly treated as source reflow. Repeated width snapping reduced the same unchanged source width by one pixel; cache invalidation and omitted optional page height could discard the translation witness.
 - Diff Scope: retain frame-origin evidence only while source shape, typography and viewport agree; normalize omitted page height to the actual content height. Raw Range rects and genuine source/font/viewport reflow remain independently measured.
