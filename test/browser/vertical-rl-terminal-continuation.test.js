@@ -80,6 +80,7 @@ it("preserves the early terminal window, reaches the tail, and returns through b
 	expect(returnedTail.index).toBe(tail.index);
 	expect(returnedTail.total).toBe(tail.total);
 	expect(returnedTail.visible).toContain(markerB);
+	expect(returnedTail.visible).toEqual(tail.visible);
 	await manager.prev();
 	await manager.waitForVerticalRlLayoutReady();
 	expect(state(manager).index).toBe(tail.index - 1);

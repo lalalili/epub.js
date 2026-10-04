@@ -3666,6 +3666,22 @@ class DefaultViewManager {
 		let promotionResult = false;
 		let terminalTailStateAfterApply: VerticalRlTerminalTailState = "unknown";
 		let terminalTailObservationAfterApply: VerticalRlTerminalTailObservation | null = null;
+		// A cached terminal offset also owns the source boundary learned on forward entry.
+		// Keep it with the Section/layout ledger so view recreation cannot widen that page.
+		if (terminalLayout?.layoutKey === logicalOffsetCacheKey &&
+			targetIndex === totalPages - 1 && Math.abs(maxScroll - logicalOffset) <= 1) {
+			if (sequentialBoundaryConstraint) {
+				terminalLayout.terminalRightBoundaries ??= {};
+				terminalLayout.terminalRightBoundaries[targetIndex] = sequentialBoundaryConstraint.maxRightBoundary;
+			} else if (cachedLogicalOffset !== null) {
+				const boundary = terminalLayout.terminalRightBoundaries?.[targetIndex];
+				if (typeof boundary === "number" && Number.isFinite(boundary) && boundary > 0) {
+					sequentialBoundaryConstraint = {
+						pageIndex: targetIndex, maxRightBoundary: boundary, preferredRightBoundary: boundary
+					};
+				}
+			}
+		}
 		this._verticalRlSequentialBoundaryConstraint = sequentialBoundaryConstraint;
 		this._verticalRlPreservedPageBoundary = (options.preserveCachedBoundary ||
 			(hasSemanticWindowLogicalOffset && preserveSourceCut)) &&
