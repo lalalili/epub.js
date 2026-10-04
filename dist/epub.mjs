@@ -6094,13 +6094,18 @@ var Et = class {
 		});
 	}
 	return d.crossings < o ? Math.ceil(d.width) : e;
-}, Vt = ({ previous: e, snappedContentWidth: t, pageLength: n, totalPages: r, lineWidth: i, rawWidth: a }) => {
-	let o = Number(t), s = Number(e && e.width), c = Number(a), l = Math.max(4, Mt);
-	if (!Number.isFinite(o) || o <= 0 || !e || !Number.isFinite(s) || s <= 0 || Math.abs(Number(e.pageLength || 0) - Number(n || 0)) > 1) return t;
-	if (r > Number(e.totalPages || 0) && o > s && Number.isFinite(c) && c > 0 && c <= s + l) return s;
+}, Vt = ({ previous: e, snappedContentWidth: t, pageLength: n, totalPages: r, lineWidth: i, rawWidth: a, frameReflow: o }) => {
+	let s = Number(t), c = Number(e && e.width), l = Number(a), u = Math.max(4, Mt);
+	if (!Number.isFinite(s) || s <= 0 || !e || !Number.isFinite(c) || c <= 0 || Math.abs(Number(e.pageLength || 0) - Number(n || 0)) > 1) return t;
+	let d = e.frameReflow;
+	if (o && d && e.totalPages === r && o.sourceKey === d.sourceKey) {
+		let e = o.frameWidth - d.frameWidth, t = o.paintLeft - d.paintLeft;
+		if (o.followsFrame = Math.abs(t - e) < .001 && (Math.abs(e) > .001 || d.followsFrame), o.followsFrame) return c;
+	}
+	if (r > Number(e.totalPages || 0) && s > c && Number.isFinite(l) && l > 0 && l <= c + u) return c;
 	if (e.totalPages !== r) return t;
-	let u = Math.max(24, Math.min(48, Math.ceil(Number(i || 0) + Mt)));
-	return Math.abs(o - s) > u ? t : Math.min(o, s);
+	let f = Math.max(24, Math.min(48, Math.ceil(Number(i || 0) + Mt)));
+	return Math.abs(s - c) > f ? t : Math.min(s, c);
 }, Ht = ({ viewportPageWidth: e, linePitch: t, lineBoxes: n }) => {
 	let r = Number(e), i = Number(t);
 	if (!Number.isFinite(r) || r <= 0 || !Number.isFinite(i) || i <= 1 || !Array.isArray(n) || !n.length) return r;
@@ -6673,20 +6678,42 @@ var Et = class {
 			totalPages: D,
 			rawWidth: o,
 			lineBoxes: x.lineBoxes
-		});
+		}), A = c && this.window ? this.window.getComputedStyle(c) : null, j = this.documentElement?.clientWidth, M = A?.writingMode === "vertical-rl" && this.document.fonts?.status === "loaded" && Number.isFinite(j) && Number.isFinite(a.left) && Number.isFinite(a.paintWidth) && x.lineBoxes.length > 0 ? {
+			sourceKey: JSON.stringify([
+				n,
+				Number.isFinite(r) && r > 0 ? r : c.clientHeight || this.documentElement.clientHeight,
+				a.paintWidth,
+				a.bottom - a.top,
+				A.fontSize,
+				A.lineHeight,
+				A.fontFamily,
+				A.letterSpacing,
+				A.direction,
+				x.lineBoxes.map((e) => [
+					e.left - a.left,
+					e.right - a.left,
+					e.width
+				])
+			]),
+			frameWidth: j,
+			paintLeft: a.left,
+			followsFrame: !1
+		} : void 0, N = this._verticalRlFrameOriginWidth, P = M && N?.frameReflow && M.sourceKey === N.frameReflow.sourceKey && N.totalPages === D && N.pageLength === E;
 		k = Vt({
-			previous: this._verticalRlStableSnappedContentWidth,
+			previous: this._verticalRlStableSnappedContentWidth || (P ? N : null),
 			snappedContentWidth: k,
 			pageLength: E,
 			totalPages: D,
 			lineWidth: x.lineWidth,
-			rawWidth: o
+			rawWidth: o,
+			frameReflow: M
 		}), this._verticalRlStableSnappedContentWidth = {
 			pageLength: E,
 			totalPages: D,
-			width: k
-		};
-		let A = T, j = {
+			width: k,
+			frameReflow: M
+		}, this._verticalRlFrameOriginWidth = M ? this._verticalRlStableSnappedContentWidth : void 0;
+		let F = T, I = {
 			rawWidth: o,
 			rawPaintWidth: Math.ceil(Math.max(0, Number.isFinite(f) ? f : 0)),
 			rawHeight: s,
@@ -6697,7 +6724,7 @@ var Et = class {
 			lineWidth: x.lineWidth,
 			edgeGuardPx: T,
 			edgeGuard: T,
-			pageBoundaryShift: A,
+			pageBoundaryShift: F,
 			sampleCount: x.sampleCount,
 			gapMad: x.gapMad,
 			stable: x.stable,
@@ -6707,8 +6734,8 @@ var Et = class {
 		};
 		return this._verticalRlPageMetricsCache = {
 			key: i,
-			metrics: j
-		}, j;
+			metrics: I
+		}, I;
 	}
 	debugVerticalRlMetrics(e) {
 		let t = this.content || this.document.body, n = this.documentElement ? this.window.getComputedStyle(this.documentElement) : null, r = t ? this.window.getComputedStyle(t) : null, i = null;

@@ -2,6 +2,15 @@
 
 This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
+## 2026-10-04
+
+### EPUB-G5-001 frame-origin measurement stability
+- Why: translating a vertical-rl iframe was incorrectly treated as source reflow. Repeated width snapping reduced the same unchanged source width by one pixel; cache invalidation and omitted optional page height could discard the translation witness.
+- Diff Scope: retain frame-origin evidence only while source shape, typography and viewport agree; normalize omitted page height to the actual content height. Raw Range rects and genuine source/font/viewport reflow remain independently measured.
+- Test: 151 focused browser tests; full 82-file browser suite with 902 passes and one existing skip; type/lint/build and release contracts pass. Both audits report zero vulnerabilities and pack dry-run passes. The original 8069 Web ui-small/default/large navigation and four focused sentinels pass with the paired Reader fixed-layout applicability guard; Android long navigation remains under qualification.
+- Evidence: these gates qualify the named source change and immutable build artifacts, not full G5, formal persistence A–E, production or physical Android.
+- Rollback: revert the frame-origin source change and regenerate distribution artifacts.
+
 ## 2026-10-03
 
 ### EPUB-G5-001 partially masked terminal text

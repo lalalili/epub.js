@@ -10472,12 +10472,19 @@
 		}
 		return best.crossings < initialCrossings ? Math.ceil(best.width) : snappedContentWidth;
 	};
-	var stabilizeVerticalRlSnappedContentWidth = ({ previous, snappedContentWidth, pageLength, totalPages, lineWidth, rawWidth }) => {
+	var stabilizeVerticalRlSnappedContentWidth = ({ previous, snappedContentWidth, pageLength, totalPages, lineWidth, rawWidth, frameReflow }) => {
 		const width = Number(snappedContentWidth);
 		const previousWidth = Number(previous && previous.width);
 		const measuredRawWidth = Number(rawWidth);
 		const frameMeasurementTolerance = Math.max(4, VERTICAL_RL_WIDTH_GUARD);
 		if (!Number.isFinite(width) || width <= 0 || !previous || !Number.isFinite(previousWidth) || previousWidth <= 0 || Math.abs(Number(previous.pageLength || 0) - Number(pageLength || 0)) > 1) return snappedContentWidth;
+		const previousFrame = previous.frameReflow;
+		if (frameReflow && previousFrame && previous.totalPages === totalPages && frameReflow.sourceKey === previousFrame.sourceKey) {
+			const frameDelta = frameReflow.frameWidth - previousFrame.frameWidth;
+			const paintDelta = frameReflow.paintLeft - previousFrame.paintLeft;
+			frameReflow.followsFrame = Math.abs(paintDelta - frameDelta) < .001 && (Math.abs(frameDelta) > .001 || previousFrame.followsFrame);
+			if (frameReflow.followsFrame) return previousWidth;
+		}
 		if (Boolean(totalPages > Number(previous.totalPages || 0) && width > previousWidth && Number.isFinite(measuredRawWidth) && measuredRawWidth > 0 && measuredRawWidth <= previousWidth + frameMeasurementTolerance)) return previousWidth;
 		if (previous.totalPages !== totalPages) return snappedContentWidth;
 		const maxReframeDrift = Math.max(24, Math.min(48, Math.ceil(Number(lineWidth || 0) + VERTICAL_RL_WIDTH_GUARD)));
@@ -11657,19 +11664,47 @@
 				rawWidth,
 				lineBoxes: metrics.lineBoxes
 			});
+			const frameStyle = content && this.window ? this.window.getComputedStyle(content) : null;
+			const frameWidth = this.documentElement?.clientWidth;
+			const frameReflow = frameStyle?.writingMode === "vertical-rl" && this.document.fonts?.status === "loaded" && Number.isFinite(frameWidth) && Number.isFinite(rect.left) && Number.isFinite(rect.paintWidth) && metrics.lineBoxes.length > 0 ? {
+				sourceKey: JSON.stringify([
+					safePageWidth,
+					Number.isFinite(safePageHeight) && safePageHeight > 0 ? safePageHeight : content.clientHeight || this.documentElement.clientHeight,
+					rect.paintWidth,
+					rect.bottom - rect.top,
+					frameStyle.fontSize,
+					frameStyle.lineHeight,
+					frameStyle.fontFamily,
+					frameStyle.letterSpacing,
+					frameStyle.direction,
+					metrics.lineBoxes.map((box) => [
+						box.left - rect.left,
+						box.right - rect.left,
+						box.width
+					])
+				]),
+				frameWidth,
+				paintLeft: rect.left,
+				followsFrame: false
+			} : void 0;
+			const frameOriginWidth = this._verticalRlFrameOriginWidth;
+			const sameFrameSource = frameReflow && frameOriginWidth?.frameReflow && frameReflow.sourceKey === frameOriginWidth.frameReflow.sourceKey && frameOriginWidth.totalPages === totalPages && frameOriginWidth.pageLength === pageLength;
 			snappedContentWidth = stabilizeVerticalRlSnappedContentWidth({
-				previous: this._verticalRlStableSnappedContentWidth,
+				previous: this._verticalRlStableSnappedContentWidth || (sameFrameSource ? frameOriginWidth : null),
 				snappedContentWidth,
 				pageLength,
 				totalPages,
 				lineWidth: metrics.lineWidth,
-				rawWidth
+				rawWidth,
+				frameReflow
 			});
 			this._verticalRlStableSnappedContentWidth = {
 				pageLength,
 				totalPages,
-				width: snappedContentWidth
+				width: snappedContentWidth,
+				frameReflow
 			};
+			this._verticalRlFrameOriginWidth = frameReflow ? this._verticalRlStableSnappedContentWidth : void 0;
 			const pageBoundaryShift = edgeGuardPx;
 			const result = {
 				rawWidth,
