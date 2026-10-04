@@ -9479,7 +9479,7 @@ var li = class {
 			view: e,
 			document: e.contents?.document
 		});
-		return a.set(r, o), this._verticalRlActiveTerminalLayout !== o && (this._verticalRlActiveTerminalLayout ? this._verticalRlActiveTerminalLayout.offsetCache = this._verticalRlLogicalPageOffsetCache || null : this._verticalRlLogicalPageOffsetCache?.key === r && (o.offsetCache = this._verticalRlLogicalPageOffsetCache), this._verticalRlActiveTerminalLayout = o, this._verticalRlLogicalPageOffsetCache = o.offsetCache, this._verticalRlPageIndexLookupKey = null), o;
+		return a.set(r, o), this._verticalRlActiveTerminalLayout !== o && (this._verticalRlActiveTerminalLayout ? (this._verticalRlActiveTerminalLayout.offsetCache = this._verticalRlLogicalPageOffsetCache || null, this._verticalRlAppliedLeftMaskLedgerKey === this._verticalRlActiveTerminalLayout.layoutKey && (this._verticalRlActiveTerminalLayout.appliedLeftMasks = this._verticalRlAppliedLeftMaskLedger || null)) : this._verticalRlLogicalPageOffsetCache?.key === r && (o.offsetCache = this._verticalRlLogicalPageOffsetCache), this._verticalRlActiveTerminalLayout = o, this._verticalRlLogicalPageOffsetCache = o.offsetCache, this._verticalRlAppliedLeftMaskLedger = o.appliedLeftMasks || null, this._verticalRlAppliedLeftMaskLedgerKey = o.layoutKey, this._verticalRlPageIndexLookupKey = null), o;
 	}
 	getVerticalRlCleanPageEdgeMaskWidths(e) {
 		if (!this.container || !this.views || !e) return {
@@ -9617,7 +9617,7 @@ var li = class {
 		if (this.isRtlVerticalPaginated()) try {
 			let t = this.getTotalPagesForCurrentView(), n = this.getMaxLogicalScrollLeft(), r = this.getVerticalRlLogicalPageOffsetCacheKey(t, n), i = this.getCurrentPageIndex();
 			if (!r || !Number.isFinite(i)) return;
-			(!this._verticalRlAppliedLeftMaskLedger || this._verticalRlAppliedLeftMaskLedgerKey !== r) && (this._verticalRlAppliedLeftMaskLedger = {}, this._verticalRlAppliedLeftMaskLedgerKey = r), this._verticalRlAppliedLeftMaskLedger[String(i)] = e;
+			(!this._verticalRlAppliedLeftMaskLedger || this._verticalRlAppliedLeftMaskLedgerKey !== r) && (this._verticalRlAppliedLeftMaskLedger = {}, this._verticalRlAppliedLeftMaskLedgerKey = r), this._verticalRlAppliedLeftMaskLedger[String(i)] = e, this._verticalRlActiveTerminalLayout?.layoutKey === r && (this._verticalRlActiveTerminalLayout.appliedLeftMasks = this._verticalRlAppliedLeftMaskLedger);
 		} catch {}
 	}
 	getVerticalRlRestoredSemanticMaskWidths() {

@@ -15820,10 +15820,14 @@
 			});
 			layouts.set(key, state);
 			if (this._verticalRlActiveTerminalLayout !== state) {
-				if (this._verticalRlActiveTerminalLayout) this._verticalRlActiveTerminalLayout.offsetCache = this._verticalRlLogicalPageOffsetCache || null;
-				else if (this._verticalRlLogicalPageOffsetCache?.key === key) state.offsetCache = this._verticalRlLogicalPageOffsetCache;
+				if (this._verticalRlActiveTerminalLayout) {
+					this._verticalRlActiveTerminalLayout.offsetCache = this._verticalRlLogicalPageOffsetCache || null;
+					if (this._verticalRlAppliedLeftMaskLedgerKey === this._verticalRlActiveTerminalLayout.layoutKey) this._verticalRlActiveTerminalLayout.appliedLeftMasks = this._verticalRlAppliedLeftMaskLedger || null;
+				} else if (this._verticalRlLogicalPageOffsetCache?.key === key) state.offsetCache = this._verticalRlLogicalPageOffsetCache;
 				this._verticalRlActiveTerminalLayout = state;
 				this._verticalRlLogicalPageOffsetCache = state.offsetCache;
+				this._verticalRlAppliedLeftMaskLedger = state.appliedLeftMasks || null;
+				this._verticalRlAppliedLeftMaskLedgerKey = state.layoutKey;
 				this._verticalRlPageIndexLookupKey = null;
 			}
 			return state;
@@ -16048,6 +16052,7 @@
 					this._verticalRlAppliedLeftMaskLedgerKey = cacheKey;
 				}
 				this._verticalRlAppliedLeftMaskLedger[String(pageIndex)] = leftMask;
+				if (this._verticalRlActiveTerminalLayout?.layoutKey === cacheKey) this._verticalRlActiveTerminalLayout.appliedLeftMasks = this._verticalRlAppliedLeftMaskLedger;
 			} catch (error) {}
 		}
 		getVerticalRlRestoredSemanticMaskWidths() {
