@@ -15,6 +15,7 @@ export type VerticalRlTerminalContinuationState = {
 	continuationCount: number;
 	offsetCache: VerticalRlLogicalPageOffsetCache | null;
 	terminalRightBoundaries?: Record<number, number>;
+	appliedLeftMasks?: Record<string, number> | null;
 };
 
 type TerminalContinuationObservationContext = {

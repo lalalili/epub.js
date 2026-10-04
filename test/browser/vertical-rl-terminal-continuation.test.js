@@ -41,7 +41,7 @@ function state(manager) {
 		const rect = span.getBoundingClientRect();
 		return rect.width > 0 && rect.height > 0 && frame.left + rect.left >= viewport.left + mask.left && frame.left + rect.right <= viewport.right - mask.right && frame.top + rect.top >= viewport.top && frame.top + rect.bottom <= viewport.bottom;
 	}).map((span) => span.id);
-	return { href: view.section.href, index: manager.getCurrentPageIndex(), total: manager.getTotalPagesForCurrentView(), offset: manager.getNormalizedLogicalScrollLeft(), max: manager.getMaxLogicalScrollLeft(), tolerance: manager.getPageSnapTolerance(), visible, cache: JSON.parse(JSON.stringify(manager._verticalRlLogicalPageOffsetCache || null)) };
+	return { href: view.section.href, index: manager.getCurrentPageIndex(), total: manager.getTotalPagesForCurrentView(), offset: manager.getNormalizedLogicalScrollLeft(), max: manager.getMaxLogicalScrollLeft(), tolerance: manager.getPageSnapTolerance(), visible, appliedLeftMask: manager.getRecordedVerticalRlAppliedLeftMask(manager.getCurrentPageIndex()), cache: JSON.parse(JSON.stringify(manager._verticalRlLogicalPageOffsetCache || null)) };
 }
 
 it("preserves the early terminal window, reaches the tail, and returns through both after a spine round trip", async () => {
@@ -73,6 +73,7 @@ it("preserves the early terminal window, reaches the tail, and returns through b
 	}
 	expect(sectionPages.flatMap((s) => s.visible)).toEqual(expect.arrayContaining([markerA, markerB]));
 	expect(forward.at(-1).href).not.toBe(initial.href);
+	expect(manager.getRecordedVerticalRlAppliedLeftMask(1)).toBeNull();
 	await manager.prev();
 	await manager.waitForVerticalRlLayoutReady();
 	const returnedTail = state(manager);
@@ -81,12 +82,23 @@ it("preserves the early terminal window, reaches the tail, and returns through b
 	expect(returnedTail.total).toBe(tail.total);
 	expect(returnedTail.visible).toContain(markerB);
 	expect(returnedTail.visible).toEqual(tail.visible);
+	for (const page of sectionPages.slice(0, -1)) {
+		expect(manager.getRecordedVerticalRlAppliedLeftMask(page.index)).toBe(page.appliedLeftMask);
+	}
 	await manager.prev();
 	await manager.waitForVerticalRlLayoutReady();
 	expect(state(manager).index).toBe(tail.index - 1);
 	expect(state(manager).visible).toContain(markerA);
 	expect(state(manager).offset).toBe(early.offset);
 	expect(state(manager).visible).toEqual(early.visible);
+	for (const expected of sectionPages.slice(0, -2).reverse()) {
+		await manager.prev();
+		await manager.waitForVerticalRlLayoutReady();
+		const returned = state(manager);
+		expect(returned.index).toBe(expected.index);
+		expect(returned.offset).toBe(expected.offset);
+		expect(returned.visible).toEqual(expected.visible);
+	}
 }, 60000);
 
 it("can reserve multiple terminal continuations without losing any learned offsets", async () => {
@@ -134,6 +146,7 @@ it("keeps a promoted window stable through retry and invalidates continuation on
 	const resized = state(manager);
 	expect(resized.cache?.key).not.toBe(promoted.cache.key);
 	expect(manager.getVerticalRlTerminalLayout()?.continuationCount ?? 0).toBe(0);
+	expect(manager.getRecordedVerticalRlAppliedLeftMask(promoted.index)).toBeNull();
 	rendition.resize(260, 260);
 	await manager.waitForVerticalRlLayoutReady();
 	manager.scrollToLogicalPage(0);
