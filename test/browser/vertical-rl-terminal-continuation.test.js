@@ -163,3 +163,26 @@ it("does not skip source units when a future cached boundary lies beyond the nex
 	expect(actual.visible).toEqual(expected.visible);
 	expect(actual.offset).toBeCloseTo(expected.offset, 2);
 });
+
+it("does not skip source units when a future cached boundary exceeds the viewport within page-index tolerance", async () => {
+	const sequential = await fixture();
+	sequential.manager.settings.verticalRlBoundarySnapRetryDelays = [];
+	await sequential.manager.next();
+	await sequential.manager.waitForVerticalRlLayoutReady();
+	const expected = state(sequential.manager);
+
+	const cached = await fixture();
+	cached.manager.settings.verticalRlBoundarySnapRetryDelays = [];
+	const initial = state(cached.manager);
+	const pageWidth = cached.manager.layout.pageWidth;
+	const key = cached.manager.getVerticalRlLogicalPageOffsetCacheKey(initial.total, initial.max);
+	cached.manager.cacheVerticalRlLogicalPageOffset(initial.index + 1, initial.offset + pageWidth + initial.tolerance * 0.8, key);
+	await cached.manager.next();
+	await cached.manager.waitForVerticalRlLayoutReady();
+	const actual = state(cached.manager);
+
+	expect(expected.visible.length).toBeGreaterThan(0);
+	expect(actual.index).toBe(expected.index);
+	expect(actual.visible).toEqual(expected.visible);
+	expect(actual.offset).toBeCloseTo(expected.offset, 2);
+});

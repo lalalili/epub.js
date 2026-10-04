@@ -4105,7 +4105,9 @@ class DefaultViewManager {
 				const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, cacheKey);
 				const visibleWidth = this.layout?.pageWidth || this.container?.clientWidth || 0;
 				const cachedBoundaryCreatesGap = recordedOffset !== null && visibleWidth > 0 &&
-					recordedOffset - this.getNormalizedLogicalScrollLeft() > visibleWidth + this.getPageSnapTolerance();
+					recordedOffset - this.getNormalizedLogicalScrollLeft() > visibleWidth + 1;
+				// Page-index tolerance can span an entire glyph column; it must not
+				// admit a viewport gap between restored neighboring boundaries.
 				// A restored future offset is not necessarily adjacent to this page.
 				// Preserve recorded neighbors, but recalculate a boundary that skips a viewport.
 				this.scrollToLogicalPage(targetIndex, cachedBoundaryCreatesGap
