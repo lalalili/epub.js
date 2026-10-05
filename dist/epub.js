@@ -13322,6 +13322,34 @@
 					}
 				};
 			};
+			const reconstructSourceOwnedMask = () => {
+				const base = localSemanticClip(frame, false);
+				if (!base) return null;
+				const selected = rects.filter((_, i) => desired[i]).flat();
+				if (!selected.length || selected.some((r) => r.top < base.top || r.bottom > base.bottom)) return null;
+				const wantedLeft = Math.min(...selected.map((r) => r.left)), wantedRight = Math.max(...selected.map((r) => r.right));
+				const excluded = rects.filter((_, i) => !desired[i]).flat();
+				const leftNeighbors = excluded.filter((r) => r.right <= wantedLeft), rightNeighbors = excluded.filter((r) => r.left >= wantedRight);
+				const left = leftNeighbors.length ? (Math.max(...leftNeighbors.map((r) => r.right)) + wantedLeft) / 2 : wantedLeft;
+				const right = rightNeighbors.length ? (wantedRight + Math.min(...rightNeighbors.map((r) => r.left))) / 2 : wantedRight;
+				const target = {
+					...base,
+					left,
+					right
+				}, viewportWidth = base.right - base.left;
+				if (!(left < right) || right - left > viewportWidth || items.some((g, i) => g.rects.some((r) => hit(r, target)) !== desired[i])) return null;
+				const physicalStart = Math.max(0, Math.min(maxStart, right - viewportWidth));
+				const masks = {
+					left: left - physicalStart,
+					right: physicalStart + viewportWidth - right
+				};
+				if (masks.left < 0 || masks.right < 0 || masks.left + masks.right >= viewportWidth) return null;
+				return {
+					status: "qualified",
+					physicalStart,
+					maskWidths: masks
+				};
+			};
 			if (!(lo < hi)) return reconstructCurrentMask() || {
 				status: "unavailable",
 				reason: "semantic-cut-not-reprojectable"
@@ -13335,7 +13363,7 @@
 					reason: "semantic-interval-quota"
 				};
 			}
-			if (intervals.length !== 1) return reconstructCurrentMask() || {
+			if (intervals.length !== 1) return reconstructCurrentMask() || (intervals.length === 0 ? reconstructSourceOwnedMask() : null) || {
 				status: "unavailable",
 				reason: "ambiguous-semantic-cut"
 			};

@@ -2,6 +2,15 @@
 
 This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
+## 2026-10-05
+
+### EPUB-G5-001 source-owned semantic restore masks
+- Why: the saved Section0015 source cut contains455 characters, but the anchor page's transient31/2px masks leave no legal fixed-width placement. Engine returns unavailable and the legacy page-index fallback restores a different source set. A real-DOM core fixture reproduces the changed-mask rejection.
+- Diff Scope: only when the fixed-mask solver has zero placements, derive separating edges from current-document selected and excluded source glyphs. Require full containment and exact source-set ownership before returning new masks. Multiple placements, unsupported fragments, source mismatch and excluded middle glyphs remain fail-closed. Persisted descriptors contain no pixel geometry.
+- Test: the new positive core case fails before and passes after; all9 semantic-cut tests and82 browser files pass (905 tests, one existing skip), with lint/typecheck clean. The real built-consumer18px/28.8px mobile source42 case restores455/455 characters after reload and passes the five-state glyph/interaction return gate; the mobile Section0019 SameLayout sentinel and three8472 horizontal/fixed-layout gates pass. Candidate assets are restored to the original formal Reader46 bytes after verification.
+- Evidence: source hashes and sanitized counts are recorded in the CPTW named case. Android, other affected restore profiles, package release and full G5 remain unqualified; this is not new formal A-E or production evidence.
+- Rollback: revert this source change and regenerate distribution artifacts.
+
 ## 2026-10-04
 
 ### EPUB-G5-001 applied mask ledger across spine return

@@ -7730,34 +7730,54 @@ function ln(e, t, n, r, i, a = {}) {
 					right: e.right - f
 				}
 			};
+		}, y = () => {
+			let e = on(t, !1);
+			if (!e) return null;
+			let n = _.filter((e, t) => d[t]).flat();
+			if (!n.length || n.some((t) => t.top < e.top || t.bottom > e.bottom)) return null;
+			let i = Math.min(...n.map((e) => e.left)), a = Math.max(...n.map((e) => e.right)), o = _.filter((e, t) => !d[t]).flat(), c = o.filter((e) => e.right <= i), l = o.filter((e) => e.left >= a), u = c.length ? (Math.max(...c.map((e) => e.right)) + i) / 2 : i, f = l.length ? (a + Math.min(...l.map((e) => e.left))) / 2 : a, p = {
+				...e,
+				left: u,
+				right: f
+			}, m = e.right - e.left;
+			if (!(u < f) || f - u > m || s.some((e, t) => e.rects.some((e) => sn(e, p)) !== d[t])) return null;
+			let h = Math.max(0, Math.min(r, f - m)), g = {
+				left: u - h,
+				right: h + m - f
+			};
+			return g.left < 0 || g.right < 0 || g.left + g.right >= m ? null : {
+				status: "qualified",
+				physicalStart: h,
+				maskWidths: g
+			};
 		};
 		if (!(h < g)) return v() || {
 			status: "unavailable",
 			reason: "semantic-cut-not-reprojectable"
 		};
-		let y = [[h, g]];
+		let b = [[h, g]];
 		for (let e = 0; e < s.length; e++) if (!d[e]) for (let t of _[e]) {
 			let e = t.left - m, n = t.right;
-			if (y = y.flatMap(([t, r]) => n <= t || e >= r ? [[t, r]] : [[t, Math.min(r, e)], [Math.max(t, n), r]].filter(([e, t]) => e < t)), y.length > 128) return {
+			if (b = b.flatMap(([t, r]) => n <= t || e >= r ? [[t, r]] : [[t, Math.min(r, e)], [Math.max(t, n), r]].filter(([e, t]) => e < t)), b.length > 128) return {
 				status: "unavailable",
 				reason: "semantic-interval-quota"
 			};
 		}
-		if (y.length !== 1) return v() || {
+		if (b.length !== 1) return v() || (b.length === 0 ? y() : null) || {
 			status: "unavailable",
 			reason: "ambiguous-semantic-cut"
 		};
-		let b = (y[0][0] + y[0][1]) / 2, x = {
+		let x = (b[0][0] + b[0][1]) / 2, S = {
 			...o,
-			left: b,
-			right: b + m
+			left: x,
+			right: x + m
 		};
-		return s.some((e, t) => e.rects.some((e) => sn(e, x)) !== d[t]) ? {
+		return s.some((e, t) => e.rects.some((e) => sn(e, S)) !== d[t]) ? {
 			status: "unavailable",
 			reason: "semantic-cut-validation-failed"
 		} : {
 			status: "qualified",
-			physicalStart: b - p.left,
+			physicalStart: x - p.left,
 			...p.left || p.right ? { maskWidths: p } : {}
 		};
 	} catch {

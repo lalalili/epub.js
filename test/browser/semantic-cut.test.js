@@ -114,6 +114,41 @@ describe('bounded semantic cut', () => {
     host.dataset.epubVrlEdgeMaskRight = String(result.maskWidths.right);
     expect(captureSemanticCut(doc, frame, '/6/2')).toEqual(cut);
   });
+  it('reconstructs a translated source cut when the transient product masks have changed', async () => {
+    const {frame, doc} = await fixture();
+    host.dataset.epubVrlEdgeMaskLeft = '35';
+    host.dataset.epubVrlEdgeMaskRight = '20';
+    const cut = captureSemanticCut(doc, frame, '/6/2');
+    const {default: EpubCFI} = await import('../../src/epubcfi');
+    expect(cut.runs.map(cfi => new EpubCFI(cfi).toRange(doc).toString()).join('')).toBe('efg');
+    frame.style.left = '-183px';
+    host.dataset.epubVrlEdgeMaskLeft = '0';
+    host.dataset.epubVrlEdgeMaskRight = '0';
+    const result = resolveSemanticCut(doc, frame, cut, 287, '/6/2');
+    expect(result.status).toBe('qualified');
+    frame.style.left = '-' + result.physicalStart + 'px';
+    host.dataset.epubVrlEdgeMaskLeft = String(result.maskWidths.left);
+    host.dataset.epubVrlEdgeMaskRight = String(result.maskWidths.right);
+    expect(captureSemanticCut(doc, frame, '/6/2')).toEqual(cut);
+    for (const index of [4, 5, 6]) {
+      const range = doc.createRange();
+      range.selectNodeContents(doc.body.children[index]);
+      const rect = range.getBoundingClientRect();
+      expect(rect.left).toBeGreaterThanOrEqual(result.physicalStart + result.maskWidths.left);
+      expect(rect.right).toBeLessThanOrEqual(result.physicalStart + host.clientWidth - result.maskWidths.right);
+    }
+  });
+  it('does not reconstruct masks that would expose an excluded source glyph between selected runs', async () => {
+    const {frame, doc} = await fixture();
+    host.dataset.epubVrlEdgeMaskLeft = '35';
+    host.dataset.epubVrlEdgeMaskRight = '20';
+    const cut = captureSemanticCut(doc, frame, '/6/2');
+    const sparse = {...cut, runs: [cut.runs[0], cut.runs[2]]};
+    frame.style.left = '-183px';
+    host.dataset.epubVrlEdgeMaskLeft = '0';
+    host.dataset.epubVrlEdgeMaskRight = '0';
+    expect(resolveSemanticCut(doc, frame, sparse, 287, '/6/2').status).toBe('unavailable');
+  });
   it('rejects changed source, wrong spine, malformed cuts and stale documents', async () => {
     const {frame,doc} = await fixture();
     const cut = captureSemanticCut(doc,frame,'/6/2');
