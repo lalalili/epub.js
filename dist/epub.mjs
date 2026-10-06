@@ -390,26 +390,45 @@ function ue(e, t, n, r = {}) {
 	} });
 }
 function U(e, t, n, r = {}) {
-	let i = ue(e, t, n, r);
-	if (!i) return null;
-	let a = Math.max(0, Number(r.limit) || 1e3), o = !!r.countInvalidRects, s = [], c = 0, l;
-	for (; (l = i.nextNode()) && c < a;) {
+	let i = r.horizontalBounds;
+	if (i && r.supplementTruncatedPrefix) {
+		let i = U(e, t, n, {
+			...r,
+			horizontalBounds: void 0,
+			supplementTruncatedPrefix: !1
+		}), a = Math.max(0, Number(r.limit) || 1e3);
+		if (!i || i.length < a) return i;
+		let o = U(e, t, n, {
+			...r,
+			supplementTruncatedPrefix: !1
+		});
+		if (!o) return null;
+		let s = /* @__PURE__ */ new Map();
+		for (let e of [...i, ...o]) s.set(JSON.stringify(e), e);
+		return [...s.values()];
+	}
+	if (i && (!Number.isFinite(i.left) || !Number.isFinite(i.right) || i.left >= i.right)) return null;
+	let a = ue(e, t, n, r);
+	if (!a) return null;
+	let o = Math.max(0, Number(r.limit) || 1e3), s = !!r.countInvalidRects, c = [], l = 0, u;
+	for (; (u = a.nextNode()) && l < o;) {
 		let t = e.createRange();
-		t.selectNodeContents(l);
+		t.selectNodeContents(u);
 		for (let e of Array.from(t.getClientRects())) {
+			if (i && (e.right <= i.left || e.left >= i.right)) continue;
 			let t = e.width > 0 && e.height > 0;
-			if ((o || t) && (c += 1), t && s.push({
+			if ((s || t) && (l += 1), t && c.push({
 				left: e.left,
 				right: e.right,
 				top: e.top,
 				bottom: e.bottom,
 				width: e.width,
 				height: e.height
-			}), c >= a) break;
+			}), l >= o) break;
 		}
 		t.detach && t.detach();
 	}
-	return s;
+	return c;
 }
 function W(e, t, n) {
 	var r;
@@ -9366,10 +9385,15 @@ var li = class {
 		}
 		let d, f = () => {
 			if (d === void 0) {
-				let e = this.views && (this.views.first() || this.views.last()), t = e && e.contents && e.contents.document, n = e && e.contents && e.contents.window;
+				let e = this.views && (this.views.first() || this.views.last()), t = e && e.contents && e.contents.document, n = e && e.contents && e.contents.window, i = e?.iframe?.getBoundingClientRect(), a = this.container?.getBoundingClientRect(), o = r + s;
 				d = t && n && t.body ? U(t, n, t.body, {
 					minimumTextLength: 1,
-					limit: 1e3
+					limit: 1e3,
+					supplementTruncatedPrefix: !0,
+					horizontalBounds: i && a ? {
+						left: a.left - i.left - o,
+						right: a.right - i.left + o
+					} : void 0
 				}) : null;
 			}
 			return d;
@@ -9551,6 +9575,11 @@ var li = class {
 		let c = this.container.getBoundingClientRect(), l = n.getBoundingClientRect(), u = c.left - l.left, d = c.right - l.left, f = Math.max(0, Number(e.left) || 0), p = Math.max(0, Number(e.right) || 0), m = U(r, i, a, {
 			minimumTextLength: 1,
 			limit: 1e3,
+			supplementTruncatedPrefix: !0,
+			horizontalBounds: {
+				left: u - o - s,
+				right: d + o + s
+			},
 			countInvalidRects: !0
 		});
 		if (!m) return e;
@@ -9588,7 +9617,12 @@ var li = class {
 		if (!i || !a || !o || !s) return e;
 		let c = this.container.getBoundingClientRect(), l = i.getBoundingClientRect(), u = n.nextPageStep === void 0 ? this.getLogicalPageStepToNextPage() : 0, d = Yn(e, t, c.left, c.right, l.left, n, u, this.layout && this.layout.edgeGuardPx), f = d.rawLeft, p = d.rawRight, m = d.leftMaxMask, h = d.rightMaxMask, g = d.left, _ = d.right, v = d.nextPageStep, y = d.previousPageStep, b = d.forceRawLeftMask, x = d.allowRawLeftMask, S = d.edgeTolerance, C = d.hasStructuralEdgeGuard, w = d.canExpandClippedRawRight, T = d.rightPaintGuardMax, E = n.textRects ? n.textRects() : U(a, o, s, {
 			minimumTextLength: 1,
-			limit: 1e3
+			limit: 1e3,
+			supplementTruncatedPrefix: !0,
+			horizontalBounds: {
+				left: f - this.getPageAdvance() - t,
+				right: p + this.getPageAdvance() + t
+			}
 		});
 		if (!E) return e;
 		let D = E, O = typeof window < "u" && window.__EPUB_VRL_DEBUG__, k = [];
@@ -9871,7 +9905,12 @@ var li = class {
 		}), u.cacheLookup.cachedSnap;
 		let d = i.getBoundingClientRect(), f = this.getVerticalRlStructuralEdgeMaskWidthsForLogicalOffset(e, c, l), p = U(a, o, s, {
 			minimumTextLength: 1,
-			limit: 1e3
+			limit: 1e3,
+			supplementTruncatedPrefix: !0,
+			horizontalBounds: {
+				left: c - l - e - l - Vn(l),
+				right: c - e + l + Vn(l)
+			}
 		});
 		if (!p) return null;
 		let m = Zr(p, d.left, e, c, l, this.layout && this.layout.edgeGuardPx, f, this.getPageAdvance(), this.getPageBoundaryShift()), h = oi(u.cacheLookup.cacheKey, m, e, c, l, t, u.maxRightBoundaryOptions, u.rightBoundaryOptions), g = h.snapped, _ = u.rightBoundaryOptions.preferredRightBoundary, v = u.rightBoundaryOptions.maxRightBoundary, y = Number(o.devicePixelRatio);

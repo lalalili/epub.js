@@ -1456,8 +1456,15 @@ class DefaultViewManager {
 				const view = this.views && (this.views.first() || this.views.last());
 				const doc = view && view.contents && view.contents.document;
 				const win = view && view.contents && view.contents.window;
+				const frameRect = view?.iframe?.getBoundingClientRect();
+				const viewportRect = this.container?.getBoundingClientRect();
+				const padding = visibleWidth + maxMask;
 				measuredRects = doc && win && doc.body
-					? collectVisibleTextClientRects(doc, win, doc.body, { minimumTextLength: 1, limit: 1000 })
+					? collectVisibleTextClientRects(doc, win, doc.body, { minimumTextLength: 1, limit: 1000,
+						supplementTruncatedPrefix: true, horizontalBounds: frameRect && viewportRect ? {
+							left: viewportRect.left - frameRect.left - padding,
+							right: viewportRect.right - frameRect.left + padding
+						} : undefined })
 					: null;
 			}
 			return measuredRects;
@@ -1835,6 +1842,7 @@ class DefaultViewManager {
 		let textRects = collectVisibleTextClientRects(doc, win, body, {
 			minimumTextLength: 1,
 			limit: 1000,
+			supplementTruncatedPrefix: true, horizontalBounds: { left: rawLeft - advance - maxMask, right: rawRight + advance + maxMask },
 			countInvalidRects: true
 		});
 		if (!textRects) {
@@ -1993,7 +2001,8 @@ class DefaultViewManager {
 		let rightPaintGuardMax = viewportInput.rightPaintGuardMax;
 		let textRects = limits.textRects ? limits.textRects() : collectVisibleTextClientRects(doc, win, body, {
 			minimumTextLength: 1,
-			limit: 1000
+			limit: 1000,
+			supplementTruncatedPrefix: true, horizontalBounds: { left: rawLeft - this.getPageAdvance() - maxMask, right: rawRight + this.getPageAdvance() + maxMask }
 		});
 		if (!textRects) {
 			return widths;
@@ -2724,7 +2733,11 @@ class DefaultViewManager {
 		let structuralGutterMask = this.getVerticalRlStructuralEdgeMaskWidthsForLogicalOffset(logicalOffset, contentWidth, visibleWidth);
 		let textRects = collectVisibleTextClientRects(doc, win, body, {
 			minimumTextLength: 1,
-			limit: 1000
+			limit: 1000,
+			supplementTruncatedPrefix: true, horizontalBounds: {
+				left: contentWidth - visibleWidth - logicalOffset - visibleWidth - getVerticalRlEdgeMaskLimitHelper(visibleWidth),
+				right: contentWidth - logicalOffset + visibleWidth + getVerticalRlEdgeMaskLimitHelper(visibleWidth)
+			}
 		});
 		if (!textRects) {
 			return null;

@@ -4,6 +4,13 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-10-07
 
+### EPUB-G5-001 late viewport rect admission
+- Why: real-book8069 Source4 has1258 valid text rects. The first1000 omit the original boundary target, leaving edge-mask and snap measurement blind to late source text. Independent Engine-only evidence reproduces the omission; browser/Fontconfig parity is retained.
+- Diff Scope: supplement a full legacy rect prefix with a bounded horizontal-neighborhood sample, preserving prefix coordinate authority and deduplicating rects. Four existing vertical boundary measurement callers supply their local bounds. Complete prefixes retain their original behavior. No ISBN policy, source edits, relaxed expectations or disabled masks.
+- Test: actual-DOM late-target admission fails before and passes after;7 traversal tests and82 canonical files (909 tests, one existing skip) pass. Sail typecheck, lint, compile, build and package contracts pass. Same built CPTW landscape914x411 large-type24px/48px full profile passes; original Source4 indices12277..12288 separately pass full glyph ownership and pointer selection across pages60/59/60/61/60. Missing ink and ink outside effective clip are both zero.
+- Evidence: CPTW8069 named case and task-private fingerprint retain original failure, source hashes, before/after geometry and consumer reports. Affected5556 SameLayout and8472 fixed spread-switch/horizontal resize sentinels pass on the same candidate; Android qualification remains pending; this does not close fullG5 or unfreeze unrelated geometry.
+- Rollback: revert this traversal/measurement slice and regenerate canonical artifacts.
+
 ### EPUB-G5-001 vertical canvas right inset
 - Why: real-book8069 landscape914x411 at24px/48px clips nine terminal annotation characters. The raw vertical paint span excludes the24px right inset; the non-positive-offset scroll-width cap also discards it. An Engine-only real-book fixture and a public actual-DOM Range regression reproduce the missing width.
 - Diff Scope: retain the measured viewport right inset in vertical paint width and its scroll-width limit. No source edits, font-size changes, overflow suppression, mask removal or ISBN-specific policy.

@@ -774,6 +774,25 @@
 		} });
 	}
 	function collectVisibleTextClientRects(doc, win, root, options = {}) {
+		const bounds = options.horizontalBounds;
+		if (bounds && options.supplementTruncatedPrefix) {
+			const prefix = collectVisibleTextClientRects(doc, win, root, {
+				...options,
+				horizontalBounds: void 0,
+				supplementTruncatedPrefix: false
+			});
+			const limit = Math.max(0, Number(options.limit) || 1e3);
+			if (!prefix || prefix.length < limit) return prefix;
+			const nearby = collectVisibleTextClientRects(doc, win, root, {
+				...options,
+				supplementTruncatedPrefix: false
+			});
+			if (!nearby) return null;
+			const unique = /* @__PURE__ */ new Map();
+			for (const rect of [...prefix, ...nearby]) unique.set(JSON.stringify(rect), rect);
+			return [...unique.values()];
+		}
+		if (bounds && (!Number.isFinite(bounds.left) || !Number.isFinite(bounds.right) || bounds.left >= bounds.right)) return null;
 		const walker = createVisibleTextWalker(doc, win, root, options);
 		if (!walker) return null;
 		const limit = Math.max(0, Number(options.limit) || 1e3);
@@ -785,6 +804,7 @@
 			let range = doc.createRange();
 			range.selectNodeContents(node);
 			for (const rect of Array.from(range.getClientRects())) {
+				if (bounds && (rect.right <= bounds.left || rect.left >= bounds.right)) continue;
 				const isValidRect = rect.width > 0 && rect.height > 0;
 				if (countInvalidRects || isValidRect) inspected += 1;
 				if (isValidRect) rects.push({
@@ -15678,9 +15698,17 @@
 					const view = this.views && (this.views.first() || this.views.last());
 					const doc = view && view.contents && view.contents.document;
 					const win = view && view.contents && view.contents.window;
+					const frameRect = view?.iframe?.getBoundingClientRect();
+					const viewportRect = this.container?.getBoundingClientRect();
+					const padding = visibleWidth + maxMask;
 					measuredRects = doc && win && doc.body ? collectVisibleTextClientRects(doc, win, doc.body, {
 						minimumTextLength: 1,
-						limit: 1e3
+						limit: 1e3,
+						supplementTruncatedPrefix: true,
+						horizontalBounds: frameRect && viewportRect ? {
+							left: viewportRect.left - frameRect.left - padding,
+							right: viewportRect.right - frameRect.left + padding
+						} : void 0
 					}) : null;
 				}
 				return measuredRects;
@@ -15932,6 +15960,11 @@
 			let textRects = collectVisibleTextClientRects(doc, win, body, {
 				minimumTextLength: 1,
 				limit: 1e3,
+				supplementTruncatedPrefix: true,
+				horizontalBounds: {
+					left: rawLeft - advance - maxMask,
+					right: rawRight + advance + maxMask
+				},
 				countInvalidRects: true
 			});
 			if (!textRects) return maskWidths;
@@ -16005,7 +16038,12 @@
 			let rightPaintGuardMax = viewportInput.rightPaintGuardMax;
 			let textRects = limits.textRects ? limits.textRects() : collectVisibleTextClientRects(doc, win, body, {
 				minimumTextLength: 1,
-				limit: 1e3
+				limit: 1e3,
+				supplementTruncatedPrefix: true,
+				horizontalBounds: {
+					left: rawLeft - this.getPageAdvance() - maxMask,
+					right: rawRight + this.getPageAdvance() + maxMask
+				}
 			});
 			if (!textRects) return widths;
 			let rects = textRects;
@@ -16499,7 +16537,12 @@
 			let structuralGutterMask = this.getVerticalRlStructuralEdgeMaskWidthsForLogicalOffset(logicalOffset, contentWidth, visibleWidth);
 			let textRects = collectVisibleTextClientRects(doc, win, body, {
 				minimumTextLength: 1,
-				limit: 1e3
+				limit: 1e3,
+				supplementTruncatedPrefix: true,
+				horizontalBounds: {
+					left: contentWidth - visibleWidth - logicalOffset - visibleWidth - getVerticalRlEdgeMaskLimit(visibleWidth),
+					right: contentWidth - logicalOffset + visibleWidth + getVerticalRlEdgeMaskLimit(visibleWidth)
+				}
 			});
 			if (!textRects) return null;
 			let measurementInputs = getVerticalRlBoundarySnapMeasurementInputs(textRects, iframeRect.left, logicalOffset, contentWidth, visibleWidth, this.layout && this.layout.edgeGuardPx, structuralGutterMask, this.getPageAdvance(), this.getPageBoundaryShift());

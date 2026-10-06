@@ -82,8 +82,29 @@ export function collectVisibleTextClientRects(
 	doc: Document,
 	win: Window,
 	root: HTMLElement,
-	options: { limit?: number; countInvalidRects?: boolean; minimumTextLength?: number } = {}
+	options: { limit?: number; countInvalidRects?: boolean; minimumTextLength?: number;
+		horizontalBounds?: { left: number; right: number }; supplementTruncatedPrefix?: boolean } = {}
 ): VisibleTextClientRect[] | null {
+	const bounds = options.horizontalBounds;
+	if (bounds && options.supplementTruncatedPrefix) {
+		const prefix = collectVisibleTextClientRects(doc, win, root, {
+			...options, horizontalBounds: undefined, supplementTruncatedPrefix: false
+		});
+		const limit = Math.max(0, Number(options.limit) || 1000);
+		if (!prefix || prefix.length < limit) return prefix;
+		const nearby = collectVisibleTextClientRects(doc, win, root, {
+			...options, supplementTruncatedPrefix: false
+		});
+		if (!nearby) return null;
+		const unique = new Map<string, VisibleTextClientRect>();
+		for (const rect of [...prefix, ...nearby]) {
+			unique.set(JSON.stringify(rect), rect);
+		}
+		return [...unique.values()];
+	}
+	if (bounds && (!Number.isFinite(bounds.left) || !Number.isFinite(bounds.right) || bounds.left >= bounds.right)) {
+		return null;
+	}
 	const walker = createVisibleTextWalker(doc, win, root, options);
 	if (!walker) {
 		return null;
@@ -100,6 +121,9 @@ export function collectVisibleTextClientRects(
 		range.selectNodeContents(node);
 
 		for (const rect of Array.from(range.getClientRects()) as DOMRect[]) {
+			if (bounds && (rect.right <= bounds.left || rect.left >= bounds.right)) {
+				continue;
+			}
 			const isValidRect = rect.width > 0 && rect.height > 0;
 
 			if (countInvalidRects || isValidRect) {
