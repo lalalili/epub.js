@@ -636,3 +636,36 @@ it("returns unknown and never authorizes suppression when the tail geometry is u
 	expect(result.state).toBe("unknown");
 	expect(result.candidate).toBeNull();
 });
+
+// Core regression derived from the captured G5 mixed-section tail overshoot.
+it("returns to the last source-owned tail after recreating an overhanging view", async () => {
+	const fixture = await createFixture({
+		name: "recreated-overhanging-tail",
+		kind: "text",
+		columns: 65,
+		geometryTailWidth: 300,
+		tailShift: 20,
+	});
+	const { rendition, manager, semanticIds, tailId } = fixture;
+	let lastReached = null;
+	for (let step = 0; step < 32; step++) {
+		const state = diagnosticState(manager, semanticIds, tailId);
+		if (state.href === "two.xhtml") {
+			break;
+		}
+		if (state.tailState.state === "reached") {
+			lastReached = state;
+		}
+		await rendition.next();
+		await pureSettle(manager, semanticIds, tailId);
+	}
+	expect(lastReached, "forward navigation must reach the real source tail").not.toBeNull();
+	expect(manager.views.first().section.href).toBe("two.xhtml");
+	await rendition.prev();
+	await pureSettle(manager, semanticIds, tailId);
+	const returned = diagnosticState(manager, semanticIds, tailId);
+	expect(returned.href).toBe("one.xhtml");
+	expect(returned.tailState.state).toBe("reached");
+	expect(returned.visibleSemanticIds).toEqual(lastReached.visibleSemanticIds);
+	expect(returned.continuationCount).toBe(0);
+});
