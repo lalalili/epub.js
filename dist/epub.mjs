@@ -10332,6 +10332,20 @@ var li = class {
 				this._verticalRlBoundarySnapApplying = !1;
 			}
 		}
+		if (e === null && !n && !y && this.isRtlVerticalPaginated() && p > 0 && l > 0) {
+			let e = this.resolveVerticalRlTerminalTailObservation(), r = e.resolution?.candidate, i = r?.rect, a = e.effectiveClip;
+			if (r?.connected && r.ownerDocumentIsCurrent && r.geometryPositive && i && a && i.left >= a.right && Math.min(i.bottom, a.bottom) > Math.max(i.top, a.top)) {
+				let e = Math.max(1, Math.ceil((i.right - a.right) / l)), r = Math.max(0, p - e);
+				hi("vertical-rl-terminal-end-overshoot", {
+					targetIndex: p,
+					sourcePageIndex: r,
+					advance: l,
+					ownerRect: i,
+					effectiveClip: a
+				}), this.scrollToLogicalPageInLayout(r, t, n);
+				return;
+			}
+		}
 		if (O) {
 			I = this.resolveVerticalRlTerminalTailObservation(), F = I.resolution?.state || "unknown";
 			let e = pi(A), t = pi(I), n = e.terminalOwnerIdentity !== null && t.terminalOwnerIdentity !== null && e.terminalOwnerIdentity === t.terminalOwnerIdentity, r = e.ownerDocumentIdentity !== null && t.ownerDocumentIdentity !== null && e.ownerDocumentIdentity === t.ownerDocumentIdentity, i = e.frameIdentity !== null && t.frameIdentity !== null && e.frameIdentity === t.frameIdentity, a = t.ownerConnected === !0;

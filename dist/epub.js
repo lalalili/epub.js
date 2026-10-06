@@ -17143,6 +17143,25 @@
 					this._verticalRlBoundarySnapApplying = false;
 				}
 			}
+			if (pageIndex === null && !preserveSourceCut && !hasSemanticWindowLogicalOffset && this.isRtlVerticalPaginated() && targetIndex > 0 && advance > 0) {
+				const endObservation = this.resolveVerticalRlTerminalTailObservation();
+				const tail = endObservation.resolution?.candidate;
+				const rect = tail?.rect;
+				const clip = endObservation.effectiveClip;
+				if (tail?.connected && tail.ownerDocumentIsCurrent && tail.geometryPositive && rect && clip && rect.left >= clip.right && Math.min(rect.bottom, clip.bottom) > Math.max(rect.top, clip.top)) {
+					const pagesBeyondTail = Math.max(1, Math.ceil((rect.right - clip.right) / advance));
+					const sourcePageIndex = Math.max(0, targetIndex - pagesBeyondTail);
+					appendVerticalRlTerminalTrace("vertical-rl-terminal-end-overshoot", {
+						targetIndex,
+						sourcePageIndex,
+						advance,
+						ownerRect: rect,
+						effectiveClip: clip
+					});
+					this.scrollToLogicalPageInLayout(sourcePageIndex, options, preserveSourceCut);
+					return;
+				}
+			}
 			if (geometryCandidate) {
 				terminalTailObservationAfterApply = this.resolveVerticalRlTerminalTailObservation();
 				terminalTailStateAfterApply = terminalTailObservationAfterApply.resolution?.state || "unknown";
