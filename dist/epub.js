@@ -11498,7 +11498,8 @@
 				const range = this.document.createRange();
 				range.selectNodeContents(content);
 				const rect = range.getBoundingClientRect();
-				const rawWidth = Math.max(rect.width || 0, rect.right || 0);
+				const rightInset = Math.max(0, (this.window?.innerWidth || 0) - (rect.right || 0));
+				const rawWidth = Math.max((rect.width || 0) + rightInset, rect.right || 0);
 				return {
 					left: rect.left,
 					right: rect.right,
@@ -11631,7 +11632,7 @@
 			if (hasNarrowAuthorCanvas) rawWidth = narrowContentPaintWidth;
 			const shouldClampViewportSizedCanvas = Boolean(hasViewportSizedPaint && (hasNarrowAuthorCanvas || measuredCanvasFitsViewport));
 			const contentCoversDocumentCanvas = Boolean(documentScrollWidth > 0 && contentClientWidth > 0 && contentClientWidth >= documentScrollWidth - VERTICAL_RL_WIDTH_GUARD);
-			const scrollWidthLimit = Boolean(Number.isFinite(rect.left) && Number.isFinite(rect.right) && Number.isFinite(rect.rawWidth) && contentCoversDocumentCanvas && rect.left > VERTICAL_RL_WIDTH_GUARD && rect.right >= rect.rawWidth - VERTICAL_RL_WIDTH_GUARD && rect.rawWidth > contentScrollWidth + VERTICAL_RL_WIDTH_GUARD && documentScrollWidth >= rect.rawWidth - VERTICAL_RL_WIDTH_GUARD) ? Math.max(contentScrollWidth, documentScrollWidth) : contentScrollWidth;
+			const scrollWidthLimit = Boolean(Number.isFinite(rect.left) && Number.isFinite(rect.right) && Number.isFinite(rect.rawWidth) && contentCoversDocumentCanvas && rect.left > VERTICAL_RL_WIDTH_GUARD && rect.right >= rect.rawWidth - VERTICAL_RL_WIDTH_GUARD && rect.rawWidth > contentScrollWidth + VERTICAL_RL_WIDTH_GUARD && documentScrollWidth >= rect.rawWidth - VERTICAL_RL_WIDTH_GUARD) ? Math.max(contentScrollWidth, documentScrollWidth) : contentScrollWidth + Math.max(0, (this.window?.innerWidth || 0) - rect.right);
 			if (!Number.isFinite(rawWidth) || rawWidth <= 0) rawWidth = Math.max(contentScrollWidth, documentScrollWidth);
 			else if (Number.isFinite(scrollWidthLimit) && scrollWidthLimit > safePageWidth && rawWidth > scrollWidthLimit + VERTICAL_RL_WIDTH_GUARD) rawWidth = scrollWidthLimit;
 			if (!Number.isFinite(rawHeight) || rawHeight <= 0) rawHeight = Math.max(content ? content.scrollHeight || 0 : 0, this.documentElement ? this.documentElement.scrollHeight || 0 : 0);

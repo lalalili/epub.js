@@ -6559,14 +6559,14 @@ var Et = class {
 		try {
 			let t = this.document.createRange();
 			t.selectNodeContents(e);
-			let n = t.getBoundingClientRect(), r = Math.max(n.width || 0, n.right || 0);
+			let n = t.getBoundingClientRect(), r = Math.max(0, (this.window?.innerWidth || 0) - (n.right || 0)), i = Math.max((n.width || 0) + r, n.right || 0);
 			return {
 				left: n.left,
 				right: n.right,
 				top: n.top,
 				bottom: n.bottom,
 				paintWidth: n.width || 0,
-				rawWidth: r,
+				rawWidth: i,
 				rawHeight: Math.max(n.height || 0, n.bottom - Math.min(n.top, 0))
 			};
 		} catch {
@@ -6661,7 +6661,7 @@ var Et = class {
 		}
 		let l = c && c.scrollWidth || 0, u = c && (c.clientWidth || c.offsetWidth) || 0, d = this.documentElement && this.documentElement.scrollWidth || 0, f = Number(a.paintWidth), p = Math.max(l, u, Number.isFinite(f) ? f : 0), m = !!(Number.isFinite(n) && n > 0 && u > 0 && u <= n + Mt && p > 0 && p <= n + Mt), h = !!(Number.isFinite(o) && o > 0 && Number.isFinite(n) && o <= n + Mt), g = !!(Number.isFinite(a.left) && Number.isFinite(a.right) && Number.isFinite(a.rawWidth) && a.left > Mt && a.right >= a.rawWidth - Mt && d >= a.rawWidth - Mt), _ = !!(Number.isFinite(n) && n > 0 && u > 0 && u <= n + Mt && p > 0 && g && o > p + Mt);
 		_ && (o = p);
-		let v = !!(m && (_ || h)), y = d > 0 && u > 0 && u >= d - Mt, b = Number.isFinite(a.left) && Number.isFinite(a.right) && Number.isFinite(a.rawWidth) && y && a.left > Mt && a.right >= a.rawWidth - Mt && a.rawWidth > l + Mt && d >= a.rawWidth - Mt ? Math.max(l, d) : l;
+		let v = !!(m && (_ || h)), y = d > 0 && u > 0 && u >= d - Mt, b = Number.isFinite(a.left) && Number.isFinite(a.right) && Number.isFinite(a.rawWidth) && y && a.left > Mt && a.right >= a.rawWidth - Mt && a.rawWidth > l + Mt && d >= a.rawWidth - Mt ? Math.max(l, d) : l + Math.max(0, (this.window?.innerWidth || 0) - a.right);
 		!Number.isFinite(o) || o <= 0 ? o = Math.max(l, d) : Number.isFinite(b) && b > n && o > b + Mt && (o = b), (!Number.isFinite(s) || s <= 0) && (s = Math.max(c && c.scrollHeight || 0, this.documentElement && this.documentElement.scrollHeight || 0)), o = Math.ceil(o + Mt), v && (o = Math.min(o, n)), s = Math.ceil(s);
 		let x = this.estimateVerticalRlLineMetrics(n), S = Number.isFinite(n) && n > 0 ? n : null, C = x.stable ? Ht({
 			viewportPageWidth: S,

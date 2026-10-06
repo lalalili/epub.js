@@ -1917,7 +1917,8 @@ class Contents {
 			const range = this.document.createRange();
 			range.selectNodeContents(content);
 			const rect = range.getBoundingClientRect();
-			const rawWidth = Math.max(rect.width || 0, rect.right || 0);
+			const rightInset = Math.max(0, (this.window?.innerWidth || 0) - (rect.right || 0));
+			const rawWidth = Math.max((rect.width || 0) + rightInset, rect.right || 0);
 			return {
 				left: rect.left,
 				right: rect.right,
@@ -2140,7 +2141,7 @@ class Contents {
 		);
 		const scrollWidthLimit = positiveInlineOffset
 			? Math.max(contentScrollWidth, documentScrollWidth)
-			: contentScrollWidth;
+			: contentScrollWidth + Math.max(0, (this.window?.innerWidth || 0) - rect.right);
 		if (!Number.isFinite(rawWidth) || rawWidth <= 0) {
 			rawWidth = Math.max(
 				contentScrollWidth,

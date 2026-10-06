@@ -2,6 +2,15 @@
 
 This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
+## 2026-10-07
+
+### EPUB-G5-001 vertical canvas right inset
+- Why: real-book8069 landscape914x411 at24px/48px clips nine terminal annotation characters. The raw vertical paint span excludes the24px right inset; the non-positive-offset scroll-width cap also discards it. An Engine-only real-book fixture and a public actual-DOM Range regression reproduce the missing width.
+- Diff Scope: retain the measured viewport right inset in vertical paint width and its scroll-width limit. No source edits, font-size changes, overflow suppression, mask removal or ISBN-specific policy.
+- Test: the public width regression fails before (1002px below1024px paint-plus-inset) and passes after; all13 contents-width tests and30 focused width/frame-origin/terminal tests pass. All82 canonical browser files pass (908 tests, one existing skip); typecheck, lint, build, package contracts and both dependency audits pass. The same built CPTW consumer proves complete paint and exact source pointer selection for the original eight text characters and one TCY link. The full landscape profile later fails on Section0004 turn93; that boundary incident, affected profiles, Android and release qualification remain pending.
+- Evidence: CPTW8069 named case retains source/package hashes, raw geometry and independent glyph before/after. Partial Range crossings on an adjacent page require independently complete source ink exclusion; they are not evidence of a rendering defect by themselves.
+- Rollback: revert this measurement slice and regenerate canonical artifacts.
+
 ## 2026-10-06
 
 ### EPUB-G5-001 terminal text inside page snap tolerance
