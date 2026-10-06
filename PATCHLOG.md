@@ -2,6 +2,15 @@
 
 This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
+## 2026-10-06
+
+### EPUB-G5-001 terminal text inside page snap tolerance
+- Why: real-book desktop30px/78px terminal annotation ink is clipped with19px remaining. An independent DOM fixture has an unreached text tail with20px remaining inside21px page-index snap tolerance, but reserves no continuation.
+- Diff Scope: only terminal-tail observation and promotion use one-pixel tolerance. General page-index tolerance remains; reached and unknown tails do not authorize promotion. No ISBN/source policy.
+- Test: the new fixture fails before and passes after, including reaching the same source tail on next. Both terminal-tail/continuation files pass16 tests; typecheck, lint and canonical build pass. The unchanged real-book8069 desktop max-loose strict first-chapter gate passes on a private built Reader54 candidate; runtime UMDc166954666a51b10ac3bb5ef4d5167f010da81ac408dee1a938196eb9fb901aa is read back, and formal assets are restored byte-exactly.
+- Evidence: CPTW named case and sanitized before/after retain original failure. Remaining affected profiles, sentinels, Android and release qualification remain pending; broader RTL freeze stays in effect.
+- Rollback: revert this terminal observation slice and regenerate canonical artifacts.
+
 ## 2026-10-05
 
 ### EPUB-G5-001 source-owned semantic restore masks

@@ -527,6 +527,35 @@ const fixtureE = {
 	tailShift: 70,
 };
 
+it("observes an unreached terminal text tail inside page snap tolerance", async () => {
+	const fixture = await createFixture({
+		name: "near-end-source-boundary", kind: "text", columns: 90,
+		geometryTailWidth: 0, tailShift: -70, fontFamily: '"Liberation Mono", monospace',
+	});
+	const { manager, semanticIds, tailId } = fixture;
+	const basePages = manager.getBaseGeometryPageCount();
+	const view = manager.views.first();
+	const maxScroll = manager.getMaxLogicalScrollLeft();
+	const visibleWidth = manager.layout.pageWidth;
+	manager.scrollToLogicalPage(basePages - 1, {
+		ignoreCachedLogicalOffset: true,
+		sequentialRightBoundary: manager.getVerticalRlVisualContentWidth(view) - maxScroll + visibleWidth * 0.075,
+	});
+	await pureSettle(manager, semanticIds, tailId);
+	const state = diagnosticState(manager, semanticIds, tailId);
+	console.info("near-end-terminal-tail", JSON.stringify({...sanitizeState(state),logicalOffset:state.logicalOffset,maxLogicalScroll:state.maxLogicalScroll,snapTolerance:state.snapTolerance,continuationCount:state.continuationCount}));
+	expect(state.maxLogicalScroll - state.logicalOffset).toBeGreaterThan(1);
+	expect(state.maxLogicalScroll - state.logicalOffset).toBeLessThanOrEqual(state.snapTolerance);
+	expect(state.tailState.state).toBe("unreached");
+	expect(state.continuationCount).toBeGreaterThan(0);
+	manager.next();
+	await pureSettle(manager, semanticIds, tailId);
+	const continued = diagnosticState(manager, semanticIds, tailId);
+	expect(continued.href).toBe(state.href);
+	expect(continued.tailState.state).toBe("reached");
+	expect(continued.continuationCount).toBe(state.continuationCount);
+}, 120000);
+
 it.each(tailFixtures)("qualifies $name terminal tail contract", async (options) => {
 	const report = await runCase(options);
 	console.info("vertical-rl-terminal-tail", JSON.stringify(sanitizeReport(report)));

@@ -3650,13 +3650,16 @@ class DefaultViewManager {
 		}
 		let basePageCount = this.getBaseGeometryPageCount();
 		let snapTolerance = this.getPageSnapTolerance();
+		// Page-index snap tolerance must not suppress observation of a clipped
+		// source tail that remains reachable within the terminal viewport.
+		let terminalTailTolerance = Math.min(1, snapTolerance);
 		let geometryCandidate = terminalLayout && isVerticalRlTerminalContinuationGeometryCandidate(
 			terminalLayout,
 			basePageCount,
 			targetIndex,
 			logicalOffset,
 			maxScroll,
-			snapTolerance
+			terminalTailTolerance
 		);
 		let terminalTailStateBeforeScroll: VerticalRlTerminalTailState = "unknown";
 		let terminalTailObservationBeforeScroll: VerticalRlTerminalTailObservation | null = null;
@@ -3793,7 +3796,7 @@ class DefaultViewManager {
 			});
 			promotionResult = terminalLayout ? promoteVerticalRlTerminalContinuation(
 				terminalLayout, basePageCount, targetIndex,
-				logicalOffset, maxScroll, snapTolerance, terminalTailStateForPromotion
+				logicalOffset, maxScroll, terminalTailTolerance, terminalTailStateForPromotion
 			) : false;
 			if (promotionResult) {
 				this._verticalRlPageIndexLookupKey = null;
