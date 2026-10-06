@@ -17074,7 +17074,8 @@
 			}
 			let basePageCount = this.getBaseGeometryPageCount();
 			let snapTolerance = this.getPageSnapTolerance();
-			let geometryCandidate = terminalLayout && isVerticalRlTerminalContinuationGeometryCandidate(terminalLayout, basePageCount, targetIndex, logicalOffset, maxScroll, snapTolerance);
+			let terminalTailTolerance = Math.min(1, snapTolerance);
+			let geometryCandidate = terminalLayout && isVerticalRlTerminalContinuationGeometryCandidate(terminalLayout, basePageCount, targetIndex, logicalOffset, maxScroll, terminalTailTolerance);
 			let terminalTailStateBeforeScroll = "unknown";
 			let terminalTailObservationBeforeScroll = null;
 			if (geometryCandidate) {
@@ -17186,7 +17187,7 @@
 					sameOwnerDocument,
 					ownerStillConnected
 				});
-				promotionResult = terminalLayout ? promoteVerticalRlTerminalContinuation(terminalLayout, basePageCount, targetIndex, logicalOffset, maxScroll, snapTolerance, terminalTailStateForPromotion) : false;
+				promotionResult = terminalLayout ? promoteVerticalRlTerminalContinuation(terminalLayout, basePageCount, targetIndex, logicalOffset, maxScroll, terminalTailTolerance, terminalTailStateForPromotion) : false;
 				if (promotionResult) {
 					this._verticalRlPageIndexLookupKey = null;
 					this.syncVerticalRlViewportClip();

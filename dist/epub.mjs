@@ -10283,9 +10283,9 @@ var li = class {
 			let e = this.snapVerticalRlLogicalOffsetToTextBoundary(T, m, h || {});
 			Number.isFinite(e) && (T = e);
 		}
-		let E = this.getBaseGeometryPageCount(), D = this.getPageSnapTolerance(), O = x && pn(x, E, p, T, m, D), k = "unknown", A = null;
-		O && (A = this.resolveVerticalRlTerminalTailObservation(), k = A.resolution?.state || "unknown");
-		let j = x?.continuationCount || 0, M = x && O ? this.getCurrentPageIndex() : null, N = x && O ? this.getNormalizedLogicalScrollLeft() : null, P = !1, F = "unknown", I = null;
+		let E = this.getBaseGeometryPageCount(), D = this.getPageSnapTolerance(), O = Math.min(1, D), k = x && pn(x, E, p, T, m, O), A = "unknown", j = null;
+		k && (j = this.resolveVerticalRlTerminalTailObservation(), A = j.resolution?.state || "unknown");
+		let M = x?.continuationCount || 0, N = x && k ? this.getCurrentPageIndex() : null, P = x && k ? this.getNormalizedLogicalScrollLeft() : null, F = !1, I = "unknown", L = null;
 		if (x?.layoutKey === g && p === u - 1 && Math.abs(m - T) <= 1) {
 			if (h) x.terminalRightBoundaries ??= {}, x.terminalRightBoundaries[p] = h.maxRightBoundary;
 			else if (w !== null) {
@@ -10308,26 +10308,26 @@ var li = class {
 			preserveRequested: !!t.preserveCachedBoundary,
 			preservedPageBoundary: this._verticalRlPreservedPageBoundary
 		}), this.isRtlVerticalPaginated() && this.cacheVerticalRlLogicalPageOffset(p, T, g);
-		let L = T;
-		this.settings.direction === "rtl" ? this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0 ? L = -T : this.settings.rtlScrollType === "default" && (L = Math.max(0, m - T)) : L = T, this._verticalRlBoundarySnapApplying = !0;
+		let R = T;
+		this.settings.direction === "rtl" ? this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0 ? R = -T : this.settings.rtlScrollType === "default" && (R = Math.max(0, m - T)) : R = T, this._verticalRlBoundarySnapApplying = !0;
 		try {
-			this.scrollTo(L, 0, !0);
+			this.scrollTo(R, 0, !0);
 		} finally {
 			this._verticalRlBoundarySnapApplying = !1;
 		}
 		this.syncVerticalRlViewportClip();
-		let R = d();
+		let ee = d();
 		if (mi("after-second-sync", {
 			logicalOffset: T,
-			left: L,
-			restoredAfterScroll: R,
+			left: R,
+			restoredAfterScroll: ee,
 			containerScrollLeft: this.container && this.container.scrollLeft,
 			containerScrollWidth: this.container && this.container.scrollWidth,
 			iframeWidth: c()
-		}), R) {
+		}), ee) {
 			this._verticalRlBoundarySnapApplying = !0;
 			try {
-				this.scrollTo(L, 0, !0);
+				this.scrollTo(R, 0, !0);
 			} finally {
 				this._verticalRlBoundarySnapApplying = !1;
 			}
@@ -10346,9 +10346,9 @@ var li = class {
 				return;
 			}
 		}
-		if (O) {
-			I = this.resolveVerticalRlTerminalTailObservation(), F = I.resolution?.state || "unknown";
-			let e = pi(A), t = pi(I), n = e.terminalOwnerIdentity !== null && t.terminalOwnerIdentity !== null && e.terminalOwnerIdentity === t.terminalOwnerIdentity, r = e.ownerDocumentIdentity !== null && t.ownerDocumentIdentity !== null && e.ownerDocumentIdentity === t.ownerDocumentIdentity, i = e.frameIdentity !== null && t.frameIdentity !== null && e.frameIdentity === t.frameIdentity, a = t.ownerConnected === !0;
+		if (k) {
+			L = this.resolveVerticalRlTerminalTailObservation(), I = L.resolution?.state || "unknown";
+			let e = pi(j), t = pi(L), n = e.terminalOwnerIdentity !== null && t.terminalOwnerIdentity !== null && e.terminalOwnerIdentity === t.terminalOwnerIdentity, r = e.ownerDocumentIdentity !== null && t.ownerDocumentIdentity !== null && e.ownerDocumentIdentity === t.ownerDocumentIdentity, i = e.frameIdentity !== null && t.frameIdentity !== null && e.frameIdentity === t.frameIdentity, a = t.ownerConnected === !0;
 			hi("vertical-rl-terminal-tail-transaction", {
 				before: e,
 				after: t,
@@ -10358,55 +10358,55 @@ var li = class {
 				ownerStillConnected: a
 			});
 			let o = mn({
-				before: k,
-				after: F,
+				before: A,
+				after: I,
 				sameTerminalOwner: n,
 				sameOwnerDocument: r,
 				ownerStillConnected: a
 			});
-			P = x ? hn(x, E, p, T, m, D, o) : !1, P && (this._verticalRlPageIndexLookupKey = null, this.syncVerticalRlViewportClip());
-			let s = A?.resolution?.candidate, c = I.resolution?.candidate;
+			F = x ? hn(x, E, p, T, m, O, o) : !1, F && (this._verticalRlPageIndexLookupKey = null, this.syncVerticalRlViewportClip());
+			let s = j?.resolution?.candidate, c = L.resolution?.candidate;
 			hi("vertical-rl-terminal-promotion-decision", {
-				currentPageIndexBefore: M,
+				currentPageIndexBefore: N,
 				targetIndex: p,
 				basePageCount: E,
-				continuationCountBefore: j,
-				currentLogicalOffset: N,
+				continuationCountBefore: M,
+				currentLogicalOffset: P,
 				targetLogicalOffset: T,
 				maxLogicalScroll: m,
 				remainingLogicalScroll: m - T,
-				tailStateBeforeScroll: k,
-				tailStateAfterApply: F,
+				tailStateBeforeScroll: A,
+				tailStateAfterApply: I,
 				tailStateForPromotion: o,
 				terminalOwnerKind: s?.kind || null,
 				terminalOwnerTag: s?.tag || null,
 				ownerRect: s?.rect || null,
-				effectiveClip: A?.effectiveClip || null,
+				effectiveClip: j?.effectiveClip || null,
 				positiveIntersection: s?.intersection?.positiveArea || !1,
-				resolverReason: I.resolution?.reason || "unavailable",
+				resolverReason: L.resolution?.reason || "unavailable",
 				afterApplyTerminalOwnerKind: c?.kind || null,
 				afterApplyTerminalOwnerTag: c?.tag || null,
 				afterApplyOwnerRect: c?.rect || null,
-				afterApplyEffectiveClip: I.effectiveClip || null,
+				afterApplyEffectiveClip: L.effectiveClip || null,
 				afterApplyPositiveIntersection: c?.intersection?.positiveArea || !1,
-				promotionResult: P,
+				promotionResult: F,
 				continuationCountAfter: x?.continuationCount || 0
 			}), hi("vertical-rl-terminal-target-settled", {
 				targetIndex: p,
 				continuationCount: x?.continuationCount || 0,
-				tailStateAfterScroll: F,
-				tailStateAfterApply: F,
+				tailStateAfterScroll: I,
+				tailStateAfterApply: I,
 				tailStateForPromotion: o,
 				terminalOwnerKind: c?.kind || null,
 				terminalOwnerTag: c?.tag || null,
 				ownerRect: c?.rect || null,
-				effectiveClip: I.effectiveClip || null,
+				effectiveClip: L.effectiveClip || null,
 				positiveIntersection: c?.intersection?.positiveArea || !1,
-				promotionResult: P
+				promotionResult: F
 			});
 		}
 		if (!y && !C && this.alignVerticalRlPreviousPageBoundary(p, Number(t.sequentialLeftBoundary))) {
-			T = this.getNormalizedLogicalScrollLeft(), L = this.container.scrollLeft;
+			T = this.getNormalizedLogicalScrollLeft(), R = this.container.scrollLeft;
 			let e = this.getVerticalRlLogicalPageOffsetCacheKey(u, this.getMaxLogicalScrollLeft());
 			e && (this.cacheVerticalRlLogicalPageOffset(p, T, e), this._verticalRlPreservedPageBoundary = {
 				pageIndex: p,
@@ -10422,7 +10422,7 @@ var li = class {
 			if (this.container && this.getCurrentPageIndex() === p && (this.syncVerticalRlViewportClip(), this.getCurrentPageIndex() !== p)) {
 				this._verticalRlBoundarySnapApplying = !0;
 				try {
-					this.scrollTo(L, 0, !0);
+					this.scrollTo(R, 0, !0);
 				} finally {
 					this._verticalRlBoundarySnapApplying = !1;
 				}
