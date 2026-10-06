@@ -667,5 +667,6 @@ it("returns to the last source-owned tail after recreating an overhanging view",
 	expect(returned.href).toBe("one.xhtml");
 	expect(returned.tailState.state).toBe("reached");
 	expect(returned.visibleSemanticIds).toEqual(lastReached.visibleSemanticIds);
+	expect(returned.frameRect).toEqual(lastReached.frameRect);
 	expect(returned.continuationCount).toBe(0);
 });
