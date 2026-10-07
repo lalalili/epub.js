@@ -8248,6 +8248,42 @@ describe("Vertical RL manager pagination", function() {
 		}
 	});
 
+	it("restores the learned offset when a mask cancels reverse boundary alignment", function() {
+		const manager = Object.create(DefaultViewManager.prototype);
+		const column = { left: 2839.40625, right: 2863.40625, top: 0, bottom: 893, width: 24, height: 893 };
+		const textNode = { nodeValue: "測試文字", parentElement: {} };
+		const doc = {
+			body: {},
+			createTreeWalker: () => {
+				let yielded = false;
+				return { nextNode: () => { if (yielded) return null; yielded = true; return textNode; } };
+			},
+			createRange: () => ({ selectNodeContents: () => {}, getClientRects: () => [column], detach: () => {} })
+		};
+		const view = { contents: { document: doc, window: { devicePixelRatio: 1, getComputedStyle: () => ({ display: "block", visibility: "visible" }) } } };
+		let offset = 2554;
+		let mask = 114;
+		let cachedOffset = offset;
+		const writes = [];
+		manager.views = { first: () => view, last: () => view };
+		manager.container = { scrollLeft: -offset };
+		manager.settings = { rtlScrollType: "negative" };
+		manager.isRtlVerticalPaginated = () => true;
+		manager.getVerticalRlCurrentEffectiveLeftBoundary = () => 6600 - offset - 1320 + mask;
+		manager.getNormalizedLogicalScrollLeft = () => offset;
+		manager.getMaxLogicalScrollLeft = () => 5280;
+		manager.getTotalPagesForCurrentView = () => 5;
+		manager.getVerticalRlLogicalPageOffsetCacheKey = () => "unchanged-layout";
+		manager.cacheVerticalRlLogicalPageOffset = (_page, value) => { cachedOffset = value; };
+		manager.scrollTo = left => { writes.push(left); offset = -left; manager.container.scrollLeft = left; };
+		manager.syncVerticalRlViewportClip = () => { mask = 114 + offset - 2554; };
+		assert.equal(manager.alignVerticalRlPreviousPageBoundary(2, 2838), false);
+		assert.equal(offset, 2554);
+		assert.equal(cachedOffset, 2554);
+		assert.equal(mask, 114);
+		assert.deepEqual(writes, [-2556, -2554]);
+	});
+
 	it("assigns a column to the previous page when the restored next boundary cuts through it", function() {
 		const manager = Object.create(DefaultViewManager.prototype);
 		const column = { left: 6142.7275390625, right: 6163.818359375, top: 36, bottom: 648, width: 21.0908203125, height: 612 };

@@ -1607,6 +1607,7 @@ class DefaultViewManager {
 				break;
 			}
 			const currentOffset = this.getNormalizedLogicalScrollLeft();
+			const originalScrollLeft = this.container.scrollLeft;
 			const offset = Math.max(0, Math.min(maxScroll, currentOffset + leftBoundary - boundary));
 			if (offset === currentOffset) {
 				break;
@@ -1625,6 +1626,24 @@ class DefaultViewManager {
 				this._verticalRlBoundarySnapApplying = false;
 			}
 			this.syncVerticalRlViewportClip();
+			const alignedBoundary = this.getVerticalRlCurrentEffectiveLeftBoundary();
+			if (alignedBoundary === null ||
+				Math.abs(alignedBoundary - boundary) >= Math.abs(leftBoundary - boundary)) {
+				// A mask can cancel the scroll adjustment. Keep the last useful
+				// position rather than accumulating writes that cannot move the fence.
+				this.cacheVerticalRlLogicalPageOffset(pageIndex, currentOffset, cacheKey);
+				this._verticalRlBoundarySnapApplying = true;
+				try {
+					this.scrollTo(originalScrollLeft, 0, true);
+				} finally {
+					this._verticalRlBoundarySnapApplying = false;
+				}
+				this.syncVerticalRlViewportClip();
+				appendVerticalRlScrollTrace("reverse-boundary-no-progress", {
+					pageIndex, boundary, leftBoundary, alignedBoundary, currentOffset, offset, attempt
+				});
+				break;
+			}
 			changed = true;
 			appendVerticalRlScrollTrace("reverse-boundary-align", { pageIndex, boundary, leftBoundary, currentOffset, offset, attempt });
 		}
