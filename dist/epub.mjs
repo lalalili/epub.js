@@ -9474,21 +9474,41 @@ var li = class {
 			if (r === null || r === t || !l.some((e) => e.right > Math.min(t, r) && e.left < Math.max(t, r))) break;
 			let i = this.getMaxLogicalScrollLeft(), a = this.getVerticalRlLogicalPageOffsetCacheKey(this.getTotalPagesForCurrentView(), i);
 			if (!d || a !== d) break;
-			let o = this.getNormalizedLogicalScrollLeft(), s = Math.max(0, Math.min(i, o + r - t));
-			if (s === o) break;
-			let c = s;
-			this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0 ? c = -s : this.settings.rtlScrollType === "default" && (c = i - s), this.cacheVerticalRlLogicalPageOffset(e, s, d), this._verticalRlBoundarySnapApplying = !0;
+			let o = this.getNormalizedLogicalScrollLeft(), s = this.container.scrollLeft, c = Math.max(0, Math.min(i, o + r - t));
+			if (c === o) break;
+			let u = c;
+			this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0 ? u = -c : this.settings.rtlScrollType === "default" && (u = i - c), this.cacheVerticalRlLogicalPageOffset(e, c, d), this._verticalRlBoundarySnapApplying = !0;
 			try {
-				this.scrollTo(c, 0, !0);
+				this.scrollTo(u, 0, !0);
 			} finally {
 				this._verticalRlBoundarySnapApplying = !1;
 			}
-			this.syncVerticalRlViewportClip(), f = !0, mi("reverse-boundary-align", {
+			this.syncVerticalRlViewportClip();
+			let p = this.getVerticalRlCurrentEffectiveLeftBoundary();
+			if (p === null || Math.abs(p - t) >= Math.abs(r - t)) {
+				this.cacheVerticalRlLogicalPageOffset(e, o, d), this._verticalRlBoundarySnapApplying = !0;
+				try {
+					this.scrollTo(s, 0, !0);
+				} finally {
+					this._verticalRlBoundarySnapApplying = !1;
+				}
+				this.syncVerticalRlViewportClip(), mi("reverse-boundary-no-progress", {
+					pageIndex: e,
+					boundary: t,
+					leftBoundary: r,
+					alignedBoundary: p,
+					currentOffset: o,
+					offset: c,
+					attempt: n
+				});
+				break;
+			}
+			f = !0, mi("reverse-boundary-align", {
 				pageIndex: e,
 				boundary: t,
 				leftBoundary: r,
 				currentOffset: o,
-				offset: s,
+				offset: c,
 				attempt: n
 			});
 		}
