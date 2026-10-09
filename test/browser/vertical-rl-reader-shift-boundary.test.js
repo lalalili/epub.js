@@ -152,3 +152,35 @@ describe("learned continuation preserves committed left ownership", () => {
   expect(value({getVerticalRlAppliedContentShift:()=>22}).getVerticalRlCommittedLeftMaskForCurrentOffset(96)).toBe(26);
  });
 });
+
+describe("8069 Native default cached source fence", () => {
+	it.each([27, 28])("recalculates a cached window behind a %s px left exclusion", left => {
+		const manager = Object.create(DefaultViewManager.prototype);
+		const sourceFence = 4233 - 1152 - 393.0909118652344 + left;
+		let target;
+		manager.settings = { direction: "rtl" };
+		manager.views = { length: 1 };
+		manager.container = {
+			clientWidth: 393,
+			dataset: { epubVrlEdgeMaskLeft: String(left), epubVrlEdgeMaskRight: "0" }
+		};
+		manager.layout = { pageWidth: 393.0909118652344 };
+		manager.isRtlVerticalPaginated = () => true;
+		manager.getCurrentPageIndex = () => 3;
+		manager.getTotalPagesForCurrentView = () => 11;
+		manager.getMaxLogicalScrollLeft = () => 3840;
+		manager.getVerticalRlLogicalPageOffsetCacheKey = () => "11:3840:4233:393.09:384:4";
+		manager.getCachedVerticalRlLogicalPageOffset = () => 1532;
+		manager.getNormalizedLogicalScrollLeft = () => 1152;
+		manager.getVerticalRlAppliedEdgeMaskWidths = () => ({ left, right: 0 });
+		manager.getVerticalRlCurrentEffectiveLeftBoundary = () => sourceFence;
+		manager.scrollToLogicalPage = (index, options) => { target = { index, options }; };
+
+		manager.next();
+
+		expect(target).toEqual({
+			index: 4,
+			options: { ignoreCachedLogicalOffset: true, sequentialRightBoundary: sourceFence }
+		});
+	});
+});

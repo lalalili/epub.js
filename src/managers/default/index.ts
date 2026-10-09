@@ -4261,8 +4261,12 @@ class DefaultViewManager {
 				const cacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, this.getMaxLogicalScrollLeft());
 				const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, cacheKey);
 				const visibleWidth = this.layout?.pageWidth || this.container?.clientWidth || 0;
+				const appliedMasks = this.container?.dataset?.epubVrlEdgeMaskLeft !== undefined
+					? this.getVerticalRlAppliedEdgeMaskWidths()
+					: this.getVerticalRlRenderedEdgeMaskWidths();
+				const excludedLeft = Math.max(0, Number(appliedMasks?.left) || 0);
 				const cachedBoundaryCreatesGap = recordedOffset !== null && visibleWidth > 0 &&
-					recordedOffset - this.getNormalizedLogicalScrollLeft() > visibleWidth + 1;
+					recordedOffset - this.getNormalizedLogicalScrollLeft() > visibleWidth - excludedLeft + 1;
 				// Page-index tolerance can span an entire glyph column; it must not
 				// admit a viewport gap between restored neighboring boundaries.
 				// A restored future offset is not necessarily adjacent to this page.
