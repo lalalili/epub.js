@@ -9416,15 +9416,20 @@ var li = class {
 		let e = this.getVerticalRlEdgeMaskWidths(), t = this.container && this.container.dataset ? this.container.dataset : {};
 		return qn(e, Number(t.epubVrlEdgeMaskLeft), Number(t.epubVrlEdgeMaskRight), Number(t.epubVrlEdgeMask));
 	}
+	getVerticalRlAppliedContentShift() {
+		if (!this.isRtlVerticalPaginated()) return 0;
+		let e = Number(this.container?.dataset?.epubVrlEdgeShiftRight), t = this.views && (this.views.first() || this.views.last());
+		return !Number.isFinite(e) || e <= 0 || !t?.iframe?.style || t.iframe.style.transform !== `translateX(-${e}px)` ? 0 : e;
+	}
 	getVerticalRlCurrentEffectiveLeftBoundary() {
 		if (!this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) return null;
 		let e = this.views.first() || this.views.last(), t = e ? this.getVerticalRlVisualContentWidth(e) : 0, n = this.getPageAdvance() || 0, r = this.layout.pageWidth || this.layout.width || n || this.container.clientWidth || 0, i = this.getNormalizedLogicalScrollLeft(), a = this.container.dataset?.epubVrlEdgeMaskLeft === void 0 ? this.getVerticalRlRenderedEdgeMaskWidths() : this.getVerticalRlAppliedEdgeMaskWidths();
-		return Sr(t, i, r, Number(a && a.left) || 0);
+		return Sr(t, i, r, (Number(a && a.left) || 0) + this.getVerticalRlAppliedContentShift());
 	}
 	getVerticalRlCurrentEffectiveRightBoundary() {
 		if (!this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) return null;
-		let e = this.views.first() || this.views.last(), t = e ? this.getVerticalRlVisualContentWidth(e) : 0, n = this.container.dataset?.epubVrlEdgeMaskRight === void 0 ? this.getVerticalRlRenderedEdgeMaskWidths() : this.getVerticalRlAppliedEdgeMaskWidths();
-		return t - this.getNormalizedLogicalScrollLeft() - (Number(n?.right) || 0);
+		let e = this.views.first() || this.views.last(), t = e ? this.getVerticalRlVisualContentWidth(e) : 0, n = this.getRecordedVerticalRlAppliedLeftMask(this.getCurrentPageIndex()) === 0, r = this.container.dataset?.epubVrlEdgeMaskRight !== void 0 || n ? this.getVerticalRlAppliedEdgeMaskWidths() : this.getVerticalRlRenderedEdgeMaskWidths();
+		return t - this.getNormalizedLogicalScrollLeft() + this.getVerticalRlAppliedContentShift() - (Number(r?.right) || 0);
 	}
 	alignVerticalRlPreviousPageBoundary(e, t) {
 		if (mi("reverse-boundary-inspect", {
@@ -9436,6 +9441,13 @@ var li = class {
 		let n = this.views && (this.views.first() || this.views.last()), r = n?.contents?.document, i = n?.contents?.window;
 		if (!r?.body || !i) return !1;
 		let a = this.getVerticalRlCurrentEffectiveLeftBoundary(), o = this._verticalRlPreservedPageBoundary, s = Number(i.devicePixelRatio), c = this.getVerticalRlLogicalPageOffsetCacheKey(this.getTotalPagesForCurrentView(), this.getMaxLogicalScrollLeft());
+		if (o?.pageIndex === e && c !== null && o.layoutKey === c && a !== null && Number.isFinite(o.sourceLeftBoundary) && Number.isFinite(s) && s > 0 && Math.abs(a - o.sourceLeftBoundary) < 1 / s && t >= o.sourceLeftBoundary - 1 / s) return mi("reverse-boundary-preserved-source-fence", {
+			pageIndex: e,
+			boundary: t,
+			observedLeftBoundary: a,
+			sourceLeftBoundary: o.sourceLeftBoundary,
+			layoutKey: c
+		}), !1;
 		if (o?.pageIndex === e && c !== null && o.layoutKey === c && a !== null && Number.isFinite(s) && s > 0 && Math.abs(a - t) < 1 / s) return mi("reverse-boundary-preserved-quantization", {
 			pageIndex: e,
 			boundary: t,
@@ -9691,7 +9703,7 @@ var li = class {
 		if (this.isRtlVerticalPaginated()) try {
 			let t = this.getTotalPagesForCurrentView(), n = this.getMaxLogicalScrollLeft(), r = this.getVerticalRlLogicalPageOffsetCacheKey(t, n), i = this.getCurrentPageIndex();
 			if (!r || !Number.isFinite(i)) return;
-			(!this._verticalRlAppliedLeftMaskLedger || this._verticalRlAppliedLeftMaskLedgerKey !== r) && (this._verticalRlAppliedLeftMaskLedger = {}, this._verticalRlAppliedLeftMaskLedgerKey = r), this._verticalRlAppliedLeftMaskLedger[String(i)] = e, this._verticalRlActiveTerminalLayout?.layoutKey === r && (this._verticalRlActiveTerminalLayout.appliedLeftMasks = this._verticalRlAppliedLeftMaskLedger);
+			(!this._verticalRlAppliedLeftMaskLedger || this._verticalRlAppliedLeftMaskLedgerKey !== r) && (this._verticalRlAppliedLeftMaskLedger = {}, this._verticalRlAppliedLeftMaskLedgerKey = r), this._verticalRlAppliedLeftMaskLedger[String(i)] = e + this.getVerticalRlAppliedContentShift(), this._verticalRlActiveTerminalLayout?.layoutKey === r && (this._verticalRlActiveTerminalLayout.appliedLeftMasks = this._verticalRlAppliedLeftMaskLedger);
 		} catch {}
 	}
 	getVerticalRlRestoredSemanticMaskWidths() {
@@ -9752,6 +9764,18 @@ var li = class {
 		let n = t[String(e)];
 		return Number.isFinite(n) ? n : null;
 	}
+	getVerticalRlCommittedLeftMaskForCurrentOffset(e) {
+		let t = this._verticalRlActiveTerminalLayout;
+		if (!this.isRtlVerticalPaginated() || !t || t.continuationCount <= 0 || this._verticalRlAppliedLeftMaskLedgerKey !== t.layoutKey) return null;
+		let n = this.getCurrentPageIndex();
+		if (n >= this.getTotalPagesForCurrentView() - 1) return null;
+		let r = this.getCachedVerticalRlLogicalPageOffset(n, t.layoutKey);
+		if (r === null || r !== this.getNormalizedLogicalScrollLeft()) return null;
+		let i = this.getRecordedVerticalRlAppliedLeftMask(n);
+		if (i === null || !Number.isFinite(i)) return null;
+		let a = i - this.getVerticalRlAppliedContentShift();
+		return a >= 0 && a <= e ? a : null;
+	}
 	syncVerticalRlViewportClip() {
 		if (!this.container || !this.container.style) return;
 		if (!this.isRtlVerticalPaginated()) {
@@ -9764,7 +9788,12 @@ var li = class {
 			right: n
 		});
 		let r = this.getVerticalRlRestoredSemanticMaskWidths();
-		if (r && (t = r), this.recordVerticalRlAppliedLeftMask(Math.max(0, Number(t.left) || 0)), mi("edge-mask-applied", {
+		r && (t = r);
+		let i = this.getVerticalRlCommittedLeftMaskForCurrentOffset(Vn(this.getPageAdvance()));
+		if (!r && n === null && i !== null && (t = {
+			left: Math.max(t.left, i),
+			right: t.right
+		}), this.recordVerticalRlAppliedLeftMask(Math.max(0, Number(t.left) || 0)), mi("edge-mask-applied", {
 			rawScrollLeft: this.container.scrollLeft,
 			pageIndex: this._verticalRlPageIndexLookupResult,
 			computedLeft: e.left,
@@ -9777,10 +9806,10 @@ var li = class {
 			this.removeVerticalRlViewportClip(), this.container.dataset && this.container.dataset.epubVrlEdgeMask && (delete this.container.dataset.epubVrlEdgeMask, delete this.container.dataset.epubVrlEdgeMaskLeft, delete this.container.dataset.epubVrlEdgeMaskRight);
 			return;
 		}
-		let i = this.getVerticalRlViewportClipOverlay();
-		if (!i) return;
-		let a = i.parentElement.getBoundingClientRect(), o = this.container.getBoundingClientRect(), s = this.getVerticalRlEdgeMaskColor(), c = Math.ceil(o.width || this.container.clientWidth || 0) + 1, l = Math.ceil(o.height || this.container.clientHeight || 0) + 1;
-		i.style.left = `${o.left - a.left}px`, i.style.top = `${o.top - a.top}px`, i.style.width = `${c}px`, i.style.height = `${l}px`, i.style.boxShadow = `inset ${t.left}px 0 0 ${s}, inset -${t.right}px 0 0 ${s}`, this.container.dataset.epubVrlEdgeMask = String(Jn(t)), this.container.dataset.epubVrlEdgeMaskLeft = String(t.left), this.container.dataset.epubVrlEdgeMaskRight = String(t.right);
+		let a = this.getVerticalRlViewportClipOverlay();
+		if (!a) return;
+		let o = a.parentElement.getBoundingClientRect(), s = this.container.getBoundingClientRect(), c = this.getVerticalRlEdgeMaskColor(), l = Math.ceil(s.width || this.container.clientWidth || 0) + 1, u = Math.ceil(s.height || this.container.clientHeight || 0) + 1;
+		a.style.left = `${s.left - o.left}px`, a.style.top = `${s.top - o.top}px`, a.style.width = `${l}px`, a.style.height = `${u}px`, a.style.boxShadow = `inset ${t.left}px 0 0 ${c}, inset -${t.right}px 0 0 ${c}`, this.container.dataset.epubVrlEdgeMask = String(Jn(t)), this.container.dataset.epubVrlEdgeMaskLeft = String(t.left), this.container.dataset.epubVrlEdgeMaskRight = String(t.right);
 	}
 	getVerticalRlViewportClipOverlay() {
 		let e = this.container && this.container.parentElement;
@@ -9821,7 +9850,7 @@ var li = class {
 		if (!Number.isFinite(o)) return r;
 		let s = this.getPageAdvance() || 0;
 		if (!s) return r;
-		let c = this.getVerticalRlRenderedEdgeMaskWidths(), l = Math.max(0, Number(c && c.left) || 0), u = Math.max(1, s - l);
+		let c = this.getVerticalRlRenderedEdgeMaskWidths(), l = Math.max(0, Number(c && c.left) || 0), u = Math.max(1, s - l - this.getVerticalRlAppliedContentShift());
 		return Math.max(0, Math.min(n, o + u));
 	}
 	getVerticalRlSemanticCandidateObservation(e, t, n) {
@@ -10333,7 +10362,7 @@ var li = class {
 				let t = this.getCurrentPageIndex();
 				if (t === p - 1) {
 					let n = this.views && (this.views.first() || this.views.last()), r = n ? this.getVerticalRlVisualContentWidth(n) : 0, i = this.layout.pageWidth || this.layout.width || l || 0, a = this.getNormalizedLogicalScrollLeft(), o = this.getLogicalOffsetForPageIndex(t, u, m), s = this.getVerticalRlRenderedEdgeMaskWidths();
-					h = Cr(p, e, r, a, o, i, l, Number(s && s.left) || 0);
+					h = Cr(p, e, r, a, o, i, l, (Number(s && s.left) || 0) + this.getVerticalRlAppliedContentShift());
 				}
 			}
 		}
@@ -10356,9 +10385,12 @@ var li = class {
 				});
 			}
 		}
-		this._verticalRlSequentialBoundaryConstraint = h, this._verticalRlPreservedPageBoundary = (t.preserveCachedBoundary || y && n) && w !== null && g !== null ? {
+		this._verticalRlSequentialBoundaryConstraint = h;
+		let R = t.preserveCachedBoundary ? this.getRecordedVerticalRlAppliedLeftMask(p) : null, ee = this.views && (this.views.first() || this.views.last()), te = w !== null && R !== null && ee ? Sr(this.getVerticalRlVisualContentWidth(ee), w, this.layout.pageWidth || this.layout.width || l || 0, R) : void 0;
+		this._verticalRlPreservedPageBoundary = (t.preserveCachedBoundary || y && n) && w !== null && g !== null ? {
 			pageIndex: p,
-			layoutKey: g
+			layoutKey: g,
+			sourceLeftBoundary: te ?? void 0
 		} : null, mi("reverse-boundary-preservation", {
 			targetIndex: p,
 			logicalOffsetCacheKey: g,
@@ -10367,26 +10399,26 @@ var li = class {
 			preserveRequested: !!t.preserveCachedBoundary,
 			preservedPageBoundary: this._verticalRlPreservedPageBoundary
 		}), this.isRtlVerticalPaginated() && this.cacheVerticalRlLogicalPageOffset(p, T, g);
-		let R = T;
-		this.settings.direction === "rtl" ? this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0 ? R = -T : this.settings.rtlScrollType === "default" && (R = Math.max(0, m - T)) : R = T, this._verticalRlBoundarySnapApplying = !0;
+		let ne = T;
+		this.settings.direction === "rtl" ? this.settings.rtlScrollType === "negative" || this.container.scrollLeft < 0 ? ne = -T : this.settings.rtlScrollType === "default" && (ne = Math.max(0, m - T)) : ne = T, this._verticalRlBoundarySnapApplying = !0;
 		try {
-			this.scrollTo(R, 0, !0);
+			this.scrollTo(ne, 0, !0);
 		} finally {
 			this._verticalRlBoundarySnapApplying = !1;
 		}
 		this.syncVerticalRlViewportClip();
-		let ee = d();
+		let re = d();
 		if (mi("after-second-sync", {
 			logicalOffset: T,
-			left: R,
-			restoredAfterScroll: ee,
+			left: ne,
+			restoredAfterScroll: re,
 			containerScrollLeft: this.container && this.container.scrollLeft,
 			containerScrollWidth: this.container && this.container.scrollWidth,
 			iframeWidth: c()
-		}), ee) {
+		}), re) {
 			this._verticalRlBoundarySnapApplying = !0;
 			try {
-				this.scrollTo(R, 0, !0);
+				this.scrollTo(ne, 0, !0);
 			} finally {
 				this._verticalRlBoundarySnapApplying = !1;
 			}
@@ -10465,7 +10497,7 @@ var li = class {
 			});
 		}
 		if (!y && !C && this.alignVerticalRlPreviousPageBoundary(p, Number(t.sequentialLeftBoundary))) {
-			T = this.getNormalizedLogicalScrollLeft(), R = this.container.scrollLeft;
+			T = this.getNormalizedLogicalScrollLeft(), ne = this.container.scrollLeft;
 			let e = this.getVerticalRlLogicalPageOffsetCacheKey(u, this.getMaxLogicalScrollLeft());
 			e && (this.cacheVerticalRlLogicalPageOffset(p, T, e), this._verticalRlPreservedPageBoundary = {
 				pageIndex: p,
@@ -10481,7 +10513,7 @@ var li = class {
 			if (this.container && this.getCurrentPageIndex() === p && (this.syncVerticalRlViewportClip(), this.getCurrentPageIndex() !== p)) {
 				this._verticalRlBoundarySnapApplying = !0;
 				try {
-					this.scrollTo(R, 0, !0);
+					this.scrollTo(ne, 0, !0);
 				} finally {
 					this._verticalRlBoundarySnapApplying = !1;
 				}
