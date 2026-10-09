@@ -59,3 +59,29 @@ it("does not transfer continuation to another Section with identical geometry", 
 	expect(fixture.manager.getTotalPagesForCurrentView()).toBe(73);
 	expect(fixture.manager.getVerticalRlTerminalLayout().continuationCount).toBe(0);
 });
+
+// Native 8069, default 24px/2.0: view recreation changes only the fractional
+// visual width. Losing the learned offset moves the last page by 90px.
+it("retains the learned terminal source cut across subpixel view-width recreation", () => {
+	const { manager, recreateView } = createManager();
+	let visualWidth = 4233;
+	manager.layout = { pageWidth: 393.0909118652344, width: 393.0909118652344, edgeGuardPx: 4 };
+	manager.getBaseGeometryPageCount = () => 11;
+	manager.getMaxLogicalScrollLeft = () => 3840;
+	manager.getPageAdvance = () => 384;
+	manager.getVerticalRlVisualContentWidth = () => visualWidth;
+	delete manager.getVerticalRlLogicalPageOffsetCacheKey;
+	const forwardKey = manager.getVerticalRlLogicalPageOffsetCacheKey(11, 3840);
+	manager.getVerticalRlTerminalLayout();
+	manager.cacheVerticalRlLogicalPageOffset(10, 3749.818181818182, forwardKey);
+	recreateView();
+	visualWidth = 4233.090911865234;
+	manager.getVerticalRlTerminalLayout();
+	const reverseKey = manager.getVerticalRlLogicalPageOffsetCacheKey(11, 3840);
+	expect(manager.getCachedVerticalRlLogicalPageOffset(10, reverseKey)).toBe(3749.818181818182);
+	// A real extent change must still invalidate the learned source cut.
+	visualWidth = 4234.090911865234;
+	manager.getVerticalRlTerminalLayout();
+	expect(manager.getCachedVerticalRlLogicalPageOffset(10,
+		manager.getVerticalRlLogicalPageOffsetCacheKey(11, 3840))).toBeNull();
+});

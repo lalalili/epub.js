@@ -2058,7 +2058,7 @@ describe("rendering pagination helpers", () => {
 				1295.994,
 				4.126
 			)
-		).toBe("14:16824.13:18168.12:1295.99:1295.99:4.13");
+		).toBe("14:16824.13:18168:1295.99:1295.99:4.13");
 	});
 
 	it("returns no vertical-rl logical page offset cache key without required measurements", () => {

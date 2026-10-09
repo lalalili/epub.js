@@ -42,7 +42,10 @@ export function getVerticalRlLogicalPageOffsetCacheKey(
 	return [
 		Math.round((Number(totalPages) || 0) * 100) / 100,
 		Math.round((Number(maxScroll) || 0) * 100) / 100,
-		Math.round(content * 100) / 100,
+		// View width and scrollWidth expose the same rail at fractional and
+		// integer CSS-pixel precision respectively. Normalize only this extent
+		// so recreating a view does not discard its learned source cuts.
+		Math.round(content),
 		Math.round(visible * 100) / 100,
 		Math.round(advance * 100) / 100,
 		Math.round((Number(edgeGuard) || 0) * 100) / 100
