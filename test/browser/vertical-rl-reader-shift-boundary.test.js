@@ -202,3 +202,53 @@ describe("8069 Native default cached source fence", () => {
 		});
 	});
 });
+
+
+describe("unchanged learned page viewport synchronization", () => {
+ function manager({ committed = true, restored = null, terminal = null } = {}) {
+  const m = Object.create(DefaultViewManager.prototype);
+  const key = "16:4678:4998:320:312:4";
+  m.container = document.createElement("div");
+  m.container.style.width = "320px";
+  m.container.style.height = "476px";
+  const parent = document.createElement("div");
+  parent.appendChild(m.container);
+  const overlay = document.createElement("div");
+  parent.appendChild(overlay);
+  m.isRtlVerticalPaginated = () => true;
+  m._verticalRlActiveTerminalLayout = { layoutKey: key, continuationCount: 3 };
+  m._verticalRlAppliedLeftMaskLedgerKey = key;
+  m.getCurrentPageIndex = () => 16;
+  m.getTotalPagesForCurrentView = () => 19;
+  m.getCachedVerticalRlLogicalPageOffset = () => committed ? 4231 : null;
+  m.getNormalizedLogicalScrollLeft = () => 4231;
+  m.getRecordedVerticalRlAppliedLeftMask = () => 39;
+  m.getVerticalRlAppliedContentShift = () => 0;
+  m.getPageAdvance = () => 312;
+  m.getVerticalRlEdgeMaskWidths = () => ({ left: 40, right: 2 });
+  m.expandVerticalRlLeftMaskToVisibleLine = () => ({ left: 63, right: 2 });
+  m.getVerticalRlSequentialTerminalRightMaskWidth = () => terminal;
+  m.getVerticalRlRestoredSemanticMaskWidths = () => restored;
+  m.recordVerticalRlAppliedLeftMask = left => { m.recordedLeft = left; };
+  m.getVerticalRlViewportClipOverlay = () => overlay;
+  m.getVerticalRlEdgeMaskColor = () => "white";
+  return m;
+ }
+ it("preserves the committed source fence when a learned neighbor expands the derived mask", () => {
+  const m = manager();
+  expect(m.getVerticalRlCommittedLeftMaskForCurrentOffset(96)).toBe(39);
+  m.syncVerticalRlViewportClip();
+  expect(m.container.dataset.epubVrlEdgeMaskLeft).toBe("39");
+  expect(m.recordedLeft).toBe(39);
+ });
+ it.each([
+  [{ committed: false }, 63, 2],
+  [{ restored: { left: 51, right: 5 } }, 51, 5],
+  [{ terminal: 7 }, 0, 7],
+ ])("preserves other ownership authorities: %j", (options, left, right) => {
+  const m = manager(options);
+  m.syncVerticalRlViewportClip();
+  expect(m.container.dataset.epubVrlEdgeMaskLeft).toBe(String(left));
+  expect(m.container.dataset.epubVrlEdgeMaskRight).toBe(String(right));
+ });
+});

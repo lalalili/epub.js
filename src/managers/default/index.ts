@@ -2390,7 +2390,7 @@ class DefaultViewManager {
 			getVerticalRlEdgeMaskLimitHelper(this.getPageAdvance())
 		);
 		if (!restored && sequentialTerminalMask === null && committedLeft !== null) {
-			maskWidths = { left: Math.max(maskWidths.left, committedLeft), right: maskWidths.right };
+			maskWidths = { left: committedLeft, right: maskWidths.right };
 		}
 		this.recordVerticalRlAppliedLeftMask(Math.max(0, Number(maskWidths.left) || 0));
 		appendVerticalRlScrollTrace("edge-mask-applied", {
