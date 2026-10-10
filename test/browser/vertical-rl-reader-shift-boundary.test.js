@@ -63,6 +63,24 @@ describe("vertical-rl Reader displacement boundaries", () => {
 		expect(value.getRecordedVerticalRlAppliedLeftMask(1)).toBe(90);
 	});
 
+	it.each([
+		{ cachedOffset: 8305, offset: 8416, initial: 17, mask: 31, shift: 23, expected: 17 },
+		{ cachedOffset: 8305, offset: 8416, initial: 17, mask: 8, shift: 0, expected: 17 },
+		{ cachedOffset: 8305, offset: 8305, initial: 17, mask: 31, shift: 23, expected: 54 },
+		{ cachedOffset: null, offset: 8416, initial: undefined, mask: 31, shift: 23, expected: 54 },
+	])("records ownership only at the learned page offset: %j", ({ cachedOffset, offset, initial, mask, shift, expected }) => {
+		const value = manager({ shift: String(shift), transform: shift ? `translateX(-${shift}px)` : "" });
+		value.getTotalPagesForCurrentView = () => 32;
+		value.getMaxLogicalScrollLeft = () => 8626;
+		value.getCurrentPageIndex = () => 30;
+		value.getCachedVerticalRlLogicalPageOffset = () => cachedOffset;
+		value.getNormalizedLogicalScrollLeft = () => offset;
+		value._verticalRlAppliedLeftMaskLedgerKey = "layout";
+		value._verticalRlAppliedLeftMaskLedger = initial === undefined ? {} : { "30": initial };
+		value.recordVerticalRlAppliedLeftMask(mask);
+		expect(value.getRecordedVerticalRlAppliedLeftMask(30)).toBe(expected);
+	});
+
 	it("does not claim the displaced excluded column was painted on the previous page", () => {
 		const value = manager();
 		value.getTotalPagesForCurrentView = () => 5;

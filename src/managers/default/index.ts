@@ -2152,6 +2152,13 @@ class DefaultViewManager {
 				return;
 			}
 
+			// A recreated View can temporarily reuse a learned page index at a
+			// different offset. Its mask must not replace that page's source fence.
+			const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(pageIndex, cacheKey);
+			if (recordedOffset !== null && recordedOffset !== this.getNormalizedLogicalScrollLeft()) {
+				return;
+			}
+
 			if (!this._verticalRlAppliedLeftMaskLedger || this._verticalRlAppliedLeftMaskLedgerKey !== cacheKey) {
 				this._verticalRlAppliedLeftMaskLedger = {};
 				this._verticalRlAppliedLeftMaskLedgerKey = cacheKey;
