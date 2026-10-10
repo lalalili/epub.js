@@ -34,7 +34,7 @@
 	}) : target, mod));
 	//#endregion
 	jszip_dist_jszip = __toESM(jszip_dist_jszip);
-	//#region node_modules/type/value/is.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/type/value/is.js
 	var require_is$4 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var _undefined = void 0;
 		module.exports = function(value) {
@@ -42,7 +42,7 @@
 		};
 	}));
 	//#endregion
-	//#region node_modules/type/object/is.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/type/object/is.js
 	var require_is$3 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is$4();
 		var possibleTypes = {
@@ -56,7 +56,7 @@
 		};
 	}));
 	//#endregion
-	//#region node_modules/type/prototype/is.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/type/prototype/is.js
 	var require_is$2 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isObject = require_is$3();
 		module.exports = function(value) {
@@ -70,7 +70,7 @@
 		};
 	}));
 	//#endregion
-	//#region node_modules/type/function/is.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/type/function/is.js
 	var require_is$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isPrototype = require_is$2();
 		module.exports = function(value) {
@@ -87,7 +87,7 @@
 		};
 	}));
 	//#endregion
-	//#region node_modules/type/plain-function/is.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/type/plain-function/is.js
 	var require_is = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isFunction = require_is$1();
 		var classRe = /^\s*class[\s{/}]/, functionToString = Function.prototype.toString;
@@ -98,7 +98,7 @@
 		};
 	}));
 	//#endregion
-	//#region node_modules/es5-ext/object/assign/is-implemented.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/assign/is-implemented.js
 	var require_is_implemented$2 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = function() {
 			var assign = Object.assign, obj;
@@ -109,7 +109,7 @@
 		};
 	}));
 	//#endregion
-	//#region node_modules/es5-ext/object/keys/is-implemented.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/keys/is-implemented.js
 	var require_is_implemented$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = function() {
 			try {
@@ -120,12 +120,12 @@
 		};
 	}));
 	//#endregion
-	//#region node_modules/es5-ext/function/noop.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/function/noop.js
 	var require_noop = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = function() {};
 	}));
 	//#endregion
-	//#region node_modules/es5-ext/object/is-value.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/is-value.js
 	var require_is_value = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var _undefined = require_noop()();
 		module.exports = function(val) {
@@ -133,7 +133,7 @@
 		};
 	}));
 	//#endregion
-	//#region node_modules/es5-ext/object/keys/shim.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/keys/shim.js
 	var require_shim$2 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is_value();
 		var keys = Object.keys;
@@ -142,12 +142,12 @@
 		};
 	}));
 	//#endregion
-	//#region node_modules/es5-ext/object/keys/index.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/keys/index.js
 	var require_keys = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = require_is_implemented$1()() ? Object.keys : require_shim$2();
 	}));
 	//#endregion
-	//#region node_modules/es5-ext/object/valid-value.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/valid-value.js
 	var require_valid_value = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is_value();
 		module.exports = function(value) {
@@ -156,7 +156,7 @@
 		};
 	}));
 	//#endregion
-	//#region node_modules/es5-ext/object/assign/shim.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/assign/shim.js
 	var require_shim$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var keys = require_keys(), value = require_valid_value(), max = Math.max;
 		module.exports = function(dest, src) {
@@ -178,12 +178,12 @@
 		};
 	}));
 	//#endregion
-	//#region node_modules/es5-ext/object/assign/index.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/assign/index.js
 	var require_assign = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = require_is_implemented$2()() ? Object.assign : require_shim$1();
 	}));
 	//#endregion
-	//#region node_modules/es5-ext/object/normalize-options.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/normalize-options.js
 	var require_normalize_options = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is_value();
 		var forEach = Array.prototype.forEach, create = Object.create;
@@ -201,7 +201,7 @@
 		};
 	}));
 	//#endregion
-	//#region node_modules/es5-ext/string/#/contains/is-implemented.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/string/#/contains/is-implemented.js
 	var require_is_implemented = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var str = "razdwatrzy";
 		module.exports = function() {
@@ -210,7 +210,7 @@
 		};
 	}));
 	//#endregion
-	//#region node_modules/es5-ext/string/#/contains/shim.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/string/#/contains/shim.js
 	var require_shim = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var indexOf = String.prototype.indexOf;
 		module.exports = function(searchString) {
@@ -218,12 +218,12 @@
 		};
 	}));
 	//#endregion
-	//#region node_modules/es5-ext/string/#/contains/index.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/string/#/contains/index.js
 	var require_contains = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = require_is_implemented()() ? String.prototype.contains : require_shim();
 	}));
 	//#endregion
-	//#region node_modules/d/index.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/d/index.js
 	var require_d = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is$4(), isPlainFunction = require_is(), assign = require_assign(), normalizeOpts = require_normalize_options(), contains = require_contains();
 		var d = module.exports = function(dscr, value) {
@@ -283,7 +283,7 @@
 		};
 	}));
 	//#endregion
-	//#region node_modules/es5-ext/object/valid-callable.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/valid-callable.js
 	var require_valid_callable = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = function(fn) {
 			if (typeof fn !== "function") throw new TypeError(fn + " is not a function");
@@ -1869,7 +1869,7 @@
 		return content;
 	}
 	//#endregion
-	//#region node_modules/@xmldom/xmldom/lib/conventions.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/@xmldom/xmldom/lib/conventions.js
 	var require_conventions = /* @__PURE__ */ __commonJSMin(((exports) => {
 		/**
 		* Ponyfill for `Array.prototype.find` which is only available in ES6 runtimes.
@@ -2050,7 +2050,7 @@
 		exports.tagNamePattern = tagNamePattern;
 	}));
 	//#endregion
-	//#region node_modules/@xmldom/xmldom/lib/dom.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/@xmldom/xmldom/lib/dom.js
 	var require_dom = /* @__PURE__ */ __commonJSMin(((exports) => {
 		var conventions = require_conventions();
 		var find = conventions.find;
@@ -3793,7 +3793,7 @@
 		exports.XMLSerializer = XMLSerializer;
 	}));
 	//#endregion
-	//#region node_modules/@xmldom/xmldom/lib/entities.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/@xmldom/xmldom/lib/entities.js
 	var require_entities = /* @__PURE__ */ __commonJSMin(((exports) => {
 		var freeze = require_conventions().freeze;
 		/**
@@ -5958,7 +5958,7 @@
 		exports.entityMap = exports.HTML_ENTITIES;
 	}));
 	//#endregion
-	//#region node_modules/@xmldom/xmldom/lib/sax.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/@xmldom/xmldom/lib/sax.js
 	var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
 		var NAMESPACE = require_conventions().NAMESPACE;
 		var tagNamePattern = require_conventions().tagNamePattern;
@@ -6445,7 +6445,7 @@
 		exports.ParseError = ParseError;
 	}));
 	//#endregion
-	//#region node_modules/@xmldom/xmldom/lib/dom-parser.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/@xmldom/xmldom/lib/dom-parser.js
 	var require_dom_parser = /* @__PURE__ */ __commonJSMin(((exports) => {
 		var conventions = require_conventions();
 		var dom = require_dom();
@@ -11946,7 +11946,7 @@
 	};
 	(0, import_event_emitter.default)(Contents.prototype);
 	//#endregion
-	//#region node_modules/marks-pane/lib/svg.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/marks-pane/lib/svg.js
 	var require_svg = /* @__PURE__ */ __commonJSMin(((exports) => {
 		Object.defineProperty(exports, "__esModule", { value: true });
 		exports.createElement = createElement;
@@ -11956,7 +11956,7 @@
 		exports.default = { createElement };
 	}));
 	//#endregion
-	//#region node_modules/marks-pane/lib/events.js
+	//#region ../engine10d-formal-distribution-20261009/node_modules/marks-pane/lib/events.js
 	var require_events = /* @__PURE__ */ __commonJSMin(((exports) => {
 		Object.defineProperty(exports, "__esModule", { value: true });
 		exports.proxyMouse = proxyMouse;
@@ -13737,7 +13737,7 @@
 		return [
 			Math.round((Number(totalPages) || 0) * 100) / 100,
 			Math.round((Number(maxScroll) || 0) * 100) / 100,
-			Math.round(content * 100) / 100,
+			Math.round(content),
 			Math.round(visible * 100) / 100,
 			Math.round(advance * 100) / 100,
 			Math.round((Number(edgeGuard) || 0) * 100) / 100
@@ -16155,6 +16155,8 @@
 				let cacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, maxScroll);
 				let pageIndex = this.getCurrentPageIndex();
 				if (!cacheKey || !Number.isFinite(pageIndex)) return;
+				const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(pageIndex, cacheKey);
+				if (recordedOffset !== null && recordedOffset !== this.getNormalizedLogicalScrollLeft()) return;
 				if (!this._verticalRlAppliedLeftMaskLedger || this._verticalRlAppliedLeftMaskLedgerKey !== cacheKey) {
 					this._verticalRlAppliedLeftMaskLedger = {};
 					this._verticalRlAppliedLeftMaskLedgerKey = cacheKey;
@@ -17532,7 +17534,9 @@
 					const cacheKey = this.getVerticalRlLogicalPageOffsetCacheKey(totalPages, this.getMaxLogicalScrollLeft());
 					const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, cacheKey);
 					const visibleWidth = this.layout?.pageWidth || this.container?.clientWidth || 0;
-					const cachedBoundaryCreatesGap = recordedOffset !== null && visibleWidth > 0 && recordedOffset - this.getNormalizedLogicalScrollLeft() > visibleWidth + 1;
+					const appliedMasks = this.container?.dataset?.epubVrlEdgeMaskLeft !== void 0 ? this.getVerticalRlAppliedEdgeMaskWidths() : this.getVerticalRlRenderedEdgeMaskWidths();
+					const excludedLeft = Math.max(0, Number(appliedMasks?.left) || 0);
+					const cachedBoundaryCreatesGap = recordedOffset !== null && visibleWidth > 0 && recordedOffset - this.getNormalizedLogicalScrollLeft() > visibleWidth - excludedLeft + 1;
 					this.scrollToLogicalPage(targetIndex, cachedBoundaryCreatesGap ? {
 						ignoreCachedLogicalOffset: true,
 						sequentialRightBoundary: this.getVerticalRlCurrentEffectiveLeftBoundary()

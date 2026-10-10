@@ -905,7 +905,7 @@ function ke(e, t, n) {
 	}), e;
 }
 //#endregion
-//#region node_modules/@xmldom/xmldom/lib/conventions.js
+//#region ../engine10d-formal-distribution-20261009/node_modules/@xmldom/xmldom/lib/conventions.js
 var Ae = /* @__PURE__ */ o(((e) => {
 	function t(e, t, n) {
 		if (n === void 0 && (n = Array.prototype), e && typeof n.find == "function") return n.find.call(e, t);
@@ -6884,7 +6884,7 @@ var Et = class {
 };
 (0, j.default)(Gt.prototype);
 //#endregion
-//#region node_modules/marks-pane/lib/svg.js
+//#region ../engine10d-formal-distribution-20261009/node_modules/marks-pane/lib/svg.js
 var Kt = /* @__PURE__ */ o(((e) => {
 	Object.defineProperty(e, "__esModule", { value: !0 }), e.createElement = t;
 	function t(e) {
@@ -8052,7 +8052,7 @@ function In(e, t, n, r, i, a = 0) {
 	return !o || !s || !c ? null : [
 		Math.round((Number(e) || 0) * 100) / 100,
 		Math.round((Number(t) || 0) * 100) / 100,
-		Math.round(o * 100) / 100,
+		Math.round(o),
 		Math.round(s * 100) / 100,
 		Math.round(c * 100) / 100,
 		Math.round((Number(a) || 0) * 100) / 100
@@ -9703,6 +9703,8 @@ var li = class {
 		if (this.isRtlVerticalPaginated()) try {
 			let t = this.getTotalPagesForCurrentView(), n = this.getMaxLogicalScrollLeft(), r = this.getVerticalRlLogicalPageOffsetCacheKey(t, n), i = this.getCurrentPageIndex();
 			if (!r || !Number.isFinite(i)) return;
+			let a = this.getCachedVerticalRlLogicalPageOffset(i, r);
+			if (a !== null && a !== this.getNormalizedLogicalScrollLeft()) return;
 			(!this._verticalRlAppliedLeftMaskLedger || this._verticalRlAppliedLeftMaskLedgerKey !== r) && (this._verticalRlAppliedLeftMaskLedger = {}, this._verticalRlAppliedLeftMaskLedgerKey = r), this._verticalRlAppliedLeftMaskLedger[String(i)] = e + this.getVerticalRlAppliedContentShift(), this._verticalRlActiveTerminalLayout?.layoutKey === r && (this._verticalRlActiveTerminalLayout.appliedLeftMasks = this._verticalRlAppliedLeftMaskLedger);
 		} catch {}
 	}
@@ -10623,8 +10625,8 @@ var li = class {
 			if (this.isRtlVerticalPaginated()) {
 				let e = this.getCurrentPageIndex(), n = this.getTotalPagesForCurrentView();
 				if (e < n - 1) {
-					let t = e + 1, r = this.getVerticalRlLogicalPageOffsetCacheKey(n, this.getMaxLogicalScrollLeft()), i = this.getCachedVerticalRlLogicalPageOffset(t, r), a = this.layout?.pageWidth || this.container?.clientWidth || 0, o = i !== null && a > 0 && i - this.getNormalizedLogicalScrollLeft() > a + 1;
-					this.scrollToLogicalPage(t, o ? {
+					let t = e + 1, r = this.getVerticalRlLogicalPageOffsetCacheKey(n, this.getMaxLogicalScrollLeft()), i = this.getCachedVerticalRlLogicalPageOffset(t, r), a = this.layout?.pageWidth || this.container?.clientWidth || 0, o = this.container?.dataset?.epubVrlEdgeMaskLeft === void 0 ? this.getVerticalRlRenderedEdgeMaskWidths() : this.getVerticalRlAppliedEdgeMaskWidths(), s = Math.max(0, Number(o?.left) || 0), c = i !== null && a > 0 && i - this.getNormalizedLogicalScrollLeft() > a - s + 1;
+					this.scrollToLogicalPage(t, c ? {
 						ignoreCachedLogicalOffset: !0,
 						sequentialRightBoundary: this.getVerticalRlCurrentEffectiveLeftBoundary()
 					} : i === null ? { sequentialRightBoundary: this.getVerticalRlCurrentEffectiveLeftBoundary() } : { preserveCachedBoundary: !0 });
