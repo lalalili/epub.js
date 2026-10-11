@@ -157,7 +157,8 @@ describe("learned continuation preserves committed left ownership", () => {
  });
  it.each([
   {_verticalRlAppliedLeftMaskLedgerKey:"different-layout"},
-  {_verticalRlActiveTerminalLayout:{layoutKey:"layout",continuationCount:0}},
+  {_verticalRlActiveTerminalLayout:null},
+  {_verticalRlActiveTerminalLayout:{layoutKey:"layout",continuationCount:0},getRecordedVerticalRlAppliedLeftMask:()=>0},
   {getCachedVerticalRlLogicalPageOffset:()=>null},
   {getNormalizedLogicalScrollLeft:()=>3839},
   {getRecordedVerticalRlAppliedLeftMask:()=>97},
@@ -205,7 +206,7 @@ describe("8069 Native default cached source fence", () => {
 
 
 describe("unchanged learned page viewport synchronization", () => {
- function manager({ committed = true, restored = null, terminal = null } = {}) {
+ function manager({ committed = true, restored = null, terminal = null, continuation = 3 } = {}) {
   const m = Object.create(DefaultViewManager.prototype);
   const key = "16:4678:4998:320:312:4";
   m.container = document.createElement("div");
@@ -216,7 +217,7 @@ describe("unchanged learned page viewport synchronization", () => {
   const overlay = document.createElement("div");
   parent.appendChild(overlay);
   m.isRtlVerticalPaginated = () => true;
-  m._verticalRlActiveTerminalLayout = { layoutKey: key, continuationCount: 3 };
+  m._verticalRlActiveTerminalLayout = { layoutKey: key, continuationCount: continuation };
   m._verticalRlAppliedLeftMaskLedgerKey = key;
   m.getCurrentPageIndex = () => 16;
   m.getTotalPagesForCurrentView = () => 19;
@@ -241,8 +242,23 @@ describe("unchanged learned page viewport synchronization", () => {
   expect(m.container.dataset.epubVrlEdgeMaskLeft).toBe("39");
   expect(m.recordedLeft).toBe(39);
  });
+ it("preserves a normal chapter's recorded source fence through content shift", () => {
+  const m = manager();
+  m._verticalRlActiveTerminalLayout.continuationCount = 0;
+  m._verticalRlPreservedPageBoundary = {pageIndex:8,layoutKey:m._verticalRlActiveTerminalLayout.layoutKey,sourceLeftBoundary:3546};
+  m.getCurrentPageIndex = () => 8;
+  m.getCachedVerticalRlLogicalPageOffset = () => 2132;
+  m.getNormalizedLogicalScrollLeft = () => 2132;
+  m.getRecordedVerticalRlAppliedLeftMask = () => 62;
+  m.getVerticalRlAppliedContentShift = () => 43;
+  m.expandVerticalRlLeftMaskToVisibleLine = () => ({ left: 61, right: 4 });
+  m.syncVerticalRlViewportClip();
+  expect(m.container.dataset.epubVrlEdgeMaskLeft).toBe("19");
+  expect(m.recordedLeft + m.getVerticalRlAppliedContentShift()).toBe(62);
+ });
  it.each([
   [{ committed: false }, 63, 2],
+  [{ continuation: 0 }, 63, 2],
   [{ restored: { left: 51, right: 5 } }, 51, 5],
   [{ terminal: 7 }, 0, 7],
  ])("preserves other ownership authorities: %j", (options, left, right) => {

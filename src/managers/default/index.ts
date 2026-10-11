@@ -2342,7 +2342,7 @@ class DefaultViewManager {
 	/** Preserve an already committed source fence on an unchanged learned page. */
 	getVerticalRlCommittedLeftMaskForCurrentOffset(maxMask: number): number | null {
 		const state = this._verticalRlActiveTerminalLayout;
-		if (!this.isRtlVerticalPaginated() || !state || state.continuationCount <= 0 ||
+		if (!this.isRtlVerticalPaginated() || !state ||
 			this._verticalRlAppliedLeftMaskLedgerKey !== state.layoutKey) {
 			return null;
 		}
@@ -2356,6 +2356,14 @@ class DefaultViewManager {
 		}
 		const fence = this.getRecordedVerticalRlAppliedLeftMask(pageIndex);
 		if (fence === null || !Number.isFinite(fence)) {
+			return null;
+		}
+		// An ordinary chapter may restore a proved source cut. Its first forward
+		// observation must still allow Reader measurement to settle the mask.
+		const preserved = this._verticalRlPreservedPageBoundary;
+		if (state.continuationCount <= 0 && (fence <= 0 ||
+			preserved?.pageIndex !== pageIndex || preserved.layoutKey !== state.layoutKey ||
+			!Number.isFinite(preserved.sourceLeftBoundary))) {
 			return null;
 		}
 		const physicalMask = fence - this.getVerticalRlAppliedContentShift();
