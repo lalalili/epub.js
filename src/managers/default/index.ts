@@ -2164,9 +2164,22 @@ class DefaultViewManager {
 				this._verticalRlAppliedLeftMaskLedgerKey = cacheKey;
 			}
 
+			// Before Reader restores an iframe shift, a proved source fence can
+			// exceed the physical mask cap. Do not replace it with that transient cap.
+			const contentShift = this.getVerticalRlAppliedContentShift();
+			const preserved = this._verticalRlPreservedPageBoundary;
+			const recordedFence = this._verticalRlAppliedLeftMaskLedger[String(pageIndex)];
+			if (recordedOffset !== null && contentShift === 0 &&
+				preserved?.pageIndex === pageIndex && preserved.layoutKey === cacheKey &&
+				Number.isFinite(preserved.sourceLeftBoundary) &&
+				Number.isFinite(recordedFence) &&
+				recordedFence > getVerticalRlEdgeMaskLimitHelper(this.getPageAdvance()) &&
+				leftMask < recordedFence) {
+				return;
+			}
+
 			// Ownership uses excluded content, not only the physical overlay width.
-			this._verticalRlAppliedLeftMaskLedger[String(pageIndex)] = leftMask +
-				this.getVerticalRlAppliedContentShift();
+			this._verticalRlAppliedLeftMaskLedger[String(pageIndex)] = leftMask + contentShift;
 			if (this._verticalRlActiveTerminalLayout?.layoutKey === cacheKey) {
 				this._verticalRlActiveTerminalLayout.appliedLeftMasks = this._verticalRlAppliedLeftMaskLedger;
 			}

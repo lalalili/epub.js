@@ -81,6 +81,28 @@ describe("vertical-rl Reader displacement boundaries", () => {
 		expect(value.getRecordedVerticalRlAppliedLeftMask(30)).toBe(expected);
 	});
 
+	it.each([
+		{ shift: 0, preserved: true, sameLayout: true, expected: 83 },
+		{ shift: 27, preserved: true, sameLayout: true, expected: 83 },
+		{ shift: 0, preserved: false, sameLayout: true, expected: 78 },
+		{ shift: 0, preserved: true, sameLayout: false, expected: 78 },
+	])("keeps the learned source fence while its displacement is restored: %j", ({ shift, preserved, sameLayout, expected }) => {
+		const value = manager({ shift: String(shift), transform: shift ? `translateX(-${shift}px)` : "" });
+		value.getPageAdvance = () => 312;
+		value.getTotalPagesForCurrentView = () => 29;
+		value.getMaxLogicalScrollLeft = () => 8626;
+		value.getCurrentPageIndex = () => 7;
+		value.getCachedVerticalRlLogicalPageOffset = () => 1887;
+		value.getNormalizedLogicalScrollLeft = () => 1887;
+		value._verticalRlAppliedLeftMaskLedgerKey = "layout";
+		value._verticalRlAppliedLeftMaskLedger = { "7": 83 };
+		value._verticalRlPreservedPageBoundary = preserved
+			? { pageIndex: 7, layoutKey: sameLayout ? "layout" : "other", sourceLeftBoundary: 6822 }
+			: null;
+		value.recordVerticalRlAppliedLeftMask(shift ? 56 : 78);
+		expect(value.getRecordedVerticalRlAppliedLeftMask(7)).toBe(expected);
+	});
+
 	it("does not claim the displaced excluded column was painted on the previous page", () => {
 		const value = manager();
 		value.getTotalPagesForCurrentView = () => 5;
