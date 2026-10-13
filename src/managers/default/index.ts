@@ -4,6 +4,7 @@ import { extend } from "../../core/collections";
 import { isNumber } from "../../core/types";
 import { windowBounds } from "../../platform/layout";
 import { collectVisibleTextClientRects } from "../../platform/traversal";
+import { refreshCombinedTextPaint } from "../../rendering/combined-text-paint";
 import type { VisibleTextClientRect } from "../../platform/traversal";
 import scrollType from "../../utils/scrolltype";
 import Mapping from "../../mapping";
@@ -443,6 +444,7 @@ class DefaultViewManager {
 	declare orientationTimeout?: ReturnType<typeof setTimeout>;
 	declare resizeTimeout?: ReturnType<typeof setTimeout>;
 	declare afterScrolled?: ReturnType<typeof setTimeout>;
+	private _combinedTextPaintFrame?: number;
 	declare _verticalRlBoundarySnapAfterScroll?: ReturnType<typeof setTimeout>;
 	declare _verticalRlEdgeMaskComputing?: boolean;
 	declare _onUnload?: EventListener;
@@ -743,6 +745,10 @@ class DefaultViewManager {
 	}
 
 	destroy(){
+		if (this._combinedTextPaintFrame !== undefined) {
+			cancelAnimationFrame(this._combinedTextPaintFrame);
+			this._combinedTextPaintFrame = undefined;
+		}
 		clearTimeout(this.orientationTimeout);
 		clearTimeout(this.resizeTimeout);
 		clearTimeout(this.afterScrolled);
@@ -4790,6 +4796,33 @@ class DefaultViewManager {
 		}
 	}
 
+	private queueCombinedTextPaintRefresh(): void {
+		if (this._combinedTextPaintFrame !== undefined || this.settings.fullsize || !this.isRtlVerticalPaginated()) {
+			return;
+		}
+		this._combinedTextPaintFrame = requestAnimationFrame(() => {
+			this._combinedTextPaintFrame = undefined;
+			if (!this.container || !this.views) {
+				return;
+			}
+			const clip = this.container.getBoundingClientRect();
+			for (const view of this.views.all()) {
+				const frame = view.iframe;
+				const document = view.contents?.document;
+				if (!frame || !document) {
+					continue;
+				}
+				const rect = frame.getBoundingClientRect();
+				refreshCombinedTextPaint(document, {
+					left: clip.left - rect.left,
+					right: clip.right - rect.left,
+					top: clip.top - rect.top,
+					bottom: clip.bottom - rect.top
+				});
+			}
+		});
+	}
+
 	onScroll(){
 		let scrollTop;
 		let scrollLeft;
@@ -4804,6 +4837,9 @@ class DefaultViewManager {
 		}
 
 		const scrollPositionChanged = scrollTop !== this.scrollTop || scrollLeft !== this.scrollLeft;
+		if (scrollPositionChanged) {
+			this.queueCombinedTextPaintRefresh();
+		}
 		this.scrollTop = scrollTop;
 		this.scrollLeft = scrollLeft;
 		this.target = undefined;
