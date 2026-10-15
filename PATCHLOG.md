@@ -2,6 +2,15 @@
 
 This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
+## 2026-10-16
+
+### EPUB-G5-001 remeasure the promoted terminal page's mask fence
+- Why: 5556 mobile390x844 min-tight Section0005 page6 retains a terminal 8px content fence after promotion from6 to7 pages. Reader accepts the old zero-mask/8px-displacement visual state and partially exposes46 source units owned completely by the next page. Independent Engine-only regression accepts that obsolete fence as a zero physical mask before the change.
+- Diff Scope: invalidate only the promoted target's applied-left-mask record after successful continuation promotion. Preserve earlier masks, every learned offset and the reached-tail path. No page-count policy, offset changes, ISBN branches, overflow suppression or relaxed paint assertions.
+- Test: the regression fails before and passes after under the owner lock. Five focused browser files pass74 tests, including unchanged offsets, prior-page masks, tail resolution and View recreation; TypeScript passes. The same locked unmodified source rebuilds all23 Reader assets byte-identically to the qualified baseline. The locked mobile390x844 min-tight canonical first-chapter gate passes91 continuous positions with90 checkpoints,91 loaded-UMD checks,109 surplus skips only after completion and23 assets restored (123.8 minutes). Required5556 SameLayout and8472 fixed-spread/horizontal-content/resize sentinels pass4 tests with independently captured executed-script bytes. Android, remaining affected profiles and final distribution remain pending; an earlier unlocked-toolchain20-position diagnostic is not qualification.
+- Evidence: the CPTW5556 named case and task-private source/runtime fingerprints retain raw geometry, glyph references, hit/caret/selection and the Reader mask ownership trace. This local slice does not close G5 or unfreeze unrelated rendering work.
+- Rollback: revert this terminal-mask invalidation and regenerate the distribution.
+
 ## 2026-10-07
 
 ### EPUB-G5-001 late viewport rect admission

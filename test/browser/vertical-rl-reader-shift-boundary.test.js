@@ -1,5 +1,40 @@
 import { describe, expect, it } from "vitest";
 import DefaultViewManager from "../../src/managers/default";
+import { promoteVerticalRlTerminalContinuation } from "../../src/rendering/terminal-continuation";
+
+describe("5556 mobile min-tight promoted terminal ownership", () => {
+	it("remeasures only the former terminal fence after reserving a continuation", () => {
+		const masks = { "4": 96, "5": 8 };
+		const offsets = { key: "mobile-source5", offsets: { "4": 1352, "5": 1640 } };
+		const state = { layoutKey: "mobile-source5", continuationCount: 0, appliedLeftMasks: masks, offsetCache: offsets };
+		const manager = Object.create(DefaultViewManager.prototype);
+		manager._verticalRlActiveTerminalLayout = state;
+		manager._verticalRlAppliedLeftMaskLedgerKey = state.layoutKey;
+		manager._verticalRlAppliedLeftMaskLedger = masks;
+		manager.isRtlVerticalPaginated = () => true;
+		manager.getCurrentPageIndex = () => 5;
+		manager.getTotalPagesForCurrentView = () => 6 + state.continuationCount;
+		manager.getCachedVerticalRlLogicalPageOffset = () => 1640;
+		manager.getNormalizedLogicalScrollLeft = () => 1640;
+		manager.getVerticalRlAppliedContentShift = () => 8;
+
+		expect(manager.getVerticalRlCommittedLeftMaskForCurrentOffset(96)).toBeNull();
+		expect(promoteVerticalRlTerminalContinuation(state, 6, 5, 1640, 1920, 1, "unreached")).toBe(true);
+		expect(manager.getVerticalRlCommittedLeftMaskForCurrentOffset(96)).toBeNull();
+		expect(masks["4"]).toBe(96);
+		expect(masks["5"]).toBeUndefined();
+		expect(state.appliedLeftMasks).toBe(masks);
+		expect(state.offsetCache).toBe(offsets);
+		expect(offsets.offsets).toEqual({ "4": 1352, "5": 1640 });
+	});
+
+	it("retains terminal ownership when the source tail is already reached", () => {
+		const masks = { "4": 96, "5": 8 };
+		const state = { layoutKey: "mobile-source5", continuationCount: 0, appliedLeftMasks: masks };
+		expect(promoteVerticalRlTerminalContinuation(state, 6, 5, 1640, 1920, 1, "reached")).toBe(false);
+		expect(masks).toEqual({ "4": 96, "5": 8 });
+	});
+});
 
 // 5556 mobile/min-tight: the Reader paints with a 68px mask and a 22px
 // leftward iframe displacement. Both exclude content from the next-page slice.
