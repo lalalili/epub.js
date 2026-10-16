@@ -311,8 +311,8 @@ export function getVerticalRlRawLeftSnapDecisionForRects(
 	);
 
 	const snappedLeft = getVerticalRlSnappedLeftEdgeMask(left, shift, leftMaxMask);
-	if (shift > 0 && snappedLeft < left + shift) {
-		// A capped expansion must not leave the boundary inside a rendered glyph.
+	if (shift > 0 && rects.some(rect => rect.left < rawLeft + snappedLeft && rect.right > rawLeft + snappedLeft)) {
+		// Expansion can cross an adjacent glyph even before reaching the mask cap.
 		// Retreat through overlapping intervals; retain the original decision if
 		// no safe boundary exists inside the current viewport.
 		let safeLeft = snappedLeft;

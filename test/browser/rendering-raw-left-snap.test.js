@@ -192,3 +192,30 @@ describe("raw-left-snap: measured cold boundary", () => {
 		expect(rects.some(rect => rect.left < 1355.609375 + left && rect.right > 1355.609375 + left)).toBe(false);
 	});
 });
+
+
+describe("raw-left-snap: adjacent measured columns", () => {
+	it("keeps adjacent measured columns whole when an uncapped expansion crosses their shared edge", () => {
+		const rects = [
+			{ left: 4250.390625, right: 4274.390625 },
+			{ left: 4220.0625, right: 4244.0625 },
+			{ left: 4229.578125, right: 4247.171875 },
+			{ left: 4220.0625, right: 4244.0625 },
+			{ left: 4196.0625, right: 4220.0625 },
+			{ left: 4172.0625, right: 4196.0625 },
+			{ left: 4141.734375, right: 4165.734375 },
+			{ left: 4151.25, right: 4168.84375 },
+			{ left: 4141.734375, right: 4165.734375 }
+		];
+		let left = 8;
+		for (let attempt = 0; attempt < 4; attempt++) {
+			left = getVerticalRlRawLeftSnapDecisionForRects(
+				rects, 4156, 4476, left, 78, 271, false, false, true, 4
+			).left;
+		}
+		expect(rects.some(rect => rect.left < 4156 + left && rect.right > 4156 + left)).toBe(false);
+		expect(getVerticalRlRawLeftSnapDecisionForRects(
+			rects, 4156, 4476, left, 78, 271, false, false, true, 4
+		).left).toBe(left);
+	});
+});

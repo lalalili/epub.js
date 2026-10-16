@@ -4,6 +4,13 @@ This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
 ## 2026-10-16
 
+### EPUB-G5-001 keep uncapped mask expansion outside adjacent glyphs
+- Why: 5556 narrow320x568 min-tight Section0013 changes its page7 fence on a normal previous/return path. An uncapped snap expansion crosses an adjacent measured column; repeated edge snaps can then settle on a wider mask and alter subsequent source windows.
+- Diff Scope: use the existing retreat through overlapping measured intervals whenever a positive expansion crosses a measured glyph, including before the mask cap. Keep the existing no-safe-boundary fallback, source rects, typography and source bytes. No ISBN branch, overflow suppression or relaxed oracle.
+- Test: the measured nine-rect regression fails before and passes after, checking whole glyphs and a stable decision. Focused260 tests, lint and typecheck pass; the full Chromium suite passes963 tests with one existing skip. The same locked candidate passes the normal UI page7 return, the historical29-source-unit five-stage paint/interaction gate and four5556/8472 sentinels. Original narrow min-tight continuous qualification passes153 positions,152 checkpoints and153 loaded-UMD checks in218.36 minutes;47 surplus segments skip only after the complete boundary. All148 saved glyph round trips reassess consistently;23 assets restore byte-identically.
+- Evidence: CPTW sanitized evidence records candidate UMD ea2f53df, source hashes and the full profile. Other affected profiles, Native and final distribution require applicability review or verification. This does not close full G5 or expand historical formal A-E qualification.
+- Rollback: revert this raw-left-snap change and regenerate distribution artifacts.
+
 ### EPUB-G5-001 remeasure the promoted terminal page's mask fence
 - Why: 5556 mobile390x844 min-tight Section0005 page6 retains a terminal 8px content fence after promotion from6 to7 pages. Reader accepts the old zero-mask/8px-displacement visual state and partially exposes46 source units owned completely by the next page. Independent Engine-only regression accepts that obsolete fence as a zero physical mask before the change.
 - Diff Scope: invalidate only the promoted target's applied-left-mask record after successful continuation promotion. Preserve earlier masks, every learned offset and the reached-tail path. No page-count policy, offset changes, ISBN branches, overflow suppression or relaxed paint assertions.
