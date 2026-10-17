@@ -905,7 +905,7 @@ function ke(e, t, n) {
 	}), e;
 }
 //#endregion
-//#region ../engine10d-formal-distribution-20261009/node_modules/@xmldom/xmldom/lib/conventions.js
+//#region node_modules/@xmldom/xmldom/lib/conventions.js
 var Ae = /* @__PURE__ */ o(((e) => {
 	function t(e, t, n) {
 		if (n === void 0 && (n = Array.prototype), e && typeof n.find == "function") return n.find.call(e, t);
@@ -6884,7 +6884,7 @@ var Et = class {
 };
 (0, j.default)(Gt.prototype);
 //#endregion
-//#region ../engine10d-formal-distribution-20261009/node_modules/marks-pane/lib/svg.js
+//#region node_modules/marks-pane/lib/svg.js
 var Kt = /* @__PURE__ */ o(((e) => {
 	Object.defineProperty(e, "__esModule", { value: !0 }), e.createElement = t;
 	function t(e) {
@@ -7478,12 +7478,43 @@ var Qt = () => typeof window < "u" && window.__EPUB_VRL_DEBUG__ === !0, $t = cla
 };
 (0, j.default)($t.prototype);
 //#endregion
+//#region src/rendering/combined-text-paint.ts
+var en = /* @__PURE__ */ new WeakMap();
+function tn(e, t) {
+	e.style.willChange !== t.applied || e.style.getPropertyPriority("will-change") !== "important" || (t.value ? e.style.setProperty("will-change", t.value, t.priority) : e.style.removeProperty("will-change"), !t.hadStyle && e.getAttribute("style") === "" && e.removeAttribute("style"));
+}
+function nn(e, t) {
+	let n = e.defaultView;
+	if (!n || !e.body) return 0;
+	let r = en.get(e) || /* @__PURE__ */ new Map(), i = /* @__PURE__ */ new Set();
+	if (/Chrome|Chromium/.test(n.navigator.userAgent) && n.getComputedStyle(e.body).writingMode === "vertical-rl") for (let r of e.body.querySelectorAll("*")) {
+		if (n.getComputedStyle(r).getPropertyValue("text-combine-upright") !== "all") continue;
+		let e = r.getBoundingClientRect();
+		e.width > 0 && e.height > 0 && e.left >= t.left && e.right <= t.right && e.top >= t.top && e.bottom <= t.bottom && i.add(r);
+	}
+	for (let [e, t] of r) i.has(e) || (tn(e, t), r.delete(e));
+	let a = 0;
+	for (let e of i) {
+		if (r.has(e)) continue;
+		let t = n.getComputedStyle(e).willChange;
+		if (t.split(",").some((e) => e.trim() === "contents")) continue;
+		let i = t === "auto" ? "contents" : `${t}, contents`;
+		r.set(e, {
+			value: e.style.getPropertyValue("will-change"),
+			priority: e.style.getPropertyPriority("will-change"),
+			applied: i,
+			hadStyle: e.hasAttribute("style")
+		}), e.style.setProperty("will-change", i, "important"), a++;
+	}
+	return en.set(e, r), a;
+}
+//#endregion
 //#region src/utils/scrolltype.ts
-function en() {
-	var e = "reverse", t = tn();
+function rn() {
+	var e = "reverse", t = an();
 	return document.body.appendChild(t), t.scrollLeft > 0 ? e = "default" : typeof Element < "u" && Element.prototype.scrollIntoView ? (t.children[0].children[1].scrollIntoView(), t.scrollLeft < 0 && (e = "negative")) : (t.scrollLeft = 1, t.scrollLeft === 0 && (e = "negative")), document.body.removeChild(t), e;
 }
-function tn() {
+function an() {
 	var e = document.createElement("div");
 	e.dir = "rtl", e.style.position = "fixed", e.style.width = "1px", e.style.height = "1px", e.style.top = "0px", e.style.left = "0px", e.style.overflow = "hidden";
 	var t = document.createElement("div");
@@ -7495,8 +7526,8 @@ function tn() {
 }
 //#endregion
 //#region src/rendering/semantic-cut.ts
-var nn = 12e3;
-function rn(e) {
+var on = 12e3;
+function sn(e) {
 	let t = new TextEncoder().encode(e), n = t.length, r = new Uint8Array(Math.ceil((n + 9) / 64) * 64);
 	r.set(t), r[n] = 128;
 	let i = new DataView(r.buffer);
@@ -7601,12 +7632,12 @@ function rn(e) {
 	}
 	return o.map((e) => e.toString(16).padStart(8, "0")).join("");
 }
-function an(e, t) {
+function cn(e, t) {
 	let n = e.createTreeWalker(e.body, NodeFilter.SHOW_TEXT), r = [], i = "";
 	for (let a = n.nextNode(); a; a = n.nextNode()) {
 		let n = a;
 		if (n.parentElement?.closest("script,style,noscript")) continue;
-		if (i += n.data, i.length > nn) throw Error("semantic-cut-quota");
+		if (i += n.data, i.length > on) throw Error("semantic-cut-quota");
 		let o = !0;
 		for (let t = n.parentElement; t; t = t.parentElement) {
 			let n = e.defaultView.getComputedStyle(t);
@@ -7614,7 +7645,7 @@ function an(e, t) {
 		}
 		if (o && t) {
 			let r = e.createRange();
-			r.selectNodeContents(n), o = [...r.getClientRects()].some((e) => e.width > 0 && e.height > 0 && sn(e, t));
+			r.selectNodeContents(n), o = [...r.getClientRects()].some((e) => e.width > 0 && e.height > 0 && un(e, t));
 		}
 		let s = 0;
 		for (let t of n.data) {
@@ -7631,10 +7662,10 @@ function an(e, t) {
 	}
 	return {
 		items: r,
-		digest: rn(i)
+		digest: sn(i)
 	};
 }
-function on(e, t = !0) {
+function ln(e, t = !0) {
 	let n = e.getBoundingClientRect(), r = e.ownerDocument.defaultView, i = {
 		left: Math.max(0, n.left),
 		right: Math.min(r.innerWidth, n.right),
@@ -7657,16 +7688,16 @@ function on(e, t = !0) {
 		bottom: i.bottom - n.top
 	} : null;
 }
-var sn = (e, t) => e.right > t.left && e.left < t.right && e.bottom > t.top && e.top < t.bottom;
-function cn(e, t, n) {
+var un = (e, t) => e.right > t.left && e.left < t.right && e.bottom > t.top && e.top < t.bottom;
+function dn(e, t, n) {
 	try {
-		let r = on(t);
+		let r = ln(t);
 		if (!r || t.contentDocument !== e) return null;
-		let { items: i, digest: a } = an(e, r), o = [], s = null, c = null, l = () => {
+		let { items: i, digest: a } = cn(e, r), o = [], s = null, c = null, l = () => {
 			s && o.push(new Z(s, n).toString()), s = null;
 		};
 		for (let t of i) {
-			if (!t.rects.some((e) => sn(e, r))) {
+			if (!t.rects.some((e) => un(e, r))) {
 				l(), c = null;
 				continue;
 			}
@@ -7684,7 +7715,7 @@ function cn(e, t, n) {
 		return null;
 	}
 }
-function ln(e, t, n, r, i, a = {}) {
+function fn(e, t, n, r, i, a = {}) {
 	try {
 		if (n?.version !== 1 || n.algorithm !== "cfi-runs-sha256-v1" || !Array.isArray(n.runs) || !n.runs.length || n.runs.length > 32 || JSON.stringify(n).length > 3e3) return {
 			status: "unavailable",
@@ -7694,12 +7725,12 @@ function ln(e, t, n, r, i, a = {}) {
 			status: "unavailable",
 			reason: "invalid-semantic-source-range"
 		};
-		let o = on(t);
+		let o = ln(t);
 		if (!o || t.contentDocument !== e) return {
 			status: "unavailable",
 			reason: "stale-document"
 		};
-		let { items: s, digest: c } = an(e);
+		let { items: s, digest: c } = cn(e);
 		if (c !== n.sourceDigest) return {
 			status: "unavailable",
 			reason: "semantic-source-mismatch"
@@ -7714,7 +7745,7 @@ function ln(e, t, n, r, i, a = {}) {
 			status: "unavailable",
 			reason: "empty-semantic-cut"
 		};
-		let f = on(t, !1);
+		let f = ln(t, !1);
 		if (!f) return {
 			status: "unavailable",
 			reason: "stale-document"
@@ -7732,16 +7763,16 @@ function ln(e, t, n, r, i, a = {}) {
 		}
 		let v = () => {
 			if (!a.allowCurrentTerminalMask) return null;
-			let e = on(t, !1);
+			let e = ln(t, !1);
 			if (!e) return null;
 			let n = _.filter((e, t) => d[t]).flat();
 			if (!n.length || n.some((t) => t.left < e.left || t.right > e.right || t.top < e.top || t.bottom > e.bottom)) return null;
-			let r = Math.min(...n.map((e) => e.left)), i = Math.max(...n.map((e) => e.right)), o = _.filter((e, t) => !d[t]).flat().filter((t) => sn(t, e)), c = o.filter((e) => e.right <= r), l = o.filter((e) => e.left >= i), u = c.length ? (Math.max(...c.map((e) => e.right)) + r) / 2 : e.left, f = l.length ? (i + Math.min(...l.map((e) => e.left))) / 2 : e.right, p = {
+			let r = Math.min(...n.map((e) => e.left)), i = Math.max(...n.map((e) => e.right)), o = _.filter((e, t) => !d[t]).flat().filter((t) => un(t, e)), c = o.filter((e) => e.right <= r), l = o.filter((e) => e.left >= i), u = c.length ? (Math.max(...c.map((e) => e.right)) + r) / 2 : e.left, f = l.length ? (i + Math.min(...l.map((e) => e.left))) / 2 : e.right, p = {
 				...e,
 				left: u,
 				right: f
 			};
-			return !(u < f) || s.some((e, t) => e.rects.some((e) => sn(e, p)) !== d[t]) ? null : {
+			return !(u < f) || s.some((e, t) => e.rects.some((e) => un(e, p)) !== d[t]) ? null : {
 				status: "qualified",
 				physicalStart: e.left,
 				maskWidths: {
@@ -7750,7 +7781,7 @@ function ln(e, t, n, r, i, a = {}) {
 				}
 			};
 		}, y = () => {
-			let e = on(t, !1);
+			let e = ln(t, !1);
 			if (!e) return null;
 			let n = _.filter((e, t) => d[t]).flat();
 			if (!n.length || n.some((t) => t.top < e.top || t.bottom > e.bottom)) return null;
@@ -7759,7 +7790,7 @@ function ln(e, t, n, r, i, a = {}) {
 				left: u,
 				right: f
 			}, m = e.right - e.left;
-			if (!(u < f) || f - u > m || s.some((e, t) => e.rects.some((e) => sn(e, p)) !== d[t])) return null;
+			if (!(u < f) || f - u > m || s.some((e, t) => e.rects.some((e) => un(e, p)) !== d[t])) return null;
 			let h = Math.max(0, Math.min(r, f - m)), g = {
 				left: u - h,
 				right: h + m - f
@@ -7791,7 +7822,7 @@ function ln(e, t, n, r, i, a = {}) {
 			left: x,
 			right: x + m
 		};
-		return s.some((e, t) => e.rects.some((e) => sn(e, S)) !== d[t]) ? {
+		return s.some((e, t) => e.rects.some((e) => un(e, S)) !== d[t]) ? {
 			status: "unavailable",
 			reason: "semantic-cut-validation-failed"
 		} : {
@@ -7808,21 +7839,21 @@ function ln(e, t, n, r, i, a = {}) {
 }
 //#endregion
 //#region src/rendering/terminal-continuation.ts
-var un = (e, t, n) => {
+var pn = (e, t, n) => {
 	try {
 		globalThis.__PERSIST_TOPOLOGY__?.emit?.(e, t ?? null, n);
 	} catch {}
 };
-function dn(e, t) {
+function mn(e, t) {
 	return t ? e?.layoutKey === t ? e : {
 		layoutKey: t,
 		continuationCount: 0,
 		offsetCache: null
 	} : null;
 }
-function fn(e, t, n = {}) {
-	let r = dn(e, t);
-	return un("terminal-continuation-layout", n.owner, {
+function hn(e, t, n = {}) {
+	let r = mn(e, t);
+	return pn("terminal-continuation-layout", n.owner, {
 		...n,
 		layoutKey: t,
 		continuationCountBefore: e?.continuationCount,
@@ -7831,16 +7862,16 @@ function fn(e, t, n = {}) {
 		reason: t ? r === e ? "layout-reused" : "layout-reset" : "layout-unavailable"
 	}), r;
 }
-function pn(e, t, n, r, i, a) {
+function gn(e, t, n, r, i, a) {
 	return Number.isInteger(t) && t > 0 && Number.isInteger(n) && Number.isFinite(r) && r >= 0 && Number.isFinite(i) && Number.isFinite(a) && a >= 0 && n === t + e.continuationCount - 1 && i - r > a;
 }
-function mn({ before: e, after: t, sameTerminalOwner: n, sameOwnerDocument: r, ownerStillConnected: i }) {
+function _n({ before: e, after: t, sameTerminalOwner: n, sameOwnerDocument: r, ownerStillConnected: i }) {
 	return t === "reached" || e === "reached" && n && r && i ? "reached" : e === "unreached" && t === "unreached" ? "unreached" : "unknown";
 }
-function hn(e, t, n, r, i, a, o = "unknown") {
-	return !pn(e, t, n, r, i, a) || o === "reached" ? !1 : (e.continuationCount += 1, !0);
+function vn(e, t, n, r, i, a, o = "unknown") {
+	return !gn(e, t, n, r, i, a) || o === "reached" ? !1 : (e.continuationCount += 1, e.appliedLeftMasks && delete e.appliedLeftMasks[String(n)], !0);
 }
-var gn = /* @__PURE__ */ new Set([
+var yn = /* @__PURE__ */ new Set([
 	"img",
 	"svg",
 	"video",
@@ -7850,13 +7881,13 @@ var gn = /* @__PURE__ */ new Set([
 	"audio",
 	"iframe",
 	"math"
-]), _n = /* @__PURE__ */ new WeakMap(), vn = 1;
-function yn(e) {
+]), bn = /* @__PURE__ */ new WeakMap(), xn = 1;
+function Sn(e) {
 	if (!e) return null;
-	let t = _n.get(e);
-	return t === void 0 && (t = vn, vn += 1, _n.set(e, t)), t;
+	let t = bn.get(e);
+	return t === void 0 && (t = xn, xn += 1, bn.set(e, t)), t;
 }
-function bn(e) {
+function Cn(e) {
 	return !!e && [
 		e.left,
 		e.right,
@@ -7866,10 +7897,10 @@ function bn(e) {
 		e.height
 	].every((e) => Number.isFinite(e));
 }
-function xn(e) {
-	return bn(e) && e.width > 0 && e.height > 0 && e.right > e.left && e.bottom > e.top;
+function wn(e) {
+	return Cn(e) && e.width > 0 && e.height > 0 && e.right > e.left && e.bottom > e.top;
 }
-function Sn(e, t) {
+function Tn(e, t) {
 	let n = Math.min(e.right, t.right) - Math.max(e.left, t.left), r = Math.min(e.bottom, t.bottom) - Math.max(e.top, t.top);
 	return {
 		width: n,
@@ -7877,7 +7908,7 @@ function Sn(e, t) {
 		positiveArea: n > 0 && r > 0
 	};
 }
-function Cn(e, t) {
+function En(e, t) {
 	return {
 		left: e.left + t.left,
 		right: e.left + t.right,
@@ -7887,7 +7918,7 @@ function Cn(e, t) {
 		height: t.height
 	};
 }
-function wn(e, t) {
+function Dn(e, t) {
 	if (!e.isConnected || e.ownerDocument !== t) return null;
 	let n = t.defaultView;
 	if (!n) return null;
@@ -7897,20 +7928,20 @@ function wn(e, t) {
 		visibility: r.visibility
 	};
 }
-function Tn(e, t, n, r) {
+function On(e, t, n, r) {
 	let i = e.parentElement;
 	if (!i) return null;
-	let a = wn(i, t);
+	let a = Dn(i, t);
 	if (!a) return null;
 	let o = t.createRange(), s = e.data.length;
 	for (; s > 0 && /\s/.test(e.data[s - 1]);) --s;
 	o.setStart(e, 0), o.setEnd(e, s);
-	let c = Array.from(o.getClientRects()).map((e) => Cn(n, e)).filter((e) => xn(e));
+	let c = Array.from(o.getClientRects()).map((e) => En(n, e)).filter((e) => wn(e));
 	if (!c.length) return {
 		kind: "text",
 		tag: i.tagName.toLowerCase(),
-		ownerIdentity: yn(i),
-		ownerDocumentIdentity: yn(t),
+		ownerIdentity: Sn(i),
+		ownerDocumentIdentity: Sn(t),
 		textLength: e.data.trim().length,
 		connected: e.isConnected,
 		ownerDocumentIsCurrent: e.ownerDocument === t,
@@ -7920,59 +7951,59 @@ function Tn(e, t, n, r) {
 	return {
 		kind: "text",
 		tag: i.tagName.toLowerCase(),
-		ownerIdentity: yn(i),
-		ownerDocumentIdentity: yn(t),
+		ownerIdentity: Sn(i),
+		ownerDocumentIdentity: Sn(t),
 		textLength: e.data.trim().length,
 		connected: e.isConnected,
 		ownerDocumentIsCurrent: e.ownerDocument === t,
 		display: a.display,
 		visibility: a.visibility,
 		rect: l,
-		intersection: Sn(l, r),
+		intersection: Tn(l, r),
 		geometryPositive: !0
 	};
 }
-function En(e, t, n, r) {
-	let i = wn(e, t);
+function kn(e, t, n, r) {
+	let i = Dn(e, t);
 	if (!i) return null;
-	let a = e.getBoundingClientRect(), o = xn(a) ? Cn(n, a) : null;
+	let a = e.getBoundingClientRect(), o = wn(a) ? En(n, a) : null;
 	return o ? {
 		kind: "replaced",
 		tag: e.tagName.toLowerCase(),
-		ownerIdentity: yn(e),
-		ownerDocumentIdentity: yn(t),
+		ownerIdentity: Sn(e),
+		ownerDocumentIdentity: Sn(t),
 		connected: e.isConnected,
 		ownerDocumentIsCurrent: e.ownerDocument === t,
 		display: i.display,
 		visibility: i.visibility,
 		rect: o,
-		intersection: Sn(o, r),
+		intersection: Tn(o, r),
 		geometryPositive: !0
 	} : {
 		kind: "replaced",
 		tag: e.tagName.toLowerCase(),
-		ownerIdentity: yn(e),
-		ownerDocumentIdentity: yn(t),
+		ownerIdentity: Sn(e),
+		ownerDocumentIdentity: Sn(t),
 		connected: e.isConnected,
 		ownerDocumentIsCurrent: e.ownerDocument === t,
 		geometryPositive: !1
 	};
 }
-function Dn(e, t, n) {
+function An(e, t, n) {
 	return !e.connected || !e.ownerDocumentIsCurrent || !e.geometryPositive || !e.rect || !e.intersection ? "unknown" : n === "vertical-rl" && e.kind === "text" && e.rect.left < t.left ? "unreached" : e.intersection.positiveArea ? "reached" : n === "vertical-rl" && e.rect.right <= t.left ? "unreached" : "unknown";
 }
-function On(e) {
+function jn(e) {
 	let t = e.parentElement;
 	for (; t;) {
-		if (gn.has(t.tagName.toLowerCase())) return !0;
+		if (yn.has(t.tagName.toLowerCase())) return !0;
 		t = t.parentElement;
 	}
 	return !1;
 }
-function kn(e) {
+function Mn(e) {
 	if (!e) return null;
 	let t = e.getBoundingClientRect();
-	if (!bn(t) || t.width <= 0 || t.height <= 0) return null;
+	if (!Cn(t) || t.width <= 0 || t.height <= 0) return null;
 	let n = e.dataset || {}, r = Number(n.epubVrlEdgeMask), i = Number(n.epubVrlEdgeMaskLeft), a = Number(n.epubVrlEdgeMaskRight), o = Math.max(0, Number.isFinite(i) ? i : Number.isFinite(r) ? r : 0), s = Math.max(0, Number.isFinite(a) ? a : 0), c = t.width - o - s;
 	return c <= 0 ? null : {
 		left: t.left + o,
@@ -7983,8 +8014,8 @@ function kn(e) {
 		height: t.height
 	};
 }
-function An({ document: e, frameRect: t, effectiveClip: n }) {
-	if (!e?.body || !xn(t) || !xn(n)) return {
+function Nn({ document: e, frameRect: t, effectiveClip: n }) {
+	if (!e?.body || !wn(t) || !wn(n)) return {
 		state: "unknown",
 		reason: "missing-document-frame-or-clip",
 		candidate: null,
@@ -7998,15 +8029,15 @@ function An({ document: e, frameRect: t, effectiveClip: n }) {
 		let o = null;
 		if (c.nodeType === 3) {
 			let r = c;
-			if (!r.data.trim() || On(r)) continue;
-			o = Tn(r, e, t, n);
+			if (!r.data.trim() || jn(r)) continue;
+			o = On(r, e, t, n);
 		} else if (c.nodeType === 1) {
 			let r = c;
-			if (!gn.has(r.tagName.toLowerCase())) continue;
-			o = En(r, e, t, n);
+			if (!yn.has(r.tagName.toLowerCase())) continue;
+			o = kn(r, e, t, n);
 		}
 		if (o) return {
-			state: Dn(o, n, i),
+			state: An(o, n, i),
 			reason: o.geometryPositive ? "terminal-candidate-classified" : "terminal-candidate-geometry-unresolved",
 			candidate: o,
 			writingMode: i,
@@ -8023,31 +8054,31 @@ function An({ document: e, frameRect: t, effectiveClip: n }) {
 }
 //#endregion
 //#region src/rendering/page-metrics.ts
-function jn(e, t) {
+function Pn(e, t) {
 	if (!Number.isFinite(e) || e <= 0 || !Number.isFinite(t) || t <= 0) return 1;
 	let n = e / t, r = Math.max(1, Math.round(n)), i = Math.max(1, Math.min(4, t * .005));
 	return Math.abs(e - r * t) <= i ? r : Math.max(1, Math.ceil(n));
 }
-function Mn(e, t = 0) {
+function Fn(e, t = 0) {
 	let n = Number(e) || 0, r = Number(t) || 0, i = Math.max(2, r, Math.round(n * .08));
 	return n > 0 ? Math.min(Math.max(2, Math.round(n / 4)), i) : 2;
 }
-function Nn(e, t, n = !1) {
+function In(e, t, n = !1) {
 	if (!n) return 0;
 	let r = Number(e || 0), i = Number(t) || 0;
 	return !Number.isFinite(r) || r <= 0 || !i ? 0 : Math.min(r, Math.max(0, Math.floor(i / 3)));
 }
-function Pn(e, t, n, r = !1) {
+function Ln(e, t, n, r = !1) {
 	let i = Number(e) || 0, a = Number(t) || 0, o = Number(n) || 0;
 	return !!(r && i && a && a - i > 1 && o === 0);
 }
 //#endregion
 //#region src/rendering/logical-page.ts
-function Fn(e, t, n, r, i, a, o) {
+function Rn(e, t, n, r, i, a, o) {
 	let s = Number(e) || 0, c = Number(t) || 0, l = Number(r) || 0, u = Math.abs((Number(a) || 0) - (Number(i) || 0));
 	return l === c - 1 && u > s && o ? s : u > 0 ? u : s;
 }
-function In(e, t, n, r, i, a = 0) {
+function zn(e, t, n, r, i, a = 0) {
 	let o = Number(n) || 0, s = Number(r) || 0, c = Number(i) || 0;
 	return !o || !s || !c ? null : [
 		Math.round((Number(e) || 0) * 100) / 100,
@@ -8058,12 +8089,12 @@ function In(e, t, n, r, i, a = 0) {
 		Math.round((Number(a) || 0) * 100) / 100
 	].join(":");
 }
-function Ln(e, t, n) {
+function Bn(e, t, n) {
 	if (!e || e.key !== n || !e.offsets) return null;
 	let r = Number(e.offsets[t]);
 	return Number.isFinite(r) ? r : null;
 }
-function Rn(e, t, n, r) {
+function Vn(e, t, n, r) {
 	if (!r || !Number.isFinite(Number(n))) return e;
 	let i = !e || e.key !== r ? {
 		key: r,
@@ -8071,11 +8102,11 @@ function Rn(e, t, n, r) {
 	} : e;
 	return i.offsets[t] = Number(n), i;
 }
-function zn(e, t, n, r, i = 0, a = !1) {
+function Hn(e, t, n, r, i = 0, a = !1) {
 	let o = Number(r) || 0, s = Math.max(0, Math.min(t - 1, e)), c = s * o;
 	return a && i > 0 && s > 0 && s < t - 1 && (c = Math.max(0, c - i)), Math.min(n, c);
 }
-function Bn(e, t, n, r, i, a = 0, o = !1) {
+function Un(e, t, n, r, i, a = 0, o = !1) {
 	let s = Number(n) || 0;
 	if (!s || s <= 0) return 0;
 	let c = Math.max(1, Math.floor(Number(t) || 1)), l = Number(e) || 0, u = Number(r) || 0, d = Number(i) || 0;
@@ -8083,7 +8114,7 @@ function Bn(e, t, n, r, i, a = 0, o = !1) {
 	if (o) {
 		let e = 0, t = Infinity;
 		for (let n = 0; n < c; n++) {
-			let r = zn(n, c, u, s, a, o), i = Math.abs(l - r);
+			let r = Hn(n, c, u, s, a, o), i = Math.abs(l - r);
 			i < t && (t = i, e = n);
 		}
 		return e;
@@ -8095,11 +8126,11 @@ function Bn(e, t, n, r, i, a = 0, o = !1) {
 }
 //#endregion
 //#region src/rendering/edge-mask.ts
-function Vn(e) {
+function Wn(e) {
 	let t = Number(e) || 0;
 	return Math.max(0, Math.floor(t / 4));
 }
-function Hn(e, t, n = 4) {
+function Gn(e, t, n = 4) {
 	let r = Math.max(0, Math.floor(Number(n) || 0)), i = 0, a = 0;
 	for (let n = 0; n < r; n++) if (i++, a = (Number(e()) || 0) + (Number(t()) || 0), !a) return {
 		iterations: i,
@@ -8112,17 +8143,17 @@ function Hn(e, t, n = 4) {
 		stopped: !1
 	};
 }
-function Un(e, t, n, r, i, a) {
+function Kn(e, t, n, r, i, a) {
 	let o = Number(e) || 0, s = Number(t) || 0, c = Number(n) || 0, l = Number(r) || 0, u = Number(i) || 0, d = Number(a) || 0;
 	return !!(o && s && Math.abs(o - s - c) <= 1 && l === 0 && (u <= 0 || Math.abs(d - s) <= 1));
 }
-function Wn(e, t, n, r) {
+function qn(e, t, n, r) {
 	let i = Number(e) || 0, a = Number(t) || 0, o = Number(n) || 0, s = Math.max(0, Number(r) || 0);
 	if (!i || !a || !s) return 0;
 	let c = Math.max(0, i - a - o);
 	return Math.min(Math.ceil(c), s);
 }
-function Gn(e, t, n, r = 0) {
+function Jn(e, t, n, r = 0) {
 	let i = Math.max(0, Number(n) || 0);
 	if (!i) return null;
 	let a = Math.min(Number(t) || 0, i);
@@ -8136,7 +8167,7 @@ function Gn(e, t, n, r = 0) {
 		rightMaxMask: a
 	};
 }
-function Kn(e, t, n, r) {
+function Yn(e, t, n, r) {
 	let i = Math.max(0, Number(n) || 0);
 	return i ? {
 		widths: {
@@ -8148,17 +8179,17 @@ function Kn(e, t, n, r) {
 		rightMaxMask: 0
 	} : null;
 }
-function qn(e, t, n, r) {
+function Xn(e, t, n, r) {
 	let i = Number(t), a = Number(n);
 	return Number.isFinite(i) || (i = Number(r)), Number.isFinite(a) || (a = 0), {
 		left: Math.max(Number(e && e.left) || 0, i || 0),
 		right: Math.max(Number(e && e.right) || 0, a || 0)
 	};
 }
-function Jn(e) {
+function Zn(e) {
 	return Math.max(Number(e && e.left) || 0, Number(e && e.right) || 0);
 }
-function Yn(e, t, n, r, i, a, o, s = 0) {
+function Qn(e, t, n, r, i, a, o, s = 0) {
 	let c = Math.max(0, Number(t) || 0), l = Math.max(0, Number(a.leftMaxMask === void 0 ? c : a.leftMaxMask) || 0), u = Math.max(0, Number(a.rightMaxMask === void 0 ? c : a.rightMaxMask) || 0), d = Number.isFinite(Number(a.rawLeft)) ? Number(a.rawLeft) : (Number(n) || 0) - (Number(i) || 0), f = Number.isFinite(Number(a.rawRight)) ? Number(a.rawRight) : (Number(r) || 0) - (Number(i) || 0), p = Number(s) || 0, m = Math.max(1, Math.min(4, Math.round(p || 1))), h = p > 0, g = (Number(i) || 0) < 0 || h || !!a.allowRawRightMask;
 	return {
 		rawLeft: d,
@@ -8177,30 +8208,30 @@ function Yn(e, t, n, r, i, a, o, s = 0) {
 		rightPaintGuardMax: Math.min(c, Math.max(u, m))
 	};
 }
-function Xn(e, t, n, r, i, a, o) {
+function $n(e, t, n, r, i, a, o) {
 	let s = Math.max(0, Number(e) || 0), c = Math.max(0, Number(n) || 0), l = Number(t) || 0;
 	if (!l) return s;
 	let u = l > 0 ? o ? c : Math.max(0, Number(a) || 0) : Math.max(Math.max(0, Number(r) || 0), Math.max(0, Number(i) || 0), s + l);
 	return Math.max(0, Math.min(u, s + l));
 }
-function Zn(e, t, n) {
+function er(e, t, n) {
 	let r = Math.max(0, Number(e) || 0), i = Number(t) || 0;
 	return i ? Math.max(0, Math.min(Math.max(0, Number(n) || 0), r + i)) : r;
 }
 //#endregion
 //#region src/rendering/raw-right-snap.ts
-function Qn(e, t, n, r, i, a, o, s) {
+function tr(e, t, n, r, i, a, o, s) {
 	let c = Math.max(0, Number(e) || 0), l = Number(t) || 0, u = Number(n) || 0, d = Number(r) || 0, f = Number(i) || 0, p = Number(a) || 0, m = Number(o) || 0, h = Math.max(0, Number(s) || 0);
 	if (!(l < f && u > f) || m > 0 && l < p && u > p) return c;
 	let g = u - f, _ = f - Math.max(l, d);
 	return _ > h && g > Math.max(h, 4) ? Math.max(c, Math.ceil(_ + 1)) : c;
 }
-function $n(e, t, n, r, i, a, o = 0) {
+function nr(e, t, n, r, i, a, o = 0) {
 	let s = Math.max(0, Number(o) || 0);
-	for (let o of e || []) s = Qn(s, o.left, o.right, t, n, r, i, a);
+	for (let o of e || []) s = tr(s, o.left, o.right, t, n, r, i, a);
 	return s;
 }
-function er(e, t, n, r, i, a) {
+function rr(e, t, n, r, i, a) {
 	let o = Number(e) || 0, s = Number(t) || 0, c = Number(n) || 0, l = Number(r) || 0, u = Number(i) || 0, d = Number(a) || 0, f = o < l && s > l;
 	return {
 		clippedAtPreviousLeft: d > 0 && o < u && s > u,
@@ -8209,62 +8240,62 @@ function er(e, t, n, r, i, a) {
 		visibleInsideRawRight: f ? l - Math.max(o, c) : 0
 	};
 }
-function tr(e, t, n, r, i) {
+function ir(e, t, n, r, i) {
 	let a = Number(n) || 0, o = Number(t) || 0, s = Number(r) || 0, c = Number(i) || 0;
 	return !!(e && o < a && a <= Math.max(o, s) + c);
 }
-function nr(e, t, n) {
+function ar(e, t, n) {
 	let r = Number(e) || 0, i = Number(t) || 0, a = Math.max(0, Number(n) || 0);
 	return r < i || r - i > a ? 0 : Math.ceil(Math.min(a, r - i + a));
 }
-function rr(e, t, n) {
+function or(e, t, n) {
 	let r = Math.max(0, Number(t) || 0), i = Math.max(0, Number(n) || 0);
 	return !e || r > i ? 0 : Math.ceil(r + 1);
 }
-function ir(e, t, n, r, i, a) {
+function sr(e, t, n, r, i, a) {
 	let o = Number(t) || 0, s = Math.max(0, Number(n) || 0), c = Math.max(0, Number(i) || 0), l = Number(a) || 0;
 	return !!(e && (o <= Math.max(s, 4) || r && (c <= 0 || l <= 0)));
 }
-function ar(e, t, n, r, i, a, o) {
+function cr(e, t, n, r, i, a, o) {
 	let s = Math.max(0, Number(t) || 0), c = Math.max(0, Number(n) || 0), l = Math.max(0, Number(r) || 0), u = Math.max(0, Number(i) || 0), d = Math.max(0, Number(a) || 0), f = Number(o) || 0;
 	return !!(e && s > c && l >= s && u >= s && (d <= 0 || f <= 0));
 }
-function or(e, t, n) {
+function lr(e, t, n) {
 	let r = Math.max(0, Number(t) || 0), i = Math.max(0, Number(n) || 0);
 	return !e || r <= i ? 0 : Math.ceil(r + 1);
 }
-function sr(e, t, n) {
+function ur(e, t, n) {
 	let r = Number(e) || 0, i = Number(t) || 0, a = Number(n) || 0;
 	return r >= a || i <= a ? 0 : Math.ceil(a - r + 1);
 }
-function cr(e, t, n) {
+function dr(e, t, n) {
 	let r = Math.max(0, Number(e) || 0), i = Number(t) || 0, a = Number(n) || 0, o = Math.max(0, Math.floor(a - Math.min(i, a)));
 	return Math.max(r, o);
 }
-function lr(e, t, n, r, i, a, o, s, c, l, u, d, f, p) {
+function fr(e, t, n, r, i, a, o, s, c, l, u, d, f, p) {
 	let m = Number(e) || 0, h = Number(t) || 0, g = Number(n) || 0, _ = Number(r) || 0, v = Math.max(0, Number(i) || 0);
 	if (a && h > _ && m < g) {
-		let e = cr(d, h, g);
+		let e = dr(d, h, g);
 		return {
 			shift: e < v ? e - v : 0,
 			expandBeyondPaintGuard: !1
 		};
 	}
-	let y = nr(m, g, l);
+	let y = ar(m, g, l);
 	if (y > 0) return {
 		shift: y > v ? y - v : 0,
 		expandBeyondPaintGuard: !1
 	};
-	let b = rr(o, c, l);
+	let b = or(o, c, l);
 	if (b > 0) return {
 		shift: b > v ? b - v : 0,
 		expandBeyondPaintGuard: !1
 	};
-	if (ir(o, s, l, tr(o, v, c, u, l), d, f) || ar(o, c, l, v, u, d, f)) return {
+	if (sr(o, s, l, ir(o, v, c, u, l), d, f) || cr(o, c, l, v, u, d, f)) return {
 		shift: v > 0 ? -v : 0,
 		expandBeyondPaintGuard: !1
 	};
-	let x = or(o, c, l);
+	let x = lr(o, c, l);
 	if (x > 0) {
 		let e = p && x > v;
 		return {
@@ -8273,15 +8304,15 @@ function lr(e, t, n, r, i, a, o, s, c, l, u, d, f, p) {
 		};
 	}
 	return {
-		shift: sr(m, h, _),
+		shift: ur(m, h, _),
 		expandBeyondPaintGuard: !1
 	};
 }
-function ur(e, t, n, r, i, a, o, s, c, l, u, d, f) {
-	let { clippedAtPreviousLeft: p, rawRightStraddler: m, rawRightOverhang: h, visibleInsideRawRight: g } = er(e, t, n, r, i, a);
-	return lr(e, t, r, o, s, p, m, h, g, c, l, u, d, f);
+function pr(e, t, n, r, i, a, o, s, c, l, u, d, f) {
+	let { clippedAtPreviousLeft: p, rawRightStraddler: m, rawRightOverhang: h, visibleInsideRawRight: g } = rr(e, t, n, r, i, a);
+	return fr(e, t, r, o, s, p, m, h, g, c, l, u, d, f);
 }
-function dr(e, t, n, r) {
+function mr(e, t, n, r) {
 	let i = Number(r.shift) || 0, a = Number(e) || 0, o = Number(t) || 0;
 	return i < 0 ? {
 		expand: a,
@@ -8297,10 +8328,10 @@ function dr(e, t, n, r) {
 		expandBeyondPaintGuard: n
 	};
 }
-function fr(e, t, n, r, i, a, o, s, c, l, u, d) {
+function hr(e, t, n, r, i, a, o, s, c, l, u, d) {
 	let f = 0, p = 0, m = !1;
 	for (let h of e || []) {
-		let e = ur(h.left, h.right, t, n, a, o, r, i, s, c, l, u, d), g = dr(f, p, m, e);
+		let e = pr(h.left, h.right, t, n, a, o, r, i, s, c, l, u, d), g = mr(f, p, m, e);
 		f = g.expand, p = g.shrink, m = g.expandBeyondPaintGuard;
 	}
 	return {
@@ -8309,18 +8340,18 @@ function fr(e, t, n, r, i, a, o, s, c, l, u, d) {
 		expandBeyondPaintGuard: m
 	};
 }
-function pr(e, t, n, r, i, a, o, s, c, l, u) {
-	let d = n - r, f = t + i, p = $n(e, t, n, f, i, a), m = fr(e, t, n, d, r, f, i, a, s, p, l, u);
+function gr(e, t, n, r, i, a, o, s, c, l, u) {
+	let d = n - r, f = t + i, p = nr(e, t, n, f, i, a), m = hr(e, t, n, d, r, f, i, a, s, p, l, u);
 	return {
 		shift: m.shrink < 0 ? m.shrink : m.expand,
-		right: Xn(r, m.shrink < 0 ? m.shrink : m.expand, o, s, p, c, m.expandBeyondPaintGuard),
+		right: $n(r, m.shrink < 0 ? m.shrink : m.expand, o, s, p, c, m.expandBeyondPaintGuard),
 		requiredRawRightMask: p,
 		expandBeyondPaintGuard: m.expandBeyondPaintGuard
 	};
 }
 //#endregion
 //#region src/rendering/raw-left-snap.ts
-function mr(e, t, n, r, i, a) {
+function _r(e, t, n, r, i, a) {
 	let o = Number(e) || 0, s = Number(t) || 0, c = Number(n) || 0, l = Number(r) || 0, u = Number(i) || 0, d = Number(a) || 0, f = s + u, p = u > 0;
 	return {
 		rawLeftStraddler: o < c && s > c,
@@ -8330,47 +8361,47 @@ function mr(e, t, n, r, i, a) {
 		nearlyVisibleAtNextRight: p && f <= l + d
 	};
 }
-function hr(e, t, n, r, i, a, o, s) {
+function vr(e, t, n, r, i, a, o, s) {
 	let c = Number(e) || 0, l = Number(t) || 0, u = Number(n) || 0, d = Math.max(0, Number(r) || 0);
 	if (c >= u || l <= u) return 0;
 	let f = Math.ceil(l - u + 1), p = Math.ceil(u - c + 1);
 	return i && (a || o || s) ? f : p > 0 && d - p >= 0 ? -p : f;
 }
-function gr(e, t, n, r, i, a, o, s, c, l, u, d) {
+function yr(e, t, n, r, i, a, o, s, c, l, u, d) {
 	let f = Number(e) || 0, p = Number(t) || 0, m = Number(n) || 0, h = Number(r) || 0, g = Math.max(0, Number(i) || 0);
 	if (g <= 0 || p <= m || f >= h || p > h || a && o || (a ? s || c && l || u : l) || a && !d) return 0;
 	let _ = Math.max(0, Math.floor(Math.max(f, m) - m - 1));
 	return _ < g ? _ - g : 0;
 }
-function _r(e, t, n, r, i, a, o) {
+function br(e, t, n, r, i, a, o) {
 	let s = Number(e) || 0, c = Number(t) || 0, l = Number(n) || 0, u = Number(r) || 0, d = Math.max(0, Number(i) || 0), f = Math.max(0, Number(o) || 0);
 	if (d <= 0 || !a || s < u || s - u > f) return 0;
 	let p = Math.ceil(c - l + 1);
 	return p > d ? p - d : 0;
 }
-function vr(e, t, n, r, i, a, o, s, c, l, u, d, f, p) {
+function xr(e, t, n, r, i, a, o, s, c, l, u, d, f, p) {
 	let m = Math.max(0, Number(i) || 0);
 	if (m <= 0 && a && s && !u && !d) return 0;
-	let h = hr(e, t, r, m, o, c, l, d);
+	let h = vr(e, t, r, m, o, c, l, d);
 	if (h) return h;
-	let g = gr(e, t, n, r, m, a, u, c, f, l, d, s);
-	return g < 0 ? g : _r(e, t, n, r, m, c, p);
+	let g = yr(e, t, n, r, m, a, u, c, f, l, d, s);
+	return g < 0 ? g : br(e, t, n, r, m, c, p);
 }
-function yr(e, t) {
+function Sr(e, t) {
 	let n = Number(e) || 0, r = Number(t) || 0;
 	return r > 0 ? Math.max(n, r) : r < 0 ? Math.min(n, r) : n;
 }
-function br(e, t, n, r, i, a, o, s, c, l) {
+function Cr(e, t, n, r, i, a, o, s, c, l) {
 	let u = 0;
 	for (let d of e || []) {
-		let { rawLeftStraddler: e, hasNextPage: f, clippedAtNextRight: p, visibleAtNextRight: m, nearlyVisibleAtNextRight: h } = mr(d.left, d.right, t, n, a, l), g = vr(d.left, d.right, t, r, i, e, f, p, m, h, o, s, c, l);
-		u = yr(u, g);
+		let { rawLeftStraddler: e, hasNextPage: f, clippedAtNextRight: p, visibleAtNextRight: m, nearlyVisibleAtNextRight: h } = _r(d.left, d.right, t, n, a, l), g = xr(d.left, d.right, t, r, i, e, f, p, m, h, o, s, c, l);
+		u = Sr(u, g);
 	}
 	return u;
 }
-function xr(e, t, n, r, i, a, o, s, c, l) {
-	let u = br(e, t, n, t + r, r, a, o, s, c, l), d = Zn(r, u, i);
-	if (u > 0 && d < r + u) {
+function wr(e, t, n, r, i, a, o, s, c, l) {
+	let u = Cr(e, t, n, t + r, r, a, o, s, c, l), d = er(r, u, i);
+	if (u > 0 && e.some((e) => e.left < t + d && e.right > t + d)) {
 		let n = d;
 		for (let i = 0; i <= e.length; i++) {
 			let i = t + n, a = e.filter((e) => e.left < i && e.right > i);
@@ -8390,28 +8421,28 @@ function xr(e, t, n, r, i, a, o, s, c, l) {
 }
 //#endregion
 //#region src/rendering/boundary-mask.ts
-function Sr(e, t, n, r) {
+function Tr(e, t, n, r) {
 	let i = Number(e) - Number(t) - Number(n) + (Number(r) || 0);
 	return Number.isFinite(i) && i > 0 ? i : null;
 }
-function Cr(e, t, n, r, i, a, o, s) {
+function Er(e, t, n, r, i, a, o, s) {
 	let c = Number(t), l = Number(e) || 0;
 	if (Number.isFinite(c) && c > 0) return {
 		pageIndex: l,
 		maxRightBoundary: c,
 		preferredRightBoundary: c
 	};
-	let u = Number(a) || 0, d = Number(o) || 0, f = Number(s) || 0, p = f > 0 && Math.max(0, u - d) <= 1, m = Sr(n, r, u, f);
+	let u = Number(a) || 0, d = Number(o) || 0, f = Number(s) || 0, p = f > 0 && Math.max(0, u - d) <= 1, m = Tr(n, r, u, f);
 	return m !== null && (Math.abs((Number(r) || 0) - (Number(i) || 0)) > 1 || p) ? {
 		pageIndex: l,
 		maxRightBoundary: m,
 		preferredRightBoundary: m
 	} : null;
 }
-function wr(e = {}) {
+function Dr(e = {}) {
 	return !!(e.iframe && e.document && e.window && e.body && e.contentWidth && e.visibleWidth && typeof e.document.createTreeWalker == "function");
 }
-function Tr(e = {}) {
+function Or(e = {}) {
 	let t = Number(e && e.maxRightBoundary), n = Number(e && e.preferredRightBoundary);
 	return {
 		maxRightBoundary: t,
@@ -8420,29 +8451,29 @@ function Tr(e = {}) {
 		hasPreferredRightBoundary: Number.isFinite(n)
 	};
 }
-function Er(e) {
+function kr(e) {
 	return {
 		hasMaxRightBoundary: e.hasMaxRightBoundary,
 		maxRightBoundary: e.maxRightBoundary
 	};
 }
-function Dr(e) {
+function Ar(e) {
 	return {
-		...Er(e),
+		...kr(e),
 		hasPreferredRightBoundary: e.hasPreferredRightBoundary,
 		preferredRightBoundary: e.preferredRightBoundary
 	};
 }
-function Or(e, t) {
+function jr(e, t) {
 	return e && e.key === t ? e.value : null;
 }
-function kr(e, t, n) {
+function Mr(e, t, n) {
 	return n ? {
 		key: e,
 		value: t
 	} : null;
 }
-function Ar(e, t, n, r = {}) {
+function Nr(e, t, n, r = {}) {
 	let i = Number(t) || 0, a = Number(n) || 0, o = Number(e) || 0, s = Number(r.preferredRightBoundary), c = Number(r.maxRightBoundary);
 	if (r.hasPreferredRightBoundary) {
 		let e = Math.max(0, s);
@@ -8453,7 +8484,7 @@ function Ar(e, t, n, r = {}) {
 		preferredRightBoundary: s
 	};
 }
-function jr(e, t, n, r, i, a = {}) {
+function Pr(e, t, n, r, i, a = {}) {
 	let o = (e) => Math.round((Number(e) || 0) * 100) / 100;
 	return [
 		o(e),
@@ -8465,23 +8496,23 @@ function jr(e, t, n, r, i, a = {}) {
 		a.hasPreferredRightBoundary ? o(Number(a.preferredRightBoundary)) : "none"
 	].join(":");
 }
-function Mr(e, t, n, r, i, a, o = {}) {
-	let s = jr(t, n, r, i, a, o);
+function Fr(e, t, n, r, i, a, o = {}) {
+	let s = Pr(t, n, r, i, a, o);
 	return {
 		cacheKey: s,
-		cachedSnap: Or(e, s)
+		cachedSnap: jr(e, s)
 	};
 }
-function Nr(e, t, n, r, i, a, o = {}, s = {}) {
-	let c = Tr(o), l = Ar(t, n, r, Dr(c));
+function Ir(e, t, n, r, i, a, o = {}, s = {}) {
+	let c = Or(o), l = Nr(t, n, r, Ar(c));
 	c.preferredRightBoundary = l.preferredRightBoundary;
-	let u = Dr(c), d = Er(c), f = wr({
+	let u = Ar(c), d = kr(c), f = Dr({
 		...s,
 		contentWidth: r,
 		visibleWidth: i
 	});
 	return {
-		cacheLookup: f ? Mr(e, l.logicalOffset, n, r, i, a, u) : null,
+		cacheLookup: f ? Fr(e, l.logicalOffset, n, r, i, a, u) : null,
 		logicalOffset: l.logicalOffset,
 		maxRightBoundaryOptions: d,
 		rightBoundaryLimits: c,
@@ -8489,7 +8520,7 @@ function Nr(e, t, n, r, i, a, o = {}, s = {}) {
 		shouldMeasureText: f
 	};
 }
-function Pr(e, t, n) {
+function Lr(e, t, n) {
 	let r = Number(e) || 0, i = Number(t) || 0, a = Number(n) || 0, o = i - r, s = o - a, c = r, l = r + a;
 	return [{
 		left: s,
@@ -8499,40 +8530,40 @@ function Pr(e, t, n) {
 		right: l
 	}];
 }
-function Fr(e) {
+function Rr(e) {
 	return Math.max(1, Math.min(8, Math.round(Number(e) || 2)));
 }
-function Ir(e) {
+function zr(e) {
 	return Number(e) || 0;
 }
-function Lr(e) {
+function Br(e) {
 	return {
-		edgeGuard: Fr(e),
-		rawEdgeGuard: Ir(e)
+		edgeGuard: Rr(e),
+		rawEdgeGuard: zr(e)
 	};
 }
-function Rr(e, t) {
+function Vr(e, t) {
 	let n = Number(e) || 0;
 	return n - (Number(t) || n);
 }
-function zr(e) {
+function Hr(e) {
 	return {
 		left: Number(e && e.left) || 0,
 		right: Number(e && e.right) || 0
 	};
 }
-function Br(e, t, n, r, i) {
-	let a = Lr(e);
+function Ur(e, t, n, r, i) {
+	let a = Br(e);
 	return {
 		edgeGuard: a.edgeGuard,
 		edgeGuardPx: a.rawEdgeGuard,
-		structuralMasks: zr(t),
+		structuralMasks: Hr(t),
 		boundaryShift: i,
-		structuralBleed: Rr(n, r)
+		structuralBleed: Vr(n, r)
 	};
 }
-function Vr(e, t, n, r, i, a, o, s) {
-	let c = Number(e) || 0, l = Number(t) || 0, u = Number(n) || 0, d = Vn(c);
+function Wr(e, t, n, r, i, a, o, s) {
+	let c = Number(e) || 0, l = Number(t) || 0, u = Number(n) || 0, d = Wn(c);
 	if (!c || l <= 1 || u <= 0 || !d) return null;
 	let f = Math.abs((Number(r) || 0) - (Number(i) || 0)) || c, p = Number.isFinite(Number(s)) && Number(s) === u || Math.abs((Number(a) || 0) - (Number(o) || 0)) > 1;
 	return {
@@ -8549,7 +8580,7 @@ function Vr(e, t, n, r, i, a, o, s) {
 		forceRawLeftMask: p
 	};
 }
-function Hr(e, t, n, r, i, a) {
+function Gr(e, t, n, r, i, a) {
 	let o = Number(e) || 0, s = Math.max(0, Number(n) || 0);
 	if (!o || !s) return null;
 	let c = (Number(r) || 0) - (Number(a) || 0) + o, l = (Number(i) || 0) - (Number(a) || 0) + o;
@@ -8565,10 +8596,10 @@ function Hr(e, t, n, r, i, a) {
 		rightMaxMask: 0
 	};
 }
-function Ur(e, t, n, r) {
+function Kr(e, t, n, r) {
 	let i = Number(r) || 0, a = Number(t) || 0, o = Number(n) || 0, s = Number(e) || 0, c = o - i;
 	if (!i || !a || !o || c <= 1) return null;
-	let l = a - s, u = l - o, d = Vn(i);
+	let l = a - s, u = l - o, d = Wn(i);
 	return {
 		widths: {
 			left: Math.min(Math.ceil(c), d),
@@ -8581,17 +8612,17 @@ function Ur(e, t, n, r) {
 		rightMaxMask: 0
 	};
 }
-function Wr(e, t, n, r) {
+function qr(e, t, n, r) {
 	return t < n ? n - t : e > r ? e - r : 0;
 }
-function Gr(e, t, n, r, i, a, o, s = .5) {
+function Jr(e, t, n, r, i, a, o, s = .5) {
 	let c = Number(e) || 0, l = Number(t) || 0, u = Number(n) || 0, d = Number(r) || 0;
 	if ((Number(o) || 0) >= 0) return {
 		left: c,
 		right: l
 	};
-	let f = Wr(c, l, i, a);
-	return Wr(u, d, i, a) + (Number(s) || 0) < f ? {
+	let f = qr(c, l, i, a);
+	return qr(u, d, i, a) + (Number(s) || 0) < f ? {
 		left: u,
 		right: d
 	} : {
@@ -8599,15 +8630,15 @@ function Gr(e, t, n, r, i, a, o, s = .5) {
 		right: l
 	};
 }
-function Kr(e, t, n, r, i = .5) {
-	let a = Number(e && e.left) || 0, o = Number(e && e.right) || 0, s = Gr(a, o, a - (Number(r) || 0), o - (Number(r) || 0), t, n, r, i);
+function Yr(e, t, n, r, i = .5) {
+	let a = Number(e && e.left) || 0, o = Number(e && e.right) || 0, s = Jr(a, o, a - (Number(r) || 0), o - (Number(r) || 0), t, n, r, i);
 	return {
 		...e,
 		left: s.left,
 		right: s.right
 	};
 }
-function qr(e, t, n, r, i, a = .5) {
+function Xr(e, t, n, r, i, a = .5) {
 	let o = Number(e) || 0, s = Number(t) || 0, c = Number(n) || 0, l = Number(r) || 0, u = (Array.isArray(i) ? i : []).map((e) => ({
 		left: Number(e && e.left),
 		right: Number(e && e.right)
@@ -8616,8 +8647,8 @@ function qr(e, t, n, r, i, a = .5) {
 		left: o,
 		right: s
 	};
-	let d = Math.min(...u.map((e) => Wr(o, s, e.left, e.right)));
-	return Math.min(...u.map((e) => Wr(c, l, e.left, e.right))) + (Number(a) || 0) < d ? {
+	let d = Math.min(...u.map((e) => qr(o, s, e.left, e.right)));
+	return Math.min(...u.map((e) => qr(c, l, e.left, e.right))) + (Number(a) || 0) < d ? {
 		left: c,
 		right: l
 	} : {
@@ -8625,45 +8656,45 @@ function qr(e, t, n, r, i, a = .5) {
 		right: s
 	};
 }
-function Jr(e, t, n, r = .5) {
-	let i = Number(e && e.left) || 0, a = Number(e && e.right) || 0, o = qr(i, a, i - (Number(t) || 0), a - (Number(t) || 0), n, r);
+function Zr(e, t, n, r = .5) {
+	let i = Number(e && e.left) || 0, a = Number(e && e.right) || 0, o = Xr(i, a, i - (Number(t) || 0), a - (Number(t) || 0), n, r);
 	return {
 		...e,
 		left: o.left,
 		right: o.right
 	};
 }
-function Yr(e, t, n, r = .5) {
-	return (e || []).map((e) => Jr(e, t, n, r));
+function Qr(e, t, n, r = .5) {
+	return (e || []).map((e) => Zr(e, t, n, r));
 }
-function Xr(e, t, n, r, i, a = .5) {
-	return Yr(e, t, Pr(n, r, i), a);
+function $r(e, t, n, r, i, a = .5) {
+	return Qr(e, t, Lr(n, r, i), a);
 }
-function Zr(e, t, n, r, i, a, o, s, c, l = .5) {
+function ei(e, t, n, r, i, a, o, s, c, l = .5) {
 	return {
-		rects: Xr(e, t, n, r, i, l),
-		deltaInputs: Br(a, o, i, s, c)
+		rects: $r(e, t, n, r, i, l),
+		deltaInputs: Ur(a, o, i, s, c)
 	};
 }
-function Qr(e, t, n) {
+function ti(e, t, n) {
 	let r = 0;
 	for (let i of e || []) (i.left < t && i.right > t || i.left < n && i.right > n) && (r += 1);
 	return r;
 }
-function $r(e, t, n, r, i, a, o, s = {}) {
+function ni(e, t, n, r, i, a, o, s = {}) {
 	let c = [], l = (e) => e < 0 ? Math.floor(e) : Math.ceil(e), u = (t) => {
 		let n = (e || []).filter((e) => e.left < t && e.right > t);
 		if (!n.length) return;
 		let i = Math.min(...n.map((e) => e.left)), a = Math.max(...n.map((e) => e.right));
 		c.push(l((i - o - t) / r)), c.push(l((a + o - t) / r));
-	}, d = Qr(e, t, n), f = null;
+	}, d = ti(e, t, n), f = null;
 	if (d > 0) {
 		u(t), u(n);
 		let o = Array.from(new Set(c.filter((e) => Number.isFinite(e) && e !== 0)));
 		for (let c of o) {
 			let o = Math.max(0, Math.min(a, i + c)), l = o - i;
 			if (!l || s.hasMaxRightBoundary && r < 0 && (Number(s.contentWidth) || 0) - o > (Number(s.maxRightBoundary) || 0) + 1) continue;
-			let u = r * l, d = Qr(e, t + u, n + u), p = Math.abs(l);
+			let u = r * l, d = ti(e, t + u, n + u), p = Math.abs(l);
 			(!f || d < f.score || d === f.score && p < f.distance) && (f = {
 				delta: l,
 				distance: p,
@@ -8683,19 +8714,19 @@ function $r(e, t, n, r, i, a, o, s = {}) {
 		score: d
 	};
 }
-function ei(e) {
+function ri(e) {
 	return (e || []).filter((e) => e && e.delta).sort(function(e, t) {
 		return e.score === t.score ? e.model === t.model ? e.distance - t.distance : e.model === "right-origin" ? -1 : 1 : e.score - t.score;
 	})[0] || null;
 }
-function ti(e, t, n, r, i, a, o, s, c = {}) {
-	let l = Number(t) || 0, u = Number(n) || 0, d = Number(r) || 0, f = Number(o) || 0, p = Number(s) || 0, m = u - l, h = $r(e, m - d + f, m - p, -1, l, i, a, {
+function ii(e, t, n, r, i, a, o, s, c = {}) {
+	let l = Number(t) || 0, u = Number(n) || 0, d = Number(r) || 0, f = Number(o) || 0, p = Number(s) || 0, m = u - l, h = ni(e, m - d + f, m - p, -1, l, i, a, {
 		hasMaxRightBoundary: c.hasMaxRightBoundary,
 		maxRightBoundary: c.maxRightBoundary,
 		contentWidth: u
 	});
 	h.model = "right-origin";
-	let g = $r(e, l + f, l + d - p, 1, l, i, a, {
+	let g = ni(e, l + f, l + d - p, 1, l, i, a, {
 		hasMaxRightBoundary: c.hasMaxRightBoundary,
 		maxRightBoundary: c.maxRightBoundary,
 		contentWidth: u
@@ -8705,15 +8736,15 @@ function ti(e, t, n, r, i, a, o, s, c = {}) {
 		leftOriginSnap: g
 	};
 }
-function ni(e, t, n, r) {
+function ai(e, t, n, r) {
 	let i = Number(e) || 0, a = Number(t) || 0, o = Number(n) || 0, s = Number(r) || 0;
 	return i > 0 && a > 0 && o > 0 && s > 1 && Math.abs(a - o) <= 1 ? Math.min(i, Math.max(1, Math.floor(o / 2))) : i;
 }
-function ri(e, t, n, r, i, a, o, s, c, l, u, d = {}) {
-	let f = ti(e, t, n, r, i, a, o, s, d), p = ei([f.rightOriginSnap, f.leftOriginSnap]);
-	return ni(p ? p.delta : 0, c, l, u);
+function oi(e, t, n, r, i, a, o, s, c, l, u, d = {}) {
+	let f = ii(e, t, n, r, i, a, o, s, d), p = ri([f.rightOriginSnap, f.leftOriginSnap]);
+	return ai(p ? p.delta : 0, c, l, u);
 }
-function ii(e, t, n, r, i = {}) {
+function si(e, t, n, r, i = {}) {
 	let a = Number(t) || 0, o = Number(n) || 0, s = Number(r) || 0, c = Number(e) || 0, l = c ? Math.max(0, Math.min(o, a + c)) : a;
 	if (i.hasPreferredRightBoundary) {
 		let e = Number(i.preferredRightBoundary) || 0;
@@ -8725,19 +8756,19 @@ function ii(e, t, n, r, i = {}) {
 	}
 	return l;
 }
-function ai(e, t, n, r, i, a = {}) {
-	let o = ii(t, n, r, i, a);
+function ci(e, t, n, r, i, a = {}) {
+	let o = si(t, n, r, i, a);
 	return {
-		cacheEntry: kr(e, o, t),
+		cacheEntry: Mr(e, o, t),
 		snapped: o
 	};
 }
-function oi(e, t, n, r, i, a, o = {}, s = {}) {
-	return ai(e, ri(t.rects, n, r, i, a, t.deltaInputs.edgeGuard, t.deltaInputs.structuralMasks.left, t.deltaInputs.structuralMasks.right, t.deltaInputs.boundaryShift, t.deltaInputs.edgeGuardPx, t.deltaInputs.structuralBleed, o), n, a, r, s);
+function li(e, t, n, r, i, a, o = {}, s = {}) {
+	return ci(e, oi(t.rects, n, r, i, a, t.deltaInputs.edgeGuard, t.deltaInputs.structuralMasks.left, t.deltaInputs.structuralMasks.right, t.deltaInputs.boundaryShift, t.deltaInputs.edgeGuardPx, t.deltaInputs.structuralBleed, o), n, a, r, s);
 }
 //#endregion
 //#region src/utils/timing.ts
-function si(e, t = 0, n = {}) {
+function ui(e, t = 0, n = {}) {
 	let r = n.leading === !0, i = n.trailing !== !1, a = Number.isFinite(n.maxWait) ? Math.max(Number(n.maxWait), t) : null, o, s, c, l, u, d = () => {
 		let t = c, n = l;
 		return c = void 0, l = void 0, t && (u = e.apply(n, t)), u;
@@ -8754,8 +8785,8 @@ function si(e, t = 0, n = {}) {
 		f(), c = void 0, l = void 0;
 	}, m.flush = () => o !== void 0 || s !== void 0 ? p() : u, m;
 }
-function ci(e, t = 0, n = {}) {
-	return si(e, t, {
+function di(e, t = 0, n = {}) {
+	return ui(e, t, {
 		leading: n.leading !== !1,
 		maxWait: t,
 		trailing: n.trailing !== !1
@@ -8763,7 +8794,7 @@ function ci(e, t = 0, n = {}) {
 }
 //#endregion
 //#region src/managers/helpers/stage.ts
-var li = class {
+var fi = class {
 	settings;
 	id;
 	container;
@@ -8800,7 +8831,7 @@ var li = class {
 		return this.container;
 	}
 	onResize(e) {
-		(!Y(this.settings.width) || !Y(this.settings.height)) && (this.resizeFunc = ci(e, 50), window.addEventListener("resize", this.resizeFunc, !1));
+		(!Y(this.settings.width) || !Y(this.settings.height)) && (this.resizeFunc = di(e, 50), window.addEventListener("resize", this.resizeFunc, !1));
 	}
 	onOrientationChange(e) {
 		this.orientationChangeFunc = e, window.addEventListener("orientationchange", this.orientationChangeFunc, !1);
@@ -8855,7 +8886,7 @@ var li = class {
 	destroy() {
 		this.element && (this.element.contains(this.container) && this.element.removeChild(this.container), window.removeEventListener("resize", this.resizeFunc), window.removeEventListener("orientationchange", this.orientationChangeFunc));
 	}
-}, ui = class {
+}, pi = class {
 	container;
 	_views;
 	length;
@@ -8922,10 +8953,10 @@ var li = class {
 		for (var e, t = this.length, n = 0; n < t; n++) e = this._views[n], e.displayed && e.hide();
 		this.hidden = !0;
 	}
-}, di = N, fi = (e) => {
+}, mi = N, hi = (e) => {
 	let t = e?.resolution?.candidate, n = e?.effectiveClip, r = t?.rect;
 	return !t || !n || !r ? "unknown" : t.intersection?.positiveArea ? "intersects" : r.right <= n.left ? "future-left" : r.left >= n.right ? "past-right" : "crosses-without-positive-area";
-}, pi = (e) => {
+}, gi = (e) => {
 	let t = e?.resolution, n = t?.candidate;
 	return {
 		tailState: t?.state || "unknown",
@@ -8938,9 +8969,9 @@ var li = class {
 		documentIdentity: e?.documentIdentity ?? null,
 		ownerRect: n?.rect || null,
 		effectiveClip: e?.effectiveClip || null,
-		ownerClipRelation: fi(e)
+		ownerClipRelation: hi(e)
 	};
-}, mi = (e, t) => {
+}, _i = (e, t) => {
 	try {
 		if (typeof window > "u" || !window.__EPUB_VRL_DEBUG__) return;
 		let n = window;
@@ -8950,7 +8981,7 @@ var li = class {
 			...t
 		}), n.__EPUB_VRL_SCROLL_TRACE__.length > 4e3 && n.__EPUB_VRL_SCROLL_TRACE__.splice(0, n.__EPUB_VRL_SCROLL_TRACE__.length - 4e3);
 	} catch {}
-}, hi = (e, t) => {
+}, vi = (e, t) => {
 	if (typeof window > "u" || !window.__EPUB_VRL_DEBUG__) return;
 	let n = window;
 	Array.isArray(n.__EPUB_VRL_TERMINAL_TRACE__) || (n.__EPUB_VRL_TERMINAL_TRACE__ = []), n.__EPUB_VRL_TERMINAL_TRACE__.push({
@@ -8958,7 +8989,8 @@ var li = class {
 		capturedAt: Date.now(),
 		...t
 	}), n.__EPUB_VRL_TERMINAL_TRACE__.length > 4e3 && n.__EPUB_VRL_TERMINAL_TRACE__.splice(0, n.__EPUB_VRL_TERMINAL_TRACE__.length - 4e3);
-}, gi = class {
+}, yi = class {
+	_combinedTextPaintFrame;
 	_verticalRlTerminalLayouts;
 	_verticalRlActiveTerminalLayout;
 	_verticalRlBoundarySnapRetryPendingToken;
@@ -9062,7 +9094,7 @@ var li = class {
 	}
 	render(e, t) {
 		let n = e.tagName;
-		this.settings.fullsize === void 0 && n && (n.toLowerCase() == "body" || n.toLowerCase() == "html") && (this.settings.fullsize = !0), this.settings.fullsize && (this.settings.overflow = "visible", this.overflow = this.settings.overflow), this.settings.size = t, this.settings.rtlScrollType = en(), this.stage = new li({
+		this.settings.fullsize === void 0 && n && (n.toLowerCase() == "body" || n.toLowerCase() == "html") && (this.settings.fullsize = !0), this.settings.fullsize && (this.settings.overflow = "visible", this.overflow = this.settings.overflow), this.settings.size = t, this.settings.rtlScrollType = rn(), this.stage = new fi({
 			width: t.width,
 			height: t.height,
 			overflow: this.overflow,
@@ -9070,7 +9102,7 @@ var li = class {
 			axis: this.settings.axis,
 			fullsize: this.settings.fullsize,
 			direction: this.settings.direction
-		}), this.stage.attachTo(e), this.container = this.stage.getContainer(), this.views = new ui(this.container), this._bounds = this.bounds(), this._stageSize = this.stage.size(), this.viewSettings.width = this._stageSize.width, this.viewSettings.height = this._stageSize.height, this.stage.onResize(this.onResized.bind(this)), this.stage.onOrientationChange(this.onOrientationChange.bind(this)), this.addEventListeners(), this.layout && this.updateLayout(), this.rendered = !0;
+		}), this.stage.attachTo(e), this.container = this.stage.getContainer(), this.views = new pi(this.container), this._bounds = this.bounds(), this._stageSize = this.stage.size(), this.viewSettings.width = this._stageSize.width, this.viewSettings.height = this._stageSize.height, this.stage.onResize(this.onResized.bind(this)), this.stage.onOrientationChange(this.onOrientationChange.bind(this)), this.addEventListeners(), this.layout && this.updateLayout(), this.rendered = !0;
 	}
 	addEventListeners() {
 		var e;
@@ -9082,7 +9114,7 @@ var li = class {
 		(this.settings.fullsize ? window : this.container).removeEventListener("scroll", this._onScroll), this._onScroll = void 0, window.removeEventListener("unload", this._onUnload), this._onUnload = void 0;
 	}
 	destroy() {
-		clearTimeout(this.orientationTimeout), clearTimeout(this.resizeTimeout), clearTimeout(this.afterScrolled), clearTimeout(this._verticalRlBoundarySnapAfterScroll), this._verticalRlBoundarySnapAfterScrollPending = !1, this._verticalRlBoundarySnapRetryToken = (this._verticalRlBoundarySnapRetryToken || 0) + 1, this.clear(), this.removeEventListeners(), this.removeVerticalRlViewportClip(), this.stage.destroy(), this.rendered = !1;
+		this._combinedTextPaintFrame !== void 0 && (cancelAnimationFrame(this._combinedTextPaintFrame), this._combinedTextPaintFrame = void 0), clearTimeout(this.orientationTimeout), clearTimeout(this.resizeTimeout), clearTimeout(this.afterScrolled), clearTimeout(this._verticalRlBoundarySnapAfterScroll), this._verticalRlBoundarySnapAfterScrollPending = !1, this._verticalRlBoundarySnapRetryToken = (this._verticalRlBoundarySnapRetryToken || 0) + 1, this.clear(), this.removeEventListeners(), this.removeVerticalRlViewportClip(), this.stage.destroy(), this.rendered = !1;
 	}
 	onOrientationChange(e) {
 		let { orientation: t } = window;
@@ -9146,7 +9178,7 @@ var li = class {
 		}
 	}
 	display(e, t, n) {
-		var r = new di(), i = r.promise;
+		var r = new mi(), i = r.promise;
 		if ((t === e.href || Y(t)) && (t = void 0), this._pendingVerticalRlTarget = void 0, this.target = t, this.recordResizeSettleTrace("display:start", {
 			href: e.href || null,
 			target: t || null,
@@ -9326,28 +9358,28 @@ var li = class {
 			documentIdentity: null
 		};
 		try {
-			let e = t.getBoundingClientRect(), r = kn(this.container);
+			let e = t.getBoundingClientRect(), r = Mn(this.container);
 			return r ? {
-				resolution: An({
+				resolution: Nn({
 					document: n,
 					frameRect: e,
 					effectiveClip: r
 				}),
 				effectiveClip: r,
-				frameIdentity: yn(t),
-				documentIdentity: yn(n)
+				frameIdentity: Sn(t),
+				documentIdentity: Sn(n)
 			} : {
 				resolution: null,
 				effectiveClip: null,
-				frameIdentity: yn(t),
-				documentIdentity: yn(n)
+				frameIdentity: Sn(t),
+				documentIdentity: Sn(n)
 			};
 		} catch {
 			return {
 				resolution: null,
 				effectiveClip: null,
-				frameIdentity: yn(t),
-				documentIdentity: yn(n)
+				frameIdentity: Sn(t),
+				documentIdentity: Sn(n)
 			};
 		}
 	}
@@ -9368,13 +9400,13 @@ var li = class {
 			right: 0
 		};
 		if (i <= 1) return this.getVerticalRlCleanPageEdgeMaskWidths(n);
-		let a = Math.ceil(i), o = 0, s = Vn(n), c = this.getTotalPagesForCurrentView(), l = this.getCurrentPageIndex(), u = 0;
+		let a = Math.ceil(i), o = 0, s = Wn(n), c = this.getTotalPagesForCurrentView(), l = this.getCurrentPageIndex(), u = 0;
 		if (l > 0) {
 			let e = this.getMaxLogicalScrollLeft(), t = this.getVerticalRlPageOffset(l, c, e), n = this.getVerticalRlPageOffset(l - 1, c, e);
 			u = Math.abs(t - n);
 		}
-		if (Un(r, n, a, this.getPageBoundaryShift(), l, u)) {
-			let e = Kn(a, o, s, n);
+		if (Kn(r, n, a, this.getPageBoundaryShift(), l, u)) {
+			let e = Yn(a, o, s, n);
 			return e ? this.snapVerticalRlEdgeMaskWidths(e.widths, e.maxMask, {
 				nextPageStep: e.nextPageStep,
 				rightMaxMask: e.rightMaxMask
@@ -9400,9 +9432,9 @@ var li = class {
 		};
 		if (l > 0) {
 			let e = this.getPreviousVerticalRlLeftMask(u, a, s, f);
-			o = Wn(r, u, e, s);
+			o = qn(r, u, e, s);
 		}
-		let p = Gn(a, o, s, u);
+		let p = Jn(a, o, s, u);
 		return p ? this.snapVerticalRlEdgeMaskWidths(p.widths, p.maxMask, {
 			textRects: f,
 			previousPageStep: p.previousPageStep,
@@ -9414,7 +9446,7 @@ var li = class {
 	}
 	getVerticalRlRenderedEdgeMaskWidths() {
 		let e = this.getVerticalRlEdgeMaskWidths(), t = this.container && this.container.dataset ? this.container.dataset : {};
-		return qn(e, Number(t.epubVrlEdgeMaskLeft), Number(t.epubVrlEdgeMaskRight), Number(t.epubVrlEdgeMask));
+		return Xn(e, Number(t.epubVrlEdgeMaskLeft), Number(t.epubVrlEdgeMaskRight), Number(t.epubVrlEdgeMask));
 	}
 	getVerticalRlAppliedContentShift() {
 		if (!this.isRtlVerticalPaginated()) return 0;
@@ -9424,7 +9456,7 @@ var li = class {
 	getVerticalRlCurrentEffectiveLeftBoundary() {
 		if (!this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) return null;
 		let e = this.views.first() || this.views.last(), t = e ? this.getVerticalRlVisualContentWidth(e) : 0, n = this.getPageAdvance() || 0, r = this.layout.pageWidth || this.layout.width || n || this.container.clientWidth || 0, i = this.getNormalizedLogicalScrollLeft(), a = this.container.dataset?.epubVrlEdgeMaskLeft === void 0 ? this.getVerticalRlRenderedEdgeMaskWidths() : this.getVerticalRlAppliedEdgeMaskWidths();
-		return Sr(t, i, r, (Number(a && a.left) || 0) + this.getVerticalRlAppliedContentShift());
+		return Tr(t, i, r, (Number(a && a.left) || 0) + this.getVerticalRlAppliedContentShift());
 	}
 	getVerticalRlCurrentEffectiveRightBoundary() {
 		if (!this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) return null;
@@ -9432,7 +9464,7 @@ var li = class {
 		return t - this.getNormalizedLogicalScrollLeft() + this.getVerticalRlAppliedContentShift() - (Number(r?.right) || 0);
 	}
 	alignVerticalRlPreviousPageBoundary(e, t) {
-		if (mi("reverse-boundary-inspect", {
+		if (_i("reverse-boundary-inspect", {
 			pageIndex: e,
 			boundary: t,
 			vertical: this.isRtlVerticalPaginated(),
@@ -9441,14 +9473,14 @@ var li = class {
 		let n = this.views && (this.views.first() || this.views.last()), r = n?.contents?.document, i = n?.contents?.window;
 		if (!r?.body || !i) return !1;
 		let a = this.getVerticalRlCurrentEffectiveLeftBoundary(), o = this._verticalRlPreservedPageBoundary, s = Number(i.devicePixelRatio), c = this.getVerticalRlLogicalPageOffsetCacheKey(this.getTotalPagesForCurrentView(), this.getMaxLogicalScrollLeft());
-		if (o?.pageIndex === e && c !== null && o.layoutKey === c && a !== null && Number.isFinite(o.sourceLeftBoundary) && Number.isFinite(s) && s > 0 && Math.abs(a - o.sourceLeftBoundary) < 1 / s && t >= o.sourceLeftBoundary - 1 / s) return mi("reverse-boundary-preserved-source-fence", {
+		if (o?.pageIndex === e && c !== null && o.layoutKey === c && a !== null && Number.isFinite(o.sourceLeftBoundary) && Number.isFinite(s) && s > 0 && Math.abs(a - o.sourceLeftBoundary) < 1 / s && t >= o.sourceLeftBoundary - 1 / s) return _i("reverse-boundary-preserved-source-fence", {
 			pageIndex: e,
 			boundary: t,
 			observedLeftBoundary: a,
 			sourceLeftBoundary: o.sourceLeftBoundary,
 			layoutKey: c
 		}), !1;
-		if (o?.pageIndex === e && c !== null && o.layoutKey === c && a !== null && Number.isFinite(s) && s > 0 && Math.abs(a - t) < 1 / s) return mi("reverse-boundary-preserved-quantization", {
+		if (o?.pageIndex === e && c !== null && o.layoutKey === c && a !== null && Number.isFinite(s) && s > 0 && Math.abs(a - t) < 1 / s) return _i("reverse-boundary-preserved-quantization", {
 			pageIndex: e,
 			boundary: t,
 			observedLeftBoundary: a,
@@ -9456,7 +9488,7 @@ var li = class {
 			layoutKey: c
 		}), !1;
 		let l = U(r, i, r.body, { minimumTextLength: 1 });
-		if (mi("reverse-boundary-rects", {
+		if (_i("reverse-boundary-rects", {
 			pageIndex: e,
 			boundary: t,
 			rectCount: l?.length ?? null,
@@ -9475,7 +9507,7 @@ var li = class {
 			if (!e.length) break;
 			t = Math.min(...e.map((e) => e.left));
 		}
-		mi("reverse-boundary-column-owner", {
+		_i("reverse-boundary-column-owner", {
 			pageIndex: e,
 			requestedBoundary: u,
 			boundary: t
@@ -9504,7 +9536,7 @@ var li = class {
 				} finally {
 					this._verticalRlBoundarySnapApplying = !1;
 				}
-				this.syncVerticalRlViewportClip(), mi("reverse-boundary-no-progress", {
+				this.syncVerticalRlViewportClip(), _i("reverse-boundary-no-progress", {
 					pageIndex: e,
 					boundary: t,
 					leftBoundary: r,
@@ -9515,7 +9547,7 @@ var li = class {
 				});
 				break;
 			}
-			f = !0, mi("reverse-boundary-align", {
+			f = !0, _i("reverse-boundary-align", {
 				pageIndex: e,
 				boundary: t,
 				leftBoundary: r,
@@ -9529,13 +9561,13 @@ var li = class {
 	getVerticalRlLogicalPageOffsetCacheKey(e, t) {
 		if (!this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) return null;
 		let n = this.views.first() || this.views.last(), r = n ? this.getVerticalRlVisualContentWidth(n) : 0, i = this.layout.pageWidth || this.layout.width || this.getPageAdvance() || this.container.clientWidth || 0, a = this.getPageAdvance() || 0, o = this.layout.edgeGuardPx || 0;
-		return In(this.getBaseGeometryPageCount(), t, r, i, a, o);
+		return zn(this.getBaseGeometryPageCount(), t, r, i, a, o);
 	}
 	getCachedVerticalRlLogicalPageOffset(e, t) {
-		return Ln(this._verticalRlLogicalPageOffsetCache, e, t);
+		return Bn(this._verticalRlLogicalPageOffsetCache, e, t);
 	}
 	cacheVerticalRlLogicalPageOffset(e, t, n) {
-		this._verticalRlLogicalPageOffsetCache = Rn(this._verticalRlLogicalPageOffsetCache, e, t, n), this._verticalRlActiveTerminalLayout?.layoutKey === n && (this._verticalRlActiveTerminalLayout.offsetCache = this._verticalRlLogicalPageOffsetCache), this._verticalRlPageIndexLookupKey = null;
+		this._verticalRlLogicalPageOffsetCache = Vn(this._verticalRlLogicalPageOffsetCache, e, t, n), this._verticalRlActiveTerminalLayout?.layoutKey === n && (this._verticalRlActiveTerminalLayout.offsetCache = this._verticalRlLogicalPageOffsetCache), this._verticalRlPageIndexLookupKey = null;
 	}
 	getVerticalRlTerminalLayout() {
 		if (!this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) return null;
@@ -9549,7 +9581,7 @@ var li = class {
 		this._verticalRlTerminalLayouts ??= /* @__PURE__ */ new WeakMap();
 		let a = this._verticalRlTerminalLayouts.get(i);
 		a || (a = /* @__PURE__ */ new Map(), this._verticalRlTerminalLayouts.set(i, a));
-		let o = fn(a.get(r), r, {
+		let o = hn(a.get(r), r, {
 			owner: this,
 			section: i,
 			view: e,
@@ -9563,11 +9595,11 @@ var li = class {
 			right: 0
 		};
 		let t = this.getTotalPagesForCurrentView(), n = this.getCurrentPageIndex();
-		if (t <= 1 || n <= 0 || !Vn(e)) return {
+		if (t <= 1 || n <= 0 || !Wn(e)) return {
 			left: 0,
 			right: 0
 		};
-		let r = this.getMaxLogicalScrollLeft(), i = Vr(e, t, n, this.getVerticalRlPageOffset(n, t, r), this.getVerticalRlPageOffset(n - 1, t, r), this.getNormalizedLogicalScrollLeft(), this.getLogicalOffsetForPageIndex(n, t, r), this._verticalRlSequentialBoundaryConstraint ? this._verticalRlSequentialBoundaryConstraint.pageIndex : null);
+		let r = this.getMaxLogicalScrollLeft(), i = Wr(e, t, n, this.getVerticalRlPageOffset(n, t, r), this.getVerticalRlPageOffset(n - 1, t, r), this.getNormalizedLogicalScrollLeft(), this.getLogicalOffsetForPageIndex(n, t, r), this._verticalRlSequentialBoundaryConstraint ? this._verticalRlSequentialBoundaryConstraint.pageIndex : null);
 		return i ? this.snapVerticalRlEdgeMaskWidths(i.widths, i.maxMask, {
 			nextPageStep: i.nextPageStep,
 			previousPageStep: i.previousPageStep,
@@ -9584,7 +9616,7 @@ var li = class {
 		if (!e || !this.container || !this.views) return Math.min(t, n);
 		let i = this.views.first() || this.views.last(), a = i && i.iframe;
 		if (!a) return Math.min(t, n);
-		let o = this.container.getBoundingClientRect(), s = a.getBoundingClientRect(), c = Hr(e, t, n, o.left, o.right, s.left);
+		let o = this.container.getBoundingClientRect(), s = a.getBoundingClientRect(), c = Gr(e, t, n, o.left, o.right, s.left);
 		if (!c) return Math.min(t, n);
 		let l = this.snapVerticalRlEdgeMaskWidths(c.widths, c.maxMask, {
 			textRects: r,
@@ -9596,13 +9628,13 @@ var li = class {
 		return Math.min(Number(l && l.left) || 0, n);
 	}
 	getVerticalRlEdgeMaskWidth() {
-		return Jn(this.getVerticalRlEdgeMaskWidths());
+		return Zn(this.getVerticalRlEdgeMaskWidths());
 	}
 	expandVerticalRlLeftMaskToVisibleLine(e) {
 		if (!e || !this.container || !this.views) return e;
 		let t = this.views.first() || this.views.last(), n = t && t.iframe, r = t && t.contents && t.contents.document, i = t && t.contents && t.contents.window, a = r && r.body;
 		if (!n || !r || !i || !a) return e;
-		let o = this.getPageAdvance() || 0, s = Vn(o);
+		let o = this.getPageAdvance() || 0, s = Wn(o);
 		if (!s) return e;
 		let c = this.container.getBoundingClientRect(), l = n.getBoundingClientRect(), u = c.left - l.left, d = c.right - l.left, f = Math.max(0, Number(e.left) || 0), p = Math.max(0, Number(e.right) || 0), m = U(r, i, a, {
 			minimumTextLength: 1,
@@ -9616,7 +9648,7 @@ var li = class {
 		});
 		if (!m) return e;
 		for (let e of m) {
-			let t = Kr(e, u, d, l.left), n = t.left, r = t.right, i = l.left + e.left, a = l.left + e.right;
+			let t = Yr(e, u, d, l.left), n = t.left, r = t.right, i = l.left + e.left, a = l.left + e.right;
 			(n < u && r > u || i < c.left && a > c.left) && (f = Math.max(f, Math.ceil(Math.max(r - u, a - c.left) + 1))), (n < d && r > d || i < c.right && a > c.right) && (p = Math.max(p, Math.ceil(Math.max(d - n, c.right - i) + 1)));
 		}
 		let h = s;
@@ -9625,7 +9657,7 @@ var li = class {
 			if (t <= 0) h = 0;
 			else {
 				let n = this.getMaxLogicalScrollLeft(), r = this.getVerticalRlPageOffset(t, e, n), i = this.getVerticalRlPageOffset(t - 1, e, n), a = Math.abs(r - i), c = this.layout && (this.layout.pageWidth || this.layout.width) || o, l = this.getRecordedVerticalRlAppliedLeftMask(t - 1), u = Number.isFinite(l) ? l : this.getPreviousVerticalRlLeftMask(a, f, s);
-				h = r > i ? Wn(c, a, u, s) : 0;
+				h = r > i ? qn(c, a, u, s) : 0;
 			}
 		} catch {
 			h = s;
@@ -9641,13 +9673,13 @@ var li = class {
 		let t = this.getTotalPagesForCurrentView(), n = this.getCurrentPageIndex(), r = Math.min(t - 1, n + 1);
 		if (r <= n) return 0;
 		let i = this.getMaxLogicalScrollLeft();
-		return Fn(e, t, n, r, this.getVerticalRlPageOffset(n, t, i), this.getVerticalRlPageOffset(r, t, i), this.hasVerticalRlStructuralPageGutter());
+		return Rn(e, t, n, r, this.getVerticalRlPageOffset(n, t, i), this.getVerticalRlPageOffset(r, t, i), this.hasVerticalRlStructuralPageGutter());
 	}
 	snapVerticalRlEdgeMaskWidths(e, t, n = {}) {
 		if (!this.container || !e || t <= 0) return e;
 		let r = this.views && (this.views.first() || this.views.last()), i = r && r.iframe, a = r && r.contents && r.contents.document, o = r && r.contents && r.contents.window, s = a && a.body;
 		if (!i || !a || !o || !s) return e;
-		let c = this.container.getBoundingClientRect(), l = i.getBoundingClientRect(), u = n.nextPageStep === void 0 ? this.getLogicalPageStepToNextPage() : 0, d = Yn(e, t, c.left, c.right, l.left, n, u, this.layout && this.layout.edgeGuardPx), f = d.rawLeft, p = d.rawRight, m = d.leftMaxMask, h = d.rightMaxMask, g = d.left, _ = d.right, v = d.nextPageStep, y = d.previousPageStep, b = d.forceRawLeftMask, x = d.allowRawLeftMask, S = d.edgeTolerance, C = d.hasStructuralEdgeGuard, w = d.canExpandClippedRawRight, T = d.rightPaintGuardMax, E = n.textRects ? n.textRects() : U(a, o, s, {
+		let c = this.container.getBoundingClientRect(), l = i.getBoundingClientRect(), u = n.nextPageStep === void 0 ? this.getLogicalPageStepToNextPage() : 0, d = Qn(e, t, c.left, c.right, l.left, n, u, this.layout && this.layout.edgeGuardPx), f = d.rawLeft, p = d.rawRight, m = d.leftMaxMask, h = d.rightMaxMask, g = d.left, _ = d.right, v = d.nextPageStep, y = d.previousPageStep, b = d.forceRawLeftMask, x = d.allowRawLeftMask, S = d.edgeTolerance, C = d.hasStructuralEdgeGuard, w = d.canExpandClippedRawRight, T = d.rightPaintGuardMax, E = n.textRects ? n.textRects() : U(a, o, s, {
 			minimumTextLength: 1,
 			limit: 1e3,
 			supplementTruncatedPrefix: !0,
@@ -9658,17 +9690,17 @@ var li = class {
 		});
 		if (!E) return e;
 		let D = E, O = typeof window < "u" && window.__EPUB_VRL_DEBUG__, k = [];
-		return Hn(() => {
-			let e = g, t = xr(D, f, p, g, m, v, b, x, C, S), n = t.shift;
+		return Gn(() => {
+			let e = g, t = wr(D, f, p, g, m, v, b, x, C, S), n = t.shift;
 			return O && k.push({
 				inputLeft: e,
 				shift: n,
 				outputLeft: t.left
 			}), n !== 0 && (g = t.left), n;
 		}, () => {
-			let e = pr(D, f, p, _, y, S, t, h, T, v, w), n = e.shift;
+			let e = gr(D, f, p, _, y, S, t, h, T, v, w), n = e.shift;
 			return n !== 0 && (_ = e.right), n;
-		}, 4), typeof window < "u" && window.__EPUB_VRL_DEBUG__ && mi("edge-mask-snap-decision", {
+		}, 4), typeof window < "u" && window.__EPUB_VRL_DEBUG__ && _i("edge-mask-snap-decision", {
 			rawLeft: f,
 			rawRight: p,
 			maxMask: t,
@@ -9705,7 +9737,10 @@ var li = class {
 			if (!r || !Number.isFinite(i)) return;
 			let a = this.getCachedVerticalRlLogicalPageOffset(i, r);
 			if (a !== null && a !== this.getNormalizedLogicalScrollLeft()) return;
-			(!this._verticalRlAppliedLeftMaskLedger || this._verticalRlAppliedLeftMaskLedgerKey !== r) && (this._verticalRlAppliedLeftMaskLedger = {}, this._verticalRlAppliedLeftMaskLedgerKey = r), this._verticalRlAppliedLeftMaskLedger[String(i)] = e + this.getVerticalRlAppliedContentShift(), this._verticalRlActiveTerminalLayout?.layoutKey === r && (this._verticalRlActiveTerminalLayout.appliedLeftMasks = this._verticalRlAppliedLeftMaskLedger);
+			(!this._verticalRlAppliedLeftMaskLedger || this._verticalRlAppliedLeftMaskLedgerKey !== r) && (this._verticalRlAppliedLeftMaskLedger = {}, this._verticalRlAppliedLeftMaskLedgerKey = r);
+			let o = this.getVerticalRlAppliedContentShift(), s = this._verticalRlPreservedPageBoundary, c = this._verticalRlAppliedLeftMaskLedger[String(i)];
+			if (a !== null && o === 0 && s?.pageIndex === i && s.layoutKey === r && Number.isFinite(s.sourceLeftBoundary) && Number.isFinite(c) && c > Wn(this.getPageAdvance()) && e < c) return;
+			this._verticalRlAppliedLeftMaskLedger[String(i)] = e + o, this._verticalRlActiveTerminalLayout?.layoutKey === r && (this._verticalRlActiveTerminalLayout.appliedLeftMasks = this._verticalRlAppliedLeftMaskLedger);
 		} catch {}
 	}
 	getVerticalRlRestoredSemanticMaskWidths() {
@@ -9736,7 +9771,7 @@ var li = class {
 		if (t !== null) return t;
 		if (!this.isRtlVerticalPaginated()) return null;
 		try {
-			let e = this.getPageAdvance() || 0, t = Vn(e);
+			let e = this.getPageAdvance() || 0, t = Wn(e);
 			if (!t) return null;
 			let n = this.getCurrentPageIndex();
 			if (!Number.isFinite(n)) return null;
@@ -9744,7 +9779,7 @@ var li = class {
 			let r = this.getRecordedVerticalRlAppliedLeftMask(n - 1);
 			if (!Number.isFinite(r)) return null;
 			let i = this.getTotalPagesForCurrentView(), a = this.getMaxLogicalScrollLeft(), o = this.getVerticalRlPageOffset(n, i, a), s = this.getVerticalRlPageOffset(n - 1, i, a);
-			return o > s ? Wn(this.layout && (this.layout.pageWidth || this.layout.width) || e, Math.abs(o - s), r, t) : 0;
+			return o > s ? qn(this.layout && (this.layout.pageWidth || this.layout.width) || e, Math.abs(o - s), r, t) : 0;
 		} catch {
 			return null;
 		}
@@ -9768,15 +9803,17 @@ var li = class {
 	}
 	getVerticalRlCommittedLeftMaskForCurrentOffset(e) {
 		let t = this._verticalRlActiveTerminalLayout;
-		if (!this.isRtlVerticalPaginated() || !t || t.continuationCount <= 0 || this._verticalRlAppliedLeftMaskLedgerKey !== t.layoutKey) return null;
+		if (!this.isRtlVerticalPaginated() || !t || this._verticalRlAppliedLeftMaskLedgerKey !== t.layoutKey) return null;
 		let n = this.getCurrentPageIndex();
 		if (n >= this.getTotalPagesForCurrentView() - 1) return null;
 		let r = this.getCachedVerticalRlLogicalPageOffset(n, t.layoutKey);
 		if (r === null || r !== this.getNormalizedLogicalScrollLeft()) return null;
 		let i = this.getRecordedVerticalRlAppliedLeftMask(n);
 		if (i === null || !Number.isFinite(i)) return null;
-		let a = i - this.getVerticalRlAppliedContentShift();
-		return a >= 0 && a <= e ? a : null;
+		let a = this._verticalRlPreservedPageBoundary;
+		if (t.continuationCount <= 0 && (i <= 0 || a?.pageIndex !== n || a.layoutKey !== t.layoutKey || !Number.isFinite(a.sourceLeftBoundary))) return null;
+		let o = i - this.getVerticalRlAppliedContentShift();
+		return o >= 0 && o <= e ? o : null;
 	}
 	syncVerticalRlViewportClip() {
 		if (!this.container || !this.container.style) return;
@@ -9791,11 +9828,11 @@ var li = class {
 		});
 		let r = this.getVerticalRlRestoredSemanticMaskWidths();
 		r && (t = r);
-		let i = this.getVerticalRlCommittedLeftMaskForCurrentOffset(Vn(this.getPageAdvance()));
+		let i = this.getVerticalRlCommittedLeftMaskForCurrentOffset(Wn(this.getPageAdvance()));
 		if (!r && n === null && i !== null && (t = {
-			left: Math.max(t.left, i),
+			left: i,
 			right: t.right
-		}), this.recordVerticalRlAppliedLeftMask(Math.max(0, Number(t.left) || 0)), mi("edge-mask-applied", {
+		}), this.recordVerticalRlAppliedLeftMask(Math.max(0, Number(t.left) || 0)), _i("edge-mask-applied", {
 			rawScrollLeft: this.container.scrollLeft,
 			pageIndex: this._verticalRlPageIndexLookupResult,
 			computedLeft: e.left,
@@ -9811,7 +9848,7 @@ var li = class {
 		let a = this.getVerticalRlViewportClipOverlay();
 		if (!a) return;
 		let o = a.parentElement.getBoundingClientRect(), s = this.container.getBoundingClientRect(), c = this.getVerticalRlEdgeMaskColor(), l = Math.ceil(s.width || this.container.clientWidth || 0) + 1, u = Math.ceil(s.height || this.container.clientHeight || 0) + 1;
-		a.style.left = `${s.left - o.left}px`, a.style.top = `${s.top - o.top}px`, a.style.width = `${l}px`, a.style.height = `${u}px`, a.style.boxShadow = `inset ${t.left}px 0 0 ${c}, inset -${t.right}px 0 0 ${c}`, this.container.dataset.epubVrlEdgeMask = String(Jn(t)), this.container.dataset.epubVrlEdgeMaskLeft = String(t.left), this.container.dataset.epubVrlEdgeMaskRight = String(t.right);
+		a.style.left = `${s.left - o.left}px`, a.style.top = `${s.top - o.top}px`, a.style.width = `${l}px`, a.style.height = `${u}px`, a.style.boxShadow = `inset ${t.left}px 0 0 ${c}, inset -${t.right}px 0 0 ${c}`, this.container.dataset.epubVrlEdgeMask = String(Zn(t)), this.container.dataset.epubVrlEdgeMaskLeft = String(t.left), this.container.dataset.epubVrlEdgeMaskRight = String(t.right);
 	}
 	getVerticalRlViewportClipOverlay() {
 		let e = this.container && this.container.parentElement;
@@ -9827,14 +9864,14 @@ var li = class {
 		e && this._verticalRlPreviousParentPosition !== void 0 && (e.style.position = this._verticalRlPreviousParentPosition, this._verticalRlPreviousParentPosition = void 0);
 	}
 	getPageBoundaryShift() {
-		return this.layout ? Nn(this.layout.pageBoundaryShift || 0, this.getPageAdvance() || 0, this.isRtlVerticalPaginated()) : 0;
+		return this.layout ? In(this.layout.pageBoundaryShift || 0, this.getPageAdvance() || 0, this.isRtlVerticalPaginated()) : 0;
 	}
 	hasVerticalRlStructuralPageGutter() {
-		return !this.isRtlVerticalPaginated() || !this.container || !this.layout ? !1 : Pn(this.getPageAdvance() || 0, this.container.clientWidth || 0, this.getPageBoundaryShift(), this.isRtlVerticalPaginated());
+		return !this.isRtlVerticalPaginated() || !this.container || !this.layout ? !1 : Ln(this.getPageAdvance() || 0, this.container.clientWidth || 0, this.getPageBoundaryShift(), this.isRtlVerticalPaginated());
 	}
 	getVerticalRlStructuralEdgeMaskWidthsForLogicalOffset(e, t, n) {
 		if (!this.hasVerticalRlStructuralPageGutter()) return null;
-		let r = Ur(e, t, n, this.getPageAdvance() || 0);
+		let r = Kr(e, t, n, this.getPageAdvance() || 0);
 		return r ? this.snapVerticalRlEdgeMaskWidths(r.widths, r.maxMask, {
 			rawLeft: r.rawLeft,
 			rawRight: r.rawRight,
@@ -9935,18 +9972,18 @@ var li = class {
 		};
 	}
 	getLogicalOffsetForPageIndex(e, t, n) {
-		return zn(e, t, n, this.getPageAdvance() || 0, this.getPageBoundaryShift(), this.isRtlVerticalPaginated());
+		return Hn(e, t, n, this.getPageAdvance() || 0, this.getPageBoundaryShift(), this.isRtlVerticalPaginated());
 	}
 	snapVerticalRlLogicalOffsetToTextBoundary(e, t, n = {}) {
 		if (!this.container || !this.views || !this.layout) return e;
-		let r = this.views.first() || this.views.last(), i = r && r.iframe, a = r && r.contents && r.contents.document, o = r && r.contents && r.contents.window, s = a && a.body, c = this.isRtlVerticalPaginated() ? this.getVerticalRlVisualContentWidth(r) : this.getNavigableWidthForView(r), l = this.layout.pageWidth || this.layout.width || this.getPageAdvance() || 0, u = Nr(this._verticalRlBoundarySnapCache, e, t, c, l, this.layout.edgeGuardPx || 0, n, {
+		let r = this.views.first() || this.views.last(), i = r && r.iframe, a = r && r.contents && r.contents.document, o = r && r.contents && r.contents.window, s = a && a.body, c = this.isRtlVerticalPaginated() ? this.getVerticalRlVisualContentWidth(r) : this.getNavigableWidthForView(r), l = this.layout.pageWidth || this.layout.width || this.getPageAdvance() || 0, u = Ir(this._verticalRlBoundarySnapCache, e, t, c, l, this.layout.edgeGuardPx || 0, n, {
 			iframe: i,
 			document: a,
 			window: o,
 			body: s
 		});
 		if (e = u.logicalOffset, !u.shouldMeasureText || !u.cacheLookup) return e;
-		if (u.cacheLookup.cachedSnap !== null) return mi("boundary-snap-cache-hit", {
+		if (u.cacheLookup.cachedSnap !== null) return _i("boundary-snap-cache-hit", {
 			logicalOffset: e,
 			cachedSnap: u.cacheLookup.cachedSnap,
 			contentWidth: c,
@@ -9959,17 +9996,17 @@ var li = class {
 			limit: 1e3,
 			supplementTruncatedPrefix: !0,
 			horizontalBounds: {
-				left: c - l - e - l - Vn(l),
-				right: c - e + l + Vn(l)
+				left: c - l - e - l - Wn(l),
+				right: c - e + l + Wn(l)
 			}
 		});
 		if (!p) return null;
-		let m = Zr(p, d.left, e, c, l, this.layout && this.layout.edgeGuardPx, f, this.getPageAdvance(), this.getPageBoundaryShift()), h = oi(u.cacheLookup.cacheKey, m, e, c, l, t, u.maxRightBoundaryOptions, u.rightBoundaryOptions), g = h.snapped, _ = u.rightBoundaryOptions.preferredRightBoundary, v = u.rightBoundaryOptions.maxRightBoundary, y = Number(o.devicePixelRatio);
+		let m = ei(p, d.left, e, c, l, this.layout && this.layout.edgeGuardPx, f, this.getPageAdvance(), this.getPageBoundaryShift()), h = li(u.cacheLookup.cacheKey, m, e, c, l, t, u.maxRightBoundaryOptions, u.rightBoundaryOptions), g = h.snapped, _ = u.rightBoundaryOptions.preferredRightBoundary, v = u.rightBoundaryOptions.maxRightBoundary, y = Number(o.devicePixelRatio);
 		if (u.rightBoundaryOptions.hasPreferredRightBoundary && u.rightBoundaryOptions.hasMaxRightBoundary && _ === v && Number.isFinite(y) && y > 0) {
 			let e = Math.max(0, Math.min(t, c - _));
 			h.snapped = Math.floor(Math.min(h.snapped, e) * y) / y, h.cacheEntry && (h.cacheEntry.value = h.snapped);
 		}
-		return mi("boundary-snap-pipeline", {
+		return _i("boundary-snap-pipeline", {
 			logicalOffset: e,
 			pipelineSnappedOffset: g,
 			finalSnappedOffset: h.snapped,
@@ -9982,7 +10019,7 @@ var li = class {
 		}), h.cacheEntry && (this._verticalRlBoundarySnapCache = h.cacheEntry), h.snapped;
 	}
 	getVerticalRlRectDistanceToLogicalViewport(e, t, n, r) {
-		return Wr(e, t, n, r);
+		return qr(e, t, n, r);
 	}
 	snapVerticalRlLogicalOffsetFromEdgeMask(e, t) {
 		if (!this.isRtlVerticalPaginated() || !this.container || !this.layout) return e;
@@ -10032,10 +10069,10 @@ var li = class {
 		return t;
 	}
 	getPageSnapTolerance() {
-		return Mn(this.getPageAdvance() || 0, this.layout && this.layout.edgeGuardPx ? this.layout.edgeGuardPx : 0);
+		return Fn(this.getPageAdvance() || 0, this.layout && this.layout.edgeGuardPx ? this.layout.edgeGuardPx : 0);
 	}
 	countPagesWithFractionalTolerance(e, t) {
-		return jn(e, t);
+		return Pn(e, t);
 	}
 	getBaseGeometryPageCount() {
 		let e = this.views && (this.views.first() || this.views.last());
@@ -10055,7 +10092,7 @@ var li = class {
 		let n = this.views && (this.views.first() || this.views.last()), r = n?.section, i = String(t?.publicationIdentifier || "").trim(), a = String(t?.publicationModified || "").trim();
 		if (!r || !i || !a || e.href !== r.href) return null;
 		let o = this.getVerticalRlVisualContentWidth(n), s = this.layout.pageWidth || this.layout.width || this.getPageAdvance(), c = Math.max(0, o - s), l = this.getNormalizedLogicalScrollLeft(), u = Math.max(0, Math.min(c, c - l));
-		return mi("semantic-window-created", {
+		return _i("semantic-window-created", {
 			logicalPageIndex: this.getCurrentPageIndex(),
 			totalPages: this.getTotalPagesForCurrentView(),
 			logicalOffset: l,
@@ -10068,7 +10105,7 @@ var li = class {
 			type: "epubjs-semantic-window",
 			version: 1,
 			...n?.contents?.document && n?.iframe ? (() => {
-				let e = cn(n.contents.document, n.iframe, r.cfiBase);
+				let e = dn(n.contents.document, n.iframe, r.cfiBase);
 				return e ? { semanticCut: e } : {};
 			})() : {},
 			source: {
@@ -10111,7 +10148,7 @@ var li = class {
 			reason: "missing-current-view"
 		};
 		let o = typeof n.restoreInvocationId == "string" && /^[A-Za-z0-9_.:-]{1,128}$/.test(n.restoreInvocationId) ? n.restoreInvocationId : null, s = typeof n.semanticWindowDescriptorFingerprint == "string" && /^[0-9a-f]{8}$/.test(n.semanticWindowDescriptorFingerprint) ? n.semanticWindowDescriptorFingerprint : null, c = (e, t = {}) => {
-			mi("semantic-window-restore-candidate", {
+			_i("semantic-window-restore-candidate", {
 				restoreInvocationId: o,
 				semanticWindowDescriptorFingerprint: s,
 				candidateCount: 0,
@@ -10135,7 +10172,7 @@ var li = class {
 			reason: "invalid-contract"
 		};
 		if (e.semanticCut) {
-			let t = this.layout.pageWidth || this.layout.width || this.getPageAdvance(), n = Math.max(0, this.getVerticalRlVisualContentWidth(r) - t), o = ln(a.document, r.iframe, e.semanticCut, n, i.cfiBase, { allowCurrentTerminalMask: this.getCurrentPageIndex() === this.getTotalPagesForCurrentView() - 1 });
+			let t = this.layout.pageWidth || this.layout.width || this.getPageAdvance(), n = Math.max(0, this.getVerticalRlVisualContentWidth(r) - t), o = fn(a.document, r.iframe, e.semanticCut, n, i.cfiBase, { allowCurrentTerminalMask: this.getCurrentPageIndex() === this.getTotalPagesForCurrentView() - 1 });
 			if (o.status !== "qualified" || typeof o.physicalStart != "number") return c(o.reason || "semantic-cut-unavailable"), {
 				status: "unavailable",
 				reason: o.reason || "semantic-cut-unavailable"
@@ -10154,7 +10191,7 @@ var li = class {
 				document: a.document,
 				masks: o.maskWidths
 			}, this.syncVerticalRlViewportClip());
-			let l = cn(a.document, r.iframe, i.cfiBase);
+			let l = dn(a.document, r.iframe, i.cfiBase);
 			return !l || JSON.stringify(l) !== JSON.stringify(e.semanticCut) ? (this._verticalRlRestoredSemanticMask = null, this.syncVerticalRlViewportClip(), c("semantic-cut-post-apply-mismatch"), {
 				status: "unavailable",
 				reason: "semantic-cut-post-apply-mismatch"
@@ -10209,7 +10246,7 @@ var li = class {
 			status: "not-applicable",
 			reason: "invalid-page-index"
 		};
-		let _ = this.getTotalPagesForCurrentView(), v = this.getMaxLogicalScrollLeft(), y = this.getLogicalOffsetForPageIndex(g, _, v), b = this.getVerticalRlVisualContentWidth(r), x = this.layout.pageWidth || this.layout.width || this.getPageAdvance(), S = Math.max(0, b - x), C = Cr(g, m.right, 0, 0, 0, 0, 0, 0), w = [y];
+		let _ = this.getTotalPagesForCurrentView(), v = this.getMaxLogicalScrollLeft(), y = this.getLogicalOffsetForPageIndex(g, _, v), b = this.getVerticalRlVisualContentWidth(r), x = this.layout.pageWidth || this.layout.width || this.getPageAdvance(), S = Math.max(0, b - x), C = Er(g, m.right, 0, 0, 0, 0, 0, 0), w = [y];
 		h && w.push(S - h.left, S - h.right), w.push(S - Math.max(0, m.left - x), S - Math.max(0, m.right - x));
 		let T = this._verticalRlBoundarySnapCache ? { ...this._verticalRlBoundarySnapCache } : this._verticalRlBoundarySnapCache, E = Array.from(new Set(w.filter((e) => Number.isFinite(e)).map((e) => Math.max(0, Math.min(v, e))))).map((e, t) => {
 			this._verticalRlBoundarySnapCache = T && { ...T };
@@ -10261,7 +10298,7 @@ var li = class {
 		} catch {
 			te = null, ne = null;
 		}
-		if (mi("semantic-window-restore-candidate", {
+		if (_i("semantic-window-restore-candidate", {
 			restoreInvocationId: o,
 			semanticWindowDescriptorFingerprint: s,
 			candidateCount: E.length,
@@ -10325,7 +10362,7 @@ var li = class {
 		let e = this.getPageAdvance();
 		if (!e || e <= 0 || !this.container) return 0;
 		let t = this.getTotalPagesForCurrentView(), n = this.getNormalizedLogicalScrollLeft(), r = this.getVerticalRlPageIndexFromOffsetLedger(n, t, e);
-		return r === null ? Bn(n, t, e, this.getMaxLogicalScrollLeft(), this.getPageSnapTolerance(), this.getPageBoundaryShift(), this.isRtlVerticalPaginated()) : r;
+		return r === null ? Un(n, t, e, this.getMaxLogicalScrollLeft(), this.getPageSnapTolerance(), this.getPageBoundaryShift(), this.isRtlVerticalPaginated()) : r;
 	}
 	scrollToLogicalPage(e, t = {}) {
 		this.scrollToLogicalPageInLayout(e, t);
@@ -10333,7 +10370,7 @@ var li = class {
 	scrollToLogicalPageInLayout(e, t = {}, n = !1) {
 		n || (this._verticalRlRestoredSemanticMask = null);
 		let r = this.views && (this.views.first() || this.views.last()), i = r && r.iframe ? Math.max(Number(r.iframe.getBoundingClientRect && r.iframe.getBoundingClientRect().width) || 0, parseFloat(r.iframe.style && r.iframe.style.width) || 0) : 0, a = r && r.element ? Math.max(Number(r.element.getBoundingClientRect && r.element.getBoundingClientRect().width) || 0, parseFloat(r.element.style && r.element.style.width) || 0) : 0, o = r ? Math.max(this.getVerticalRlVisualContentWidth(r), i, a) : 0, s = this.getTotalPagesForCurrentView(), c = () => r && r.iframe ? Math.max(Number(r.iframe.getBoundingClientRect && r.iframe.getBoundingClientRect().width) || 0, parseFloat(r.iframe.style && r.iframe.style.width) || 0) : 0;
-		mi("before-sync", {
+		_i("before-sync", {
 			pageIndex: e,
 			preSyncTotalPages: s,
 			preSyncVisualContentWidth: o,
@@ -10349,7 +10386,7 @@ var li = class {
 		}, f = d();
 		u = Math.max(u, this.getTotalPagesForCurrentView());
 		let p = Math.max(0, Math.min(u - 1, e ?? u - 1)), m = this.getMaxLogicalScrollLeft();
-		mi("after-first-sync", {
+		_i("after-first-sync", {
 			totalPages: u,
 			restoredBeforeScroll: f,
 			maxScroll: m,
@@ -10359,12 +10396,12 @@ var li = class {
 		let h = null, g = this.getVerticalRlLogicalPageOffsetCacheKey(u, m), _ = !!(t && t.ignoreCachedLogicalOffset), v = t && t.semanticWindowLogicalOffset, y = typeof v == "number" && Number.isFinite(v), b = y ? v : 0, x = this.getVerticalRlTerminalLayout(), S = this.getCachedVerticalRlLogicalPageOffset(p, g), C = S !== null && !!x?.continuationCount && p >= this.getBaseGeometryPageCount() - 1 && p < u - 1, w = y ? Math.max(0, Math.min(m, b)) : _ && !C ? null : S;
 		if (this.isRtlVerticalPaginated() && p > 0) {
 			let e = Number(t && t.sequentialRightBoundary);
-			if (Number.isFinite(e) && e > 0) h = Cr(p, e, 0, 0, 0, 0, 0, 0);
+			if (Number.isFinite(e) && e > 0) h = Er(p, e, 0, 0, 0, 0, 0, 0);
 			else if (p < u - 1 && w === null) {
 				let t = this.getCurrentPageIndex();
 				if (t === p - 1) {
 					let n = this.views && (this.views.first() || this.views.last()), r = n ? this.getVerticalRlVisualContentWidth(n) : 0, i = this.layout.pageWidth || this.layout.width || l || 0, a = this.getNormalizedLogicalScrollLeft(), o = this.getLogicalOffsetForPageIndex(t, u, m), s = this.getVerticalRlRenderedEdgeMaskWidths();
-					h = Cr(p, e, r, a, o, i, l, (Number(s && s.left) || 0) + this.getVerticalRlAppliedContentShift());
+					h = Er(p, e, r, a, o, i, l, (Number(s && s.left) || 0) + this.getVerticalRlAppliedContentShift());
 				}
 			}
 		}
@@ -10373,7 +10410,7 @@ var li = class {
 			let e = this.snapVerticalRlLogicalOffsetToTextBoundary(T, m, h || {});
 			Number.isFinite(e) && (T = e);
 		}
-		let E = this.getBaseGeometryPageCount(), D = this.getPageSnapTolerance(), O = Math.min(1, D), k = x && pn(x, E, p, T, m, O), A = "unknown", j = null;
+		let E = this.getBaseGeometryPageCount(), D = this.getPageSnapTolerance(), O = Math.min(1, D), k = x && gn(x, E, p, T, m, O), A = "unknown", j = null;
 		k && (j = this.resolveVerticalRlTerminalTailObservation(), A = j.resolution?.state || "unknown");
 		let M = x?.continuationCount || 0, N = x && k ? this.getCurrentPageIndex() : null, P = x && k ? this.getNormalizedLogicalScrollLeft() : null, F = !1, I = "unknown", L = null;
 		if (x?.layoutKey === g && p === u - 1 && Math.abs(m - T) <= 1) {
@@ -10388,12 +10425,12 @@ var li = class {
 			}
 		}
 		this._verticalRlSequentialBoundaryConstraint = h;
-		let R = t.preserveCachedBoundary ? this.getRecordedVerticalRlAppliedLeftMask(p) : null, ee = this.views && (this.views.first() || this.views.last()), te = w !== null && R !== null && ee ? Sr(this.getVerticalRlVisualContentWidth(ee), w, this.layout.pageWidth || this.layout.width || l || 0, R) : void 0;
+		let R = t.preserveCachedBoundary ? this.getRecordedVerticalRlAppliedLeftMask(p) : null, ee = this.views && (this.views.first() || this.views.last()), te = w !== null && R !== null && ee ? Tr(this.getVerticalRlVisualContentWidth(ee), w, this.layout.pageWidth || this.layout.width || l || 0, R) : void 0;
 		this._verticalRlPreservedPageBoundary = (t.preserveCachedBoundary || y && n) && w !== null && g !== null ? {
 			pageIndex: p,
 			layoutKey: g,
 			sourceLeftBoundary: te ?? void 0
-		} : null, mi("reverse-boundary-preservation", {
+		} : null, _i("reverse-boundary-preservation", {
 			targetIndex: p,
 			logicalOffsetCacheKey: g,
 			cachedLogicalOffset: w,
@@ -10410,7 +10447,7 @@ var li = class {
 		}
 		this.syncVerticalRlViewportClip();
 		let re = d();
-		if (mi("after-second-sync", {
+		if (_i("after-second-sync", {
 			logicalOffset: T,
 			left: ne,
 			restoredAfterScroll: re,
@@ -10429,7 +10466,7 @@ var li = class {
 			let e = this.resolveVerticalRlTerminalTailObservation(), r = e.resolution?.candidate, i = r?.rect, a = e.effectiveClip;
 			if (r?.connected && r.ownerDocumentIsCurrent && r.geometryPositive && i && a && i.left >= a.right && Math.min(i.bottom, a.bottom) > Math.max(i.top, a.top)) {
 				let e = Math.max(1, Math.ceil((i.right - a.right) / l)), r = Math.max(0, p - e);
-				hi("vertical-rl-terminal-end-overshoot", {
+				vi("vertical-rl-terminal-end-overshoot", {
 					targetIndex: p,
 					sourcePageIndex: r,
 					advance: l,
@@ -10441,8 +10478,8 @@ var li = class {
 		}
 		if (k) {
 			L = this.resolveVerticalRlTerminalTailObservation(), I = L.resolution?.state || "unknown";
-			let e = pi(j), t = pi(L), n = e.terminalOwnerIdentity !== null && t.terminalOwnerIdentity !== null && e.terminalOwnerIdentity === t.terminalOwnerIdentity, r = e.ownerDocumentIdentity !== null && t.ownerDocumentIdentity !== null && e.ownerDocumentIdentity === t.ownerDocumentIdentity, i = e.frameIdentity !== null && t.frameIdentity !== null && e.frameIdentity === t.frameIdentity, a = t.ownerConnected === !0;
-			hi("vertical-rl-terminal-tail-transaction", {
+			let e = gi(j), t = gi(L), n = e.terminalOwnerIdentity !== null && t.terminalOwnerIdentity !== null && e.terminalOwnerIdentity === t.terminalOwnerIdentity, r = e.ownerDocumentIdentity !== null && t.ownerDocumentIdentity !== null && e.ownerDocumentIdentity === t.ownerDocumentIdentity, i = e.frameIdentity !== null && t.frameIdentity !== null && e.frameIdentity === t.frameIdentity, a = t.ownerConnected === !0;
+			vi("vertical-rl-terminal-tail-transaction", {
 				before: e,
 				after: t,
 				sameTerminalOwner: n,
@@ -10450,16 +10487,16 @@ var li = class {
 				sameFrame: i,
 				ownerStillConnected: a
 			});
-			let o = mn({
+			let o = _n({
 				before: A,
 				after: I,
 				sameTerminalOwner: n,
 				sameOwnerDocument: r,
 				ownerStillConnected: a
 			});
-			F = x ? hn(x, E, p, T, m, O, o) : !1, F && (this._verticalRlPageIndexLookupKey = null, this.syncVerticalRlViewportClip());
+			F = x ? vn(x, E, p, T, m, O, o) : !1, F && (this._verticalRlPageIndexLookupKey = null, this.syncVerticalRlViewportClip());
 			let s = j?.resolution?.candidate, c = L.resolution?.candidate;
-			hi("vertical-rl-terminal-promotion-decision", {
+			vi("vertical-rl-terminal-promotion-decision", {
 				currentPageIndexBefore: N,
 				targetIndex: p,
 				basePageCount: E,
@@ -10484,7 +10521,7 @@ var li = class {
 				afterApplyPositiveIntersection: c?.intersection?.positiveArea || !1,
 				promotionResult: F,
 				continuationCountAfter: x?.continuationCount || 0
-			}), hi("vertical-rl-terminal-target-settled", {
+			}), vi("vertical-rl-terminal-target-settled", {
 				targetIndex: p,
 				continuationCount: x?.continuationCount || 0,
 				tailStateAfterScroll: I,
@@ -10506,7 +10543,7 @@ var li = class {
 				layoutKey: e
 			});
 		}
-		mi("complete", {
+		_i("complete", {
 			targetIndex: p,
 			containerScrollLeft: this.container && this.container.scrollLeft,
 			containerScrollWidth: this.container && this.container.scrollWidth,
@@ -10573,7 +10610,7 @@ var li = class {
 					}, t) : o();
 					return;
 				}
-				mi("boundary-retry-apply", {
+				_i("boundary-retry-apply", {
 					targetIndex: r,
 					attempt: e,
 					currentOffset: l,
@@ -10800,11 +10837,28 @@ var li = class {
 			after: this.resizeSettleContainerSnapshot()
 		}), !this._verticalRlBoundarySnapApplying && this.isRtlVerticalPaginated() && this.queueVerticalRlBoundarySnapRetryForCurrentOffset();
 	}
+	queueCombinedTextPaintRefresh() {
+		this._combinedTextPaintFrame !== void 0 || this.settings.fullsize || !this.isRtlVerticalPaginated() || (this._combinedTextPaintFrame = requestAnimationFrame(() => {
+			if (this._combinedTextPaintFrame = void 0, !this.container || !this.views) return;
+			let e = this.container.getBoundingClientRect();
+			for (let t of this.views.all()) {
+				let n = t.iframe, r = t.contents?.document;
+				if (!n || !r) continue;
+				let i = n.getBoundingClientRect();
+				nn(r, {
+					left: e.left - i.left,
+					right: e.right - i.left,
+					top: e.top - i.top,
+					bottom: e.bottom - i.top
+				});
+			}
+		}));
+	}
 	onScroll() {
 		let e, t, n = this.ignore;
 		this.settings.fullsize ? (e = window.scrollY, t = window.scrollX) : (e = this.container.scrollTop, t = this.container.scrollLeft);
 		let r = e !== this.scrollTop || t !== this.scrollLeft;
-		this.scrollTop = e, this.scrollLeft = t, this.target = void 0, this.ignore ? this.ignore = !1 : (this.emit($.MANAGERS.SCROLL, {
+		r && this.queueCombinedTextPaintRefresh(), this.scrollTop = e, this.scrollLeft = t, this.target = void 0, this.ignore ? this.ignore = !1 : (this.emit($.MANAGERS.SCROLL, {
 			top: e,
 			left: t
 		}), clearTimeout(this.afterScrolled), this.afterScrolled = setTimeout(function() {
@@ -10872,12 +10926,12 @@ var li = class {
 		return this.rendered;
 	}
 };
-(0, j.default)(gi.prototype);
+(0, j.default)(yi.prototype);
 //#endregion
 //#region src/managers/helpers/snap.ts
-var _i = N, vi = Math.PI / 2, yi = {
+var bi = N, xi = Math.PI / 2, Si = {
 	easeOutSine: function(e) {
-		return Math.sin(e * vi);
+		return Math.sin(e * xi);
 	},
 	easeInOutSine: function(e) {
 		return -.5 * (Math.cos(Math.PI * e) - 1);
@@ -10888,7 +10942,7 @@ var _i = N, vi = Math.PI / 2, yi = {
 	easeInCubic: function(e) {
 		return e ** 3;
 	}
-}, bi = class {
+}, Ci = class {
 	settings;
 	supportsTouch;
 	manager;
@@ -10919,7 +10973,7 @@ var _i = N, vi = Math.PI / 2, yi = {
 			duration: 80,
 			minVelocity: .2,
 			minDistance: 10,
-			easing: yi.easeInCubic
+			easing: Si.easeInCubic
 		}, t || {}), this.supportsTouch = this.detectSupportsTouch(), this.supportsTouch && this.setup(e);
 	}
 	setup(e) {
@@ -10987,7 +11041,7 @@ var _i = N, vi = Math.PI / 2, yi = {
 		return e && (r += e * n), this.smoothScrollTo(r);
 	}
 	smoothScrollTo(e) {
-		let t = new _i(), n = this.scrollLeft, r = this.now(), i = this.settings.duration;
+		let t = new bi(), n = this.scrollLeft, r = this.now(), i = this.settings.duration;
 		this.snapping = !0;
 		function a() {
 			let o = this.now(), s = Math.min(1, (o - r) / i);
@@ -11009,10 +11063,10 @@ var _i = N, vi = Math.PI / 2, yi = {
 		this.scroller &&= (this.fullsize && this.enableScroll(), this.removeListeners(), void 0);
 	}
 };
-(0, j.default)(bi.prototype);
+(0, j.default)(Ci.prototype);
 //#endregion
 //#region src/managers/continuous/index.ts
-var xi = N, Si = class extends gi {
+var wi = N, Ti = class extends yi {
 	constructor(e) {
 		super(e), this.name = "continuous", this.settings = I(this.settings || {}, {
 			infinite: !0,
@@ -11058,12 +11112,12 @@ var xi = N, Si = class extends gi {
 		};
 	}
 	display(e, t) {
-		return gi.prototype.display.call(this, e, t).then(function() {
+		return yi.prototype.display.call(this, e, t).then(function() {
 			return this.fill();
 		}.bind(this));
 	}
 	fill(e) {
-		var t = e || new xi();
+		var t = e || new wi();
 		return this.q.enqueue(() => this.check()).then((e) => {
 			e ? this.fill(t) : t.resolve();
 		}), t.promise;
@@ -11112,7 +11166,7 @@ var xi = N, Si = class extends gi {
 		this.settings.axis === "vertical" ? this.scrollBy(0, e.heightDelta || 0, !0) : this.scrollBy(e.widthDelta || 0, 0, !0);
 	}
 	update(e) {
-		for (var t = this.bounds(), n = this.views.all(), r = n.length, i = [], a = e === void 0 ? this.settings.offset || 0 : e, o, s, c = new xi(), l = [], u = 0; u < r; u++) if (s = n[u], o = this.isVisible(s, a, a, t), o === !0) {
+		for (var t = this.bounds(), n = this.views.all(), r = n.length, i = [], a = e === void 0 ? this.settings.offset || 0 : e, o, s, c = new wi(), l = [], u = 0; u < r; u++) if (s = n[u], o = this.isVisible(s, a, a, t), o === !0) {
 			if (s.displayed) (s.element && s.element.style.visibility !== "visible" || s.iframe && s.iframe.style.visibility !== "visible") && s.show();
 			else {
 				let e = s.display(this.request).then(function(e) {
@@ -11138,7 +11192,7 @@ var xi = N, Si = class extends gi {
 		}.bind(this), e);
 	}
 	check(e, t) {
-		var n = new xi(), r = [], i = this.settings.axis === "horizontal", a = this.settings.offset || 0;
+		var n = new wi(), r = [], i = this.settings.axis === "horizontal", a = this.settings.offset || 0;
 		e && i && (a = e), t && !i && (a = t);
 		var o = this._bounds;
 		let { top: s, left: c } = this.syncScrollPosition(), l = i ? c : s, u = i ? Math.floor(o.width) : o.height, d = i ? this.container.scrollWidth : this.container.scrollHeight, f = this.writingMode && this.writingMode.indexOf("vertical") === 0 ? "vertical" : "horizontal", p = this.settings.rtlScrollType, m = this.settings.direction === "rtl";
@@ -11157,7 +11211,7 @@ var xi = N, Si = class extends gi {
 		}.bind(this)), n.resolve(!1), n.promise);
 	}
 	trim() {
-		for (var e = new xi(), t = this.views.displayed(), n = t[0], r = t[t.length - 1], i = this.views.indexOf(n), a = this.views.indexOf(r), o = this.views.slice(0, i), s = this.views.slice(a + 1), c = 0; c < o.length - 1; c++) this.erase(o[c], o);
+		for (var e = new wi(), t = this.views.displayed(), n = t[0], r = t[t.length - 1], i = this.views.indexOf(n), a = this.views.indexOf(r), o = this.views.slice(0, i), s = this.views.slice(a + 1), c = 0; c < o.length - 1; c++) this.erase(o[c], o);
 		for (var l = 1; l < s.length; l++) this.erase(s[l]);
 		return e.resolve(), e.promise;
 	}
@@ -11170,13 +11224,13 @@ var xi = N, Si = class extends gi {
 	addEventListeners(e) {
 		this._onUnload = function(e) {
 			this.ignore = !0, this.destroy();
-		}.bind(this), window.addEventListener("unload", this._onUnload), this.addScrollListeners(), this.isPaginated && this.settings.snap && (this.snapper = new bi(this, this.settings.snap && typeof this.settings.snap == "object" && this.settings.snap));
+		}.bind(this), window.addEventListener("unload", this._onUnload), this.addScrollListeners(), this.isPaginated && this.settings.snap && (this.snapper = new Ci(this, this.settings.snap && typeof this.settings.snap == "object" && this.settings.snap));
 	}
 	addScrollListeners() {
 		var e;
 		this.tick = ze, this.scrollDeltaVert = 0, this.scrollDeltaHorz = 0, e = this.settings.fullsize ? window : this.container;
 		let { top: t, left: n } = this.syncScrollPosition();
-		this.prevScrollTop = t, this.prevScrollLeft = n, this._onScroll = this.onScroll.bind(this), e.addEventListener("scroll", this._onScroll), this._scrolled = si(this.scrolled.bind(this), 30), this.didScroll = !1;
+		this.prevScrollTop = t, this.prevScrollLeft = n, this._onScroll = this.onScroll.bind(this), e.addEventListener("scroll", this._onScroll), this._scrolled = ui(this.scrolled.bind(this), 30), this.didScroll = !1;
 	}
 	removeEventListeners() {
 		(this.settings.fullsize ? window : this.container).removeEventListener("scroll", this._onScroll), this._onScroll = void 0, window.removeEventListener("unload", this._onUnload), this._onUnload = void 0;
@@ -11218,19 +11272,19 @@ var xi = N, Si = class extends gi {
 		}.bind(this)));
 	}
 	updateFlow(e) {
-		this.rendered && this.snapper && (this.snapper.destroy(), this.snapper = void 0), super.updateFlow(e, "scroll"), this.rendered && this.isPaginated && this.settings.snap && (this.snapper = new bi(this, this.settings.snap && typeof this.settings.snap == "object" && this.settings.snap));
+		this.rendered && this.snapper && (this.snapper.destroy(), this.snapper = void 0), super.updateFlow(e, "scroll"), this.rendered && this.isPaginated && this.settings.snap && (this.snapper = new Ci(this, this.settings.snap && typeof this.settings.snap == "object" && this.settings.snap));
 	}
 	destroy() {
 		clearTimeout(this.trimTimeout), clearTimeout(this.scrollTimeout), super.destroy(), this.snapper && this.snapper.destroy();
 	}
-}, Ci = N;
-function wi(e) {
+}, Ei = N;
+function Di(e) {
 	return typeof e.then == "function";
 }
-function Ti(e) {
+function Oi(e) {
 	if (e) return Array.isArray(e) ? e[0] || e[e.length - 1] : e.first && e.first() || e.last && e.last();
 }
-var Ei = class {
+var ki = class {
 	settings;
 	book;
 	hooks;
@@ -11274,13 +11328,13 @@ var Ei = class {
 			layout: new xe(this),
 			render: new xe(this),
 			show: new xe(this)
-		}, this.hooks.content.register(this.handleLinks.bind(this)), this.hooks.content.register(this.passEvents.bind(this)), this.hooks.content.register(this.adjustImages.bind(this)), this.book.spine.hooks.content.register(this.injectIdentifier.bind(this)), this.settings.stylesheet && this.book.spine.hooks.content.register(this.injectStylesheet.bind(this)), this.settings.script && this.book.spine.hooks.content.register(this.injectScript.bind(this)), this.themes = new gt(this), this.annotations = new _t(this), this.epubcfi = new Z(), this.q = new nt(this), this.location = void 0, this.q.enqueue(this.book.opened), this.starting = new Ci(), this.started = this.starting.promise, this.q.enqueue(this.start);
+		}, this.hooks.content.register(this.handleLinks.bind(this)), this.hooks.content.register(this.passEvents.bind(this)), this.hooks.content.register(this.adjustImages.bind(this)), this.book.spine.hooks.content.register(this.injectIdentifier.bind(this)), this.settings.stylesheet && this.book.spine.hooks.content.register(this.injectStylesheet.bind(this)), this.settings.script && this.book.spine.hooks.content.register(this.injectScript.bind(this)), this.themes = new gt(this), this.annotations = new _t(this), this.epubcfi = new Z(), this.q = new nt(this), this.location = void 0, this.q.enqueue(this.book.opened), this.starting = new Ei(), this.started = this.starting.promise, this.q.enqueue(this.start);
 	}
 	setManager(e) {
 		this.manager = e;
 	}
 	requireManager(e) {
-		return typeof e == "string" && e === "default" ? gi : typeof e == "string" && e === "continuous" ? Si : e;
+		return typeof e == "string" && e === "default" ? yi : typeof e == "string" && e === "continuous" ? Ti : e;
 	}
 	requireView(e) {
 		return typeof e == "string" && e === "iframe" ? $t : e;
@@ -11322,7 +11376,7 @@ var Ei = class {
 	}
 	_display(e, t) {
 		if (this.book) {
-			var n = new Ci(), r = n.promise, i;
+			var n = new Ei(), r = n.promise, i;
 			return this.displaying = n, this.book.locations.length() && ge(e) && (e = this.book.locations.cfiFromPercentage(parseFloat(String(e)))), i = this.book.spine.get(e), i ? (this.manager.display(i, e, t).then(() => {
 				n.resolve(i), this.displaying = void 0, this.emit($.RENDITION.DISPLAYED, i), this.reportLocation();
 			}, (e) => {
@@ -11386,7 +11440,7 @@ var Ei = class {
 		return this.preferredSingleFixedPageCfi = void 0, this.q.enqueue(this.manager.prev.bind(this.manager)).then(this.reportLocation.bind(this));
 	}
 	debugVerticalRlPage() {
-		let e = this.manager, t = Ti(e && e.views), n = t && t.contents, r = e && e.container, i = e && e.layout ? e.layout.pageWidth : null, a = n && n.debugVerticalRlMetrics ? n.debugVerticalRlMetrics(i) : {}, o = e && e.getPageAdvance ? e.getPageAdvance() : i, s = e && e.getTotalPagesForCurrentView ? e.getTotalPagesForCurrentView() : null, c = e && e.getCurrentPageIndex ? e.getCurrentPageIndex() : null, l = e && e.getNormalizedLogicalScrollLeft ? e.getNormalizedLogicalScrollLeft() : null, u = e && e.layout && (e.layout.pageWidth || e.layout.width) || o, d = t && t.width ? t.width() : null, f = Number.isFinite(d) && Number.isFinite(u) ? Math.max(0, d - u) : null, p = Number.isFinite(f) && Number.isFinite(c) && Number.isFinite(o) ? Math.max(0, Math.min(f, f - c * o)) : null, m = Number.isFinite(d) && Number.isFinite(p) && Number.isFinite(u) ? Math.min(d, p + u) : null, h = Object.assign({}, a, {
+		let e = this.manager, t = Oi(e && e.views), n = t && t.contents, r = e && e.container, i = e && e.layout ? e.layout.pageWidth : null, a = n && n.debugVerticalRlMetrics ? n.debugVerticalRlMetrics(i) : {}, o = e && e.getPageAdvance ? e.getPageAdvance() : i, s = e && e.getTotalPagesForCurrentView ? e.getTotalPagesForCurrentView() : null, c = e && e.getCurrentPageIndex ? e.getCurrentPageIndex() : null, l = e && e.getNormalizedLogicalScrollLeft ? e.getNormalizedLogicalScrollLeft() : null, u = e && e.layout && (e.layout.pageWidth || e.layout.width) || o, d = t && t.width ? t.width() : null, f = Number.isFinite(d) && Number.isFinite(u) ? Math.max(0, d - u) : null, p = Number.isFinite(f) && Number.isFinite(c) && Number.isFinite(o) ? Math.max(0, Math.min(f, f - c * o)) : null, m = Number.isFinite(d) && Number.isFinite(p) && Number.isFinite(u) ? Math.min(d, p + u) : null, h = Object.assign({}, a, {
 			containerClientWidth: r ? r.clientWidth : null,
 			containerScrollWidth: r ? r.scrollWidth : null,
 			containerScrollLeft: r ? r.scrollLeft : null,
@@ -11403,7 +11457,7 @@ var Ei = class {
 		return typeof console < "u" && console.debug && console.debug("[epubjs:vertical-rl-page]", h), h;
 	}
 	remeasure({ preserveLocation: e = !0, waitForFonts: t = !0 } = {}) {
-		let n = e && this.location && this.location.start ? this.location.start.cfi : null, r = this.manager, i = Ti(r && r.views), a = i && i.contents && i.contents.document;
+		let n = e && this.location && this.location.start ? this.location.start.cfi : null, r = this.manager, i = Oi(r && r.views), a = i && i.contents && i.contents.document;
 		return (t && a && a.fonts && a.fonts.ready ? a.fonts.ready.catch(function() {}) : Promise.resolve()).then(function() {
 			r && typeof r.updateLayout == "function" && (r._layoutDirty = !0, r.updateLayout());
 		}).then(function() {
@@ -11451,7 +11505,7 @@ var Ei = class {
 					} catch {
 						return;
 					}
-					if (e && wi(e)) e.then(function(e) {
+					if (e && Di(e)) e.then(function(e) {
 						let t = this.located(e);
 						!t || !t.start || !t.end || (this.location = t, this.emit($.RENDITION.LOCATION_CHANGED, {
 							index: this.location.start.index,
@@ -11461,7 +11515,7 @@ var Ei = class {
 							percentage: this.location.start.percentage
 						}), this.emit($.RENDITION.RELOCATED, this.location));
 					}.bind(this));
-					else if (e && !wi(e)) {
+					else if (e && !Di(e)) {
 						let t = this.located(e);
 						if (!t || !t.start || !t.end) return;
 						this.location = t, this.emit($.RENDITION.LOCATION_CHANGED, {
@@ -11488,10 +11542,10 @@ var Ei = class {
 		};
 		try {
 			var n = this.manager.currentLocation();
-			if (n && wi(n)) {
+			if (n && Di(n)) {
 				let e = n.then((e) => this.located(e));
 				return t("returned"), e;
-			} else if (n && !wi(n)) {
+			} else if (n && !Di(n)) {
 				let e = this.located(n);
 				return t("returned"), e;
 			}
@@ -11637,10 +11691,10 @@ var Ei = class {
 		r.setAttribute("name", "dc.relation.ispartof"), n && r.setAttribute("content", n), e.getElementsByTagName("head")[0].appendChild(r);
 	}
 };
-(0, j.default)(Ei.prototype);
+(0, j.default)(ki.prototype);
 //#endregion
 //#region src/archive.ts
-var Di = /* @__PURE__ */ l((/* @__PURE__ */ o(((e, t) => {
+var Ai = /* @__PURE__ */ l((/* @__PURE__ */ o(((e, t) => {
 	(function(n) {
 		if (typeof e == "object" && t !== void 0) t.exports = n();
 		else if (typeof define == "function" && define.amd) define([], n);
@@ -14859,7 +14913,7 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 			}, {}]
 		}, {}, [10])(10);
 	});
-})))()), Oi = class {
+})))()), ji = class {
 	zip;
 	urlCache;
 	constructor() {
@@ -14867,7 +14921,7 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 	}
 	checkRequirements() {
 		try {
-			this.zip = new Di.default();
+			this.zip = new Ai.default();
 		} catch {
 			throw Error("JSZip lib not loaded");
 		}
@@ -14937,7 +14991,7 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 		for (let t of Object.values(this.urlCache)) e.revokeObjectURL(t);
 		this.zip = void 0, this.urlCache = {};
 	}
-}, ki = /* @__PURE__ */ l((/* @__PURE__ */ o(((e, t) => {
+}, Mi = /* @__PURE__ */ l((/* @__PURE__ */ o(((e, t) => {
 	(function(n) {
 		if (typeof e == "object" && t !== void 0) t.exports = n();
 		else if (typeof define == "function" && define.amd) define([], n);
@@ -16283,7 +16337,7 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 			}, { 3: 3 }]
 		}, {}, [4])(4);
 	});
-})))()), Ai = class {
+})))()), Ni = class {
 	urlCache;
 	storage;
 	name;
@@ -16296,8 +16350,8 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 	}
 	checkRequirements() {
 		try {
-			let e = ki.default;
-			ki.default === void 0 && (e = ki.default), this.storage = e.createInstance({ name: this.name });
+			let e = Mi.default;
+			Mi.default === void 0 && (e = Mi.default), this.storage = e.createInstance({ name: this.name });
 		} catch {
 			throw Error("localForage lib not loaded");
 		}
@@ -16392,10 +16446,10 @@ while (r === s[++a] && r === s[++a] && r === s[++a] && r === s[++a] && r === s[+
 		this.urlCache = {}, this.removeListeners();
 	}
 };
-(0, j.default)(Ai.prototype);
+(0, j.default)(Ni.prototype);
 //#endregion
 //#region src/displayoptions.ts
-var ji = class {
+var Pi = class {
 	interactive;
 	fixedLayout;
 	openToSpread;
@@ -16429,14 +16483,14 @@ var ji = class {
 	destroy() {
 		this.interactive = void 0, this.fixedLayout = void 0, this.openToSpread = void 0, this.orientationLock = void 0;
 	}
-}, Mi = N, Ni = "META-INF/container.xml", Pi = "META-INF/com.apple.ibooks.display-options.xml", Fi = {
+}, Fi = N, Ii = "META-INF/container.xml", Li = "META-INF/com.apple.ibooks.display-options.xml", Ri = {
 	BINARY: "binary",
 	BASE64: "base64",
 	EPUB: "epub",
 	OPF: "opf",
 	MANIFEST: "json",
 	DIRECTORY: "directory"
-}, Ii = class {
+}, zi = class {
 	settings;
 	opening;
 	opened;
@@ -16472,15 +16526,15 @@ var ji = class {
 			canonical: void 0,
 			openAs: void 0,
 			store: void 0
-		}), I(this.settings, t), this.opening = new Mi(), this.opened = this.opening.promise, this.isOpen = !1, this.loading = {
-			manifest: new Mi(),
-			spine: new Mi(),
-			metadata: new Mi(),
-			cover: new Mi(),
-			navigation: new Mi(),
-			pageList: new Mi(),
-			resources: new Mi(),
-			displayOptions: new Mi()
+		}), I(this.settings, t), this.opening = new Fi(), this.opened = this.opening.promise, this.isOpen = !1, this.loading = {
+			manifest: new Fi(),
+			spine: new Fi(),
+			metadata: new Fi(),
+			cover: new Fi(),
+			navigation: new Fi(),
+			pageList: new Fi(),
+			resources: new Fi(),
+			displayOptions: new Fi()
 		}, this.loaded = {
 			manifest: this.loading.manifest.promise,
 			spine: this.loading.spine.promise,
@@ -16505,10 +16559,10 @@ var ji = class {
 	}
 	open(e, t) {
 		var n, r = t || this.determineType(e);
-		return r === Fi.BINARY ? (this.archived = !0, this.url = new oe("/", ""), n = this.openEpub(e)) : r === Fi.BASE64 ? (this.archived = !0, this.url = new oe("/", ""), n = this.openEpub(e, r)) : r === Fi.EPUB ? (this.archived = !0, this.url = new oe("/", ""), n = this.request(e, "binary", this.settings.requestCredentials, this.settings.requestHeaders).then(this.openEpub.bind(this))) : r == Fi.OPF ? (this.url = new oe(e), n = this.openPackaging(this.url.Path.toString())) : r == Fi.MANIFEST ? (this.url = new oe(e), n = this.openManifest(this.url.Path.toString())) : (this.url = new oe(e), n = this.openContainer(Ni).then(this.openPackaging.bind(this))), n;
+		return r === Ri.BINARY ? (this.archived = !0, this.url = new oe("/", ""), n = this.openEpub(e)) : r === Ri.BASE64 ? (this.archived = !0, this.url = new oe("/", ""), n = this.openEpub(e, r)) : r === Ri.EPUB ? (this.archived = !0, this.url = new oe("/", ""), n = this.request(e, "binary", this.settings.requestCredentials, this.settings.requestHeaders).then(this.openEpub.bind(this))) : r == Ri.OPF ? (this.url = new oe(e), n = this.openPackaging(this.url.Path.toString())) : r == Ri.MANIFEST ? (this.url = new oe(e), n = this.openManifest(this.url.Path.toString())) : (this.url = new oe(e), n = this.openContainer(Ii).then(this.openPackaging.bind(this))), n;
 	}
 	openEpub(e, t) {
-		return this.unarchive(e, t || this.settings.encoding).then(() => this.openContainer(Ni)).then((e) => this.openPackaging(e));
+		return this.unarchive(e, t || this.settings.encoding).then(() => this.openContainer(Ii)).then((e) => this.openPackaging(e));
 	}
 	openContainer(e) {
 		return this.load(e, "xml").then((e) => (this.container = new at(e), this.resolve(this.container.packagePath)));
@@ -16535,19 +16589,19 @@ var ji = class {
 	}
 	determineType(e) {
 		var t, n, r;
-		if (this.settings.encoding === "base64") return Fi.BASE64;
-		if (typeof e != "string") return Fi.BINARY;
-		if (t = new oe(e), n = t.path(), r = n.extension, r &&= r.replace(/\?.*$/, ""), !r) return Fi.DIRECTORY;
-		if (r === "epub") return Fi.EPUB;
-		if (r === "opf") return Fi.OPF;
-		if (r === "json") return Fi.MANIFEST;
+		if (this.settings.encoding === "base64") return Ri.BASE64;
+		if (typeof e != "string") return Ri.BINARY;
+		if (t = new oe(e), n = t.path(), r = n.extension, r &&= r.replace(/\?.*$/, ""), !r) return Ri.DIRECTORY;
+		if (r === "epub") return Ri.EPUB;
+		if (r === "opf") return Ri.OPF;
+		if (r === "json") return Ri.MANIFEST;
 	}
 	unpack(e) {
-		this.package = e, this.packaging.metadata.layout === "" ? this.load(this.url.resolve(Pi), "xml").then((e) => {
-			this.displayOptions = new ji(e), this.loading.displayOptions.resolve(this.displayOptions);
+		this.package = e, this.packaging.metadata.layout === "" ? this.load(this.url.resolve(Li), "xml").then((e) => {
+			this.displayOptions = new Pi(e), this.loading.displayOptions.resolve(this.displayOptions);
 		}).catch((e) => {
-			this.displayOptions = new ji(), this.loading.displayOptions.resolve(this.displayOptions);
-		}) : (this.displayOptions = new ji(), this.loading.displayOptions.resolve(this.displayOptions));
+			this.displayOptions = new Pi(), this.loading.displayOptions.resolve(this.displayOptions);
+		}) : (this.displayOptions = new Pi(), this.loading.displayOptions.resolve(this.displayOptions));
 		var t = (e, t) => this.resolve(e, t), n = (e) => this.resolve(e), r = this;
 		function i(e, t) {
 			return t === "blob" ? r.request(e, "blob") : r.request(e, "text");
@@ -16581,7 +16635,7 @@ var ji = class {
 		return this.spine.get(e);
 	}
 	renderTo(e, t) {
-		return this.rendition = new Ei(this, t), this.rendition.attachTo(e), this.rendition;
+		return this.rendition = new ki(this, t), this.rendition.attachTo(e), this.rendition;
 	}
 	setRequestCredentials(e) {
 		this.settings.requestCredentials = e;
@@ -16590,11 +16644,11 @@ var ji = class {
 		this.settings.requestHeaders = e;
 	}
 	unarchive(e, t) {
-		return this.archive = new Oi(), this.archive.open(e, t);
+		return this.archive = new ji(), this.archive.open(e, t);
 	}
 	store(e) {
 		let t = this.settings.replacements && this.settings.replacements !== "none", n = this.url, r = this.settings.requestMethod || Ye.bind(this);
-		return this.storage = new Ai(e, r, this.resolve.bind(this)), this.request = this.storage.request.bind(this.storage), this.opened.then(() => {
+		return this.storage = new Ni(e, r, this.resolve.bind(this)), this.request = this.storage.request.bind(this.storage), this.opened.then(() => {
 			this.archived && (this.storage.requester = this.archive.request.bind(this.archive));
 			let e = (e, t) => {
 				t.output = this.resources.substitute(e, t.url);
@@ -16627,175 +16681,175 @@ var ji = class {
 		this.opened = void 0, this.loading = void 0, this.loaded = void 0, this.ready = void 0, this.isOpen = !1, this.isRendered = !1, this.spine && this.spine.destroy(), this.locations && this.locations.destroy(), this.pageList && this.pageList.destroy(), this.archive && this.archive.destroy(), this.resources && this.resources.destroy(), this.container && this.container.destroy(), this.packaging && this.packaging.destroy(), this.rendition && this.rendition.destroy(), this.displayOptions && this.displayOptions.destroy(), this.spine = void 0, this.locations = void 0, this.pageList = void 0, this.archive = void 0, this.resources = void 0, this.container = void 0, this.packaging = void 0, this.rendition = void 0, this.navigation = void 0, this.url = void 0, this.path = void 0, this.archived = !1;
 	}
 };
-(0, j.default)(Ii.prototype);
+(0, j.default)(zi.prototype);
 //#endregion
 //#region src/utils/core.ts
-var Li = /* @__PURE__ */ s({
-	RangeObject: () => Ca,
-	blob2base64: () => ga,
-	borders: () => Zi,
-	bounds: () => Xi,
-	createBase64Url: () => sa,
-	createBlob: () => ia,
-	createBlobUrl: () => aa,
-	defaults: () => Gi,
-	defer: () => _a,
-	documentHeight: () => Bi,
-	extend: () => Ki,
-	filterChildren: () => xa,
-	findChildren: () => ya,
-	getParentByTagName: () => Sa,
-	indexOfElementNode: () => na,
-	indexOfNode: () => ea,
-	indexOfSorted: () => Yi,
-	indexOfTextNode: () => ta,
-	insert: () => qi,
-	isElement: () => Vi,
-	isFloat: () => Ui,
-	isNumber: () => Hi,
-	isXml: () => ra,
-	locationOf: () => Ji,
-	nodeBounds: () => Qi,
-	parents: () => ba,
-	parse: () => la,
-	prefixed: () => Wi,
-	qs: () => ua,
-	qsa: () => da,
-	qsp: () => fa,
-	querySelectorByType: () => va,
-	requestAnimationFrame: () => Ri,
-	revokeBlobUrl: () => oa,
-	sprint: () => pa,
-	treeWalker: () => ma,
-	type: () => ca,
-	uuid: () => zi,
-	walk: () => ha,
-	windowBounds: () => $i
-}), Ri = ze;
-function zi() {
+var Bi = /* @__PURE__ */ s({
+	RangeObject: () => Ea,
+	blob2base64: () => ya,
+	borders: () => ea,
+	bounds: () => $i,
+	createBase64Url: () => ua,
+	createBlob: () => sa,
+	createBlobUrl: () => ca,
+	defaults: () => Ji,
+	defer: () => ba,
+	documentHeight: () => Ui,
+	extend: () => Yi,
+	filterChildren: () => wa,
+	findChildren: () => Sa,
+	getParentByTagName: () => Ta,
+	indexOfElementNode: () => aa,
+	indexOfNode: () => ra,
+	indexOfSorted: () => Qi,
+	indexOfTextNode: () => ia,
+	insert: () => Xi,
+	isElement: () => Wi,
+	isFloat: () => Ki,
+	isNumber: () => Gi,
+	isXml: () => oa,
+	locationOf: () => Zi,
+	nodeBounds: () => ta,
+	parents: () => Ca,
+	parse: () => fa,
+	prefixed: () => qi,
+	qs: () => pa,
+	qsa: () => ma,
+	qsp: () => ha,
+	querySelectorByType: () => xa,
+	requestAnimationFrame: () => Vi,
+	revokeBlobUrl: () => la,
+	sprint: () => ga,
+	treeWalker: () => _a,
+	type: () => da,
+	uuid: () => Hi,
+	walk: () => va,
+	windowBounds: () => na
+}), Vi = ze;
+function Hi() {
 	return M();
 }
-function Bi() {
+function Ui() {
 	return xt();
 }
-function Vi(e) {
+function Wi(e) {
 	return he(e);
 }
-function Hi(e) {
+function Gi(e) {
 	return Y(e);
 }
-function Ui(e) {
+function Ki(e) {
 	return ge(e);
 }
-function Wi(e) {
+function qi(e) {
 	return yt(e);
 }
-function Gi(e, ...t) {
+function Ji(e, ...t) {
 	return F.apply(null, arguments);
 }
-function Ki(e, ...t) {
+function Yi(e, ...t) {
 	return I.apply(null, arguments);
 }
-function qi(e, t, n) {
+function Xi(e, t, n) {
 	return L(e, t, n);
 }
-function Ji(e, t, n, r, i) {
+function Zi(e, t, n, r, i) {
 	return R(e, t, n, r, i);
 }
-function Yi(e, t, n, r, i) {
+function Qi(e, t, n, r, i) {
 	return ee(e, t, n, r, i);
 }
-function Xi(e) {
+function $i(e) {
 	return St(e);
 }
-function Zi(e) {
+function ea(e) {
 	return Ct(e);
 }
-function Qi(e) {
+function ta(e) {
 	return wt(e);
 }
-function $i() {
+function na() {
 	return Tt();
 }
-function ea(e, t) {
+function ra(e, t) {
 	return pe(e, t);
 }
-function ta(e) {
+function ia(e) {
 	return q(e);
 }
-function na(e) {
+function aa(e) {
 	return J(e);
 }
-function ra(e) {
+function oa(e) {
 	return qe(e);
 }
-function ia(e, t) {
+function sa(e, t) {
 	return ct(e, t);
 }
-function aa(e, t) {
+function ca(e, t) {
 	return lt(e, t);
 }
-function oa(e) {
+function la(e) {
 	return ut(e);
 }
-function sa(e, t) {
+function ua(e, t) {
 	return dt(e, t);
 }
-function ca(e) {
+function da(e) {
 	return _e(e);
 }
-function la(e, t, n) {
+function fa(e, t, n) {
 	return He(e, t, n);
 }
-function ua(e, t) {
+function pa(e, t) {
 	return Q(e, t);
 }
-function da(e, t) {
+function ma(e, t) {
 	return Se(e, t);
 }
-function fa(e, t, n) {
+function ha(e, t, n) {
 	return Ce(e, t, n);
 }
-function pa(e, t) {
+function ga(e, t) {
 	return H(e, t);
 }
-function ma(e, t, n) {
+function _a(e, t, n) {
 	return le(e, t, n);
 }
-function ha(e, t) {
+function va(e, t) {
 	return W(e, t);
 }
-function ga(e) {
+function ya(e) {
 	return ft(e);
 }
-function _a() {
+function ba() {
 	N.call(this);
 }
-function va(e, t, n) {
+function xa(e, t, n) {
 	return we(e, t, n);
 }
-function ya(e) {
+function Sa(e) {
 	return G(e);
 }
-function ba(e) {
+function Ca(e) {
 	return de(e);
 }
-function xa(e, t, n) {
+function wa(e, t, n) {
 	return fe(e, t, n);
 }
-function Sa(e, t) {
+function Ta(e, t) {
 	return K(e, t);
 }
-var Ca = class extends me {}, wa = function(e, t) {
-	return t === void 0 && typeof e != "string" && !(e instanceof Blob) && !(e instanceof ArrayBuffer) ? new Ii(e) : new Ii(e, t);
+var Ea = class extends me {}, Da = function(e, t) {
+	return t === void 0 && typeof e != "string" && !(e instanceof Blob) && !(e instanceof ArrayBuffer) ? new zi(e) : new zi(e, t);
 };
-wa.VERSION = "0.3", globalThis.EPUBJS_VERSION = "0.3", wa.Book = Ii, wa.Rendition = Ei, wa.Contents = Gt, wa.CFI = Z, wa.utils = Li;
+Da.VERSION = "0.3", globalThis.EPUBJS_VERSION = "0.3", Da.Book = zi, Da.Rendition = ki, Da.Contents = Gt, Da.CFI = Z, Da.utils = Bi;
 //#endregion
 //#region src/media-overlay.ts
-var Ta = (e) => typeof e == "string" ? e.trim() : "", Ea = (e) => /^[a-z][a-z0-9+.-]*:/i.test(e) || e.startsWith("//"), Da = (e = "", t = "") => {
-	let n = Ta(t);
-	if (!n || Ea(n)) return n;
-	let [r, i = ""] = n.split("#"), a = Ta(e).split("#")[0].split("?")[0], o = `${a.includes("/") ? a.slice(0, a.lastIndexOf("/") + 1) : ""}${r}`.split("/"), s = [];
+var Oa = (e) => typeof e == "string" ? e.trim() : "", ka = (e) => /^[a-z][a-z0-9+.-]*:/i.test(e) || e.startsWith("//"), Aa = (e = "", t = "") => {
+	let n = Oa(t);
+	if (!n || ka(n)) return n;
+	let [r, i = ""] = n.split("#"), a = Oa(e).split("#")[0].split("?")[0], o = `${a.includes("/") ? a.slice(0, a.lastIndexOf("/") + 1) : ""}${r}`.split("/"), s = [];
 	for (let e of o) if (!(!e || e === ".")) {
 		if (e === "..") {
 			s.pop();
@@ -16804,18 +16858,18 @@ var Ta = (e) => typeof e == "string" ? e.trim() : "", Ea = (e) => /^[a-z][a-z0-9
 		s.push(e);
 	}
 	return `${s.join("/")}${i ? `#${i}` : ""}`;
-}, Oa = (e = "") => Ta(e).split(":").pop()?.toLowerCase() ?? "", ka = (e = "") => {
+}, ja = (e = "") => Oa(e).split(":").pop()?.toLowerCase() ?? "", Ma = (e = "") => {
 	let t = {}, n = /([\w:.-]+)\s*=\s*("([^"]*)"|'([^']*)')/g, r = n.exec(e);
 	for (; r;) t[r[1]] = r[3] ?? r[4] ?? "", r = n.exec(e);
 	return t;
-}, Aa = (e = "") => {
+}, Na = (e = "") => {
 	let t = {
 		name: "root",
 		attributes: {},
 		children: []
 	}, n = [t], r = /<\s*(\/)?\s*([\w:.-]+)([^>]*?)(\/)?\s*>/g, i = r.exec(e);
 	for (; i;) {
-		let [, t, a, o, s] = i, c = Oa(a);
+		let [, t, a, o, s] = i, c = ja(a);
 		if (t) {
 			for (; n.length > 1 && n[n.length - 1].name !== c;) n.pop();
 			n.length > 1 && n.pop(), i = r.exec(e);
@@ -16823,88 +16877,88 @@ var Ta = (e) => typeof e == "string" ? e.trim() : "", Ea = (e) => /^[a-z][a-z0-9
 		}
 		let l = {
 			name: c,
-			attributes: ka(o),
+			attributes: Ma(o),
 			children: []
 		};
 		n[n.length - 1].children.push(l), s || n.push(l), i = r.exec(e);
 	}
 	return t;
-}, ja = (e) => {
+}, Pa = (e) => {
 	if (!e) return null;
 	let t = {};
 	for (let n of Array.from(e.attributes ?? [])) t[n.name] = n.value;
 	return {
-		name: Oa(e.localName || e.nodeName),
+		name: ja(e.localName || e.nodeName),
 		attributes: t,
-		children: Array.from(e.children ?? []).map(ja).filter((e) => !!e)
+		children: Array.from(e.children ?? []).map(Pa).filter((e) => !!e)
 	};
-}, Ma = (e = "") => {
+}, Fa = (e = "") => {
 	if (typeof DOMParser == "function") {
-		let t = new DOMParser().parseFromString(e, "application/xml"), n = t.querySelector("parsererror") ? null : ja(t.documentElement);
+		let t = new DOMParser().parseFromString(e, "application/xml"), n = t.querySelector("parsererror") ? null : Pa(t.documentElement);
 		if (n) return n;
 	}
-	return Aa(e);
-}, Na = (e, t) => {
+	return Na(e);
+}, Ia = (e, t) => {
 	if (!e) return null;
 	if (e.name === t) return e;
 	for (let n of e.children) {
-		let e = Na(n, t);
+		let e = Ia(n, t);
 		if (e) return e;
 	}
 	return null;
-}, Pa = (e, t) => (e?.children ?? []).filter((e) => e.name === t), Fa = (e, t) => {
+}, La = (e, t) => (e?.children ?? []).filter((e) => e.name === t), Ra = (e, t) => {
 	if (!e) return null;
-	let n = Ta(e.attributes.src);
+	let n = Oa(e.attributes.src);
 	return {
 		src: n,
-		href: Da(t, n)
+		href: Aa(t, n)
 	};
-}, Ia = (e, t) => {
+}, za = (e, t) => {
 	if (!e) return null;
-	let n = Ta(e.attributes.src);
+	let n = Oa(e.attributes.src);
 	return {
 		src: n,
-		href: Da(t, n),
-		clipBegin: Ta(e.attributes.clipBegin),
-		clipEnd: Ta(e.attributes.clipEnd)
+		href: Aa(t, n),
+		clipBegin: Oa(e.attributes.clipBegin),
+		clipEnd: Oa(e.attributes.clipEnd)
 	};
-}, La = (e, t, n) => {
-	let r = Fa(Pa(e, "text")[0], t), i = Ia(Pa(e, "audio")[0], t);
+}, Ba = (e, t, n) => {
+	let r = Ra(La(e, "text")[0], t), i = za(La(e, "audio")[0], t);
 	return {
-		id: Ta(e.attributes.id),
+		id: Oa(e.attributes.id),
 		text: r,
 		audio: i,
 		sequencePath: n
 	};
-}, Ra = (e, t, n = []) => {
-	let r = [...n, Ta(e.attributes.id)].filter(Boolean), i = Ta(e.attributes["epub:textref"] ?? e.attributes.textref), a = [], o = [];
+}, Va = (e, t, n = []) => {
+	let r = [...n, Oa(e.attributes.id)].filter(Boolean), i = Oa(e.attributes["epub:textref"] ?? e.attributes.textref), a = [], o = [];
 	for (let n of e.children) {
 		if (n.name === "seq") {
-			let e = Ra(n, t, r);
+			let e = Va(n, t, r);
 			a.push(e), o.push(...e.fragments);
 			continue;
 		}
 		if (n.name === "par") {
-			let e = La(n, t, r);
+			let e = Ba(n, t, r);
 			a.push(e), o.push(e);
 		}
 	}
 	return {
-		id: Ta(e.attributes.id),
+		id: Oa(e.attributes.id),
 		textref: i,
-		textrefHref: Da(t, i),
+		textrefHref: Aa(t, i),
 		children: a,
 		fragments: o
 	};
-}, za = (e = "", t = {}) => {
-	let n = Ta(t.href), r = Ma(e), i = Na(r, "body") ?? r, a = Pa(i, "seq").map((e) => Ra(e, n)), o = Pa(i, "par").map((e) => La(e, n, []));
+}, Ha = (e = "", t = {}) => {
+	let n = Oa(t.href), r = Fa(e), i = Ia(r, "body") ?? r, a = La(i, "seq").map((e) => Va(e, n)), o = La(i, "par").map((e) => Ba(e, n, []));
 	return {
 		href: n,
 		sequences: a,
 		fragments: [...a.flatMap((e) => e.fragments), ...o]
 	};
-}, Ba = (e) => {
-	let t = Ta(e).replace(/^npt=/i, "");
+}, Ua = (e) => {
+	let t = Oa(e).replace(/^npt=/i, "");
 	if (!t) return null;
 	let n = t.match(/^([0-9]+(?:\.[0-9]+)?)(h|min|s|ms)$/i);
 	if (n) {
@@ -16923,8 +16977,8 @@ var Ta = (e) => typeof e == "string" ? e.trim() : "", Ea = (e) => /^[a-z][a-z0-9
 	if (i.some((e) => !Number.isFinite(e))) return null;
 	let [a, o, s] = r.length === 3 ? i : [0, ...i];
 	return a * 3600 + o * 60 + s;
-}, Va = wa;
+}, Wa = Da;
 //#endregion
-export { Ii as Book, Gt as Contents, Z as EpubCFI, ht as Layout, Ei as Rendition, Va as default, Ba as parseSmilClock, za as parseSmilDocument, Te as replaceBase, Ee as replaceCanonical, Oe as replaceLinks, De as replaceMeta, Ye as request, Da as resolveSmilHref, ke as substitute };
+export { zi as Book, Gt as Contents, Z as EpubCFI, ht as Layout, ki as Rendition, Wa as default, Ua as parseSmilClock, Ha as parseSmilDocument, Te as replaceBase, Ee as replaceCanonical, Oe as replaceLinks, De as replaceMeta, Ye as request, Aa as resolveSmilHref, ke as substitute };
 
 //# sourceMappingURL=epub.mjs.map

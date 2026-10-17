@@ -34,7 +34,7 @@
 	}) : target, mod));
 	//#endregion
 	jszip_dist_jszip = __toESM(jszip_dist_jszip);
-	//#region ../engine10d-formal-distribution-20261009/node_modules/type/value/is.js
+	//#region node_modules/type/value/is.js
 	var require_is$4 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var _undefined = void 0;
 		module.exports = function(value) {
@@ -42,7 +42,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/type/object/is.js
+	//#region node_modules/type/object/is.js
 	var require_is$3 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is$4();
 		var possibleTypes = {
@@ -56,7 +56,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/type/prototype/is.js
+	//#region node_modules/type/prototype/is.js
 	var require_is$2 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isObject = require_is$3();
 		module.exports = function(value) {
@@ -70,7 +70,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/type/function/is.js
+	//#region node_modules/type/function/is.js
 	var require_is$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isPrototype = require_is$2();
 		module.exports = function(value) {
@@ -87,7 +87,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/type/plain-function/is.js
+	//#region node_modules/type/plain-function/is.js
 	var require_is = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isFunction = require_is$1();
 		var classRe = /^\s*class[\s{/}]/, functionToString = Function.prototype.toString;
@@ -98,7 +98,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/assign/is-implemented.js
+	//#region node_modules/es5-ext/object/assign/is-implemented.js
 	var require_is_implemented$2 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = function() {
 			var assign = Object.assign, obj;
@@ -109,7 +109,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/keys/is-implemented.js
+	//#region node_modules/es5-ext/object/keys/is-implemented.js
 	var require_is_implemented$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = function() {
 			try {
@@ -120,12 +120,12 @@
 		};
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/function/noop.js
+	//#region node_modules/es5-ext/function/noop.js
 	var require_noop = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = function() {};
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/is-value.js
+	//#region node_modules/es5-ext/object/is-value.js
 	var require_is_value = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var _undefined = require_noop()();
 		module.exports = function(val) {
@@ -133,7 +133,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/keys/shim.js
+	//#region node_modules/es5-ext/object/keys/shim.js
 	var require_shim$2 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is_value();
 		var keys = Object.keys;
@@ -142,12 +142,12 @@
 		};
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/keys/index.js
+	//#region node_modules/es5-ext/object/keys/index.js
 	var require_keys = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = require_is_implemented$1()() ? Object.keys : require_shim$2();
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/valid-value.js
+	//#region node_modules/es5-ext/object/valid-value.js
 	var require_valid_value = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is_value();
 		module.exports = function(value) {
@@ -156,7 +156,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/assign/shim.js
+	//#region node_modules/es5-ext/object/assign/shim.js
 	var require_shim$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var keys = require_keys(), value = require_valid_value(), max = Math.max;
 		module.exports = function(dest, src) {
@@ -178,12 +178,12 @@
 		};
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/assign/index.js
+	//#region node_modules/es5-ext/object/assign/index.js
 	var require_assign = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = require_is_implemented$2()() ? Object.assign : require_shim$1();
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/normalize-options.js
+	//#region node_modules/es5-ext/object/normalize-options.js
 	var require_normalize_options = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is_value();
 		var forEach = Array.prototype.forEach, create = Object.create;
@@ -201,7 +201,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/string/#/contains/is-implemented.js
+	//#region node_modules/es5-ext/string/#/contains/is-implemented.js
 	var require_is_implemented = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var str = "razdwatrzy";
 		module.exports = function() {
@@ -210,7 +210,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/string/#/contains/shim.js
+	//#region node_modules/es5-ext/string/#/contains/shim.js
 	var require_shim = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var indexOf = String.prototype.indexOf;
 		module.exports = function(searchString) {
@@ -218,12 +218,12 @@
 		};
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/string/#/contains/index.js
+	//#region node_modules/es5-ext/string/#/contains/index.js
 	var require_contains = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = require_is_implemented()() ? String.prototype.contains : require_shim();
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/d/index.js
+	//#region node_modules/d/index.js
 	var require_d = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is$4(), isPlainFunction = require_is(), assign = require_assign(), normalizeOpts = require_normalize_options(), contains = require_contains();
 		var d = module.exports = function(dscr, value) {
@@ -283,7 +283,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/es5-ext/object/valid-callable.js
+	//#region node_modules/es5-ext/object/valid-callable.js
 	var require_valid_callable = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = function(fn) {
 			if (typeof fn !== "function") throw new TypeError(fn + " is not a function");
@@ -1869,7 +1869,7 @@
 		return content;
 	}
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/@xmldom/xmldom/lib/conventions.js
+	//#region node_modules/@xmldom/xmldom/lib/conventions.js
 	var require_conventions = /* @__PURE__ */ __commonJSMin(((exports) => {
 		/**
 		* Ponyfill for `Array.prototype.find` which is only available in ES6 runtimes.
@@ -2050,7 +2050,7 @@
 		exports.tagNamePattern = tagNamePattern;
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/@xmldom/xmldom/lib/dom.js
+	//#region node_modules/@xmldom/xmldom/lib/dom.js
 	var require_dom = /* @__PURE__ */ __commonJSMin(((exports) => {
 		var conventions = require_conventions();
 		var find = conventions.find;
@@ -3793,7 +3793,7 @@
 		exports.XMLSerializer = XMLSerializer;
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/@xmldom/xmldom/lib/entities.js
+	//#region node_modules/@xmldom/xmldom/lib/entities.js
 	var require_entities = /* @__PURE__ */ __commonJSMin(((exports) => {
 		var freeze = require_conventions().freeze;
 		/**
@@ -5958,7 +5958,7 @@
 		exports.entityMap = exports.HTML_ENTITIES;
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/@xmldom/xmldom/lib/sax.js
+	//#region node_modules/@xmldom/xmldom/lib/sax.js
 	var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
 		var NAMESPACE = require_conventions().NAMESPACE;
 		var tagNamePattern = require_conventions().tagNamePattern;
@@ -6445,7 +6445,7 @@
 		exports.ParseError = ParseError;
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/@xmldom/xmldom/lib/dom-parser.js
+	//#region node_modules/@xmldom/xmldom/lib/dom-parser.js
 	var require_dom_parser = /* @__PURE__ */ __commonJSMin(((exports) => {
 		var conventions = require_conventions();
 		var dom = require_dom();
@@ -11946,7 +11946,7 @@
 	};
 	(0, import_event_emitter.default)(Contents.prototype);
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/marks-pane/lib/svg.js
+	//#region node_modules/marks-pane/lib/svg.js
 	var require_svg = /* @__PURE__ */ __commonJSMin(((exports) => {
 		Object.defineProperty(exports, "__esModule", { value: true });
 		exports.createElement = createElement;
@@ -11956,7 +11956,7 @@
 		exports.default = { createElement };
 	}));
 	//#endregion
-	//#region ../engine10d-formal-distribution-20261009/node_modules/marks-pane/lib/events.js
+	//#region node_modules/marks-pane/lib/events.js
 	var require_events = /* @__PURE__ */ __commonJSMin(((exports) => {
 		Object.defineProperty(exports, "__esModule", { value: true });
 		exports.proxyMouse = proxyMouse;
@@ -12995,6 +12995,48 @@
 	};
 	(0, import_event_emitter.default)(IframeView.prototype);
 	//#endregion
+	//#region src/rendering/combined-text-paint.ts
+	var hints = /* @__PURE__ */ new WeakMap();
+	function restore(element, hint) {
+		if (element.style.willChange !== hint.applied || element.style.getPropertyPriority("will-change") !== "important") return;
+		if (hint.value) element.style.setProperty("will-change", hint.value, hint.priority);
+		else element.style.removeProperty("will-change");
+		if (!hint.hadStyle && element.getAttribute("style") === "") element.removeAttribute("style");
+	}
+	/** Invalidate Chromium's culled combined-text paint when a complete run enters the viewport. */
+	function refreshCombinedTextPaint(document, clip) {
+		const window = document.defaultView;
+		if (!window || !document.body) return 0;
+		const active = hints.get(document) || /* @__PURE__ */ new Map();
+		const visible = /* @__PURE__ */ new Set();
+		if (/Chrome|Chromium/.test(window.navigator.userAgent) && window.getComputedStyle(document.body).writingMode === "vertical-rl") for (const element of document.body.querySelectorAll("*")) {
+			if (window.getComputedStyle(element).getPropertyValue("text-combine-upright") !== "all") continue;
+			const rect = element.getBoundingClientRect();
+			if (rect.width > 0 && rect.height > 0 && rect.left >= clip.left && rect.right <= clip.right && rect.top >= clip.top && rect.bottom <= clip.bottom) visible.add(element);
+		}
+		for (const [element, hint] of active) if (!visible.has(element)) {
+			restore(element, hint);
+			active.delete(element);
+		}
+		let invalidated = 0;
+		for (const element of visible) {
+			if (active.has(element)) continue;
+			const computed = window.getComputedStyle(element).willChange;
+			if (computed.split(",").some((value) => value.trim() === "contents")) continue;
+			const applied = computed === "auto" ? "contents" : `${computed}, contents`;
+			active.set(element, {
+				value: element.style.getPropertyValue("will-change"),
+				priority: element.style.getPropertyPriority("will-change"),
+				applied,
+				hadStyle: element.hasAttribute("style")
+			});
+			element.style.setProperty("will-change", applied, "important");
+			invalidated++;
+		}
+		hints.set(document, active);
+		return invalidated;
+	}
+	//#endregion
 	//#region src/utils/scrolltype.ts
 	function scrollType() {
 		var type = "reverse";
@@ -13461,6 +13503,7 @@
 	function promoteVerticalRlTerminalContinuation(state, basePageCount, targetIndex, logicalOffset, maxLogicalScroll, snapTolerance, terminalTailState = "unknown") {
 		if (!isVerticalRlTerminalContinuationGeometryCandidate(state, basePageCount, targetIndex, logicalOffset, maxLogicalScroll, snapTolerance) || terminalTailState === "reached") return false;
 		state.continuationCount += 1;
+		if (state.appliedLeftMasks) delete state.appliedLeftMasks[String(targetIndex)];
 		return true;
 	}
 	var REPLACED_TAGS = /* @__PURE__ */ new Set([
@@ -14181,7 +14224,7 @@
 	function getVerticalRlRawLeftSnapDecisionForRects(rects, rawLeft, rawRight, left, leftMaxMask, nextPageStep, forceRawLeftMask, allowRawLeftMask, hasStructuralEdgeGuard, edgeTolerance) {
 		const shift = getVerticalRlRawLeftSnapShiftForRects(rects, rawLeft, rawRight, rawLeft + left, left, nextPageStep, forceRawLeftMask, allowRawLeftMask, hasStructuralEdgeGuard, edgeTolerance);
 		const snappedLeft = getVerticalRlSnappedLeftEdgeMask(left, shift, leftMaxMask);
-		if (shift > 0 && snappedLeft < left + shift) {
+		if (shift > 0 && rects.some((rect) => rect.left < rawLeft + snappedLeft && rect.right > rawLeft + snappedLeft)) {
 			let safeLeft = snappedLeft;
 			for (let attempt = 0; attempt <= rects.length; attempt++) {
 				const edge = rawLeft + safeLeft;
@@ -15071,6 +15114,7 @@
 		if (debugWindow.__EPUB_VRL_TERMINAL_TRACE__.length > 4e3) debugWindow.__EPUB_VRL_TERMINAL_TRACE__.splice(0, debugWindow.__EPUB_VRL_TERMINAL_TRACE__.length - 4e3);
 	};
 	var DefaultViewManager = class {
+		_combinedTextPaintFrame;
 		_verticalRlTerminalLayouts;
 		_verticalRlActiveTerminalLayout;
 		_verticalRlBoundarySnapRetryPendingToken;
@@ -15244,6 +15288,10 @@
 			this._onUnload = void 0;
 		}
 		destroy() {
+			if (this._combinedTextPaintFrame !== void 0) {
+				cancelAnimationFrame(this._combinedTextPaintFrame);
+				this._combinedTextPaintFrame = void 0;
+			}
 			clearTimeout(this.orientationTimeout);
 			clearTimeout(this.resizeTimeout);
 			clearTimeout(this.afterScrolled);
@@ -16161,7 +16209,11 @@
 					this._verticalRlAppliedLeftMaskLedger = {};
 					this._verticalRlAppliedLeftMaskLedgerKey = cacheKey;
 				}
-				this._verticalRlAppliedLeftMaskLedger[String(pageIndex)] = leftMask + this.getVerticalRlAppliedContentShift();
+				const contentShift = this.getVerticalRlAppliedContentShift();
+				const preserved = this._verticalRlPreservedPageBoundary;
+				const recordedFence = this._verticalRlAppliedLeftMaskLedger[String(pageIndex)];
+				if (recordedOffset !== null && contentShift === 0 && preserved?.pageIndex === pageIndex && preserved.layoutKey === cacheKey && Number.isFinite(preserved.sourceLeftBoundary) && Number.isFinite(recordedFence) && recordedFence > getVerticalRlEdgeMaskLimit(this.getPageAdvance()) && leftMask < recordedFence) return;
+				this._verticalRlAppliedLeftMaskLedger[String(pageIndex)] = leftMask + contentShift;
 				if (this._verticalRlActiveTerminalLayout?.layoutKey === cacheKey) this._verticalRlActiveTerminalLayout.appliedLeftMasks = this._verticalRlAppliedLeftMaskLedger;
 			} catch (error) {}
 		}
@@ -16274,13 +16326,15 @@
 		/** Preserve an already committed source fence on an unchanged learned page. */
 		getVerticalRlCommittedLeftMaskForCurrentOffset(maxMask) {
 			const state = this._verticalRlActiveTerminalLayout;
-			if (!this.isRtlVerticalPaginated() || !state || state.continuationCount <= 0 || this._verticalRlAppliedLeftMaskLedgerKey !== state.layoutKey) return null;
+			if (!this.isRtlVerticalPaginated() || !state || this._verticalRlAppliedLeftMaskLedgerKey !== state.layoutKey) return null;
 			const pageIndex = this.getCurrentPageIndex();
 			if (pageIndex >= this.getTotalPagesForCurrentView() - 1) return null;
 			const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(pageIndex, state.layoutKey);
 			if (recordedOffset === null || recordedOffset !== this.getNormalizedLogicalScrollLeft()) return null;
 			const fence = this.getRecordedVerticalRlAppliedLeftMask(pageIndex);
 			if (fence === null || !Number.isFinite(fence)) return null;
+			const preserved = this._verticalRlPreservedPageBoundary;
+			if (state.continuationCount <= 0 && (fence <= 0 || preserved?.pageIndex !== pageIndex || preserved.layoutKey !== state.layoutKey || !Number.isFinite(preserved.sourceLeftBoundary))) return null;
 			const physicalMask = fence - this.getVerticalRlAppliedContentShift();
 			return physicalMask >= 0 && physicalMask <= maxMask ? physicalMask : null;
 		}
@@ -16306,7 +16360,7 @@
 			if (restored) maskWidths = restored;
 			const committedLeft = this.getVerticalRlCommittedLeftMaskForCurrentOffset(getVerticalRlEdgeMaskLimit(this.getPageAdvance()));
 			if (!restored && sequentialTerminalMask === null && committedLeft !== null) maskWidths = {
-				left: Math.max(maskWidths.left, committedLeft),
+				left: committedLeft,
 				right: maskWidths.right
 			};
 			this.recordVerticalRlAppliedLeftMask(Math.max(0, Number(maskWidths.left) || 0));
@@ -17848,6 +17902,26 @@
 			});
 			if (!this._verticalRlBoundarySnapApplying && this.isRtlVerticalPaginated()) this.queueVerticalRlBoundarySnapRetryForCurrentOffset();
 		}
+		queueCombinedTextPaintRefresh() {
+			if (this._combinedTextPaintFrame !== void 0 || this.settings.fullsize || !this.isRtlVerticalPaginated()) return;
+			this._combinedTextPaintFrame = requestAnimationFrame(() => {
+				this._combinedTextPaintFrame = void 0;
+				if (!this.container || !this.views) return;
+				const clip = this.container.getBoundingClientRect();
+				for (const view of this.views.all()) {
+					const frame = view.iframe;
+					const document = view.contents?.document;
+					if (!frame || !document) continue;
+					const rect = frame.getBoundingClientRect();
+					refreshCombinedTextPaint(document, {
+						left: clip.left - rect.left,
+						right: clip.right - rect.left,
+						top: clip.top - rect.top,
+						bottom: clip.bottom - rect.top
+					});
+				}
+			});
+		}
 		onScroll() {
 			let scrollTop;
 			let scrollLeft;
@@ -17860,6 +17934,7 @@
 				scrollLeft = window.scrollX;
 			}
 			const scrollPositionChanged = scrollTop !== this.scrollTop || scrollLeft !== this.scrollLeft;
+			if (scrollPositionChanged) this.queueCombinedTextPaintRefresh();
 			this.scrollTop = scrollTop;
 			this.scrollLeft = scrollLeft;
 			this.target = void 0;
