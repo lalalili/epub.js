@@ -14,6 +14,8 @@ export type VerticalRlTerminalContinuationState = {
 	layoutKey: string;
 	continuationCount: number;
 	offsetCache: VerticalRlLogicalPageOffsetCache | null;
+	terminalRightBoundaries?: Record<number, number>;
+	appliedLeftMasks?: Record<string, number> | null;
 };
 
 type TerminalContinuationObservationContext = {
@@ -139,6 +141,12 @@ export function promoteVerticalRlTerminalContinuation(
 		return false;
 	}
 	state.continuationCount += 1;
+	// The former terminal page had no next-page exclusion allowance. Its
+	// zero mask plus Reader displacement is not a proved ordinary-page fence.
+	// Re-measure that page while retaining every earlier fence and offset.
+	if (state.appliedLeftMasks) {
+		delete state.appliedLeftMasks[String(targetIndex)];
+	}
 	return true;
 }
 

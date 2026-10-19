@@ -127,3 +127,95 @@ describe("raw-left-snap: aggregate over rects", () => {
 		).toEqual({ shift: 11, left: 51 });
 	});
 });
+
+describe("raw-left-snap: capped boundary ownership", () => {
+	it("keeps a rendered combined-upright glyph whole when expansion exceeds the mask limit", async () => {
+		const span = document.createElement("span");
+		span.textContent = "[12]";
+		Object.assign(span.style, { position: "absolute", left: "80px", top: "20px", writingMode: "vertical-rl", textCombineUpright: "all", fontSize: "18px", fontFamily: "serif" });
+		document.body.appendChild(span);
+		try {
+			await document.fonts.ready;
+			const range = document.createRange();
+			range.selectNodeContents(span);
+			const first = range.getBoundingClientRect();
+			span.style.left = `${80 + 89.171875 - first.right}px`;
+			const rect = range.getBoundingClientRect();
+			const decision = getVerticalRlRawLeftSnapDecisionForRects(
+				[{ left: rect.left, right: rect.right }], 0, 374.390625, 87, 87, 287.390625, false, false, true, 4
+			);
+			expect(decision.left).toBeLessThanOrEqual(87);
+			expect(decision.left).toBeGreaterThanOrEqual(0);
+			expect(rect.left < decision.left && rect.right > decision.left).toBe(false);
+		} finally {
+			span.remove();
+		}
+	});
+
+	it("does not expose a glyph that already straddles the physical viewport edge", () => {
+		const rects = [{ left: 69.375, right: 89.171875 }, { left: -2, right: 71 }];
+		const decision = getVerticalRlRawLeftSnapDecisionForRects(rects, 0, 374.390625, 87, 87, 287.390625, false, false, true, 4);
+		expect(decision.left).toBe(87);
+	});
+
+	it("retreats across overlapping glyph intervals without cutting either interval", () => {
+		const rects = [{ left: 69.375, right: 89.171875 }, { left: 57, right: 76 }];
+		const decision = getVerticalRlRawLeftSnapDecisionForRects(rects, 0, 374.390625, 87, 87, 287.390625, false, false, true, 4);
+		expect(decision.left).toBe(56);
+		expect(rects.some(rect => rect.left < decision.left && rect.right > decision.left)).toBe(false);
+	});
+});
+
+
+describe("raw-left-snap: measured cold boundary", () => {
+	it("keeps the measured source interval intact after repeated snapping", () => {
+		const rects = [
+			{"left": 1452.4375, "right": 1478.4375},
+			{"left": 1423.640625, "right": 1449.640625},
+			{"left": 1394.84375, "right": 1420.84375},
+			{"left": 1366.046875, "right": 1392.046875},
+			{"left": 1366.046875, "right": 1392.046875},
+			{"left": 1337.25, "right": 1363.25},
+			{"left": 124.359375, "right": 150.359375},
+			{"left": 95.5625, "right": 121.5625},
+			{"left": 66.765625, "right": 92.765625},
+			{"left": 37.96875, "right": 63.96875},
+			{"left": 9.171875, "right": 35.171875},
+			{"left": 9.171875, "right": 35.171875}
+		];
+		let left = 26;
+		for (let attempt = 0; attempt < 4; attempt++) {
+			left = getVerticalRlRawLeftSnapDecisionForRects(
+				rects, 1355.609375, 1730, left, 87, 261, false, false, true, 4
+			).left;
+		}
+		expect(rects.some(rect => rect.left < 1355.609375 + left && rect.right > 1355.609375 + left)).toBe(false);
+	});
+});
+
+
+describe("raw-left-snap: adjacent measured columns", () => {
+	it("keeps adjacent measured columns whole when an uncapped expansion crosses their shared edge", () => {
+		const rects = [
+			{ left: 4250.390625, right: 4274.390625 },
+			{ left: 4220.0625, right: 4244.0625 },
+			{ left: 4229.578125, right: 4247.171875 },
+			{ left: 4220.0625, right: 4244.0625 },
+			{ left: 4196.0625, right: 4220.0625 },
+			{ left: 4172.0625, right: 4196.0625 },
+			{ left: 4141.734375, right: 4165.734375 },
+			{ left: 4151.25, right: 4168.84375 },
+			{ left: 4141.734375, right: 4165.734375 }
+		];
+		let left = 8;
+		for (let attempt = 0; attempt < 4; attempt++) {
+			left = getVerticalRlRawLeftSnapDecisionForRects(
+				rects, 4156, 4476, left, 78, 271, false, false, true, 4
+			).left;
+		}
+		expect(rects.some(rect => rect.left < 4156 + left && rect.right > 4156 + left)).toBe(false);
+		expect(getVerticalRlRawLeftSnapDecisionForRects(
+			rects, 4156, 4476, left, 78, 271, false, false, true, 4
+		).left).toBe(left);
+	});
+});

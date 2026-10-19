@@ -245,6 +245,10 @@ function classify(
 		return "unknown";
 	}
 
+	if (writingMode === "vertical-rl" && candidate.kind === "text" && candidate.rect.left < effectiveClip.left) {
+		return "unreached";
+	}
+
 	if (candidate.intersection.positiveArea) {
 		return "reached";
 	}

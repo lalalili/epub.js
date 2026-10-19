@@ -33,6 +33,32 @@ describe("Contents textWidth", () => {
 		});
 	}
 
+	it("retains a right inset when sizing a vertical canvas that overhangs the frame", () => {
+		const frame = appendFixture(document.createElement("iframe"));
+		frame.style.width = "912px";
+		frame.style.height = "319px";
+		const doc = frame.contentDocument;
+		doc.body.style.cssText = "margin:0;position:absolute;right:24px;width:1000px;height:100px;writing-mode:vertical-rl";
+		doc.body.innerHTML = '<span style="display:inline-block;width:1000px;height:100px">甲</span>';
+		const contents = new Contents(doc, doc.body);
+
+		try {
+			const before = contents.measureVerticalRlRect();
+			expect(before.left).toBeLessThan(0);
+			const inset = frame.contentWindow.innerWidth - before.right;
+			expect(inset).toBe(24);
+			expect(contents.verticalRlPageMetrics(912, 319).rawWidth)
+				.toBeGreaterThanOrEqual(before.paintWidth + inset);
+			frame.style.width = `${contents.textWidth()}px`;
+			const after = contents.measureVerticalRlRect();
+			expect(after.paintWidth).toBe(before.paintWidth);
+			expect(after.left).toBeGreaterThanOrEqual(0);
+			expect(after.right).toBeLessThanOrEqual(frame.contentWindow.innerWidth);
+		} finally {
+			contents.destroy();
+		}
+	});
+
 	it("keeps constructor defaults, reading system, and style cache behavior stable", () => {
 		let content = appendFixture(document.createElement("div"));
 		content.innerHTML = "<p id=\"p1\">Readable</p>";

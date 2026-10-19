@@ -22,12 +22,18 @@ export function semanticDigest(text:string):string {
  }
  return h.map(v=>v.toString(16).padStart(8,'0')).join('');
 }
-function glyphs(doc:Document):{items:Glyph[];digest:string} {
+function glyphs(doc:Document,captureClip?:Box):{items:Glyph[];digest:string} {
  const walker=doc.createTreeWalker(doc.body,NodeFilter.SHOW_TEXT),items:Glyph[]=[];let text='';
  for(let n=walker.nextNode();n;n=walker.nextNode()){
   const node=n as Text;if(node.parentElement?.closest('script,style,noscript'))continue;
   text+=node.data;if(text.length>LIMIT)throw Error('semantic-cut-quota');
   let visible=true;for(let p=node.parentElement;p;p=p.parentElement){const s=doc.defaultView!.getComputedStyle(p);if(s.display==='none'||s.visibility!=='visible'||Number(s.opacity)===0)visible=false;}
+  // Only capture may reject an entire text node outside the effective viewport.
+  // Resolution still needs every glyph to prove a placement and its neighbors.
+  if(visible&&captureClip){
+   const bounds=doc.createRange();bounds.selectNodeContents(node);
+   visible=[...bounds.getClientRects()].some(r=>r.width>0&&r.height>0&&hit(r,captureClip));
+  }
   let pos=0;for(const char of node.data){const start=pos;pos+=char.length;if(/\s/u.test(char))continue;
    const r=doc.createRange();r.setStart(node,start);r.setEnd(node,pos);
    items.push({node,start,end:pos,rects:visible?[...r.getClientRects()].filter(b=>b.width>0&&b.height>0):[]});
@@ -35,13 +41,20 @@ function glyphs(doc:Document):{items:Glyph[];digest:string} {
  }
  return {items,digest:semanticDigest(text)};
 }
-export function localSemanticClip(frame:HTMLIFrameElement):Box|null {
+export function localSemanticClip(frame:HTMLIFrameElement,includeProductMasks=true):Box|null {
  const f=frame.getBoundingClientRect(),win=frame.ownerDocument.defaultView!;
  const c={left:Math.max(0,f.left),right:Math.min(win.innerWidth,f.right),top:Math.max(0,f.top),bottom:Math.min(win.innerHeight,f.bottom)};
  for(let p:Element|null=frame.parentElement;p;p=p.parentElement||(p.getRootNode() as ShadowRoot).host){
   const s=p.ownerDocument.defaultView!.getComputedStyle(p),r=p.getBoundingClientRect();
   if(/hidden|clip|auto|scroll/.test(s.overflowX)){c.left=Math.max(c.left,r.left);c.right=Math.min(c.right,r.right);}
   if(/hidden|clip|auto|scroll/.test(s.overflowY)){c.top=Math.max(c.top,r.top);c.bottom=Math.min(c.bottom,r.bottom);}
+  // Product masks are painted outside iframe overflow and still exclude semantic content.
+  const data=(p as HTMLElement).dataset;
+  if(includeProductMasks && (data?.epubVrlEdgeMaskLeft!==undefined || data?.epubVrlEdgeMaskRight!==undefined)){
+   const left=Number(data.epubVrlEdgeMaskLeft||0),right=Number(data.epubVrlEdgeMaskRight||0);
+   if(Number.isFinite(left)&&left>=0)c.left=Math.max(c.left,r.left+left);
+   if(Number.isFinite(right)&&right>=0)c.right=Math.min(c.right,r.right-right);
+  }
  }
  return c.right>c.left&&c.bottom>c.top?{left:c.left-f.left,right:c.right-f.left,top:c.top-f.top,bottom:c.bottom-f.top}:null;
 }
@@ -49,7 +62,7 @@ const hit=(r:Box,c:Box)=>r.right>c.left&&r.left<c.right&&r.bottom>c.top&&r.top<c
 export function captureSemanticCut(doc:Document,frame:HTMLIFrameElement,cfiBase:string):SemanticCut|null {
  try{
   const clip=localSemanticClip(frame);if(!clip||frame.contentDocument!==doc)return null;
-  const {items,digest}=glyphs(doc);const runs:string[]=[];let range:Range|null=null,last:Glyph|null=null;
+  const {items,digest}=glyphs(doc,clip);const runs:string[]=[];let range:Range|null=null,last:Glyph|null=null;
   const flush=()=>{if(range)runs.push(new EpubCFI(range,cfiBase).toString());range=null;};
   for(const g of items){if(!g.rects.some(r=>hit(r,clip))){flush();last=null;continue;}
    if(!range||last?.node!==g.node){flush();range=doc.createRange();range.setStart(g.node,g.start);}
@@ -59,7 +72,7 @@ export function captureSemanticCut(doc:Document,frame:HTMLIFrameElement,cfiBase:
   return runs.length>0&&runs.length<=32&&JSON.stringify(cut).length<=3000?cut:null;
  }catch{return null;}
 }
-export function resolveSemanticCut(doc:Document,frame:HTMLIFrameElement,cut:SemanticCut,maxStart:number,cfiBase:string):{status:string;physicalStart?:number;reason?:string} {
+export function resolveSemanticCut(doc:Document,frame:HTMLIFrameElement,cut:SemanticCut,maxStart:number,cfiBase:string,options:{allowCurrentTerminalMask?:boolean}={}):{status:string;physicalStart?:number;maskWidths?:{left:number;right:number};reason?:string} {
  try{
   if(cut?.version!==1||cut.algorithm!=='cfi-runs-sha256-v1'||!Array.isArray(cut.runs)||!cut.runs.length||cut.runs.length>32||JSON.stringify(cut).length>3000)return {status:'unavailable',reason:'invalid-semantic-cut'};
   if(!Number.isFinite(maxStart)||maxStart<0||!cfiBase||new Set(cut.runs).size!==cut.runs.length||cut.runs.some(c=>typeof c!=='string'||!c.startsWith('epubcfi('+cfiBase+'!')))return {status:'unavailable',reason:'invalid-semantic-source-range'};
@@ -71,24 +84,60 @@ export function resolveSemanticCut(doc:Document,frame:HTMLIFrameElement,cut:Sema
   if(ranges.some(r=>!r||r.collapsed||r.startContainer.ownerDocument!==doc||r.endContainer.ownerDocument!==doc))return {status:'unavailable',reason:'invalid-semantic-source-range'};
   const desired=items.map(g=>ranges.some(r=>r.comparePoint(g.node,g.start)===0&&r.comparePoint(g.node,g.end)===0));
   if(!desired.some(Boolean))return {status:'unavailable',reason:'empty-semantic-cut'};
-  const width=clip.right-clip.left;let lo=0,hi=maxStart;
+  const baseClip=localSemanticClip(frame,false);if(!baseClip)return {status:'unavailable',reason:'stale-document'};
+  const maskWidths={left:clip.left-baseClip.left,right:baseClip.right-clip.right};
+  // Solver placement names the effective edge; scrolling names the unmasked viewport edge.
+  const width=clip.right-clip.left;let lo=maskWidths.left,hi=maxStart+maskWidths.left;
   // A glyph with multiple visible fragments is not guessed; this bounded lane fails closed.
   const rects=items.map(g=>g.rects.filter(r=>r.bottom>clip.top&&r.top<clip.bottom));
   for(let i=0;i<items.length;i++)if(desired[i]){
    if(rects[i].length!==1)return {status:'unavailable',reason:'ambiguous-glyph-fragments'};
    lo=Math.max(lo,rects[i][0].left-width);hi=Math.min(hi,rects[i][0].right);
   }
-  if(!(lo<hi))return {status:'unavailable',reason:'semantic-cut-not-reprojectable'};
+  const reconstructCurrentMask=()=>{
+   if(!options.allowCurrentTerminalMask)return null;
+   const base=localSemanticClip(frame,false);if(!base)return null;
+   const selected=rects.filter((_,i)=>desired[i]).flat();
+   if(!selected.length||selected.some(r=>r.left<base.left||r.right>base.right||r.top<base.top||r.bottom>base.bottom))return null;
+   const wantedLeft=Math.min(...selected.map(r=>r.left)),wantedRight=Math.max(...selected.map(r=>r.right));
+   const excluded=rects.filter((_,i)=>!desired[i]).flat().filter(r=>hit(r,base));
+   const leftNeighbors=excluded.filter(r=>r.right<=wantedLeft),rightNeighbors=excluded.filter(r=>r.left>=wantedRight);
+   const left=leftNeighbors.length?(Math.max(...leftNeighbors.map(r=>r.right))+wantedLeft)/2:base.left;
+   const right=rightNeighbors.length?(wantedRight+Math.min(...rightNeighbors.map(r=>r.left)))/2:base.right;
+   const target={...base,left,right};
+   if(!(left<right)||items.some((g,i)=>g.rects.some(r=>hit(r,target))!==desired[i]))return null;
+   return {status:'qualified',physicalStart:base.left,maskWidths:{left:left-base.left,right:base.right-right}};
+  };
+  const reconstructSourceOwnedMask=()=>{
+   const base=localSemanticClip(frame,false);if(!base)return null;
+   const selected=rects.filter((_,i)=>desired[i]).flat();
+   if(!selected.length||selected.some(r=>r.top<base.top||r.bottom>base.bottom))return null;
+   const wantedLeft=Math.min(...selected.map(r=>r.left)),wantedRight=Math.max(...selected.map(r=>r.right));
+   const excluded=rects.filter((_,i)=>!desired[i]).flat();
+   const leftNeighbors=excluded.filter(r=>r.right<=wantedLeft),rightNeighbors=excluded.filter(r=>r.left>=wantedRight);
+   const left=leftNeighbors.length?(Math.max(...leftNeighbors.map(r=>r.right))+wantedLeft)/2:wantedLeft;
+   const right=rightNeighbors.length?(wantedRight+Math.min(...rightNeighbors.map(r=>r.left)))/2:wantedRight;
+   const target={...base,left,right},viewportWidth=base.right-base.left;
+   // Transient masks from the anchor page must not redefine the saved source cut.
+   // Only a fully contained, independently separated source set owns new masks.
+   if(!(left<right)||right-left>viewportWidth||items.some((g,i)=>g.rects.some(r=>hit(r,target))!==desired[i]))return null;
+   const physicalStart=Math.max(0,Math.min(maxStart,right-viewportWidth));
+   const masks={left:left-physicalStart,right:physicalStart+viewportWidth-right};
+   if(masks.left<0||masks.right<0||masks.left+masks.right>=viewportWidth)return null;
+   return {status:'qualified',physicalStart,maskWidths:masks};
+  };
+  if(!(lo<hi))return reconstructCurrentMask()||{status:'unavailable',reason:'semantic-cut-not-reprojectable'};
   let intervals:[[number,number]]|Array<[number,number]>=[[lo,hi]];
   for(let i=0;i<items.length;i++)if(!desired[i])for(const r of rects[i]){
    const a=r.left-width,b=r.right;intervals=intervals.flatMap(([l,h]):Array<[number,number]>=>b<=l||a>=h?[[l,h]]:[[l,Math.min(h,a)],[Math.max(l,b),h]].filter(([x,y])=>x<y) as Array<[number,number]>);
    if(intervals.length>128)return {status:'unavailable',reason:'semantic-interval-quota'};
   }
   // Distinct disjoint placements remain ambiguous, even with matching anchors.
-  if(intervals.length!==1)return {status:'unavailable',reason:'ambiguous-semantic-cut'};
+  if(intervals.length!==1)return reconstructCurrentMask()||(intervals.length===0?reconstructSourceOwnedMask():null)||{status:'unavailable',reason:'ambiguous-semantic-cut'};
   const start=(intervals[0][0]+intervals[0][1])/2;
   const target={...clip,left:start,right:start+width};
   if(items.some((g,i)=>g.rects.some(r=>hit(r,target))!==desired[i]))return {status:'unavailable',reason:'semantic-cut-validation-failed'};
-  return {status:'qualified',physicalStart:start};
+  return {status:'qualified',physicalStart:start-maskWidths.left,
+   ...(maskWidths.left||maskWidths.right?{maskWidths}:{})};
  }catch{return {status:'unavailable',reason:'semantic-cut-resolution-failed'};}
 }

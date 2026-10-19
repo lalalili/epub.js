@@ -128,6 +128,49 @@ describe("browser DOM traversal platform boundary", () => {
 		}
 	});
 
+	it("admits late viewport text before applying the rect limit", () => {
+		const wrapper = document.createElement("div");
+		wrapper.style.cssText = "position:absolute;left:0;top:0;width:24000px;height:40px;font:16px/20px sans-serif";
+		for (let index = 0; index < 1002; index += 1) {
+			const span = document.createElement("span");
+			span.style.cssText = `position:absolute;left:${index * 20}px;top:0`;
+			span.textContent = "甲";
+			wrapper.append(span);
+		}
+		document.body.append(wrapper);
+		try {
+			const range = document.createRange();
+			range.selectNodeContents(wrapper.lastChild);
+			const target = range.getBoundingClientRect();
+			const bounds = {left:target.left - 1,right:target.right + 1};
+			const rects = collectVisibleTextClientRects(document,window,wrapper,{minimumTextLength:1,limit:1,horizontalBounds:bounds});
+			expect(rects).toHaveLength(1);
+			expect(rects[0].left).toBe(target.left);
+			expect(rects[0].right).toBe(target.right);
+			const supplemented = collectVisibleTextClientRects(document, window, wrapper, {
+				minimumTextLength: 1, limit: 1, horizontalBounds: bounds, supplementTruncatedPrefix: true
+			});
+			expect(supplemented).toHaveLength(2);
+			expect(supplemented[0].left).toBe(0);
+			expect(supplemented[1].left).toBe(target.left);
+			const firstRange = document.createRange();
+			firstRange.selectNodeContents(wrapper.firstChild);
+			const first = firstRange.getBoundingClientRect();
+			expect(collectVisibleTextClientRects(document, window, wrapper, {
+				minimumTextLength: 1, limit: 1, supplementTruncatedPrefix: true,
+				horizontalBounds: { left: first.left - 1, right: first.right + 1 }
+			})).toHaveLength(1);
+			expect(collectVisibleTextClientRects(document, window, wrapper, {
+				minimumTextLength: 1, limit: 1, supplementTruncatedPrefix: true,
+				horizontalBounds: { left: NaN, right: 100 }
+			})).toBeNull();
+			expect(collectVisibleTextClientRects(document,window,wrapper,{minimumTextLength:1,limit:1,
+				horizontalBounds:{left:25000,right:26000}})).toHaveLength(0);
+		} finally {
+			wrapper.remove();
+		}
+	});
+
 	it("keeps element child and parent helpers aligned with legacy exports", () => {
 		var doc = parse("<root><group><item id=\"a\" /><item id=\"b\" /><note /></group></root>");
 		var group = doc.getElementsByTagName("group")[0];

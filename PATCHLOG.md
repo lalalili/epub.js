@@ -2,6 +2,101 @@
 
 This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
+## 2026-10-16
+
+### EPUB-G5-001 keep uncapped mask expansion outside adjacent glyphs
+- Why: 5556 narrow320x568 min-tight Section0013 changes its page7 fence on a normal previous/return path. An uncapped snap expansion crosses an adjacent measured column; repeated edge snaps can then settle on a wider mask and alter subsequent source windows.
+- Diff Scope: use the existing retreat through overlapping measured intervals whenever a positive expansion crosses a measured glyph, including before the mask cap. Keep the existing no-safe-boundary fallback, source rects, typography and source bytes. No ISBN branch, overflow suppression or relaxed oracle.
+- Test: the measured nine-rect regression fails before and passes after, checking whole glyphs and a stable decision. Focused260 tests, lint and typecheck pass; the full Chromium suite passes963 tests with one existing skip. The same locked candidate passes the normal UI page7 return, the historical29-source-unit five-stage paint/interaction gate and four5556/8472 sentinels. Original narrow min-tight continuous qualification passes153 positions,152 checkpoints and153 loaded-UMD checks in218.36 minutes;47 surplus segments skip only after the complete boundary. All148 saved glyph round trips reassess consistently;23 assets restore byte-identically.
+- Evidence: CPTW sanitized evidence records candidate UMD ea2f53df, source hashes and the full profile. Other affected profiles, Native and final distribution require applicability review or verification. This does not close full G5 or expand historical formal A-E qualification.
+- Rollback: revert this raw-left-snap change and regenerate distribution artifacts.
+
+### EPUB-G5-001 remeasure the promoted terminal page's mask fence
+- Why: 5556 mobile390x844 min-tight Section0005 page6 retains a terminal 8px content fence after promotion from6 to7 pages. Reader accepts the old zero-mask/8px-displacement visual state and partially exposes46 source units owned completely by the next page. Independent Engine-only regression accepts that obsolete fence as a zero physical mask before the change.
+- Diff Scope: invalidate only the promoted target's applied-left-mask record after successful continuation promotion. Preserve earlier masks, every learned offset and the reached-tail path. No page-count policy, offset changes, ISBN branches, overflow suppression or relaxed paint assertions.
+- Test: the regression fails before and passes after under the owner lock. Five focused browser files pass74 tests, including unchanged offsets, prior-page masks, tail resolution and View recreation; TypeScript passes. The same locked unmodified source rebuilds all23 Reader assets byte-identically to the qualified baseline. The locked mobile390x844 min-tight canonical first-chapter gate passes91 continuous positions with90 checkpoints,91 loaded-UMD checks,109 surplus skips only after completion and23 assets restored (123.8 minutes). Required5556 SameLayout and8472 fixed-spread/horizontal-content/resize sentinels pass4 tests with independently captured executed-script bytes. Android, remaining affected profiles and final distribution remain pending; an earlier unlocked-toolchain20-position diagnostic is not qualification.
+- Evidence: the CPTW5556 named case and task-private source/runtime fingerprints retain raw geometry, glyph references, hit/caret/selection and the Reader mask ownership trace. This local slice does not close G5 or unfreeze unrelated rendering work.
+- Rollback: revert this terminal-mask invalidation and regenerate the distribution.
+
+## 2026-10-07
+
+### EPUB-G5-001 late viewport rect admission
+- Why: real-book8069 Source4 has1258 valid text rects. The first1000 omit the original boundary target, leaving edge-mask and snap measurement blind to late source text. Independent Engine-only evidence reproduces the omission; browser/Fontconfig parity is retained.
+- Diff Scope: supplement a full legacy rect prefix with a bounded horizontal-neighborhood sample, preserving prefix coordinate authority and deduplicating rects. Four existing vertical boundary measurement callers supply their local bounds. Complete prefixes retain their original behavior. No ISBN policy, source edits, relaxed expectations or disabled masks.
+- Test: actual-DOM late-target admission fails before and passes after;7 traversal tests and82 canonical files (909 tests, one existing skip) pass. Sail typecheck, lint, compile, build and package contracts pass. Same built CPTW landscape914x411 large-type24px/48px full profile passes; original Source4 indices12277..12288 separately pass full glyph ownership and pointer selection across pages60/59/60/61/60. Missing ink and ink outside effective clip are both zero.
+- Evidence: CPTW8069 named case and task-private fingerprint retain original failure, source hashes, before/after geometry and consumer reports. Affected5556 SameLayout and8472 fixed spread-switch/horizontal resize sentinels pass on the same candidate; Android qualification remains pending; this does not close fullG5 or unfreeze unrelated geometry.
+- Rollback: revert this traversal/measurement slice and regenerate canonical artifacts.
+
+### EPUB-G5-001 vertical canvas right inset
+- Why: real-book8069 landscape914x411 at24px/48px clips nine terminal annotation characters. The raw vertical paint span excludes the24px right inset; the non-positive-offset scroll-width cap also discards it. An Engine-only real-book fixture and a public actual-DOM Range regression reproduce the missing width.
+- Diff Scope: retain the measured viewport right inset in vertical paint width and its scroll-width limit. No source edits, font-size changes, overflow suppression, mask removal or ISBN-specific policy.
+- Test: the public width regression fails before (1002px below1024px paint-plus-inset) and passes after; all13 contents-width tests and30 focused width/frame-origin/terminal tests pass. All82 canonical browser files pass (908 tests, one existing skip); typecheck, lint, build, package contracts and both dependency audits pass. The same built CPTW consumer proves complete paint and exact source pointer selection for the original eight text characters and one TCY link. The full landscape profile later fails on Section0004 turn93; that boundary incident, affected profiles, Android and release qualification remain pending.
+- Evidence: CPTW8069 named case retains source/package hashes, raw geometry and independent glyph before/after. Partial Range crossings on an adjacent page require independently complete source ink exclusion; they are not evidence of a rendering defect by themselves.
+- Rollback: revert this measurement slice and regenerate canonical artifacts.
+
+## 2026-10-06
+
+### EPUB-G5-001 terminal text inside page snap tolerance
+- Why: real-book desktop30px/78px terminal annotation ink is clipped with19px remaining. An independent DOM fixture has an unreached text tail with20px remaining inside21px page-index snap tolerance, but reserves no continuation.
+- Diff Scope: only terminal-tail observation and promotion use one-pixel tolerance. General page-index tolerance remains; reached and unknown tails do not authorize promotion. No ISBN/source policy.
+- Test: the new fixture fails before and passes after, including reaching the same source tail on next. Both terminal-tail/continuation files pass16 tests; typecheck, lint and canonical build pass. The unchanged real-book8069 desktop max-loose strict first-chapter gate passes on a private built Reader54 candidate; runtime UMDc166954666a51b10ac3bb5ef4d5167f010da81ac408dee1a938196eb9fb901aa is read back, and formal assets are restored byte-exactly.
+- Evidence: CPTW named case and sanitized before/after retain original failure. Remaining affected profiles, sentinels, Android and release qualification remain pending; broader RTL freeze stays in effect.
+- Rollback: revert this terminal observation slice and regenerate canonical artifacts.
+
+## 2026-10-05
+
+### EPUB-G5-001 source-owned semantic restore masks
+- Why: the saved Section0015 source cut contains455 characters, but the anchor page's transient31/2px masks leave no legal fixed-width placement. Engine returns unavailable and the legacy page-index fallback restores a different source set. A real-DOM core fixture reproduces the changed-mask rejection.
+- Diff Scope: only when the fixed-mask solver has zero placements, derive separating edges from current-document selected and excluded source glyphs. Require full containment and exact source-set ownership before returning new masks. Multiple placements, unsupported fragments, source mismatch and excluded middle glyphs remain fail-closed. Persisted descriptors contain no pixel geometry.
+- Test: the new positive core case fails before and passes after; all9 semantic-cut tests and82 browser files pass (905 tests, one existing skip), with lint/typecheck clean. The real built-consumer18px/28.8px mobile source42 case restores455/455 characters after reload and passes the five-state glyph/interaction return gate; the mobile Section0019 SameLayout sentinel and three8472 horizontal/fixed-layout gates pass. Candidate assets are restored to the original formal Reader46 bytes after verification.
+- Evidence: source hashes and sanitized counts are recorded in the CPTW named case. Android, other affected restore profiles, package release and full G5 remain unqualified; this is not new formal A-E or production evidence.
+- Rollback: revert this source change and regenerate distribution artifacts.
+
+## 2026-10-04
+
+### EPUB-G5-001 applied mask ledger across spine return
+- Why: native Section0003 returned with the same page/frame but a different right mask; its previously applied left-mask record was missing after view recreation. An independent core fixture loses its recorded 12px mask across a spine round trip.
+- Diff Scope: persist applied-left-mask records alongside offsets in the existing Section/layout ledger; restore matching geometry only. Separate sections and changed layouts retain independent records.
+- Test: the ledger assertion fails before and passes after. All 903 browser tests pass (one existing skip), including full reverse-window equality, section isolation and resize invalidation; typecheck, lint, build and nine contracts pass. Fresh built-consumer Web sentinels and Android ui-small canonical round trips pass on the paired Reader d691ef6: 8069 has 70 forward/69 reverse snapshots and full source coverage; 5556 has 15 forward/14 reverse snapshots. The native Section0003 page4 witness retains all 35 source positions on return. Other profiles and full G5 remain open.
+- Evidence: the 35 native source positions move to the previous page on return; whole-chapter loss is not established. No ISBN special case, source edit or expected relaxation.
+- Rollback: revert source commit 16c5246 and regenerate canonical distribution assets.
+
+### EPUB-G5-001 terminal return boundary ownership
+- Why: the native real-book terminal frame retained its offset but widened its effective right clip on return, repeating 39 source positions already witnessed on the previous page. An Engine-only continuation fixture independently returns four extra source units when it remembers the offset without the learned terminal right boundary.
+- Diff Scope: keep the learned terminal right boundary in the existing Section/layout ledger and restore it only for a matching cached terminal offset at the end of that rail. New sections and changed geometry retain independent ledgers.
+- Test: the strict returned-source-window assertion fails before and passes after; all five continuation tests and the full browser suite pass (903 passes, one existing skip). Lint, typecheck and canonical build pass. Fresh Android ui-small coverage and full canonical reverse windows pass with the paired Reader d691ef6; the terminal boundary and cross-spine mask ledgers preserve source ownership. Other profiles and full G5 remain open.
+- Evidence: numeric geometry and source hashes are recorded in the host G5 case; no ISBN-specific behavior or test relaxation. This is not full G5, formal A-E, production or physical Android closure.
+- Rollback: revert the terminal boundary ledger change and regenerate distribution artifacts.
+
+### EPUB-G5-001 cached-neighbor viewport gap
+- Why: a learned future offset advanced 418.1816px through a 393.0909px native viewport. Page-index tolerance admitted this jump and left 35 ordinary source characters outside both adjacent effective clips. A core-only fixture independently reproduces omitted source units when the excess advance is smaller than page-index tolerance.
+- Diff Scope: use a 1px measurement tolerance for cached-neighbor viewport-gap admission. Page-index lookup tolerance, typography, masks and book source remain unchanged.
+- Test: 156 focused browser tests; full 82-file suite with 903 passes and one existing skip; lint, typecheck and canonical build pass. The paired Reader's actual loaded new Web candidate passes 8069 ui-small canonical forward/reverse navigation; same-profile Android full canonical source coverage and reverse windows now pass with the paired Reader d691ef6. Other profiles and full G5 remain open.
+- Evidence: the native failure, raw Range geometry, screenshots and correct iframe caret identity are retained privately with sanitized source hashes in the host regression case. This is not full G5, formal A-E, production or physical Android closure.
+- Rollback: revert the gap admission change and regenerate distribution artifacts.
+
+### EPUB-G5-001 frame-origin measurement stability
+- Why: translating a vertical-rl iframe was incorrectly treated as source reflow. Repeated width snapping reduced the same unchanged source width by one pixel; cache invalidation and omitted optional page height could discard the translation witness.
+- Diff Scope: retain frame-origin evidence only while source shape, typography and viewport agree; normalize omitted page height to the actual content height. Raw Range rects and genuine source/font/viewport reflow remain independently measured.
+- Test: 151 focused browser tests; full 82-file browser suite with 902 passes and one existing skip; type/lint/build and release contracts pass. Both audits report zero vulnerabilities and pack dry-run passes. The original 8069 Web ui-small/default/large navigation and four focused sentinels pass with the paired Reader fixed-layout applicability guard; Android long navigation remains under qualification.
+- Evidence: these gates qualify the named source change and immutable build artifacts, not full G5, formal persistence A–E, production or physical Android.
+- Rollback: revert the frame-origin source change and regenerate distribution artifacts.
+
+## 2026-10-03
+
+### EPUB-G5-001 partially masked terminal text
+- Why: the same terminal fixture with Liberation Mono reproduced the CI failure: the tail Range spans x=2..20 while the effective left clip is x=12. Positive intersection suppressed continuation and semantic coverage stopped at 89 of 90 units.
+- Diff Scope: classify vertical-rl text extending left of the effective clip as unreached before accepting positive intersection. Replaced-element behavior is unchanged. Keep separate fully masked and partially intersecting terminal fixtures instead of assuming a generic monospace font has fixed metrics.
+- Test: the partial-tail fixture now promotes continuation and covers 90 of 90 units; nine focused terminal tests and the full release gate pass (900 browser tests, one existing skip). This is raw Range and semantic coverage evidence, not a raster proof or full true-book G5 qualification.
+- Rollback: revert this terminal classification change and rebuild artifacts.
+
+### EPUB-G5-001 release build security gate
+- Why: the full dependency audit blocked release through the Babel 7 CLI watcher and documentation dependencies.
+- Diff Scope: migrate the Babel build toolchain to version 8, retain CommonJS compatibility output and usage-based core-js polyfills, and update the affected brace-expansion and markdown-it dependencies. Preserve unrelated locked dependency versions.
+- Test: full `verify:release` on Node 22.23.2; all package contracts; 81 browser files, 899 passing tests and one existing skip; both dependency audits report zero vulnerabilities; pack dry-run passes.
+- Evidence: this build gate supports the G5 source candidate; it does not establish full G5, formal persistence A–E, production, or physical Android qualification.
+- Rollback: revert the build-tool migration and regenerate distribution artifacts; the prior dependency audit failure will return.
+
 ## 2026-09-29
 
 ### EPUB-SPREAD-001 horizontal two-column spread page count

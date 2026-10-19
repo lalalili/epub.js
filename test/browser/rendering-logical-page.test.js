@@ -46,6 +46,21 @@ describe("logical-page: getVerticalRlLogicalPageOffsetCacheKey", () => {
 	});
 });
 
+it("normalizes only content extent precision, retaining independent geometry guards", () => {
+	const key = getVerticalRlLogicalPageOffsetCacheKey(11, 3840, 4233, 393.09, 384, 4);
+	expect(getVerticalRlLogicalPageOffsetCacheKey(11, 3840, 4233.09, 393.09, 384, 4)).toBe(key);
+	for (const geometry of [
+		[11, 3840, 4234.09, 393.09, 384, 4],
+		[12, 3840, 4233.09, 393.09, 384, 4],
+		[11, 3841, 4233.09, 393.09, 384, 4],
+		[11, 3840, 4233.09, 394.09, 384, 4],
+		[11, 3840, 4233.09, 393.09, 385, 4],
+		[11, 3840, 4233.09, 393.09, 384, 5],
+	]) {
+		expect(getVerticalRlLogicalPageOffsetCacheKey(...geometry)).not.toBe(key);
+	}
+});
+
 describe("logical-page: offset cache get/set", () => {
 	it("returns null for a missing cache or key mismatch", () => {
 		expect(getCachedVerticalRlLogicalPageOffset(null, 0, "k")).toBeNull();

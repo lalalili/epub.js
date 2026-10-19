@@ -259,12 +259,12 @@ function diagnosticState(manager, semanticIds, tailId) {
 	};
 }
 
-async function createFixture({ name, kind, columns, geometryTailWidth, tailShift }) {
+async function createFixture({ name, kind, columns, geometryTailWidth, tailShift, fontFamily = "monospace" }) {
 	const zip = new JSZip();
 	zip.file("mimetype", "application/epub+zip");
 	zip.file("META-INF/container.xml", '<?xml version="1.0"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/></rootfiles></container>');
 	zip.file("OPS/package.opf", '<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="id"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="terminal-authority-fixture">terminal-authority-fixture</dc:identifier><dc:title>Terminal authority</dc:title><dc:language>en</dc:language></metadata><manifest><item id="one" href="one.xhtml" media-type="application/xhtml+xml"/><item id="two" href="two.xhtml" media-type="application/xhtml+xml"/></manifest><spine page-progression-direction="rtl"><itemref idref="one"/><itemref idref="two"/></spine></package>');
-	const style = `html,body{margin:0;padding:0;writing-mode:vertical-rl;direction:ltr;font:16px/31px monospace;text-orientation:upright}p{margin:0;padding:0}span{white-space:nowrap}.geometry-tail{display:block;width:${geometryTailWidth}px;height:1px;visibility:hidden}.semantic-tail{position:relative;left:${tailShift}px}.replaced-tail{display:inline-block;position:relative;left:${tailShift}px;width:23px;height:16px;vertical-align:top}`;
+	const style = `html,body{margin:0;padding:0;writing-mode:vertical-rl;direction:ltr;font:16px/31px ${fontFamily};text-orientation:upright}p{margin:0;padding:0}span{white-space:nowrap}.geometry-tail{display:block;width:${geometryTailWidth}px;height:1px;visibility:hidden}.semantic-tail{position:relative;left:${tailShift}px}.replaced-tail{display:inline-block;position:relative;left:${tailShift}px;width:23px;height:16px;vertical-align:top}`;
 	const textMarkup = Array.from({ length: columns }, (_, index) => `<p><span data-semantic-id="unit-${index}">${index === columns - 1 ? "A" : "ABCDEFGHI"}</span></p>`).join("");
 	const replacedMarkup = kind === "replaced"
 		? `<p><svg data-semantic-id="tail-owner" class="replaced-tail" width="23" height="144" viewBox="0 0 23 144" role="img" aria-label="terminal owner"><rect width="23" height="144" fill="black"/></svg></p>`
@@ -524,8 +524,37 @@ const fixtureE = {
 	kind: "text",
 	columns: 90,
 	geometryTailWidth: 64,
-	tailShift: 40,
+	tailShift: 70,
 };
+
+it("observes an unreached terminal text tail inside page snap tolerance", async () => {
+	const fixture = await createFixture({
+		name: "near-end-source-boundary", kind: "text", columns: 90,
+		geometryTailWidth: 0, tailShift: -70, fontFamily: '"Liberation Mono", monospace',
+	});
+	const { manager, semanticIds, tailId } = fixture;
+	const basePages = manager.getBaseGeometryPageCount();
+	const view = manager.views.first();
+	const maxScroll = manager.getMaxLogicalScrollLeft();
+	const visibleWidth = manager.layout.pageWidth;
+	manager.scrollToLogicalPage(basePages - 1, {
+		ignoreCachedLogicalOffset: true,
+		sequentialRightBoundary: manager.getVerticalRlVisualContentWidth(view) - maxScroll + visibleWidth * 0.075,
+	});
+	await pureSettle(manager, semanticIds, tailId);
+	const state = diagnosticState(manager, semanticIds, tailId);
+	console.info("near-end-terminal-tail", JSON.stringify({...sanitizeState(state),logicalOffset:state.logicalOffset,maxLogicalScroll:state.maxLogicalScroll,snapTolerance:state.snapTolerance,continuationCount:state.continuationCount}));
+	expect(state.maxLogicalScroll - state.logicalOffset).toBeGreaterThan(1);
+	expect(state.maxLogicalScroll - state.logicalOffset).toBeLessThanOrEqual(state.snapTolerance);
+	expect(state.tailState.state).toBe("unreached");
+	expect(state.continuationCount).toBeGreaterThan(0);
+	manager.next();
+	await pureSettle(manager, semanticIds, tailId);
+	const continued = diagnosticState(manager, semanticIds, tailId);
+	expect(continued.href).toBe(state.href);
+	expect(continued.tailState.state).toBe("reached");
+	expect(continued.continuationCount).toBe(state.continuationCount);
+}, 120000);
 
 it.each(tailFixtures)("qualifies $name terminal tail contract", async (options) => {
 	const report = await runCase(options);
@@ -569,6 +598,8 @@ it("defers Fixture E promotion until the target terminal tail settles", async ()
 	expect(report.tailStateBefore.state).toBe("unreached");
 	expect(report.promotionPoint.continuationCountBefore).toBe(0);
 	expect(report.promotionObserved).toBe(false);
+	expect(report.afterFirstPromotion.tailRect.left).toBeGreaterThanOrEqual(report.afterFirstPromotion.effectiveClip.left);
+	expect(report.afterFirstPromotion.tailRect.right).toBeLessThanOrEqual(report.afterFirstPromotion.effectiveClip.right);
 	expect(report.afterFirstPromotion.tailState.state).toBe("reached");
 	expect(report.promotionPoint.trace.length).toBeGreaterThan(0);
 	const decision = report.terminalTrace.find((entry) => entry.event === "vertical-rl-terminal-promotion-decision");
@@ -600,6 +631,28 @@ it("keeps repeated reached and unreached terminal decisions idempotent", () => {
 	expect(unreached.continuationCount).toBe(1);
 });
 
+it("promotes the original Fixture E geometry when the target tail remains outside the applied mask", async () => {
+	const report = await runCase({ ...fixtureE, name: "fixture-e-target-tail-still-masked", tailShift: 20 });
+
+	expect(report.tailStateBefore.state).toBe("unreached");
+	expect(report.afterFirstPromotion.tailRect.right).toBeLessThanOrEqual(report.afterFirstPromotion.effectiveClip.left);
+	expect(report.afterFirstPromotion.tailState.state).toBe("unreached");
+	expect(report.promotionObserved).toBe(true);
+	expect(report.terminalTailReachedAfterPromotion).toBe(true);
+	expect(report.cumulativeUnionCount).toBe(fixtureE.columns);
+}, 120000);
+
+it("does not suppress continuation for a text tail intersecting the left mask", async () => {
+	const report = await runCase({ ...fixtureE, name: "fixture-e-partially-masked-text-tail", tailShift: 40, fontFamily: '\"Liberation Mono\", monospace' });
+	console.info("vertical-rl-partial-terminal-tail", JSON.stringify(sanitizeReport(report)));
+	expect(report.afterFirstPromotion.tailRect.left).toBeLessThan(report.afterFirstPromotion.effectiveClip.left);
+	expect(report.afterFirstPromotion.tailRect.right).toBeGreaterThan(report.afterFirstPromotion.effectiveClip.left);
+	expect(report.afterFirstPromotion.tailState.state).toBe("unreached");
+	expect(report.promotionObserved).toBe(true);
+	expect(report.terminalTailReachedAfterPromotion).toBe(true);
+	expect(report.cumulativeUnionCount).toBe(fixtureE.columns);
+}, 120000);
+
 it("returns unknown and never authorizes suppression when the tail geometry is unavailable", () => {
 	const isolatedDocument = document.implementation.createHTMLDocument("unknown-tail");
 	isolatedDocument.body.innerHTML = "<p><span>Z</span></p>";
@@ -611,4 +664,38 @@ it("returns unknown and never authorizes suppression when the tail geometry is u
 
 	expect(result.state).toBe("unknown");
 	expect(result.candidate).toBeNull();
+});
+
+// Core regression derived from the captured G5 mixed-section tail overshoot.
+it("returns to the last source-owned tail after recreating an overhanging view", async () => {
+	const fixture = await createFixture({
+		name: "recreated-overhanging-tail",
+		kind: "text",
+		columns: 65,
+		geometryTailWidth: 300,
+		tailShift: 20,
+	});
+	const { rendition, manager, semanticIds, tailId } = fixture;
+	let lastReached = null;
+	for (let step = 0; step < 32; step++) {
+		const state = diagnosticState(manager, semanticIds, tailId);
+		if (state.href === "two.xhtml") {
+			break;
+		}
+		if (state.tailState.state === "reached") {
+			lastReached = state;
+		}
+		await rendition.next();
+		await pureSettle(manager, semanticIds, tailId);
+	}
+	expect(lastReached, "forward navigation must reach the real source tail").not.toBeNull();
+	expect(manager.views.first().section.href).toBe("two.xhtml");
+	await rendition.prev();
+	await pureSettle(manager, semanticIds, tailId);
+	const returned = diagnosticState(manager, semanticIds, tailId);
+	expect(returned.href).toBe("one.xhtml");
+	expect(returned.tailState.state).toBe("reached");
+	expect(returned.visibleSemanticIds).toEqual(lastReached.visibleSemanticIds);
+	expect(returned.frameRect).toEqual(lastReached.frameRect);
+	expect(returned.continuationCount).toBe(0);
 });
