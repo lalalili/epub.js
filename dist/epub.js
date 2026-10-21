@@ -8,6 +8,14 @@
 	var __getOwnPropNames = Object.getOwnPropertyNames;
 	var __getProtoOf = Object.getPrototypeOf;
 	var __hasOwnProp = Object.prototype.hasOwnProperty;
+	var __esmMin = (fn, res, err) => () => {
+		if (err) throw err[0];
+		try {
+			return fn && (res = fn(fn = 0)), res;
+		} catch (e) {
+			throw err = [e], e;
+		}
+	};
 	var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).exports, mod), cb = null), mod.exports);
 	var __exportAll = (all, no_symbols) => {
 		let target = {};
@@ -90,7 +98,8 @@
 	//#region node_modules/type/plain-function/is.js
 	var require_is = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isFunction = require_is$1();
-		var classRe = /^\s*class[\s{/}]/, functionToString = Function.prototype.toString;
+		var classRe = /^\s*class[\s{/}]/;
+		var functionToString = Function.prototype.toString;
 		module.exports = function(value) {
 			if (!isFunction(value)) return false;
 			if (classRe.test(functionToString.call(value))) return false;
@@ -158,7 +167,9 @@
 	//#endregion
 	//#region node_modules/es5-ext/object/assign/shim.js
 	var require_shim$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		var keys = require_keys(), value = require_valid_value(), max = Math.max;
+		var keys = require_keys();
+		var value = require_valid_value();
+		var max = Math.max;
 		module.exports = function(dest, src) {
 			var error, i, length = max(arguments.length, 2), assign;
 			dest = Object(value(dest));
@@ -186,7 +197,8 @@
 	//#region node_modules/es5-ext/object/normalize-options.js
 	var require_normalize_options = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is_value();
-		var forEach = Array.prototype.forEach, create = Object.create;
+		var forEach = Array.prototype.forEach;
+		var create = Object.create;
 		var process = function(src, obj) {
 			var key;
 			for (key in src) obj[key] = src[key];
@@ -225,7 +237,11 @@
 	//#endregion
 	//#region node_modules/d/index.js
 	var require_d = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		var isValue = require_is$4(), isPlainFunction = require_is(), assign = require_assign(), normalizeOpts = require_normalize_options(), contains = require_contains();
+		var isValue = require_is$4();
+		var isPlainFunction = require_is();
+		var assign = require_assign();
+		var normalizeOpts = require_normalize_options();
+		var contains = require_contains();
 		var d = module.exports = function(dscr, value) {
 			var c, e, w, options, desc;
 			if (arguments.length < 2 || typeof dscr !== "string") {
@@ -293,11 +309,20 @@
 	//#endregion
 	//#region src/core/async.ts
 	var import_event_emitter = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
-		var d = require_d(), callable = require_valid_callable(), apply = Function.prototype.apply, call = Function.prototype.call, create = Object.create, defineProperty = Object.defineProperty, defineProperties = Object.defineProperties, hasOwnProperty = Object.prototype.hasOwnProperty, descriptor = {
+		var d = require_d();
+		var callable = require_valid_callable();
+		var apply = Function.prototype.apply;
+		var call = Function.prototype.call;
+		var create = Object.create;
+		var defineProperty = Object.defineProperty;
+		var defineProperties = Object.defineProperties;
+		var hasOwnProperty = Object.prototype.hasOwnProperty;
+		var descriptor = {
 			configurable: true,
 			enumerable: false,
 			writable: true
-		}, on = function(type, listener) {
+		};
+		var on = function(type, listener) {
 			var data;
 			callable(listener);
 			if (!hasOwnProperty.call(this, "__ee__")) {
@@ -309,7 +334,8 @@
 			else if (typeof data[type] === "object") data[type].push(listener);
 			else data[type] = [data[type], listener];
 			return this;
-		}, once = function(type, listener) {
+		};
+		var once = function(type, listener) {
 			var once, self;
 			callable(listener);
 			self = this;
@@ -319,7 +345,8 @@
 			});
 			once.__eeOnceListener__ = listener;
 			return this;
-		}, off = function(type, listener) {
+		};
+		var off = function(type, listener) {
 			var data, listeners, candidate, i;
 			callable(listener);
 			if (!hasOwnProperty.call(this, "__ee__")) return this;
@@ -331,7 +358,8 @@
 				else listeners.splice(i, 1);
 			} else if (listeners === listener || listeners.__eeOnceListener__ === listener) delete data[type];
 			return this;
-		}, emit = function(type) {
+		};
+		var emit = function(type) {
 			var i, l, listener, listeners, args;
 			if (!hasOwnProperty.call(this, "__ee__")) return;
 			listeners = this.__ee__[type];
@@ -358,17 +386,20 @@
 					for (i = 1; i < l; ++i) args[i - 1] = arguments[i];
 					apply.call(listeners, this, args);
 			}
-		}, methods = {
+		};
+		var methods = {
 			on,
 			once,
 			off,
 			emit
-		}, descriptors = {
+		};
+		var descriptors = {
 			on: d(on),
 			once: d(once),
 			off: d(off),
 			emit: d(emit)
-		}, base = defineProperties({}, descriptors);
+		};
+		var base = defineProperties({}, descriptors);
 		module.exports = exports = function(o) {
 			return o == null ? create(base) : defineProperties(Object(o), descriptors);
 		};
@@ -10432,6 +10463,128 @@
 		}
 	};
 	//#endregion
+	//#region src/rendering/block-media.ts
+	var originalStyles = /* @__PURE__ */ new WeakMap();
+	var fittedMediaDocuments = /* @__PURE__ */ new WeakSet();
+	/** The last source block is a fitted image-only normal-flow canvas. */
+	function hasFittedVerticalRlMediaTail(document) {
+		return fittedMediaDocuments.has(document);
+	}
+	function restoreOriginalStyles(element, properties) {
+		let original = originalStyles.get(element);
+		if (!original) {
+			original = Object.fromEntries(properties.map((key) => [key, {
+				value: element.style.getPropertyValue(key),
+				priority: element.style.getPropertyPriority(key)
+			}]));
+			originalStyles.set(element, original);
+		}
+		for (const [key, style] of Object.entries(original)) if (style.value) element.style.setProperty(key, style.value, style.priority);
+		else element.style.removeProperty(key);
+	}
+	function fitMaxWidth(element, window, pageWidth) {
+		const authorLimit = window.getComputedStyle(element).maxWidth;
+		element.style.setProperty("max-width", authorLimit === "none" ? `${pageWidth}px` : `min(${pageWidth}px, ${authorLimit})`, "important");
+	}
+	/** Include only fitted normal-flow images as indivisible boundary intervals. */
+	function collectVerticalRlBlockMediaRects(document, window, pageWidth) {
+		if (!document.querySelectorAll || !window.getComputedStyle) return [];
+		return Array.from(document.querySelectorAll("img")).flatMap((image) => {
+			const style = window.getComputedStyle(image);
+			if (style.display !== "block" || style.position !== "static" || style.visibility !== "visible" || style.transform !== "none") return [];
+			const rect = image.getBoundingClientRect();
+			return rect.width > 0 && rect.height > 0 && rect.width <= pageWidth ? [rect] : [];
+		});
+	}
+	/** A fitted image may own an otherwise text-free viewport, including a learned offset. */
+	function resolveVerticalRlBlockMediaOffset(offset, maxScroll, contentWidth, pageWidth, mediaRects, textRects, edgeGuard = 0, leftGutter = 0) {
+		const rawLeft = contentWidth - offset - pageWidth;
+		const rawRight = contentWidth - offset;
+		if (textRects.some((rect) => rect.right > rawLeft && rect.left < rawRight)) return offset;
+		const leftInset = Math.max(edgeGuard, leftGutter);
+		const left = rawLeft + leftInset;
+		const right = rawRight - edgeGuard;
+		for (const media of mediaRects) {
+			if (!(media.width > 0 && media.width <= pageWidth - leftInset - edgeGuard) || media.right <= left || media.left >= right || media.left >= left && media.right <= right) continue;
+			const target = media.left < left ? contentWidth - pageWidth + leftInset - media.left : contentWidth - edgeGuard - media.right;
+			if (target < 0 || target > maxScroll) continue;
+			const nextLeft = contentWidth - target - pageWidth + leftInset;
+			const nextRight = contentWidth - target - edgeGuard;
+			if (textRects.some((rect) => rect.left < nextLeft && rect.right > nextLeft || rect.left < nextRight && rect.right > nextRight)) continue;
+			return target;
+		}
+		return offset;
+	}
+	/** Keep normal-flow block images in one vertical page without changing DOM identity. */
+	function layoutVerticalRlBlockMedia(contents, pageWidth, edgeGuard = 0) {
+		fittedMediaDocuments.delete(contents.document);
+		const images = contents.content?.querySelectorAll("img");
+		if (!(pageWidth > 0) || !images?.length || !contents.window?.getComputedStyle || contents.window.getComputedStyle(contents.content).writingMode !== "vertical-rl") return;
+		const usableWidth = pageWidth - 2 * edgeGuard;
+		if (!(usableWidth > 0)) return;
+		const dpr = contents.window.devicePixelRatio || 1;
+		const imageWidth = Number.isInteger(pageWidth * dpr) ? usableWidth : Math.min(usableWidth, pageWidth - 2 / dpr);
+		const origin = contents.window.innerWidth;
+		for (const image of images) {
+			const computed = contents.window.getComputedStyle(image);
+			if (computed.display !== "block" || computed.position !== "static" || computed.transform !== "none" || image.closest("svg")) continue;
+			const wrapper = image.parentElement;
+			let alignedElement = image;
+			if (wrapper && wrapper !== contents.content && wrapper.childElementCount === 1 && !wrapper.textContent?.trim()) {
+				const wrapperStyle = contents.window.getComputedStyle(wrapper);
+				if (wrapperStyle.position === "static" && wrapperStyle.transform === "none") {
+					restoreOriginalStyles(wrapper, ["max-width", "margin-right"]);
+					fitMaxWidth(wrapper, contents.window, usableWidth);
+					alignedElement = wrapper;
+				}
+			}
+			restoreOriginalStyles(image, ["max-width", "margin-right"]);
+			fitMaxWidth(image, contents.window, imageWidth);
+			const rect = alignedElement.getBoundingClientRect();
+			if (!(rect.width > 0) || rect.width > usableWidth + 1) continue;
+			if (alignedElement.parentElement === contents.content && alignedElement === contents.content.lastElementChild && !alignedElement.textContent?.trim()) fittedMediaDocuments.add(contents.document);
+			const offset = origin - rect.right;
+			if (offset < -1) continue;
+			const page = Math.floor(Math.max(0, offset) / pageWidth);
+			if (offset + rect.width <= (page + 1) * pageWidth - edgeGuard + 1 && offset >= page * pageWidth + edgeGuard - 1) continue;
+			let target = Math.max(offset, page * pageWidth + edgeGuard);
+			if (target + rect.width > (page + 1) * pageWidth - edgeGuard + 1) target = (page + 1) * pageWidth + edgeGuard;
+			const margin = (Number.parseFloat(contents.window.getComputedStyle(alignedElement).marginRight) || 0) + Math.max(0, target - offset);
+			alignedElement.style.setProperty("margin-right", `${margin}px`, "important");
+			const remaining = target - (origin - alignedElement.getBoundingClientRect().right);
+			if (remaining > 1) alignedElement.style.setProperty("margin-right", `${margin + remaining}px`, "important");
+		}
+	}
+	//#endregion
+	//#region src/rendering/page-metrics.ts
+	function countPagesWithFractionalTolerance(totalLength, pageLength) {
+		if (!Number.isFinite(totalLength) || totalLength <= 0 || !Number.isFinite(pageLength) || pageLength <= 0) return 1;
+		const ratio = totalLength / pageLength;
+		const rounded = Math.max(1, Math.round(ratio));
+		const tolerance = Math.max(1, Math.min(4, pageLength * .005));
+		if (Math.abs(totalLength - rounded * pageLength) <= tolerance) return rounded;
+		return Math.max(1, Math.ceil(ratio));
+	}
+	function getPageSnapTolerance(pageAdvance, edgeGuard = 0) {
+		const advance = Number(pageAdvance) || 0;
+		const safeEdgeGuard = Number(edgeGuard) || 0;
+		const tolerance = Math.max(2, safeEdgeGuard, Math.round(advance * .08));
+		return advance > 0 ? Math.min(Math.max(2, Math.round(advance / 4)), tolerance) : 2;
+	}
+	function getPageBoundaryShift(pageBoundaryShift, pageAdvance, isRtlVerticalPaginated = false) {
+		if (!isRtlVerticalPaginated) return 0;
+		const shift = Number(pageBoundaryShift || 0);
+		const advance = Number(pageAdvance) || 0;
+		if (!Number.isFinite(shift) || shift <= 0 || !advance) return 0;
+		return Math.min(shift, Math.max(0, Math.floor(advance / 3)));
+	}
+	function hasVerticalRlStructuralPageGutter(pageAdvance, visibleWidth, boundaryShift, isRtlVerticalPaginated = false) {
+		const advance = Number(pageAdvance) || 0;
+		const width = Number(visibleWidth) || 0;
+		const shift = Number(boundaryShift) || 0;
+		return !!(isRtlVerticalPaginated && advance && width && width - advance > 1 && shift === 0);
+	}
+	//#endregion
 	//#region src/contents.ts
 	var hasNavigator = typeof navigator !== "undefined";
 	var isChrome = hasNavigator && /Chrome/.test(navigator.userAgent);
@@ -10751,6 +10904,7 @@
 			const docEl = this.documentElement;
 			const bodyStyle = content && this.window ? this.window.getComputedStyle(content) : null;
 			const docFonts = this.document && this.document.fonts ? this.document.fonts : null;
+			const mediaCanvas = content && hasFittedVerticalRlMediaTail(this.document) ? content.getBoundingClientRect() : null;
 			return [
 				Number.isFinite(Number(visiblePageWidth)) ? Number(visiblePageWidth) : "",
 				Number.isFinite(Number(visiblePageHeight)) ? Number(visiblePageHeight) : "",
@@ -10763,7 +10917,9 @@
 				bodyStyle ? bodyStyle.lineHeight : "",
 				bodyStyle ? bodyStyle.letterSpacing : "",
 				bodyStyle ? bodyStyle.fontFamily : "",
-				docFonts ? docFonts.status : ""
+				docFonts ? docFonts.status : "",
+				mediaCanvas ? mediaCanvas.width : "",
+				mediaCanvas ? Math.max(0, this.window.innerWidth - mediaCanvas.right) : ""
 			].join(":");
 		}
 		invalidateVerticalRlMetricsCache(preserveStableWidth = false) {
@@ -11656,7 +11812,10 @@
 			if (!Number.isFinite(rawWidth) || rawWidth <= 0) rawWidth = Math.max(contentScrollWidth, documentScrollWidth);
 			else if (Number.isFinite(scrollWidthLimit) && scrollWidthLimit > safePageWidth && rawWidth > scrollWidthLimit + VERTICAL_RL_WIDTH_GUARD) rawWidth = scrollWidthLimit;
 			if (!Number.isFinite(rawHeight) || rawHeight <= 0) rawHeight = Math.max(content ? content.scrollHeight || 0 : 0, this.documentElement ? this.documentElement.scrollHeight || 0 : 0);
-			rawWidth = Math.ceil(rawWidth + VERTICAL_RL_WIDTH_GUARD);
+			if (content && hasFittedVerticalRlMediaTail(this.document)) {
+				const canvas = content.getBoundingClientRect();
+				rawWidth = canvas.width + Math.max(0, (this.window?.innerWidth || 0) - canvas.right);
+			} else rawWidth = Math.ceil(rawWidth + VERTICAL_RL_WIDTH_GUARD);
 			if (shouldClampViewportSizedCanvas) rawWidth = Math.min(rawWidth, safePageWidth);
 			rawHeight = Math.ceil(rawHeight);
 			const metrics = this.estimateVerticalRlLineMetrics(safePageWidth);
@@ -11670,6 +11829,10 @@
 			const edgeGuardPx = metrics.stable && Number.isFinite(metrics.lineWidth) && metrics.lineWidth > 0 && structuralBleed > VERTICAL_RL_MIN_EDGE_GUARD ? Math.min(Math.floor(structuralBleed / 2), Math.max(VERTICAL_RL_MIN_EDGE_GUARD, Math.ceil(metrics.lineWidth / 2) + 1)) : 0;
 			const pageLength = effectivePageAdvance || viewportPageWidth || 1;
 			let totalPages = Math.max(1, viewportPageWidth && effectivePageAdvance && viewportPageWidth > effectivePageAdvance ? Math.ceil(Math.max(0, rawWidth - viewportPageWidth) / effectivePageAdvance) + 1 : Math.ceil(rawWidth / pageLength));
+			if (content && hasFittedVerticalRlMediaTail(this.document)) {
+				const leadingOverlap = Math.max(0, (viewportPageWidth || pageLength) - pageLength);
+				totalPages = countPagesWithFractionalTolerance(Math.max(0, rawWidth - leadingOverlap), pageLength);
+			}
 			let verticalFragmentPages = 1;
 			if (totalPages <= 1 && Number.isFinite(safePageHeight) && safePageHeight > 0 && Number.isFinite(rawHeight) && rawHeight > safePageHeight + VERTICAL_RL_MIN_EDGE_GUARD) {
 				const contentStyle = content && this.window ? this.window.getComputedStyle(content) : null;
@@ -12570,7 +12733,15 @@
 						this.element.style.width = visiblePageWidth + "px";
 						this.iframe.style.width = visiblePageWidth + "px";
 					}
+					const mediaPageWidth = this.layout.effectivePageAdvance || visiblePageWidth;
+					const mediaEdgeGuard = this.layout.edgeGuardPx || 0;
+					layoutVerticalRlBlockMedia(this.contents, mediaPageWidth, mediaEdgeGuard);
 					pageMetrics = this.contents.verticalRlPageMetrics(visiblePageWidth, height);
+					if (hasFittedVerticalRlMediaTail(this.contents.document) && pageMetrics.effectivePageAdvance > 0 && (pageMetrics.effectivePageAdvance !== mediaPageWidth || pageMetrics.edgeGuardPx !== mediaEdgeGuard)) {
+						layoutVerticalRlBlockMedia(this.contents, pageMetrics.effectivePageAdvance, pageMetrics.edgeGuardPx || 0);
+						this.contents.invalidateVerticalRlMetricsCache();
+						pageMetrics = this.contents.verticalRlPageMetrics(visiblePageWidth, height);
+					}
 					width = pageMetrics.rawWidth;
 					if (pageMetrics.effectivePageAdvance > 0) {
 						pageAdvance = pageMetrics.effectivePageAdvance;
@@ -12996,7 +13167,33 @@
 	(0, import_event_emitter.default)(IframeView.prototype);
 	//#endregion
 	//#region src/rendering/combined-text-paint.ts
-	var hints = /* @__PURE__ */ new WeakMap();
+	/** Serialize source without this module's temporary paint hints, using a detached clone. */
+	function readCombinedTextPaintSource(document) {
+		const body = document.body;
+		if (!body) return {
+			markup: "",
+			normalizedHints: 0
+		};
+		const active = hints.get(document);
+		if (!active?.size) return {
+			markup: body.innerHTML,
+			normalizedHints: 0
+		};
+		const clone = body.cloneNode(true);
+		const originals = [body, ...body.querySelectorAll("*")];
+		const copies = [clone, ...clone.querySelectorAll("*")];
+		let normalizedHints = 0;
+		for (const [element, hint] of active) {
+			const index = originals.indexOf(element);
+			if (index < 0 || element.style.willChange !== hint.applied || element.style.getPropertyPriority("will-change") !== "important") continue;
+			restore(copies[index], hint);
+			normalizedHints++;
+		}
+		return {
+			markup: clone.innerHTML,
+			normalizedHints
+		};
+	}
 	function restore(element, hint) {
 		if (element.style.willChange !== hint.applied || element.style.getPropertyPriority("will-change") !== "important") return;
 		if (hint.value) element.style.setProperty("will-change", hint.value, hint.priority);
@@ -13036,8 +13233,13 @@
 		hints.set(document, active);
 		return invalidated;
 	}
+	var hints;
+	var init_combined_text_paint = __esmMin((() => {
+		hints = /* @__PURE__ */ new WeakMap();
+	}));
 	//#endregion
 	//#region src/utils/scrolltype.ts
+	init_combined_text_paint();
 	function scrollType() {
 		var type = "reverse";
 		var definer = createDefiner();
@@ -13732,35 +13934,6 @@
 			writingMode,
 			direction
 		};
-	}
-	//#endregion
-	//#region src/rendering/page-metrics.ts
-	function countPagesWithFractionalTolerance(totalLength, pageLength) {
-		if (!Number.isFinite(totalLength) || totalLength <= 0 || !Number.isFinite(pageLength) || pageLength <= 0) return 1;
-		const ratio = totalLength / pageLength;
-		const rounded = Math.max(1, Math.round(ratio));
-		const tolerance = Math.max(1, Math.min(4, pageLength * .005));
-		if (Math.abs(totalLength - rounded * pageLength) <= tolerance) return rounded;
-		return Math.max(1, Math.ceil(ratio));
-	}
-	function getPageSnapTolerance(pageAdvance, edgeGuard = 0) {
-		const advance = Number(pageAdvance) || 0;
-		const safeEdgeGuard = Number(edgeGuard) || 0;
-		const tolerance = Math.max(2, safeEdgeGuard, Math.round(advance * .08));
-		return advance > 0 ? Math.min(Math.max(2, Math.round(advance / 4)), tolerance) : 2;
-	}
-	function getPageBoundaryShift(pageBoundaryShift, pageAdvance, isRtlVerticalPaginated = false) {
-		if (!isRtlVerticalPaginated) return 0;
-		const shift = Number(pageBoundaryShift || 0);
-		const advance = Number(pageAdvance) || 0;
-		if (!Number.isFinite(shift) || shift <= 0 || !advance) return 0;
-		return Math.min(shift, Math.max(0, Math.floor(advance / 3)));
-	}
-	function hasVerticalRlStructuralPageGutter(pageAdvance, visibleWidth, boundaryShift, isRtlVerticalPaginated = false) {
-		const advance = Number(pageAdvance) || 0;
-		const width = Number(visibleWidth) || 0;
-		const shift = Number(boundaryShift) || 0;
-		return !!(isRtlVerticalPaginated && advance && width && width - advance > 1 && shift === 0);
 	}
 	//#endregion
 	//#region src/rendering/logical-page.ts
@@ -15039,7 +15212,176 @@
 		}
 	};
 	//#endregion
+	//#region src/rendering/observed-coverage-dom.ts
+	var observed_coverage_dom_exports = /* @__PURE__ */ __exportAll({ captureObservedCoverageDom: () => captureObservedCoverageDom });
+	/**
+	* Read only the supplied live frame. Source rects and the actual screen clip are
+	* mapped to the same iframe-document coordinate system, independent of Manager
+	* offsets. The caller owns settled/terminal/source authority and must sample after
+	* rendering. Returns no evidence and performs no traversal while disabled.
+	*/
+	async function captureObservedCoverageDom(input) {
+		if (!input.enabled) return null;
+		const doc = input.document, frame = input.frame, win = doc.defaultView;
+		const issues = [];
+		const addIssue = (issue) => {
+			if (!issues.includes(issue)) issues.push(issue);
+		};
+		if (!documentIds.has(doc)) documentIds.set(doc, `coverage-document-${++nextDocumentId}`);
+		const documentIdentity = documentIds.get(doc);
+		const connected = frame.isConnected && Boolean(doc.body?.isConnected);
+		const ownerDocumentMatches = frame.contentDocument === doc && win?.frameElement === frame;
+		const sources = [];
+		let truncated = false;
+		const limit = Number.isInteger(input.maxSources) && input.maxSources > 0 ? input.maxSources : 5e4;
+		const frameRect = frame.getBoundingClientRect();
+		const scaleX = frameRect.width / frame.offsetWidth, scaleY = frameRect.height / frame.offsetHeight;
+		const originX = frameRect.left + frame.clientLeft * scaleX;
+		const originY = frameRect.top + frame.clientTop * scaleY;
+		const scrollX = win?.scrollX || 0, scrollY = win?.scrollY || 0;
+		const mapClip = (rect) => ({
+			left: (rect.left - originX) / scaleX + scrollX,
+			right: (rect.right - originX) / scaleX + scrollX,
+			top: (rect.top - originY) / scaleY + scrollY,
+			bottom: (rect.bottom - originY) / scaleY + scrollY
+		});
+		if (!connected || !ownerDocumentMatches || !win || !doc.body) addIssue("disconnected-or-foreign-document");
+		if (!(scaleX > 0) || !(scaleY > 0)) addIssue("invalid-frame-scale");
+		for (let node = frame; node; node = node.parentElement) {
+			const style = node.ownerDocument.defaultView?.getComputedStyle(node);
+			if (style?.transform && style.transform !== "none") {
+				const matrix = new DOMMatrixReadOnly(style.transform);
+				if (!matrix.is2D || matrix.b !== 0 || matrix.c !== 0 || matrix.a <= 0 || matrix.d <= 0) addIssue("unsupported-frame-transform");
+			}
+		}
+		const append = (identity, rect) => {
+			const mapped = {
+				left: rect.left + scrollX,
+				right: rect.right + scrollX,
+				top: rect.top + scrollY,
+				bottom: rect.bottom + scrollY
+			};
+			if (!positiveRect(mapped)) return;
+			if (sources.length >= limit) {
+				truncated = true;
+				return;
+			}
+			sources.push({
+				identity,
+				rect: mapped
+			});
+		};
+		const path = (node) => {
+			const indexes = [];
+			for (let current = node; current && current !== doc.body; current = current.parentNode) {
+				const parent = current.parentNode;
+				if (!parent) {
+					addIssue("detached-source");
+					break;
+				}
+				indexes.unshift(Array.prototype.indexOf.call(parent.childNodes, current));
+			}
+			return indexes.join(".");
+		};
+		if (win && doc.body && connected && ownerDocumentMatches) {
+			if (doc.fonts?.status !== "loaded") addIssue("fonts-not-loaded");
+			const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+			for (let node = walker.nextNode(); node && !truncated; node = walker.nextNode()) {
+				const parent = node.parentElement;
+				if (!parent || parent.closest("script,style,noscript,svg")) continue;
+				const style = win.getComputedStyle(parent);
+				if (style.display === "none" || style.visibility !== "visible") continue;
+				const text = node.textContent || "", identity = path(node);
+				const range = doc.createRange();
+				for (let offset = 0; offset < text.length && !truncated;) {
+					const character = String.fromCodePoint(text.codePointAt(offset));
+					const end = offset + character.length;
+					if (character.trim()) {
+						range.setStart(node, offset);
+						range.setEnd(node, end);
+						Array.from(range.getClientRects()).forEach((rect, index) => append(`text:${identity}:${offset}:${index}`, rect));
+					}
+					offset = end;
+				}
+			}
+			for (const element of doc.body.querySelectorAll("img,svg,video,canvas,object,iframe")) {
+				if (truncated) break;
+				const style = win.getComputedStyle(element);
+				if (style.display === "none" || style.visibility !== "visible") continue;
+				if (element instanceof win.HTMLImageElement && (!element.complete || !element.naturalWidth)) addIssue("image-not-loaded");
+				if (["OBJECT", "IFRAME"].includes(element.tagName.toUpperCase())) addIssue("nested-document-not-inventoried");
+				Array.from(element.getClientRects()).forEach((rect, index) => append(`media:${path(element)}:${index}`, rect));
+			}
+		}
+		const rawViewport = mapClip(input.rawScreenViewport), effectiveViewport = mapClip(input.effectiveScreenViewport);
+		if (!positiveRect(rawViewport) || !positiveRect(effectiveViewport)) addIssue("invalid-viewport");
+		if (truncated) addIssue("source-limit-reached");
+		const sourceMarkup = doc.body?.innerHTML;
+		const semanticSource = readCombinedTextPaintSource(doc);
+		const bytes = new TextEncoder().encode(JSON.stringify([semanticSource.markup, sources]));
+		let changed = false;
+		const mutations = new MutationObserver(() => {
+			changed = true;
+		});
+		if (doc.documentElement) mutations.observe(doc.documentElement, {
+			subtree: true,
+			childList: true,
+			characterData: true,
+			attributes: true
+		});
+		let digest, rawDigest;
+		try {
+			[digest, rawDigest] = await Promise.all([globalThis.crypto.subtle.digest("SHA-256", bytes), globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(sourceMarkup || ""))]);
+			if (changed || mutations.takeRecords().length || doc.body?.innerHTML !== sourceMarkup) addIssue("source-changed-during-capture");
+			const after = frame.getBoundingClientRect();
+			if (after.left !== frameRect.left || after.top !== frameRect.top || after.width !== frameRect.width || after.height !== frameRect.height || win?.scrollX !== scrollX || win?.scrollY !== scrollY) addIssue("viewport-changed-during-capture");
+			if (doc.fonts?.status !== "loaded") addIssue("fonts-not-loaded");
+		} finally {
+			mutations.disconnect();
+		}
+		const inventoryIdentity = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+		const rawMarkupIdentity = Array.from(new Uint8Array(rawDigest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+		if (!frame.isConnected || frame.contentDocument !== doc || doc.defaultView !== win) addIssue("document-changed-during-capture");
+		return {
+			version: 2,
+			sources,
+			inventoryComplete: issues.length === 0,
+			truncated,
+			terminalObserved: input.terminalObserved,
+			issues,
+			paintHintNormalizationCount: semanticSource.normalizedHints,
+			rawMarkupIdentity,
+			observation: {
+				sequence: input.sequence,
+				pageIndex: input.pageIndex,
+				sourceFingerprint: input.sourceFingerprint,
+				sectionHref: input.sectionHref,
+				layoutGeneration: input.layoutGeneration,
+				documentIdentity,
+				inventoryIdentity,
+				connected,
+				ownerDocumentMatches,
+				settled: input.settled,
+				complete: issues.length === 0,
+				rawViewport,
+				effectiveViewport
+			}
+		};
+	}
+	var documentIds, nextDocumentId, positiveRect;
+	var init_observed_coverage_dom = __esmMin((() => {
+		documentIds = /* @__PURE__ */ new WeakMap();
+		nextDocumentId = 0;
+		positiveRect = (r) => [
+			r.left,
+			r.right,
+			r.top,
+			r.bottom
+		].every(Number.isFinite) && r.right > r.left && r.bottom > r.top;
+	}));
+	//#endregion
 	//#region src/managers/default/index.ts
+	init_combined_text_paint();
 	var Deferred = defer$1;
 	var getVerticalRlTerminalOwnerClipRelation = (observation) => {
 		let candidate = observation?.resolution?.candidate;
@@ -15654,6 +15996,26 @@
 			};
 		}
 		/**
+		* Explicit debug-only sampling of the active DOM. Reader owns the supplied
+		* observed visual clip; this method never derives it from cached page offsets.
+		* No pagination call site invokes this method or consumes its result.
+		*/
+		async captureVerticalRlObservedCoverage(options) {
+			const debugWindow = typeof window !== "undefined" ? window : null;
+			if (!debugWindow?.__EPUB_VRL_DEBUG__ || !debugWindow.__EPUB_VRL_OBSERVED_COVERAGE_ENABLED__) return null;
+			const view = this.views && (this.views.first() || this.views.last());
+			if (!view?.iframe || !view.contents?.document || !view.section?.href) return null;
+			const { captureObservedCoverageDom } = await Promise.resolve().then(() => (init_observed_coverage_dom(), observed_coverage_dom_exports));
+			if (!debugWindow.__EPUB_VRL_DEBUG__ || !debugWindow.__EPUB_VRL_OBSERVED_COVERAGE_ENABLED__ || this.views?.first() !== view) return null;
+			return captureObservedCoverageDom({
+				...options,
+				enabled: true,
+				frame: view.iframe,
+				document: view.contents.document,
+				sectionHref: view.section.href
+			});
+		}
+		/**
 		* Resolve the active document's terminal semantic owner after a geometry
 		* continuation candidate has already been established.
 		*
@@ -15932,7 +16294,24 @@
 			let visibleWidth = this.layout.pageWidth || this.layout.width || this.getPageAdvance() || this.container.clientWidth || 0;
 			let advance = this.getPageAdvance() || 0;
 			let edgeGuard = this.layout.edgeGuardPx || 0;
-			return getVerticalRlLogicalPageOffsetCacheKey(this.getBaseGeometryPageCount(), maxScroll, contentWidth, visibleWidth, advance, edgeGuard);
+			const geometryKey = getVerticalRlLogicalPageOffsetCacheKey(this.getBaseGeometryPageCount(), maxScroll, contentWidth, visibleWidth, advance, edgeGuard);
+			const document = view?.contents?.document;
+			const typography = document?.body && document.defaultView?.getComputedStyle(document.body);
+			if (!geometryKey || !typography) return geometryKey;
+			return `${geometryKey}:${JSON.stringify([
+				this.container.clientHeight,
+				typography.fontFamily,
+				typography.fontSize,
+				typography.lineHeight,
+				typography.fontWeight,
+				typography.fontStyle,
+				typography.fontStretch,
+				typography.letterSpacing,
+				typography.wordSpacing,
+				typography.textOrientation,
+				typography.writingMode,
+				typography.direction
+			])}`;
 		}
 		getCachedVerticalRlLogicalPageOffset(pageIndex, cacheKey) {
 			return getCachedVerticalRlLogicalPageOffset(this._verticalRlLogicalPageOffsetCache, pageIndex, cacheKey);
@@ -16204,7 +16583,8 @@
 				let pageIndex = this.getCurrentPageIndex();
 				if (!cacheKey || !Number.isFinite(pageIndex)) return;
 				const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(pageIndex, cacheKey);
-				if (recordedOffset !== null && recordedOffset !== this.getNormalizedLogicalScrollLeft()) return;
+				const currentOffset = this.getNormalizedLogicalScrollLeft();
+				if (recordedOffset !== null && recordedOffset !== currentOffset && (!Number.isFinite(currentOffset) || Math.fround(recordedOffset) !== Math.fround(currentOffset))) return;
 				if (!this._verticalRlAppliedLeftMaskLedger || this._verticalRlAppliedLeftMaskLedgerKey !== cacheKey) {
 					this._verticalRlAppliedLeftMaskLedger = {};
 					this._verticalRlAppliedLeftMaskLedgerKey = cacheKey;
@@ -16330,7 +16710,8 @@
 			const pageIndex = this.getCurrentPageIndex();
 			if (pageIndex >= this.getTotalPagesForCurrentView() - 1) return null;
 			const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(pageIndex, state.layoutKey);
-			if (recordedOffset === null || recordedOffset !== this.getNormalizedLogicalScrollLeft()) return null;
+			const currentOffset = this.getNormalizedLogicalScrollLeft();
+			if (recordedOffset === null || !Number.isFinite(currentOffset) || recordedOffset !== currentOffset && Math.fround(recordedOffset) !== Math.fround(currentOffset)) return null;
 			const fence = this.getRecordedVerticalRlAppliedLeftMask(pageIndex);
 			if (fence === null || !Number.isFinite(fence)) return null;
 			const preserved = this._verticalRlPreservedPageBoundary;
@@ -16671,6 +17052,12 @@
 				snapResult.snapped = Math.floor(Math.min(snapResult.snapped, boundaryOffset) * dpr) / dpr;
 				if (snapResult.cacheEntry) snapResult.cacheEntry.value = snapResult.snapped;
 			}
+			if (!Number.isFinite(options.semanticWindowLogicalOffset)) {
+				const mediaDpr = Number.isFinite(dpr) && dpr > 0 ? dpr : 1;
+				const mediaLeftGutter = Math.ceil(Math.max(0, visibleWidth - this.getPageAdvance()) * mediaDpr) / mediaDpr;
+				snapResult.snapped = resolveVerticalRlBlockMediaOffset(snapResult.snapped, maxScroll, contentWidth, visibleWidth, collectVerticalRlBlockMediaRects(doc, win, visibleWidth), textRects, this.layout.edgeGuardPx || 0, mediaLeftGutter);
+				if (snapResult.cacheEntry) snapResult.cacheEntry.value = snapResult.snapped;
+			}
 			appendVerticalRlScrollTrace("boundary-snap-pipeline", {
 				logicalOffset,
 				pipelineSnappedOffset,
@@ -16864,6 +17251,10 @@
 				status: "not-applicable",
 				reason: "invalid-contract"
 			};
+			const cutsBlockMedia = (physicalStart, physicalEnd, pageWidth) => {
+				const window = contents.document.defaultView;
+				return Boolean(window && collectVerticalRlBlockMediaRects(contents.document, window, pageWidth).some((rect) => rect.right > physicalStart && rect.left < physicalEnd && (rect.left < physicalStart || rect.right > physicalEnd)));
+			};
 			if (descriptor.semanticCut) {
 				const width = this.layout.pageWidth || this.layout.width || this.getPageAdvance();
 				const maxStart = Math.max(0, this.getVerticalRlVisualContentWidth(view) - width);
@@ -16873,6 +17264,13 @@
 					return {
 						status: "unavailable",
 						reason: resolution.reason || "semantic-cut-unavailable"
+					};
+				}
+				if (cutsBlockMedia(resolution.physicalStart + (resolution.maskWidths?.left || 0), resolution.physicalStart + width - (resolution.maskWidths?.right || 0), width)) {
+					traceTerminal("semantic-window-cuts-block-media");
+					return {
+						status: "unavailable",
+						reason: "semantic-window-cuts-block-media"
 					};
 				}
 				const index = Number(descriptor.logicalPageIndex);
@@ -17012,7 +17410,8 @@
 				};
 			}).filter((candidate) => Boolean(candidate?.mapping));
 			this._verticalRlBoundarySnapCache = originalSnapCache ? { ...originalSnapCache } : originalSnapCache;
-			const matchingCandidates = candidates.filter((candidate) => candidate.mapping.start === descriptor.anchors.readingStart.cfi && candidate.mapping.end === descriptor.anchors.readingEndExclusive.cfi);
+			const candidateCutsBlockMedia = (candidate) => cutsBlockMedia(candidate.physicalStart, candidate.physicalEnd, visibleWidth);
+			const matchingCandidates = candidates.filter((candidate) => candidate.mapping.start === descriptor.anchors.readingStart.cfi && candidate.mapping.end === descriptor.anchors.readingEndExclusive.cfi && !candidateCutsBlockMedia(candidate));
 			const observedMatchingCandidates = matchingCandidates.map((candidate) => ({
 				...candidate,
 				semanticObservation: this.getVerticalRlSemanticCandidateObservation(view, candidate.physicalStart, candidate.physicalEnd)
@@ -17083,6 +17482,7 @@
 				resolvedEndMatches,
 				comparisonValidity: resolvedStartMatches === null || resolvedEndMatches === null ? "unknown" : "valid",
 				candidateSummaries,
+				mediaBoundaryRejectedCount: candidates.filter(candidateCutsBlockMedia).length,
 				matchingBoundaryCount: candidatesByBoundary.size,
 				semanticClassCount: allSemanticCandidatesComplete ? semanticClasses.size : null,
 				semanticEquivalenceEvaluated: allSemanticCandidatesComplete,
@@ -18982,6 +19382,7 @@
 			view.on(EVENTS.VIEWS.MARK_CLICKED, (cfiRange, data) => this.triggerMarkEvent(cfiRange, data, view.contents));
 			this.hooks.render.trigger(view, this).then(() => {
 				if (view.contents) this.hooks.content.trigger(view.contents, this).then(() => {
+					if (this._layout.name !== "pre-paginated" && view.contents.writingMode() === "vertical-rl" && view.contents.document.querySelector("img")) view.expand();
 					/**
 					* Emit that a section has been rendered
 					* @event rendered

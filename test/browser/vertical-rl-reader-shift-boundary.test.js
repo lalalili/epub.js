@@ -103,6 +103,12 @@ describe("vertical-rl Reader displacement boundaries", () => {
 		{ cachedOffset: 8305, offset: 8416, initial: 17, mask: 8, shift: 0, expected: 17 },
 		{ cachedOffset: 8305, offset: 8305, initial: 17, mask: 31, shift: 23, expected: 54 },
 		{ cachedOffset: null, offset: 8416, initial: undefined, mask: 31, shift: 23, expected: 54 },
+		// Android WebView 124, DPR 2.75: planned double versus scrollLeft float32.
+		{ cachedOffset: 4938.909090909091, offset: 4938.9091796875, initial: undefined, mask: 8, shift: 33, expected: 41 },
+		{ cachedOffset: 4938.909090909091, offset: 4938.9091796875, initial: 17, mask: 8, shift: 33, expected: 41 },
+		// A distinct representable scroll position still cannot replace its fence.
+		{ cachedOffset: 4938.909090909091, offset: 4938.90966796875, initial: 17, mask: 8, shift: 33, expected: 17 },
+		{ cachedOffset: 4938.909090909091, offset: 4910.9091796875, initial: 17, mask: 8, shift: 33, expected: 17 },
 	])("records ownership only at the learned page offset: %j", ({ cachedOffset, offset, initial, mask, shift, expected }) => {
 		const value = manager({ shift: String(shift), transform: shift ? `translateX(-${shift}px)` : "" });
 		value.getTotalPagesForCurrentView = () => 32;
@@ -226,6 +232,16 @@ describe("learned continuation preserves committed left ownership", () => {
  });
  it("converts the recorded content fence back to its current physical mask", () => {
   expect(value({getVerticalRlAppliedContentShift:()=>22}).getVerticalRlCommittedLeftMaskForCurrentOffset(96)).toBe(26);
+ });
+ it.each([
+  { offset: 4938.9091796875, expected: 48 },
+  { offset: 4938.90966796875, expected: null },
+  { offset: 4910.9091796875, expected: null },
+ ])("keeps committed ownership only at the same representable scroll position: %j", ({ offset, expected }) => {
+  expect(value({
+   getCachedVerticalRlLogicalPageOffset:()=>4938.909090909091,
+   getNormalizedLogicalScrollLeft:()=>offset,
+  }).getVerticalRlCommittedLeftMaskForCurrentOffset(96)).toBe(expected);
  });
 });
 

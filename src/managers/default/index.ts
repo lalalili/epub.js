@@ -5,6 +5,8 @@ import { isNumber } from "../../core/types";
 import { windowBounds } from "../../platform/layout";
 import { collectVisibleTextClientRects } from "../../platform/traversal";
 import { refreshCombinedTextPaint } from "../../rendering/combined-text-paint";
+import { collectVerticalRlBlockMediaRects, resolveVerticalRlBlockMediaOffset } from "../../rendering/block-media";
+import type { CoverageDomCapture, CoverageDomInput } from "../../rendering/observed-coverage-dom";
 import type { VisibleTextClientRect } from "../../platform/traversal";
 import scrollType from "../../utils/scrolltype";
 import Mapping from "../../mapping";
@@ -1344,6 +1346,36 @@ class DefaultViewManager {
 	}
 
 	/**
+	 * Explicit debug-only sampling of the active DOM. Reader owns the supplied
+	 * observed visual clip; this method never derives it from cached page offsets.
+	 * No pagination call site invokes this method or consumes its result.
+	 */
+	async captureVerticalRlObservedCoverage(
+		options: Omit<CoverageDomInput, "enabled" | "frame" | "document" | "sectionHref">
+	): Promise<CoverageDomCapture | null> {
+		const debugWindow = typeof window !== "undefined" ? window as Window & {
+			__EPUB_VRL_DEBUG__?: boolean;
+			__EPUB_VRL_OBSERVED_COVERAGE_ENABLED__?: boolean;
+		} : null;
+		if (!debugWindow?.__EPUB_VRL_DEBUG__ || !debugWindow.__EPUB_VRL_OBSERVED_COVERAGE_ENABLED__) {
+			return null;
+		}
+		const view = this.views && (this.views.first() || this.views.last());
+		if (!view?.iframe || !view.contents?.document || !view.section?.href) {
+			return null;
+		}
+		const { captureObservedCoverageDom } = await import("../../rendering/observed-coverage-dom");
+		if (!debugWindow.__EPUB_VRL_DEBUG__ || !debugWindow.__EPUB_VRL_OBSERVED_COVERAGE_ENABLED__ ||
+			this.views?.first() !== view) {
+			return null;
+		}
+		return captureObservedCoverageDom({
+			...options, enabled: true, frame: view.iframe,
+			document: view.contents.document, sectionHref: view.section.href
+		});
+	}
+
+	/**
 	 * Resolve the active document's terminal semantic owner after a geometry
 	 * continuation candidate has already been established.
 	 *
@@ -1701,7 +1733,7 @@ class DefaultViewManager {
 		let advance = this.getPageAdvance() || 0;
 		let edgeGuard = this.layout.edgeGuardPx || 0;
 
-		return getVerticalRlLogicalPageOffsetCacheKeyHelper(
+		const geometryKey = getVerticalRlLogicalPageOffsetCacheKeyHelper(
 			this.getBaseGeometryPageCount(),
 			maxScroll,
 			contentWidth,
@@ -1709,6 +1741,27 @@ class DefaultViewManager {
 			advance,
 			edgeGuard
 		);
+		const document = view?.contents?.document;
+		const typography = document?.body && document.defaultView?.getComputedStyle(document.body);
+		if (!geometryKey || !typography) {
+			return geometryKey;
+		}
+		// Equal page canvases can contain different line breaks. Keep source cuts
+		// across view recreation only when the effective typography also matches.
+		return `${geometryKey}:${JSON.stringify([
+			this.container.clientHeight,
+			typography.fontFamily,
+			typography.fontSize,
+			typography.lineHeight,
+			typography.fontWeight,
+			typography.fontStyle,
+			typography.fontStretch,
+			typography.letterSpacing,
+			typography.wordSpacing,
+			typography.textOrientation,
+			typography.writingMode,
+			typography.direction
+		])}`;
 	}
 
 	getCachedVerticalRlLogicalPageOffset(pageIndex: number, cacheKey: string | null): number | null {
@@ -2161,7 +2214,12 @@ class DefaultViewManager {
 			// A recreated View can temporarily reuse a learned page index at a
 			// different offset. Its mask must not replace that page's source fence.
 			const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(pageIndex, cacheKey);
-			if (recordedOffset !== null && recordedOffset !== this.getNormalizedLogicalScrollLeft()) {
+			const currentOffset = this.getNormalizedLogicalScrollLeft();
+			// WebView exposes scrollLeft at float32 precision while the planned
+			// offset remains a double. Compare the same representable position;
+			// a neighboring float32 position still fails the ownership check.
+			if (recordedOffset !== null && (recordedOffset !== currentOffset &&
+				(!Number.isFinite(currentOffset) || Math.fround(recordedOffset) !== Math.fround(currentOffset)))) {
 				return;
 			}
 
@@ -2370,7 +2428,9 @@ class DefaultViewManager {
 			return null;
 		}
 		const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(pageIndex, state.layoutKey);
-		if (recordedOffset === null || recordedOffset !== this.getNormalizedLogicalScrollLeft()) {
+		const currentOffset = this.getNormalizedLogicalScrollLeft();
+		if (recordedOffset === null || !Number.isFinite(currentOffset) ||
+			(recordedOffset !== currentOffset && Math.fround(recordedOffset) !== Math.fround(currentOffset))) {
 			return null;
 		}
 		const fence = this.getRecordedVerticalRlAppliedLeftMask(pageIndex);
@@ -2899,6 +2959,15 @@ class DefaultViewManager {
 				snapResult.cacheEntry.value = snapResult.snapped;
 			}
 		}
+		if (!Number.isFinite(options.semanticWindowLogicalOffset)) {
+			const mediaDpr = Number.isFinite(dpr) && dpr > 0 ? dpr : 1;
+			const mediaLeftGutter = Math.ceil(Math.max(0, visibleWidth - this.getPageAdvance()) * mediaDpr) / mediaDpr;
+			snapResult.snapped = resolveVerticalRlBlockMediaOffset(snapResult.snapped, maxScroll, contentWidth, visibleWidth,
+				collectVerticalRlBlockMediaRects(doc, win, visibleWidth), textRects, this.layout.edgeGuardPx || 0, mediaLeftGutter);
+			if (snapResult.cacheEntry) {
+				snapResult.cacheEntry.value = snapResult.snapped;
+			}
+		}
 		appendVerticalRlScrollTrace("boundary-snap-pipeline", {
 			logicalOffset, pipelineSnappedOffset, finalSnappedOffset: snapResult.snapped,
 			contentWidth, visibleWidth, maxScroll, structuralGutterMask,
@@ -3205,6 +3274,13 @@ class DefaultViewManager {
 			return { status: "not-applicable", reason: "invalid-contract" };
 		}
 
+		const cutsBlockMedia = (physicalStart: number, physicalEnd: number, pageWidth: number): boolean => {
+			const window = contents.document.defaultView;
+			return Boolean(window && collectVerticalRlBlockMediaRects(contents.document, window, pageWidth).some((rect) => (
+				rect.right > physicalStart && rect.left < physicalEnd &&
+				(rect.left < physicalStart || rect.right > physicalEnd)
+			)));
+		};
 		if (descriptor.semanticCut) {
 			const width = this.layout.pageWidth || this.layout.width || this.getPageAdvance();
 			const maxStart = Math.max(0, this.getVerticalRlVisualContentWidth(view) - width);
@@ -3214,6 +3290,14 @@ class DefaultViewManager {
 			if (resolution.status !== 'qualified' || typeof resolution.physicalStart !== 'number') {
 				traceTerminal(resolution.reason || 'semantic-cut-unavailable');
 				return { status: 'unavailable', reason: resolution.reason || 'semantic-cut-unavailable' };
+			}
+			if (cutsBlockMedia(
+				resolution.physicalStart + (resolution.maskWidths?.left || 0),
+				resolution.physicalStart + width - (resolution.maskWidths?.right || 0),
+				width
+			)) {
+				traceTerminal('semantic-window-cuts-block-media');
+				return { status: 'unavailable', reason: 'semantic-window-cuts-block-media' };
 			}
 			const index = Number(descriptor.logicalPageIndex);
 			if (!Number.isInteger(index) || index <= 0) return { status: 'unavailable', reason: 'invalid-page-index' };
@@ -3374,9 +3458,14 @@ class DefaultViewManager {
 		this._verticalRlBoundarySnapCache = originalSnapCache
 			? { ...originalSnapCache }
 			: originalSnapCache;
+		// Legacy CFI pairs identify text only. They cannot qualify a source cut
+		// through an indivisible block image; leave that case to CFI fallback.
+		const candidateCutsBlockMedia = (candidate: typeof candidates[number]): boolean =>
+			cutsBlockMedia(candidate.physicalStart, candidate.physicalEnd, visibleWidth);
 		const matchingCandidates = candidates.filter((candidate) => (
 			candidate.mapping.start === descriptor.anchors.readingStart.cfi &&
-			candidate.mapping.end === descriptor.anchors.readingEndExclusive.cfi
+			candidate.mapping.end === descriptor.anchors.readingEndExclusive.cfi &&
+			!candidateCutsBlockMedia(candidate)
 		));
 		const observedMatchingCandidates = matchingCandidates.map((candidate) => ({
 			...candidate,
@@ -3482,6 +3571,7 @@ class DefaultViewManager {
 			resolvedEndMatches,
 			comparisonValidity: resolvedStartMatches === null || resolvedEndMatches === null ? "unknown" : "valid",
 			candidateSummaries,
+			mediaBoundaryRejectedCount: candidates.filter(candidateCutsBlockMedia).length,
 			matchingBoundaryCount: candidatesByBoundary.size,
 			semanticClassCount: allSemanticCandidatesComplete ? semanticClasses.size : null,
 			semanticEquivalenceEvaluated: allSemanticCandidatesComplete,

@@ -7,6 +7,7 @@ import Contents from "../../contents";
 import { createBlobUrl, revokeBlobUrl } from "../../platform/blob";
 import { borders, bounds } from "../../platform/layout";
 import { EVENTS } from "../../utils/constants";
+import { hasFittedVerticalRlMediaTail, layoutVerticalRlBlockMedia } from "../../rendering/block-media";
 import { Pane, Highlight, Underline } from "marks-pane";
 import type { AnnotationData, AnnotationStyles } from "../../annotations";
 
@@ -555,7 +556,20 @@ class IframeView {
 					this.element.style.width = visiblePageWidth + "px";
 					this.iframe.style.width = visiblePageWidth + "px";
 				}
+				const mediaPageWidth = this.layout.effectivePageAdvance || visiblePageWidth;
+				const mediaEdgeGuard = this.layout.edgeGuardPx || 0;
+				layoutVerticalRlBlockMedia(this.contents, mediaPageWidth, mediaEdgeGuard);
 				pageMetrics = this.contents.verticalRlPageMetrics(visiblePageWidth, height) as VerticalRlPageMetrics;
+				// Typography can change the column advance during this very measurement.
+				// Fit media against that generation before publishing its canvas size.
+				if (hasFittedVerticalRlMediaTail(this.contents.document) && pageMetrics.effectivePageAdvance > 0 && (
+					pageMetrics.effectivePageAdvance !== mediaPageWidth ||
+					pageMetrics.edgeGuardPx !== mediaEdgeGuard
+				)) {
+					layoutVerticalRlBlockMedia(this.contents, pageMetrics.effectivePageAdvance, pageMetrics.edgeGuardPx || 0);
+					this.contents.invalidateVerticalRlMetricsCache();
+					pageMetrics = this.contents.verticalRlPageMetrics(visiblePageWidth, height) as VerticalRlPageMetrics;
+				}
 				width = pageMetrics.rawWidth;
 				if (pageMetrics.effectivePageAdvance > 0) {
 					pageAdvance = pageMetrics.effectivePageAdvance;
