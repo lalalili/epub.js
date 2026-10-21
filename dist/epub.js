@@ -10548,6 +10548,35 @@
 		}
 	}
 	//#endregion
+	//#region src/rendering/page-metrics.ts
+	function countPagesWithFractionalTolerance(totalLength, pageLength) {
+		if (!Number.isFinite(totalLength) || totalLength <= 0 || !Number.isFinite(pageLength) || pageLength <= 0) return 1;
+		const ratio = totalLength / pageLength;
+		const rounded = Math.max(1, Math.round(ratio));
+		const tolerance = Math.max(1, Math.min(4, pageLength * .005));
+		if (Math.abs(totalLength - rounded * pageLength) <= tolerance) return rounded;
+		return Math.max(1, Math.ceil(ratio));
+	}
+	function getPageSnapTolerance(pageAdvance, edgeGuard = 0) {
+		const advance = Number(pageAdvance) || 0;
+		const safeEdgeGuard = Number(edgeGuard) || 0;
+		const tolerance = Math.max(2, safeEdgeGuard, Math.round(advance * .08));
+		return advance > 0 ? Math.min(Math.max(2, Math.round(advance / 4)), tolerance) : 2;
+	}
+	function getPageBoundaryShift(pageBoundaryShift, pageAdvance, isRtlVerticalPaginated = false) {
+		if (!isRtlVerticalPaginated) return 0;
+		const shift = Number(pageBoundaryShift || 0);
+		const advance = Number(pageAdvance) || 0;
+		if (!Number.isFinite(shift) || shift <= 0 || !advance) return 0;
+		return Math.min(shift, Math.max(0, Math.floor(advance / 3)));
+	}
+	function hasVerticalRlStructuralPageGutter(pageAdvance, visibleWidth, boundaryShift, isRtlVerticalPaginated = false) {
+		const advance = Number(pageAdvance) || 0;
+		const width = Number(visibleWidth) || 0;
+		const shift = Number(boundaryShift) || 0;
+		return !!(isRtlVerticalPaginated && advance && width && width - advance > 1 && shift === 0);
+	}
+	//#endregion
 	//#region src/contents.ts
 	var hasNavigator = typeof navigator !== "undefined";
 	var isChrome = hasNavigator && /Chrome/.test(navigator.userAgent);
@@ -11792,6 +11821,10 @@
 			const edgeGuardPx = metrics.stable && Number.isFinite(metrics.lineWidth) && metrics.lineWidth > 0 && structuralBleed > VERTICAL_RL_MIN_EDGE_GUARD ? Math.min(Math.floor(structuralBleed / 2), Math.max(VERTICAL_RL_MIN_EDGE_GUARD, Math.ceil(metrics.lineWidth / 2) + 1)) : 0;
 			const pageLength = effectivePageAdvance || viewportPageWidth || 1;
 			let totalPages = Math.max(1, viewportPageWidth && effectivePageAdvance && viewportPageWidth > effectivePageAdvance ? Math.ceil(Math.max(0, rawWidth - viewportPageWidth) / effectivePageAdvance) + 1 : Math.ceil(rawWidth / pageLength));
+			if (content && hasFittedVerticalRlMediaTail(this.document)) {
+				const leadingOverlap = Math.max(0, (viewportPageWidth || pageLength) - pageLength);
+				totalPages = countPagesWithFractionalTolerance(Math.max(0, rawWidth - leadingOverlap), pageLength);
+			}
 			let verticalFragmentPages = 1;
 			if (totalPages <= 1 && Number.isFinite(safePageHeight) && safePageHeight > 0 && Number.isFinite(rawHeight) && rawHeight > safePageHeight + VERTICAL_RL_MIN_EDGE_GUARD) {
 				const contentStyle = content && this.window ? this.window.getComputedStyle(content) : null;
@@ -12692,8 +12725,15 @@
 						this.element.style.width = visiblePageWidth + "px";
 						this.iframe.style.width = visiblePageWidth + "px";
 					}
-					layoutVerticalRlBlockMedia(this.contents, this.layout.effectivePageAdvance || visiblePageWidth, this.layout.edgeGuardPx || 0);
+					const mediaPageWidth = this.layout.effectivePageAdvance || visiblePageWidth;
+					const mediaEdgeGuard = this.layout.edgeGuardPx || 0;
+					layoutVerticalRlBlockMedia(this.contents, mediaPageWidth, mediaEdgeGuard);
 					pageMetrics = this.contents.verticalRlPageMetrics(visiblePageWidth, height);
+					if (hasFittedVerticalRlMediaTail(this.contents.document) && pageMetrics.effectivePageAdvance > 0 && (pageMetrics.effectivePageAdvance !== mediaPageWidth || pageMetrics.edgeGuardPx !== mediaEdgeGuard)) {
+						layoutVerticalRlBlockMedia(this.contents, pageMetrics.effectivePageAdvance, pageMetrics.edgeGuardPx || 0);
+						this.contents.invalidateVerticalRlMetricsCache();
+						pageMetrics = this.contents.verticalRlPageMetrics(visiblePageWidth, height);
+					}
 					width = pageMetrics.rawWidth;
 					if (pageMetrics.effectivePageAdvance > 0) {
 						pageAdvance = pageMetrics.effectivePageAdvance;
@@ -13855,35 +13895,6 @@
 			writingMode,
 			direction
 		};
-	}
-	//#endregion
-	//#region src/rendering/page-metrics.ts
-	function countPagesWithFractionalTolerance(totalLength, pageLength) {
-		if (!Number.isFinite(totalLength) || totalLength <= 0 || !Number.isFinite(pageLength) || pageLength <= 0) return 1;
-		const ratio = totalLength / pageLength;
-		const rounded = Math.max(1, Math.round(ratio));
-		const tolerance = Math.max(1, Math.min(4, pageLength * .005));
-		if (Math.abs(totalLength - rounded * pageLength) <= tolerance) return rounded;
-		return Math.max(1, Math.ceil(ratio));
-	}
-	function getPageSnapTolerance(pageAdvance, edgeGuard = 0) {
-		const advance = Number(pageAdvance) || 0;
-		const safeEdgeGuard = Number(edgeGuard) || 0;
-		const tolerance = Math.max(2, safeEdgeGuard, Math.round(advance * .08));
-		return advance > 0 ? Math.min(Math.max(2, Math.round(advance / 4)), tolerance) : 2;
-	}
-	function getPageBoundaryShift(pageBoundaryShift, pageAdvance, isRtlVerticalPaginated = false) {
-		if (!isRtlVerticalPaginated) return 0;
-		const shift = Number(pageBoundaryShift || 0);
-		const advance = Number(pageAdvance) || 0;
-		if (!Number.isFinite(shift) || shift <= 0 || !advance) return 0;
-		return Math.min(shift, Math.max(0, Math.floor(advance / 3)));
-	}
-	function hasVerticalRlStructuralPageGutter(pageAdvance, visibleWidth, boundaryShift, isRtlVerticalPaginated = false) {
-		const advance = Number(pageAdvance) || 0;
-		const width = Number(visibleWidth) || 0;
-		const shift = Number(boundaryShift) || 0;
-		return !!(isRtlVerticalPaginated && advance && width && width - advance > 1 && shift === 0);
 	}
 	//#endregion
 	//#region src/rendering/logical-page.ts

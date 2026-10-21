@@ -9,6 +9,7 @@ import { RangeObject } from "./compat/range";
 import {replaceLinks} from "./utils/replacements";
 import { EPUBJS_VERSION, EVENTS, DOM_EVENTS } from "./utils/constants";
 import { hasFittedVerticalRlMediaTail } from "./rendering/block-media";
+import { countPagesWithFractionalTolerance } from "./rendering/page-metrics";
 
 const hasNavigator = typeof (navigator) !== "undefined";
 
@@ -2208,6 +2209,12 @@ class Contents {
 				? Math.ceil(Math.max(0, rawWidth - viewportPageWidth) / effectivePageAdvance) + 1
 				: Math.ceil(rawWidth / pageLength)
 		);
+		if (content && hasFittedVerticalRlMediaTail(this.document)) {
+			// Match the manager's fractional page-count contract for a fitted canvas.
+			// Keep rawWidth intact so geometry and painted-content checks see the excess.
+			const leadingOverlap = Math.max(0, (viewportPageWidth || pageLength) - pageLength);
+			totalPages = countPagesWithFractionalTolerance(Math.max(0, rawWidth - leadingOverlap), pageLength);
+		}
 		let verticalFragmentPages = 1;
 		if (
 			totalPages <= 1 &&

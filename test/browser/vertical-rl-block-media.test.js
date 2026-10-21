@@ -6,6 +6,63 @@ import { layoutVerticalRlBlockMedia, resolveVerticalRlBlockMediaOffset } from ".
 
 const fixtures = [];
 
+async function createTypographyMediaFixture(fontSize, lineHeight) {
+	const zip = new JSZip();
+	zip.file("mimetype", "application/epub+zip");
+	zip.file("META-INF/container.xml", '<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0"><rootfiles><rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/></rootfiles></container>');
+	zip.file("OPS/package.opf", '<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="id"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="id">media-reflow-fixture</dc:identifier><dc:title>Media reflow</dc:title><dc:language>en</dc:language></metadata><manifest><item id="one" href="one.xhtml" media-type="application/xhtml+xml"/><item id="image" href="grid.svg" media-type="image/svg+xml"/></manifest><spine page-progression-direction="rtl"><itemref idref="one"/></spine></package>');
+	zip.file("OPS/grid.svg", '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500"><rect width="800" height="500" fill="blue"/></svg>');
+	zip.file("OPS/one.xhtml", `<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Fixture</title><style>html,body{margin:0;padding:0;writing-mode:vertical-rl;direction:ltr;font:${fontSize}px/${lineHeight}px monospace;text-orientation:upright}h1{margin:0;font-size:1.4em;line-height:1.4}p{margin:1em}img{display:block;max-height:209.95px;max-width:100%;width:auto;height:auto;margin:auto}</style></head><body><h1>ABCDEFG</h1><div><br/></div><div><br/></div><p>${"甲".repeat(89)}</p><p>${"乙".repeat(54)}</p><div style="width:100%;writing-mode:horizontal-tb"><img id="media" src="grid.svg"/></div></body></html>`);
+	const host = document.createElement("div");
+	host.style.cssText = "width:802.1818237304688px;height:221.09091186523438px";
+	document.body.appendChild(host);
+	const book = ePub(await zip.generateAsync({ type: "arraybuffer" }));
+	fixtures.push({ book, host });
+	await book.ready;
+	const rendition = book.renderTo(host, { width: 802.1818237304688, height: 221.09091186523438, spread: "none", flow: "paginated" });
+	await rendition.display(0);
+	await rendition.manager.waitForVerticalRlLayoutReady();
+	return rendition;
+}
+
+it("matches a fresh small-font media canvas after changing a retained default-font view", async () => {
+	const fresh = await createTypographyMediaFixture(18, 28.8);
+	const changed = await createTypographyMediaFixture(24, 48);
+	const view = changed.manager.views.first();
+	view.contents.css("font-size", "18px");
+	view.contents.css("line-height", "28.8px");
+	view.expand();
+	const freshView = fresh.manager.views.first();
+	expect(changed.manager.getTotalPagesForCurrentView()).toBe(fresh.manager.getTotalPagesForCurrentView());
+	expect(view.width()).toBeCloseTo(freshView.width(), 1);
+	expect(view.contents.content.getBoundingClientRect().width).toBeCloseTo(freshView.contents.content.getBoundingClientRect().width, 1);
+	await changed.manager.waitForVerticalRlLayoutReady();
+});
+
+it.each([{ excess: 0.09, pages: 2 }, { excess: 3, pages: 3 }])("counts a fitted fractional media canvas with $excess pixels of excess", async ({ excess, pages }) => {
+	const pageWidth = 393.0909118652344;
+	const frame = document.createElement("iframe");
+	frame.style.cssText = `width:${pageWidth}px;height:221px;border:0`;
+	document.body.appendChild(frame);
+	let contents;
+	try {
+		const doc = frame.contentDocument;
+		doc.body.style.cssText = `margin:0;height:221px;width:${2 * pageWidth + excess}px;writing-mode:vertical-rl;direction:ltr`;
+		doc.body.innerHTML = '<p>A</p><div style="width:100%;writing-mode:horizontal-tb"><img style="display:block;margin:auto"/></div>';
+		const image = doc.querySelector("img");
+		image.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="260" height="80"/>');
+		await image.decode();
+		contents = new Contents(doc, doc.body);
+		layoutVerticalRlBlockMedia(contents, pageWidth);
+		const metrics = contents.verticalRlPageMetrics(pageWidth, 221);
+		expect(metrics.rawWidth).toBeGreaterThan(2 * pageWidth);
+		expect(metrics.totalPages).toBe(pages);
+	} finally {
+		contents?.destroy();
+		frame.remove();
+	}
+});
+
 afterEach(() => {
 	for (const { book, host } of fixtures.splice(0)) {
 		book.destroy();
