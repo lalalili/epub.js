@@ -119,7 +119,7 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 })), E = /* @__PURE__ */ o(((e, t) => {
 	var n = "razdwatrzy";
 	t.exports = function() {
-		return typeof n.contains == "function" ? n.contains("dwa") === !0 && n.contains("foo") === !1 : !1;
+		return typeof n.contains == "function" && n.contains("dwa") === !0 && n.contains("foo") === !1;
 	};
 })), D = /* @__PURE__ */ o(((e, t) => {
 	var n = String.prototype.indexOf;
@@ -526,7 +526,7 @@ function Y(e) {
 }
 function ge(e) {
 	var t = parseFloat(String(e));
-	return Y(e) === !1 ? !1 : typeof e == "string" && e.indexOf(".") > -1 ? !0 : Math.floor(t) !== t;
+	return Y(e) === !1 ? !1 : typeof e == "string" && e.indexOf(".") > -1 || Math.floor(t) !== t;
 }
 function _e(e) {
 	return Object.prototype.toString.call(e).slice(8, -1);
@@ -601,7 +601,7 @@ var ve = 1, ye = 3, be = 8, X = 9, Z = class e {
 	}
 	getRange(e) {
 		var t = e.split(",");
-		return t.length === 3 ? [t[1], t[2]] : !1;
+		return t.length === 3 && [t[1], t[2]];
 	}
 	getCharecterOffsetComponent(e) {
 		return e.split(":")[1] || "";
@@ -740,7 +740,7 @@ var ve = 1, ye = 3, be = 8, X = 9, Z = class e {
 	}
 	textNodes(e, t) {
 		return Array.prototype.slice.call(e.childNodes).filter(function(e) {
-			return e.nodeType === ye ? !0 : !!(t && e.classList.contains(t));
+			return e.nodeType === ye || !!(t && e.classList.contains(t));
 		});
 	}
 	walkToNode(e, t, n) {
@@ -1185,7 +1185,7 @@ var Ae = /* @__PURE__ */ o(((e) => {
 	u(f, z), u(f, z.prototype);
 	function B(e, t) {
 		return V(e, null, { enter: function(e) {
-			return t(e) ? V.STOP : !0;
+			return !t(e) || V.STOP;
 		} }) === V.STOP;
 	}
 	function V(e, t, n) {
@@ -4560,7 +4560,7 @@ var Je = { lookup: Ke };
 //#endregion
 //#region src/utils/request.ts
 function Ye(e, t, n, r, i) {
-	var a = typeof window < "u" ? window.URL : !1, o = a ? "blob" : "arraybuffer", s = new N();
+	var a = typeof window < "u" && window.URL, o = a ? "blob" : "arraybuffer", s = new N();
 	if (i?.aborted) return s.reject(new DOMException("Aborted", "AbortError")), s.promise;
 	var c = new XMLHttpRequest(), l, u = XMLHttpRequest.prototype, d;
 	for (d in "overrideMimeType" in u || Object.defineProperty(u, "overrideMimeType", { value: function() {} }), n && (c.withCredentials = !0), c.onreadystatechange = h, c.onerror = f, c.onabort = p, c.open("GET", e, !0), r || {}) c.setRequestHeader(d, r[d]);
@@ -4801,11 +4801,11 @@ var Xe = Symbol.for("epub.persist.documentSource.v1"), Ze = 0, Qe = 0, $e = clas
 		return e;
 	}
 	isRenderableType(e) {
-		return e ? [
+		return !e || [
 			"application/xhtml+xml",
 			"text/html",
 			"image/svg+xml"
-		].indexOf(e) > -1 : !0;
+		].indexOf(e) > -1;
 	}
 	get(e) {
 		var t = 0;
@@ -5085,7 +5085,7 @@ var Xe = Symbol.for("epub.persist.documentSource.v1"), Ze = 0, Qe = 0, $e = clas
 		return e = e.replace(/(^\s*)|(\s*$)/gi, ""), e = e.replace(/[ ]{2,}/gi, " "), e = e.replace(/\n /, "\n"), e.split(" ").length;
 	}
 	parseWords(e, t, n, r) {
-		var i = t.cfiBase, a = [], o = e.ownerDocument, s = Q(o, "body"), c = n, l = r ? r.spinePos !== t.index : !0, u;
+		var i = t.cfiBase, a = [], o = e.ownerDocument, s = Q(o, "body"), c = n, l = !r || r.spinePos !== t.index, u;
 		return r && t.index === r.spinePos && (u = r.findNode(r.range ? r.path.steps.concat(r.start.steps) : r.path.steps, e.ownerDocument)), H(s, function(e) {
 			if (!l) if (e === u) l = !0;
 			else return !1;
@@ -5556,7 +5556,7 @@ var pt = class {
 		return i == -1 ? {
 			href: n,
 			page: r
-		} : (a = n.split("#"), o = a[0], s = a.length > 1 ? a[1] : !1, {
+		} : (a = n.split("#"), o = a[0], s = a.length > 1 && a[1], {
 			cfi: s,
 			href: n,
 			packageUrl: o,
@@ -10895,7 +10895,7 @@ var bi = class {
 	}
 	isVisible(e, t, n, r) {
 		var i = e.position(), a = r || this.bounds();
-		return this.settings.axis === "horizontal" && i.right > a.left - t && i.left < a.right + n ? !0 : this.settings.axis === "vertical" && i.bottom > a.top - t && i.top < a.bottom + n;
+		return this.settings.axis === "horizontal" && i.right > a.left - t && i.left < a.right + n || this.settings.axis === "vertical" && i.bottom > a.top - t && i.top < a.bottom + n;
 	}
 	visible() {
 		for (var e = this.bounds(), t = this.views.displayed(), n = t.length, r = [], i, a, o = 0; o < n; o++) a = t[o], i = this.isVisible(a, 0, 0, e), i === !0 && r.push(a);

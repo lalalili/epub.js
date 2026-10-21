@@ -90,7 +90,8 @@
 	//#region node_modules/type/plain-function/is.js
 	var require_is = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isFunction = require_is$1();
-		var classRe = /^\s*class[\s{/}]/, functionToString = Function.prototype.toString;
+		var classRe = /^\s*class[\s{/}]/;
+		var functionToString = Function.prototype.toString;
 		module.exports = function(value) {
 			if (!isFunction(value)) return false;
 			if (classRe.test(functionToString.call(value))) return false;
@@ -158,7 +159,9 @@
 	//#endregion
 	//#region node_modules/es5-ext/object/assign/shim.js
 	var require_shim$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		var keys = require_keys(), value = require_valid_value(), max = Math.max;
+		var keys = require_keys();
+		var value = require_valid_value();
+		var max = Math.max;
 		module.exports = function(dest, src) {
 			var error, i, length = max(arguments.length, 2), assign;
 			dest = Object(value(dest));
@@ -186,7 +189,8 @@
 	//#region node_modules/es5-ext/object/normalize-options.js
 	var require_normalize_options = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is_value();
-		var forEach = Array.prototype.forEach, create = Object.create;
+		var forEach = Array.prototype.forEach;
+		var create = Object.create;
 		var process = function(src, obj) {
 			var key;
 			for (key in src) obj[key] = src[key];
@@ -225,7 +229,11 @@
 	//#endregion
 	//#region node_modules/d/index.js
 	var require_d = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		var isValue = require_is$4(), isPlainFunction = require_is(), assign = require_assign(), normalizeOpts = require_normalize_options(), contains = require_contains();
+		var isValue = require_is$4();
+		var isPlainFunction = require_is();
+		var assign = require_assign();
+		var normalizeOpts = require_normalize_options();
+		var contains = require_contains();
 		var d = module.exports = function(dscr, value) {
 			var c, e, w, options, desc;
 			if (arguments.length < 2 || typeof dscr !== "string") {
@@ -293,11 +301,20 @@
 	//#endregion
 	//#region src/core/async.ts
 	var import_event_emitter = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
-		var d = require_d(), callable = require_valid_callable(), apply = Function.prototype.apply, call = Function.prototype.call, create = Object.create, defineProperty = Object.defineProperty, defineProperties = Object.defineProperties, hasOwnProperty = Object.prototype.hasOwnProperty, descriptor = {
+		var d = require_d();
+		var callable = require_valid_callable();
+		var apply = Function.prototype.apply;
+		var call = Function.prototype.call;
+		var create = Object.create;
+		var defineProperty = Object.defineProperty;
+		var defineProperties = Object.defineProperties;
+		var hasOwnProperty = Object.prototype.hasOwnProperty;
+		var descriptor = {
 			configurable: true,
 			enumerable: false,
 			writable: true
-		}, on = function(type, listener) {
+		};
+		var on = function(type, listener) {
 			var data;
 			callable(listener);
 			if (!hasOwnProperty.call(this, "__ee__")) {
@@ -309,7 +326,8 @@
 			else if (typeof data[type] === "object") data[type].push(listener);
 			else data[type] = [data[type], listener];
 			return this;
-		}, once = function(type, listener) {
+		};
+		var once = function(type, listener) {
 			var once, self;
 			callable(listener);
 			self = this;
@@ -319,7 +337,8 @@
 			});
 			once.__eeOnceListener__ = listener;
 			return this;
-		}, off = function(type, listener) {
+		};
+		var off = function(type, listener) {
 			var data, listeners, candidate, i;
 			callable(listener);
 			if (!hasOwnProperty.call(this, "__ee__")) return this;
@@ -331,7 +350,8 @@
 				else listeners.splice(i, 1);
 			} else if (listeners === listener || listeners.__eeOnceListener__ === listener) delete data[type];
 			return this;
-		}, emit = function(type) {
+		};
+		var emit = function(type) {
 			var i, l, listener, listeners, args;
 			if (!hasOwnProperty.call(this, "__ee__")) return;
 			listeners = this.__ee__[type];
@@ -358,17 +378,20 @@
 					for (i = 1; i < l; ++i) args[i - 1] = arguments[i];
 					apply.call(listeners, this, args);
 			}
-		}, methods = {
+		};
+		var methods = {
 			on,
 			once,
 			off,
 			emit
-		}, descriptors = {
+		};
+		var descriptors = {
 			on: d(on),
 			once: d(once),
 			off: d(off),
 			emit: d(emit)
-		}, base = defineProperties({}, descriptors);
+		};
+		var base = defineProperties({}, descriptors);
 		module.exports = exports = function(o) {
 			return o == null ? create(base) : defineProperties(Object(o), descriptors);
 		};
