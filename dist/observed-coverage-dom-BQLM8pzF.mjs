@@ -1,0 +1,127 @@
+import { t as e } from "./combined-text-paint-D3ZdtJcJ.mjs";
+//#region src/rendering/observed-coverage-dom.ts
+var t = /* @__PURE__ */ new WeakMap(), n = 0, r = (e) => [
+	e.left,
+	e.right,
+	e.top,
+	e.bottom
+].every(Number.isFinite) && e.right > e.left && e.bottom > e.top;
+async function i(i) {
+	if (!i.enabled) return null;
+	let a = i.document, o = i.frame, s = a.defaultView, c = [], l = (e) => {
+		c.includes(e) || c.push(e);
+	};
+	t.has(a) || t.set(a, `coverage-document-${++n}`);
+	let u = t.get(a), d = o.isConnected && !!a.body?.isConnected, f = o.contentDocument === a && s?.frameElement === o, p = [], m = !1, h = Number.isInteger(i.maxSources) && i.maxSources > 0 ? i.maxSources : 5e4, g = o.getBoundingClientRect(), _ = g.width / o.offsetWidth, v = g.height / o.offsetHeight, y = g.left + o.clientLeft * _, b = g.top + o.clientTop * v, x = s?.scrollX || 0, S = s?.scrollY || 0, C = (e) => ({
+		left: (e.left - y) / _ + x,
+		right: (e.right - y) / _ + x,
+		top: (e.top - b) / v + S,
+		bottom: (e.bottom - b) / v + S
+	});
+	(!d || !f || !s || !a.body) && l("disconnected-or-foreign-document"), (!(_ > 0) || !(v > 0)) && l("invalid-frame-scale");
+	for (let e = o; e; e = e.parentElement) {
+		let t = e.ownerDocument.defaultView?.getComputedStyle(e);
+		if (t?.transform && t.transform !== "none") {
+			let e = new DOMMatrixReadOnly(t.transform);
+			(!e.is2D || e.b !== 0 || e.c !== 0 || e.a <= 0 || e.d <= 0) && l("unsupported-frame-transform");
+		}
+	}
+	let w = (e, t) => {
+		let n = {
+			left: t.left + x,
+			right: t.right + x,
+			top: t.top + S,
+			bottom: t.bottom + S
+		};
+		if (r(n)) {
+			if (p.length >= h) {
+				m = !0;
+				return;
+			}
+			p.push({
+				identity: e,
+				rect: n
+			});
+		}
+	}, T = (e) => {
+		let t = [];
+		for (let n = e; n && n !== a.body; n = n.parentNode) {
+			let e = n.parentNode;
+			if (!e) {
+				l("detached-source");
+				break;
+			}
+			t.unshift(Array.prototype.indexOf.call(e.childNodes, n));
+		}
+		return t.join(".");
+	};
+	if (s && a.body && d && f) {
+		a.fonts?.status !== "loaded" && l("fonts-not-loaded");
+		let e = a.createTreeWalker(a.body, NodeFilter.SHOW_TEXT);
+		for (let t = e.nextNode(); t && !m; t = e.nextNode()) {
+			let e = t.parentElement;
+			if (!e || e.closest("script,style,noscript,svg")) continue;
+			let n = s.getComputedStyle(e);
+			if (n.display === "none" || n.visibility !== "visible") continue;
+			let r = t.textContent || "", i = T(t), o = a.createRange();
+			for (let e = 0; e < r.length && !m;) {
+				let n = String.fromCodePoint(r.codePointAt(e)), a = e + n.length;
+				n.trim() && (o.setStart(t, e), o.setEnd(t, a), Array.from(o.getClientRects()).forEach((t, n) => w(`text:${i}:${e}:${n}`, t))), e = a;
+			}
+		}
+		for (let e of a.body.querySelectorAll("img,svg,video,canvas,object,iframe")) {
+			if (m) break;
+			let t = s.getComputedStyle(e);
+			t.display === "none" || t.visibility !== "visible" || (e instanceof s.HTMLImageElement && (!e.complete || !e.naturalWidth) && l("image-not-loaded"), ["OBJECT", "IFRAME"].includes(e.tagName.toUpperCase()) && l("nested-document-not-inventoried"), Array.from(e.getClientRects()).forEach((t, n) => w(`media:${T(e)}:${n}`, t)));
+		}
+	}
+	let E = C(i.rawScreenViewport), D = C(i.effectiveScreenViewport);
+	(!r(E) || !r(D)) && l("invalid-viewport"), m && l("source-limit-reached");
+	let O = a.body?.innerHTML, k = e(a), A = new TextEncoder().encode(JSON.stringify([k.markup, p])), j = !1, M = new MutationObserver(() => {
+		j = !0;
+	});
+	a.documentElement && M.observe(a.documentElement, {
+		subtree: !0,
+		childList: !0,
+		characterData: !0,
+		attributes: !0
+	});
+	let N, P;
+	try {
+		[N, P] = await Promise.all([globalThis.crypto.subtle.digest("SHA-256", A), globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(O || ""))]), (j || M.takeRecords().length || a.body?.innerHTML !== O) && l("source-changed-during-capture");
+		let e = o.getBoundingClientRect();
+		(e.left !== g.left || e.top !== g.top || e.width !== g.width || e.height !== g.height || s?.scrollX !== x || s?.scrollY !== S) && l("viewport-changed-during-capture"), a.fonts?.status !== "loaded" && l("fonts-not-loaded");
+	} finally {
+		M.disconnect();
+	}
+	let F = Array.from(new Uint8Array(N), (e) => e.toString(16).padStart(2, "0")).join(""), I = Array.from(new Uint8Array(P), (e) => e.toString(16).padStart(2, "0")).join("");
+	return (!o.isConnected || o.contentDocument !== a || a.defaultView !== s) && l("document-changed-during-capture"), {
+		version: 2,
+		sources: p,
+		inventoryComplete: c.length === 0,
+		truncated: m,
+		terminalObserved: i.terminalObserved,
+		issues: c,
+		paintHintNormalizationCount: k.normalizedHints,
+		rawMarkupIdentity: I,
+		observation: {
+			sequence: i.sequence,
+			pageIndex: i.pageIndex,
+			sourceFingerprint: i.sourceFingerprint,
+			sectionHref: i.sectionHref,
+			layoutGeneration: i.layoutGeneration,
+			documentIdentity: u,
+			inventoryIdentity: F,
+			connected: d,
+			ownerDocumentMatches: f,
+			settled: i.settled,
+			complete: c.length === 0,
+			rawViewport: E,
+			effectiveViewport: D
+		}
+	};
+}
+//#endregion
+export { i as captureObservedCoverageDom };
+
+//# sourceMappingURL=observed-coverage-dom-BQLM8pzF.mjs.map

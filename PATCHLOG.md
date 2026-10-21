@@ -2,6 +2,15 @@
 
 This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
+## 2026-10-22
+
+### Block-media boundaries, observed source coverage and WebView mask ownership
+- Why: real-book5525 exposed split block images, typography-dependent media fitting and fractional extra pages. The compiled candidate also exposed a Native5556 reverse-page fence that changed by28px when a planned double offset and WebView's float32 scroll position represented the same position.
+- Diff Scope: retain whole block-media boundaries, remeasure media after typography changes and preserve the existing source/layout identity checks. Compare committed mask offsets at the same float32 representation while rejecting adjacent representable or wrong positions. Add an explicit dual-debug-flag DOM coverage sampler, source inventory and fail-closed coverage assessment; no pagination decision consumes the observer. Normalize only this module's own temporary paint hints on a detached source clone.
+- Test: the recorded local Engine candidate passes1035 Chromium tests with one existing skip, typecheck, lint, compile, build and package contracts. Reader integration passes1910 tests with two existing skips. The same compiled candidate has five Web source-coverage/roundtrip profiles,175 legal-source CFI proofs,21 media cells and bounded Native coverage/media evidence. The ordinary Web Section0019 A-E control checks447 source offsets after the actual restore lifecycle terminates. Final release checks and consumer tag adoption are separate gates.
+- Evidence: CPTW keeps candidate/source/asset hashes, the float32 regression's original failure, stale/ambiguous refusals and unchanged1px roundtrip assertions. Historical fixed-coordinate and terminal-marker assertions remain failed; this does not close issue82. The legacy5525 three-page to two-page replay retains strict incomplete despite visible original CFI context and reachable whole media. Cold WebView diagnostics, physical/signed Android and iOS remain separate qualifications.
+- Rollback: revert these candidate changes and regenerate distribution artifacts; do not rewrite an existing release tag.
+
 ## 2026-10-16
 
 ### EPUB-G5-001 keep uncapped mask expansion outside adjacent glyphs

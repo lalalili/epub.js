@@ -8,6 +8,14 @@
 	var __getOwnPropNames = Object.getOwnPropertyNames;
 	var __getProtoOf = Object.getPrototypeOf;
 	var __hasOwnProp = Object.prototype.hasOwnProperty;
+	var __esmMin = (fn, res, err) => () => {
+		if (err) throw err[0];
+		try {
+			return fn && (res = fn(fn = 0)), res;
+		} catch (e) {
+			throw err = [e], e;
+		}
+	};
 	var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).exports, mod), cb = null), mod.exports);
 	var __exportAll = (all, no_symbols) => {
 		let target = {};
@@ -13159,7 +13167,33 @@
 	(0, import_event_emitter.default)(IframeView.prototype);
 	//#endregion
 	//#region src/rendering/combined-text-paint.ts
-	var hints = /* @__PURE__ */ new WeakMap();
+	/** Serialize source without this module's temporary paint hints, using a detached clone. */
+	function readCombinedTextPaintSource(document) {
+		const body = document.body;
+		if (!body) return {
+			markup: "",
+			normalizedHints: 0
+		};
+		const active = hints.get(document);
+		if (!active?.size) return {
+			markup: body.innerHTML,
+			normalizedHints: 0
+		};
+		const clone = body.cloneNode(true);
+		const originals = [body, ...body.querySelectorAll("*")];
+		const copies = [clone, ...clone.querySelectorAll("*")];
+		let normalizedHints = 0;
+		for (const [element, hint] of active) {
+			const index = originals.indexOf(element);
+			if (index < 0 || element.style.willChange !== hint.applied || element.style.getPropertyPriority("will-change") !== "important") continue;
+			restore(copies[index], hint);
+			normalizedHints++;
+		}
+		return {
+			markup: clone.innerHTML,
+			normalizedHints
+		};
+	}
 	function restore(element, hint) {
 		if (element.style.willChange !== hint.applied || element.style.getPropertyPriority("will-change") !== "important") return;
 		if (hint.value) element.style.setProperty("will-change", hint.value, hint.priority);
@@ -13199,8 +13233,13 @@
 		hints.set(document, active);
 		return invalidated;
 	}
+	var hints;
+	var init_combined_text_paint = __esmMin((() => {
+		hints = /* @__PURE__ */ new WeakMap();
+	}));
 	//#endregion
 	//#region src/utils/scrolltype.ts
+	init_combined_text_paint();
 	function scrollType() {
 		var type = "reverse";
 		var definer = createDefiner();
@@ -15173,7 +15212,176 @@
 		}
 	};
 	//#endregion
+	//#region src/rendering/observed-coverage-dom.ts
+	var observed_coverage_dom_exports = /* @__PURE__ */ __exportAll({ captureObservedCoverageDom: () => captureObservedCoverageDom });
+	/**
+	* Read only the supplied live frame. Source rects and the actual screen clip are
+	* mapped to the same iframe-document coordinate system, independent of Manager
+	* offsets. The caller owns settled/terminal/source authority and must sample after
+	* rendering. Returns no evidence and performs no traversal while disabled.
+	*/
+	async function captureObservedCoverageDom(input) {
+		if (!input.enabled) return null;
+		const doc = input.document, frame = input.frame, win = doc.defaultView;
+		const issues = [];
+		const addIssue = (issue) => {
+			if (!issues.includes(issue)) issues.push(issue);
+		};
+		if (!documentIds.has(doc)) documentIds.set(doc, `coverage-document-${++nextDocumentId}`);
+		const documentIdentity = documentIds.get(doc);
+		const connected = frame.isConnected && Boolean(doc.body?.isConnected);
+		const ownerDocumentMatches = frame.contentDocument === doc && win?.frameElement === frame;
+		const sources = [];
+		let truncated = false;
+		const limit = Number.isInteger(input.maxSources) && input.maxSources > 0 ? input.maxSources : 5e4;
+		const frameRect = frame.getBoundingClientRect();
+		const scaleX = frameRect.width / frame.offsetWidth, scaleY = frameRect.height / frame.offsetHeight;
+		const originX = frameRect.left + frame.clientLeft * scaleX;
+		const originY = frameRect.top + frame.clientTop * scaleY;
+		const scrollX = win?.scrollX || 0, scrollY = win?.scrollY || 0;
+		const mapClip = (rect) => ({
+			left: (rect.left - originX) / scaleX + scrollX,
+			right: (rect.right - originX) / scaleX + scrollX,
+			top: (rect.top - originY) / scaleY + scrollY,
+			bottom: (rect.bottom - originY) / scaleY + scrollY
+		});
+		if (!connected || !ownerDocumentMatches || !win || !doc.body) addIssue("disconnected-or-foreign-document");
+		if (!(scaleX > 0) || !(scaleY > 0)) addIssue("invalid-frame-scale");
+		for (let node = frame; node; node = node.parentElement) {
+			const style = node.ownerDocument.defaultView?.getComputedStyle(node);
+			if (style?.transform && style.transform !== "none") {
+				const matrix = new DOMMatrixReadOnly(style.transform);
+				if (!matrix.is2D || matrix.b !== 0 || matrix.c !== 0 || matrix.a <= 0 || matrix.d <= 0) addIssue("unsupported-frame-transform");
+			}
+		}
+		const append = (identity, rect) => {
+			const mapped = {
+				left: rect.left + scrollX,
+				right: rect.right + scrollX,
+				top: rect.top + scrollY,
+				bottom: rect.bottom + scrollY
+			};
+			if (!positiveRect(mapped)) return;
+			if (sources.length >= limit) {
+				truncated = true;
+				return;
+			}
+			sources.push({
+				identity,
+				rect: mapped
+			});
+		};
+		const path = (node) => {
+			const indexes = [];
+			for (let current = node; current && current !== doc.body; current = current.parentNode) {
+				const parent = current.parentNode;
+				if (!parent) {
+					addIssue("detached-source");
+					break;
+				}
+				indexes.unshift(Array.prototype.indexOf.call(parent.childNodes, current));
+			}
+			return indexes.join(".");
+		};
+		if (win && doc.body && connected && ownerDocumentMatches) {
+			if (doc.fonts?.status !== "loaded") addIssue("fonts-not-loaded");
+			const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+			for (let node = walker.nextNode(); node && !truncated; node = walker.nextNode()) {
+				const parent = node.parentElement;
+				if (!parent || parent.closest("script,style,noscript,svg")) continue;
+				const style = win.getComputedStyle(parent);
+				if (style.display === "none" || style.visibility !== "visible") continue;
+				const text = node.textContent || "", identity = path(node);
+				const range = doc.createRange();
+				for (let offset = 0; offset < text.length && !truncated;) {
+					const character = String.fromCodePoint(text.codePointAt(offset));
+					const end = offset + character.length;
+					if (character.trim()) {
+						range.setStart(node, offset);
+						range.setEnd(node, end);
+						Array.from(range.getClientRects()).forEach((rect, index) => append(`text:${identity}:${offset}:${index}`, rect));
+					}
+					offset = end;
+				}
+			}
+			for (const element of doc.body.querySelectorAll("img,svg,video,canvas,object,iframe")) {
+				if (truncated) break;
+				const style = win.getComputedStyle(element);
+				if (style.display === "none" || style.visibility !== "visible") continue;
+				if (element instanceof win.HTMLImageElement && (!element.complete || !element.naturalWidth)) addIssue("image-not-loaded");
+				if (["OBJECT", "IFRAME"].includes(element.tagName.toUpperCase())) addIssue("nested-document-not-inventoried");
+				Array.from(element.getClientRects()).forEach((rect, index) => append(`media:${path(element)}:${index}`, rect));
+			}
+		}
+		const rawViewport = mapClip(input.rawScreenViewport), effectiveViewport = mapClip(input.effectiveScreenViewport);
+		if (!positiveRect(rawViewport) || !positiveRect(effectiveViewport)) addIssue("invalid-viewport");
+		if (truncated) addIssue("source-limit-reached");
+		const sourceMarkup = doc.body?.innerHTML;
+		const semanticSource = readCombinedTextPaintSource(doc);
+		const bytes = new TextEncoder().encode(JSON.stringify([semanticSource.markup, sources]));
+		let changed = false;
+		const mutations = new MutationObserver(() => {
+			changed = true;
+		});
+		if (doc.documentElement) mutations.observe(doc.documentElement, {
+			subtree: true,
+			childList: true,
+			characterData: true,
+			attributes: true
+		});
+		let digest, rawDigest;
+		try {
+			[digest, rawDigest] = await Promise.all([globalThis.crypto.subtle.digest("SHA-256", bytes), globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(sourceMarkup || ""))]);
+			if (changed || mutations.takeRecords().length || doc.body?.innerHTML !== sourceMarkup) addIssue("source-changed-during-capture");
+			const after = frame.getBoundingClientRect();
+			if (after.left !== frameRect.left || after.top !== frameRect.top || after.width !== frameRect.width || after.height !== frameRect.height || win?.scrollX !== scrollX || win?.scrollY !== scrollY) addIssue("viewport-changed-during-capture");
+			if (doc.fonts?.status !== "loaded") addIssue("fonts-not-loaded");
+		} finally {
+			mutations.disconnect();
+		}
+		const inventoryIdentity = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+		const rawMarkupIdentity = Array.from(new Uint8Array(rawDigest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+		if (!frame.isConnected || frame.contentDocument !== doc || doc.defaultView !== win) addIssue("document-changed-during-capture");
+		return {
+			version: 2,
+			sources,
+			inventoryComplete: issues.length === 0,
+			truncated,
+			terminalObserved: input.terminalObserved,
+			issues,
+			paintHintNormalizationCount: semanticSource.normalizedHints,
+			rawMarkupIdentity,
+			observation: {
+				sequence: input.sequence,
+				pageIndex: input.pageIndex,
+				sourceFingerprint: input.sourceFingerprint,
+				sectionHref: input.sectionHref,
+				layoutGeneration: input.layoutGeneration,
+				documentIdentity,
+				inventoryIdentity,
+				connected,
+				ownerDocumentMatches,
+				settled: input.settled,
+				complete: issues.length === 0,
+				rawViewport,
+				effectiveViewport
+			}
+		};
+	}
+	var documentIds, nextDocumentId, positiveRect;
+	var init_observed_coverage_dom = __esmMin((() => {
+		documentIds = /* @__PURE__ */ new WeakMap();
+		nextDocumentId = 0;
+		positiveRect = (r) => [
+			r.left,
+			r.right,
+			r.top,
+			r.bottom
+		].every(Number.isFinite) && r.right > r.left && r.bottom > r.top;
+	}));
+	//#endregion
 	//#region src/managers/default/index.ts
+	init_combined_text_paint();
 	var Deferred = defer$1;
 	var getVerticalRlTerminalOwnerClipRelation = (observation) => {
 		let candidate = observation?.resolution?.candidate;
@@ -15788,6 +15996,26 @@
 			};
 		}
 		/**
+		* Explicit debug-only sampling of the active DOM. Reader owns the supplied
+		* observed visual clip; this method never derives it from cached page offsets.
+		* No pagination call site invokes this method or consumes its result.
+		*/
+		async captureVerticalRlObservedCoverage(options) {
+			const debugWindow = typeof window !== "undefined" ? window : null;
+			if (!debugWindow?.__EPUB_VRL_DEBUG__ || !debugWindow.__EPUB_VRL_OBSERVED_COVERAGE_ENABLED__) return null;
+			const view = this.views && (this.views.first() || this.views.last());
+			if (!view?.iframe || !view.contents?.document || !view.section?.href) return null;
+			const { captureObservedCoverageDom } = await Promise.resolve().then(() => (init_observed_coverage_dom(), observed_coverage_dom_exports));
+			if (!debugWindow.__EPUB_VRL_DEBUG__ || !debugWindow.__EPUB_VRL_OBSERVED_COVERAGE_ENABLED__ || this.views?.first() !== view) return null;
+			return captureObservedCoverageDom({
+				...options,
+				enabled: true,
+				frame: view.iframe,
+				document: view.contents.document,
+				sectionHref: view.section.href
+			});
+		}
+		/**
 		* Resolve the active document's terminal semantic owner after a geometry
 		* continuation candidate has already been established.
 		*
@@ -16355,7 +16583,8 @@
 				let pageIndex = this.getCurrentPageIndex();
 				if (!cacheKey || !Number.isFinite(pageIndex)) return;
 				const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(pageIndex, cacheKey);
-				if (recordedOffset !== null && recordedOffset !== this.getNormalizedLogicalScrollLeft()) return;
+				const currentOffset = this.getNormalizedLogicalScrollLeft();
+				if (recordedOffset !== null && recordedOffset !== currentOffset && (!Number.isFinite(currentOffset) || Math.fround(recordedOffset) !== Math.fround(currentOffset))) return;
 				if (!this._verticalRlAppliedLeftMaskLedger || this._verticalRlAppliedLeftMaskLedgerKey !== cacheKey) {
 					this._verticalRlAppliedLeftMaskLedger = {};
 					this._verticalRlAppliedLeftMaskLedgerKey = cacheKey;
@@ -16481,7 +16710,8 @@
 			const pageIndex = this.getCurrentPageIndex();
 			if (pageIndex >= this.getTotalPagesForCurrentView() - 1) return null;
 			const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(pageIndex, state.layoutKey);
-			if (recordedOffset === null || recordedOffset !== this.getNormalizedLogicalScrollLeft()) return null;
+			const currentOffset = this.getNormalizedLogicalScrollLeft();
+			if (recordedOffset === null || !Number.isFinite(currentOffset) || recordedOffset !== currentOffset && Math.fround(recordedOffset) !== Math.fround(currentOffset)) return null;
 			const fence = this.getRecordedVerticalRlAppliedLeftMask(pageIndex);
 			if (fence === null || !Number.isFinite(fence)) return null;
 			const preserved = this._verticalRlPreservedPageBoundary;

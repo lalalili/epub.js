@@ -6,6 +6,7 @@ import { windowBounds } from "../../platform/layout";
 import { collectVisibleTextClientRects } from "../../platform/traversal";
 import { refreshCombinedTextPaint } from "../../rendering/combined-text-paint";
 import { collectVerticalRlBlockMediaRects, resolveVerticalRlBlockMediaOffset } from "../../rendering/block-media";
+import type { CoverageDomCapture, CoverageDomInput } from "../../rendering/observed-coverage-dom";
 import type { VisibleTextClientRect } from "../../platform/traversal";
 import scrollType from "../../utils/scrolltype";
 import Mapping from "../../mapping";
@@ -1345,6 +1346,36 @@ class DefaultViewManager {
 	}
 
 	/**
+	 * Explicit debug-only sampling of the active DOM. Reader owns the supplied
+	 * observed visual clip; this method never derives it from cached page offsets.
+	 * No pagination call site invokes this method or consumes its result.
+	 */
+	async captureVerticalRlObservedCoverage(
+		options: Omit<CoverageDomInput, "enabled" | "frame" | "document" | "sectionHref">
+	): Promise<CoverageDomCapture | null> {
+		const debugWindow = typeof window !== "undefined" ? window as Window & {
+			__EPUB_VRL_DEBUG__?: boolean;
+			__EPUB_VRL_OBSERVED_COVERAGE_ENABLED__?: boolean;
+		} : null;
+		if (!debugWindow?.__EPUB_VRL_DEBUG__ || !debugWindow.__EPUB_VRL_OBSERVED_COVERAGE_ENABLED__) {
+			return null;
+		}
+		const view = this.views && (this.views.first() || this.views.last());
+		if (!view?.iframe || !view.contents?.document || !view.section?.href) {
+			return null;
+		}
+		const { captureObservedCoverageDom } = await import("../../rendering/observed-coverage-dom");
+		if (!debugWindow.__EPUB_VRL_DEBUG__ || !debugWindow.__EPUB_VRL_OBSERVED_COVERAGE_ENABLED__ ||
+			this.views?.first() !== view) {
+			return null;
+		}
+		return captureObservedCoverageDom({
+			...options, enabled: true, frame: view.iframe,
+			document: view.contents.document, sectionHref: view.section.href
+		});
+	}
+
+	/**
 	 * Resolve the active document's terminal semantic owner after a geometry
 	 * continuation candidate has already been established.
 	 *
@@ -2183,7 +2214,12 @@ class DefaultViewManager {
 			// A recreated View can temporarily reuse a learned page index at a
 			// different offset. Its mask must not replace that page's source fence.
 			const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(pageIndex, cacheKey);
-			if (recordedOffset !== null && recordedOffset !== this.getNormalizedLogicalScrollLeft()) {
+			const currentOffset = this.getNormalizedLogicalScrollLeft();
+			// WebView exposes scrollLeft at float32 precision while the planned
+			// offset remains a double. Compare the same representable position;
+			// a neighboring float32 position still fails the ownership check.
+			if (recordedOffset !== null && (recordedOffset !== currentOffset &&
+				(!Number.isFinite(currentOffset) || Math.fround(recordedOffset) !== Math.fround(currentOffset)))) {
 				return;
 			}
 
@@ -2392,7 +2428,9 @@ class DefaultViewManager {
 			return null;
 		}
 		const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(pageIndex, state.layoutKey);
-		if (recordedOffset === null || recordedOffset !== this.getNormalizedLogicalScrollLeft()) {
+		const currentOffset = this.getNormalizedLogicalScrollLeft();
+		if (recordedOffset === null || !Number.isFinite(currentOffset) ||
+			(recordedOffset !== currentOffset && Math.fround(recordedOffset) !== Math.fround(currentOffset))) {
 			return null;
 		}
 		const fence = this.getRecordedVerticalRlAppliedLeftMask(pageIndex);

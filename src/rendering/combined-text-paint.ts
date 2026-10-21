@@ -3,6 +3,32 @@ type PaintHint = { value: string; priority: string; applied: string; hadStyle: b
 
 const hints = new WeakMap<Document, Map<HTMLElement, PaintHint>>();
 
+/** Serialize source without this module's temporary paint hints, using a detached clone. */
+export function readCombinedTextPaintSource(document: Document): { markup: string; normalizedHints: number } {
+	const body = document.body;
+	if (!body) {
+		return { markup: "", normalizedHints: 0 };
+	}
+	const active = hints.get(document);
+	if (!active?.size) {
+		return { markup: body.innerHTML, normalizedHints: 0 };
+	}
+	const clone = body.cloneNode(true) as HTMLElement;
+	const originals = [body, ...body.querySelectorAll<HTMLElement>("*")];
+	const copies = [clone, ...clone.querySelectorAll<HTMLElement>("*")];
+	let normalizedHints = 0;
+	for (const [element, hint] of active) {
+		const index = originals.indexOf(element);
+		if (index < 0 || element.style.willChange !== hint.applied ||
+			element.style.getPropertyPriority("will-change") !== "important") {
+			continue;
+		}
+		restore(copies[index], hint);
+		normalizedHints++;
+	}
+	return { markup: clone.innerHTML, normalizedHints };
+}
+
 function restore(element: HTMLElement, hint: PaintHint): void {
 	if (element.style.willChange !== hint.applied || element.style.getPropertyPriority("will-change") !== "important") {
 		return;
