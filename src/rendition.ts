@@ -656,6 +656,13 @@ class Rendition {
 			.then(() => {
 				if (view.contents) {
 					this.hooks.content.trigger(view.contents, this).then(() => {
+						if (
+							this._layout.name !== "pre-paginated" &&
+							view.contents.writingMode() === "vertical-rl" &&
+							view.contents.document.querySelector("img")
+						) {
+							view.expand();
+						}
 						/**
 						 * Emit that a section has been rendered
 						 * @event rendered

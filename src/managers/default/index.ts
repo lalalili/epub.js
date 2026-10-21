@@ -5,6 +5,7 @@ import { isNumber } from "../../core/types";
 import { windowBounds } from "../../platform/layout";
 import { collectVisibleTextClientRects } from "../../platform/traversal";
 import { refreshCombinedTextPaint } from "../../rendering/combined-text-paint";
+import { collectVerticalRlBlockMediaRects, resolveVerticalRlBlockMediaOffset } from "../../rendering/block-media";
 import type { VisibleTextClientRect } from "../../platform/traversal";
 import scrollType from "../../utils/scrolltype";
 import Mapping from "../../mapping";
@@ -2895,6 +2896,15 @@ class DefaultViewManager {
 			// the raw right edge and acquire a mask on both adjacent pages.
 			const boundaryOffset = Math.max(0, Math.min(maxScroll, contentWidth - preferredBoundary));
 			snapResult.snapped = Math.floor(Math.min(snapResult.snapped, boundaryOffset) * dpr) / dpr;
+			if (snapResult.cacheEntry) {
+				snapResult.cacheEntry.value = snapResult.snapped;
+			}
+		}
+		if (!Number.isFinite(options.semanticWindowLogicalOffset)) {
+			const mediaDpr = Number.isFinite(dpr) && dpr > 0 ? dpr : 1;
+			const mediaLeftGutter = Math.ceil(Math.max(0, visibleWidth - this.getPageAdvance()) * mediaDpr) / mediaDpr;
+			snapResult.snapped = resolveVerticalRlBlockMediaOffset(snapResult.snapped, maxScroll, contentWidth, visibleWidth,
+				collectVerticalRlBlockMediaRects(doc, win, visibleWidth), textRects, this.layout.edgeGuardPx || 0, mediaLeftGutter);
 			if (snapResult.cacheEntry) {
 				snapResult.cacheEntry.value = snapResult.snapped;
 			}

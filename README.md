@@ -2,7 +2,7 @@
 
 This repository is the `lalalili/epub.js` maintenance fork of
 `futurepress/epub.js`. It keeps the 0.3.x public API stable while carrying
-patches needed by the Aitehub EPUB reader.
+patches needed by the shared CPTW EPUB reader.
 
 The upstream project, original API shape, and BSD-2-Clause license remain from
 FuturePress. Fork-specific behavior and release notes are tracked in
@@ -10,7 +10,7 @@ FuturePress. Fork-specific behavior and release notes are tracked in
 
 ## Fork usage
 
-Aitehub consumes this fork as GitHub release tarballs:
+The shared `cptw-and-yunwu/epub-reader` package consumes this fork as GitHub release tarballs:
 
 ```text
 https://codeload.github.com/lalalili/epub.js/tar.gz/v0.3.93.<N>
@@ -19,9 +19,10 @@ https://codeload.github.com/lalalili/epub.js/tar.gz/v0.3.93.<N>
 The package version remains `0.3.93` for compatibility with existing consumers.
 Fork releases are cut as tags such as `v0.3.93.124`.
 
-This repository is not published to npm as the canonical distribution for
-Aitehub. Update the tarball tag in both Aitehub manifests when cutting a new
-fork release.
+This repository is not published to npm as the canonical distribution. Update
+the shared Reader package's tarball tag and lockfile after an authorized engine
+release. CPTW is the primary Web/Android qualification host; Aitehub consumes
+released Reader packages through Composer as a compatibility host.
 
 ## Getting started
 
@@ -267,10 +268,14 @@ rendition.hooks.unloaded; // Section contents are being unloaded
 The standalone upstream reader lives at
 <https://github.com/futurepress/epubjs-reader/>.
 
-The Aitehub integration source of truth lives in the `epub-reader` package in
-the Aitehub repository. Core layout, pagination, CFI, RTL, vertical writing, and
+The shared Reader source of truth is the independent checkout at
+`/home/cptw/cptw/packages/epub-reader`; this engine checkout lives at
+`/home/cptw/cptw/.local/epub.js`. Core layout, pagination, CFI, RTL, vertical writing, and
 rendition behavior should be fixed in this fork when the defect is intrinsic to
-epub.js.
+epub.js. Follow the host's current incident and pagination freeze gates before
+changing geometry. Host runtime evidence and real-book qualification remain
+separate from engine fixture results. iOS native verification is handled by the
+designated iOS colleague, not inferred from Web or Android results.
 
 ## License and attribution
 

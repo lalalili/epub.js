@@ -7,6 +7,7 @@ import Contents from "../../contents";
 import { createBlobUrl, revokeBlobUrl } from "../../platform/blob";
 import { borders, bounds } from "../../platform/layout";
 import { EVENTS } from "../../utils/constants";
+import { layoutVerticalRlBlockMedia } from "../../rendering/block-media";
 import { Pane, Highlight, Underline } from "marks-pane";
 import type { AnnotationData, AnnotationStyles } from "../../annotations";
 
@@ -555,6 +556,7 @@ class IframeView {
 					this.element.style.width = visiblePageWidth + "px";
 					this.iframe.style.width = visiblePageWidth + "px";
 				}
+				layoutVerticalRlBlockMedia(this.contents, this.layout.effectivePageAdvance || visiblePageWidth, this.layout.edgeGuardPx || 0);
 				pageMetrics = this.contents.verticalRlPageMetrics(visiblePageWidth, height) as VerticalRlPageMetrics;
 				width = pageMetrics.rawWidth;
 				if (pageMetrics.effectivePageAdvance > 0) {

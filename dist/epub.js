@@ -10432,6 +10432,99 @@
 		}
 	};
 	//#endregion
+	//#region src/rendering/block-media.ts
+	var originalStyles = /* @__PURE__ */ new WeakMap();
+	var fittedMediaDocuments = /* @__PURE__ */ new WeakSet();
+	/** The last source block is a fitted image-only normal-flow canvas. */
+	function hasFittedVerticalRlMediaTail(document) {
+		return fittedMediaDocuments.has(document);
+	}
+	function restoreOriginalStyles(element, properties) {
+		let original = originalStyles.get(element);
+		if (!original) {
+			original = Object.fromEntries(properties.map((key) => [key, {
+				value: element.style.getPropertyValue(key),
+				priority: element.style.getPropertyPriority(key)
+			}]));
+			originalStyles.set(element, original);
+		}
+		for (const [key, style] of Object.entries(original)) if (style.value) element.style.setProperty(key, style.value, style.priority);
+		else element.style.removeProperty(key);
+	}
+	function fitMaxWidth(element, window, pageWidth) {
+		const authorLimit = window.getComputedStyle(element).maxWidth;
+		element.style.setProperty("max-width", authorLimit === "none" ? `${pageWidth}px` : `min(${pageWidth}px, ${authorLimit})`, "important");
+	}
+	/** Include only fitted normal-flow images as indivisible boundary intervals. */
+	function collectVerticalRlBlockMediaRects(document, window, pageWidth) {
+		if (!document.querySelectorAll || !window.getComputedStyle) return [];
+		return Array.from(document.querySelectorAll("img")).flatMap((image) => {
+			const style = window.getComputedStyle(image);
+			if (style.display !== "block" || style.position !== "static" || style.visibility !== "visible" || style.transform !== "none") return [];
+			const rect = image.getBoundingClientRect();
+			return rect.width > 0 && rect.height > 0 && rect.width <= pageWidth ? [rect] : [];
+		});
+	}
+	/** A fitted image may own an otherwise text-free viewport, including a learned offset. */
+	function resolveVerticalRlBlockMediaOffset(offset, maxScroll, contentWidth, pageWidth, mediaRects, textRects, edgeGuard = 0, leftGutter = 0) {
+		const rawLeft = contentWidth - offset - pageWidth;
+		const rawRight = contentWidth - offset;
+		if (textRects.some((rect) => rect.right > rawLeft && rect.left < rawRight)) return offset;
+		const leftInset = Math.max(edgeGuard, leftGutter);
+		const left = rawLeft + leftInset;
+		const right = rawRight - edgeGuard;
+		for (const media of mediaRects) {
+			if (!(media.width > 0 && media.width <= pageWidth - leftInset - edgeGuard) || media.right <= left || media.left >= right || media.left >= left && media.right <= right) continue;
+			const target = media.left < left ? contentWidth - pageWidth + leftInset - media.left : contentWidth - edgeGuard - media.right;
+			if (target < 0 || target > maxScroll) continue;
+			const nextLeft = contentWidth - target - pageWidth + leftInset;
+			const nextRight = contentWidth - target - edgeGuard;
+			if (textRects.some((rect) => rect.left < nextLeft && rect.right > nextLeft || rect.left < nextRight && rect.right > nextRight)) continue;
+			return target;
+		}
+		return offset;
+	}
+	/** Keep normal-flow block images in one vertical page without changing DOM identity. */
+	function layoutVerticalRlBlockMedia(contents, pageWidth, edgeGuard = 0) {
+		fittedMediaDocuments.delete(contents.document);
+		const images = contents.content?.querySelectorAll("img");
+		if (!(pageWidth > 0) || !images?.length || !contents.window?.getComputedStyle || contents.window.getComputedStyle(contents.content).writingMode !== "vertical-rl") return;
+		const usableWidth = pageWidth - 2 * edgeGuard;
+		if (!(usableWidth > 0)) return;
+		const dpr = contents.window.devicePixelRatio || 1;
+		const imageWidth = Number.isInteger(pageWidth * dpr) ? usableWidth : Math.min(usableWidth, pageWidth - 2 / dpr);
+		const origin = contents.window.innerWidth;
+		for (const image of images) {
+			const computed = contents.window.getComputedStyle(image);
+			if (computed.display !== "block" || computed.position !== "static" || computed.transform !== "none" || image.closest("svg")) continue;
+			const wrapper = image.parentElement;
+			let alignedElement = image;
+			if (wrapper && wrapper !== contents.content && wrapper.childElementCount === 1 && !wrapper.textContent?.trim()) {
+				const wrapperStyle = contents.window.getComputedStyle(wrapper);
+				if (wrapperStyle.position === "static" && wrapperStyle.transform === "none") {
+					restoreOriginalStyles(wrapper, ["max-width", "margin-right"]);
+					fitMaxWidth(wrapper, contents.window, usableWidth);
+					alignedElement = wrapper;
+				}
+			}
+			restoreOriginalStyles(image, ["max-width", "margin-right"]);
+			fitMaxWidth(image, contents.window, imageWidth);
+			const rect = alignedElement.getBoundingClientRect();
+			if (!(rect.width > 0) || rect.width > usableWidth + 1) continue;
+			if (alignedElement.parentElement === contents.content && alignedElement === contents.content.lastElementChild && !alignedElement.textContent?.trim()) fittedMediaDocuments.add(contents.document);
+			const offset = origin - rect.right;
+			if (offset < -1) continue;
+			const page = Math.floor(Math.max(0, offset) / pageWidth);
+			if (offset + rect.width <= (page + 1) * pageWidth - edgeGuard + 1 && offset >= page * pageWidth + edgeGuard - 1) continue;
+			let target = Math.max(offset, page * pageWidth + edgeGuard);
+			if (target + rect.width > (page + 1) * pageWidth - edgeGuard + 1) target = (page + 1) * pageWidth + edgeGuard;
+			const margin = (Number.parseFloat(contents.window.getComputedStyle(alignedElement).marginRight) || 0) + Math.max(0, target - offset);
+			alignedElement.style.setProperty("margin-right", `${margin}px`, "important");
+			const remaining = target - (origin - alignedElement.getBoundingClientRect().right);
+			if (remaining > 1) alignedElement.style.setProperty("margin-right", `${margin + remaining}px`, "important");
+		}
+	}
+	//#endregion
 	//#region src/contents.ts
 	var hasNavigator = typeof navigator !== "undefined";
 	var isChrome = hasNavigator && /Chrome/.test(navigator.userAgent);
@@ -10751,6 +10844,7 @@
 			const docEl = this.documentElement;
 			const bodyStyle = content && this.window ? this.window.getComputedStyle(content) : null;
 			const docFonts = this.document && this.document.fonts ? this.document.fonts : null;
+			const mediaCanvas = content && hasFittedVerticalRlMediaTail(this.document) ? content.getBoundingClientRect() : null;
 			return [
 				Number.isFinite(Number(visiblePageWidth)) ? Number(visiblePageWidth) : "",
 				Number.isFinite(Number(visiblePageHeight)) ? Number(visiblePageHeight) : "",
@@ -10763,7 +10857,9 @@
 				bodyStyle ? bodyStyle.lineHeight : "",
 				bodyStyle ? bodyStyle.letterSpacing : "",
 				bodyStyle ? bodyStyle.fontFamily : "",
-				docFonts ? docFonts.status : ""
+				docFonts ? docFonts.status : "",
+				mediaCanvas ? mediaCanvas.width : "",
+				mediaCanvas ? Math.max(0, this.window.innerWidth - mediaCanvas.right) : ""
 			].join(":");
 		}
 		invalidateVerticalRlMetricsCache(preserveStableWidth = false) {
@@ -11656,7 +11752,10 @@
 			if (!Number.isFinite(rawWidth) || rawWidth <= 0) rawWidth = Math.max(contentScrollWidth, documentScrollWidth);
 			else if (Number.isFinite(scrollWidthLimit) && scrollWidthLimit > safePageWidth && rawWidth > scrollWidthLimit + VERTICAL_RL_WIDTH_GUARD) rawWidth = scrollWidthLimit;
 			if (!Number.isFinite(rawHeight) || rawHeight <= 0) rawHeight = Math.max(content ? content.scrollHeight || 0 : 0, this.documentElement ? this.documentElement.scrollHeight || 0 : 0);
-			rawWidth = Math.ceil(rawWidth + VERTICAL_RL_WIDTH_GUARD);
+			if (content && hasFittedVerticalRlMediaTail(this.document)) {
+				const canvas = content.getBoundingClientRect();
+				rawWidth = canvas.width + Math.max(0, (this.window?.innerWidth || 0) - canvas.right);
+			} else rawWidth = Math.ceil(rawWidth + VERTICAL_RL_WIDTH_GUARD);
 			if (shouldClampViewportSizedCanvas) rawWidth = Math.min(rawWidth, safePageWidth);
 			rawHeight = Math.ceil(rawHeight);
 			const metrics = this.estimateVerticalRlLineMetrics(safePageWidth);
@@ -12570,6 +12669,7 @@
 						this.element.style.width = visiblePageWidth + "px";
 						this.iframe.style.width = visiblePageWidth + "px";
 					}
+					layoutVerticalRlBlockMedia(this.contents, this.layout.effectivePageAdvance || visiblePageWidth, this.layout.edgeGuardPx || 0);
 					pageMetrics = this.contents.verticalRlPageMetrics(visiblePageWidth, height);
 					width = pageMetrics.rawWidth;
 					if (pageMetrics.effectivePageAdvance > 0) {
@@ -16671,6 +16771,12 @@
 				snapResult.snapped = Math.floor(Math.min(snapResult.snapped, boundaryOffset) * dpr) / dpr;
 				if (snapResult.cacheEntry) snapResult.cacheEntry.value = snapResult.snapped;
 			}
+			if (!Number.isFinite(options.semanticWindowLogicalOffset)) {
+				const mediaDpr = Number.isFinite(dpr) && dpr > 0 ? dpr : 1;
+				const mediaLeftGutter = Math.ceil(Math.max(0, visibleWidth - this.getPageAdvance()) * mediaDpr) / mediaDpr;
+				snapResult.snapped = resolveVerticalRlBlockMediaOffset(snapResult.snapped, maxScroll, contentWidth, visibleWidth, collectVerticalRlBlockMediaRects(doc, win, visibleWidth), textRects, this.layout.edgeGuardPx || 0, mediaLeftGutter);
+				if (snapResult.cacheEntry) snapResult.cacheEntry.value = snapResult.snapped;
+			}
 			appendVerticalRlScrollTrace("boundary-snap-pipeline", {
 				logicalOffset,
 				pipelineSnappedOffset,
@@ -18982,6 +19088,7 @@
 			view.on(EVENTS.VIEWS.MARK_CLICKED, (cfiRange, data) => this.triggerMarkEvent(cfiRange, data, view.contents));
 			this.hooks.render.trigger(view, this).then(() => {
 				if (view.contents) this.hooks.content.trigger(view.contents, this).then(() => {
+					if (this._layout.name !== "pre-paginated" && view.contents.writingMode() === "vertical-rl" && view.contents.document.querySelector("img")) view.expand();
 					/**
 					* Emit that a section has been rendered
 					* @event rendered

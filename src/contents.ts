@@ -8,6 +8,7 @@ import Mapping, { type EpubCFIPair, type MappingContents, type MappingLayout, ty
 import { RangeObject } from "./compat/range";
 import {replaceLinks} from "./utils/replacements";
 import { EPUBJS_VERSION, EVENTS, DOM_EVENTS } from "./utils/constants";
+import { hasFittedVerticalRlMediaTail } from "./rendering/block-media";
 
 const hasNavigator = typeof (navigator) !== "undefined";
 
@@ -850,6 +851,7 @@ class Contents {
 		const docEl = this.documentElement;
 		const bodyStyle = content && this.window ? this.window.getComputedStyle(content) : null;
 		const docFonts = this.document && this.document.fonts ? this.document.fonts : null;
+		const mediaCanvas = content && hasFittedVerticalRlMediaTail(this.document) ? content.getBoundingClientRect() : null;
 		return [
 			Number.isFinite(Number(visiblePageWidth)) ? Number(visiblePageWidth) : "",
 			Number.isFinite(Number(visiblePageHeight)) ? Number(visiblePageHeight) : "",
@@ -862,7 +864,9 @@ class Contents {
 			bodyStyle ? bodyStyle.lineHeight : "",
 			bodyStyle ? bodyStyle.letterSpacing : "",
 			bodyStyle ? bodyStyle.fontFamily : "",
-			docFonts ? docFonts.status : ""
+			docFonts ? docFonts.status : "",
+			mediaCanvas ? mediaCanvas.width : "",
+			mediaCanvas ? Math.max(0, this.window.innerWidth - mediaCanvas.right) : ""
 		].join(":");
 	}
 
@@ -2160,7 +2164,14 @@ class Contents {
 				this.documentElement ? this.documentElement.scrollHeight || 0 : 0
 			);
 		}
-		rawWidth = Math.ceil(rawWidth + VERTICAL_RL_WIDTH_GUARD);
+		if (content && hasFittedVerticalRlMediaTail(this.document)) {
+			// The fitted terminal block owns the fractional canvas extent. Counting the
+			// expanded frame origin or adding a text overhang guard creates phantom pages.
+			const canvas = content.getBoundingClientRect();
+			rawWidth = canvas.width + Math.max(0, (this.window?.innerWidth || 0) - canvas.right);
+		} else {
+			rawWidth = Math.ceil(rawWidth + VERTICAL_RL_WIDTH_GUARD);
+		}
 		if (shouldClampViewportSizedCanvas) {
 			rawWidth = Math.min(rawWidth, safePageWidth);
 		}
