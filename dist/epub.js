@@ -16066,7 +16066,24 @@
 			let visibleWidth = this.layout.pageWidth || this.layout.width || this.getPageAdvance() || this.container.clientWidth || 0;
 			let advance = this.getPageAdvance() || 0;
 			let edgeGuard = this.layout.edgeGuardPx || 0;
-			return getVerticalRlLogicalPageOffsetCacheKey(this.getBaseGeometryPageCount(), maxScroll, contentWidth, visibleWidth, advance, edgeGuard);
+			const geometryKey = getVerticalRlLogicalPageOffsetCacheKey(this.getBaseGeometryPageCount(), maxScroll, contentWidth, visibleWidth, advance, edgeGuard);
+			const document = view?.contents?.document;
+			const typography = document?.body && document.defaultView?.getComputedStyle(document.body);
+			if (!geometryKey || !typography) return geometryKey;
+			return `${geometryKey}:${JSON.stringify([
+				this.container.clientHeight,
+				typography.fontFamily,
+				typography.fontSize,
+				typography.lineHeight,
+				typography.fontWeight,
+				typography.fontStyle,
+				typography.fontStretch,
+				typography.letterSpacing,
+				typography.wordSpacing,
+				typography.textOrientation,
+				typography.writingMode,
+				typography.direction
+			])}`;
 		}
 		getCachedVerticalRlLogicalPageOffset(pageIndex, cacheKey) {
 			return getCachedVerticalRlLogicalPageOffset(this._verticalRlLogicalPageOffsetCache, pageIndex, cacheKey);
@@ -17004,6 +17021,10 @@
 				status: "not-applicable",
 				reason: "invalid-contract"
 			};
+			const cutsBlockMedia = (physicalStart, physicalEnd, pageWidth) => {
+				const window = contents.document.defaultView;
+				return Boolean(window && collectVerticalRlBlockMediaRects(contents.document, window, pageWidth).some((rect) => rect.right > physicalStart && rect.left < physicalEnd && (rect.left < physicalStart || rect.right > physicalEnd)));
+			};
 			if (descriptor.semanticCut) {
 				const width = this.layout.pageWidth || this.layout.width || this.getPageAdvance();
 				const maxStart = Math.max(0, this.getVerticalRlVisualContentWidth(view) - width);
@@ -17013,6 +17034,13 @@
 					return {
 						status: "unavailable",
 						reason: resolution.reason || "semantic-cut-unavailable"
+					};
+				}
+				if (cutsBlockMedia(resolution.physicalStart + (resolution.maskWidths?.left || 0), resolution.physicalStart + width - (resolution.maskWidths?.right || 0), width)) {
+					traceTerminal("semantic-window-cuts-block-media");
+					return {
+						status: "unavailable",
+						reason: "semantic-window-cuts-block-media"
 					};
 				}
 				const index = Number(descriptor.logicalPageIndex);
@@ -17152,7 +17180,8 @@
 				};
 			}).filter((candidate) => Boolean(candidate?.mapping));
 			this._verticalRlBoundarySnapCache = originalSnapCache ? { ...originalSnapCache } : originalSnapCache;
-			const matchingCandidates = candidates.filter((candidate) => candidate.mapping.start === descriptor.anchors.readingStart.cfi && candidate.mapping.end === descriptor.anchors.readingEndExclusive.cfi);
+			const candidateCutsBlockMedia = (candidate) => cutsBlockMedia(candidate.physicalStart, candidate.physicalEnd, visibleWidth);
+			const matchingCandidates = candidates.filter((candidate) => candidate.mapping.start === descriptor.anchors.readingStart.cfi && candidate.mapping.end === descriptor.anchors.readingEndExclusive.cfi && !candidateCutsBlockMedia(candidate));
 			const observedMatchingCandidates = matchingCandidates.map((candidate) => ({
 				...candidate,
 				semanticObservation: this.getVerticalRlSemanticCandidateObservation(view, candidate.physicalStart, candidate.physicalEnd)
@@ -17223,6 +17252,7 @@
 				resolvedEndMatches,
 				comparisonValidity: resolvedStartMatches === null || resolvedEndMatches === null ? "unknown" : "valid",
 				candidateSummaries,
+				mediaBoundaryRejectedCount: candidates.filter(candidateCutsBlockMedia).length,
 				matchingBoundaryCount: candidatesByBoundary.size,
 				semanticClassCount: allSemanticCandidatesComplete ? semanticClasses.size : null,
 				semanticEquivalenceEvaluated: allSemanticCandidatesComplete,
