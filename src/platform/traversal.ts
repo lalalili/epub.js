@@ -85,16 +85,37 @@ export function collectVisibleTextClientRects(
 	options: { limit?: number; countInvalidRects?: boolean; minimumTextLength?: number;
 		horizontalBounds?: { left: number; right: number }; supplementTruncatedPrefix?: boolean } = {}
 ): VisibleTextClientRect[] | null {
+	return collectVisibleTextClientRectsWithMeasurements(doc, win, root, options);
+}
+
+function collectVisibleTextClientRectsWithMeasurements(
+	doc: Document,
+	win: Window,
+	root: HTMLElement,
+	options: NonNullable<Parameters<typeof collectVisibleTextClientRects>[3]>,
+	readRects?: (node: Node) => VisibleTextClientRect[]
+): VisibleTextClientRect[] | null {
 	const bounds = options.horizontalBounds;
 	if (bounds && options.supplementTruncatedPrefix) {
-		const prefix = collectVisibleTextClientRects(doc, win, root, {
+		// Both scans are synchronous and perform no layout writes. Keep raw
+		// measurements only for this call, before applying each scan's own limit.
+		const measurements = new WeakMap<Node, VisibleTextClientRect[]>();
+		const measure = (node: Node) => {
+			let rects = measurements.get(node);
+			if (!rects) {
+				rects = readVisibleTextNodeRects(doc, node);
+				measurements.set(node, rects);
+			}
+			return rects;
+		};
+		const prefix = collectVisibleTextClientRectsWithMeasurements(doc, win, root, {
 			...options, horizontalBounds: undefined, supplementTruncatedPrefix: false
-		});
+		}, measure);
 		const limit = Math.max(0, Number(options.limit) || 1000);
 		if (!prefix || prefix.length < limit) return prefix;
-		const nearby = collectVisibleTextClientRects(doc, win, root, {
+		const nearby = collectVisibleTextClientRectsWithMeasurements(doc, win, root, {
 			...options, supplementTruncatedPrefix: false
-		});
+		}, measure);
 		if (!nearby) return null;
 		const unique = new Map<string, VisibleTextClientRect>();
 		for (const rect of [...prefix, ...nearby]) {
@@ -117,10 +138,7 @@ export function collectVisibleTextClientRects(
 	let node: Node | null;
 
 	while ((node = walker.nextNode()) && inspected < limit) {
-		let range = doc.createRange();
-		range.selectNodeContents(node);
-
-		for (const rect of Array.from(range.getClientRects()) as DOMRect[]) {
+		for (const rect of readRects ? readRects(node) : readVisibleTextNodeRects(doc, node)) {
 			if (bounds && (rect.right <= bounds.left || rect.left >= bounds.right)) {
 				continue;
 			}
@@ -146,12 +164,22 @@ export function collectVisibleTextClientRects(
 			}
 		}
 
-		if (range.detach) {
-			range.detach();
-		}
 	}
 
 	return rects;
+}
+
+function readVisibleTextNodeRects(doc: Document, node: Node): VisibleTextClientRect[] {
+	const range = doc.createRange();
+	try {
+		range.selectNodeContents(node);
+		return Array.from(range.getClientRects(), rect => ({
+			left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom,
+			width: rect.width, height: rect.height
+		}));
+	} finally {
+		range.detach?.();
+	}
 }
 
 /**

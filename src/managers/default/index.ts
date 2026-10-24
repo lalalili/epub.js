@@ -5,7 +5,7 @@ import { isNumber } from "../../core/types";
 import { windowBounds } from "../../platform/layout";
 import { collectVisibleTextClientRects } from "../../platform/traversal";
 import { refreshCombinedTextPaint } from "../../rendering/combined-text-paint";
-import { collectVerticalRlBlockMediaRects, resolveVerticalRlBlockMediaOffset } from "../../rendering/block-media";
+import { collectVerticalRlBlockMediaRects, getVerticalRlMediaLeftGutter, layoutVerticalRlBlockMedia, resolveVerticalRlBlockMediaOffset } from "../../rendering/block-media";
 import type { CoverageDomCapture, CoverageDomInput } from "../../rendering/observed-coverage-dom";
 import type { VisibleTextClientRect } from "../../platform/traversal";
 import scrollType from "../../utils/scrolltype";
@@ -2220,11 +2220,20 @@ class DefaultViewManager {
 			// a neighboring float32 position still fails the ownership check.
 			if (recordedOffset !== null && (recordedOffset !== currentOffset &&
 				(!Number.isFinite(currentOffset) || Math.fround(recordedOffset) !== Math.fround(currentOffset)))) {
-				return;
+				const view = this.views && (this.views.first() || this.views.last());
+				const pixelRatio = Number(view?.contents?.window?.devicePixelRatio);
+				// WebView can first round a requested CSS offset to a device pixel.
+				// Accept only that exact float32 readback, not a neighboring position.
+				if (!Number.isFinite(currentOffset) || !Number.isFinite(pixelRatio) || pixelRatio <= 0 ||
+					Math.fround(Math.round(recordedOffset * pixelRatio) / pixelRatio) !== Math.fround(currentOffset)) {
+					return;
+				}
 			}
 
-			if (!this._verticalRlAppliedLeftMaskLedger || this._verticalRlAppliedLeftMaskLedgerKey !== cacheKey) {
-				this._verticalRlAppliedLeftMaskLedger = {};
+			let ledger = this._verticalRlAppliedLeftMaskLedger;
+			if (!ledger || this._verticalRlAppliedLeftMaskLedgerKey !== cacheKey) {
+				ledger = {};
+				this._verticalRlAppliedLeftMaskLedger = ledger;
 				this._verticalRlAppliedLeftMaskLedgerKey = cacheKey;
 			}
 
@@ -2232,7 +2241,7 @@ class DefaultViewManager {
 			// exceed the physical mask cap. Do not replace it with that transient cap.
 			const contentShift = this.getVerticalRlAppliedContentShift();
 			const preserved = this._verticalRlPreservedPageBoundary;
-			const recordedFence = this._verticalRlAppliedLeftMaskLedger[String(pageIndex)];
+			const recordedFence = ledger[String(pageIndex)];
 			if (recordedOffset !== null && contentShift === 0 &&
 				preserved?.pageIndex === pageIndex && preserved.layoutKey === cacheKey &&
 				Number.isFinite(preserved.sourceLeftBoundary) &&
@@ -2243,9 +2252,11 @@ class DefaultViewManager {
 			}
 
 			// Ownership uses excluded content, not only the physical overlay width.
-			this._verticalRlAppliedLeftMaskLedger[String(pageIndex)] = leftMask + contentShift;
-			if (this._verticalRlActiveTerminalLayout?.layoutKey === cacheKey) {
-				this._verticalRlActiveTerminalLayout.appliedLeftMasks = this._verticalRlAppliedLeftMaskLedger;
+			ledger[String(pageIndex)] = leftMask + contentShift;
+
+			const terminalLayout = this._verticalRlActiveTerminalLayout;
+			if (terminalLayout?.layoutKey === cacheKey) {
+				terminalLayout.appliedLeftMasks = ledger;
 			}
 		} catch (error) {
 			// 記錄失敗只會讓右遮罩退回推算值，不影響顯示正確性。
@@ -2439,10 +2450,12 @@ class DefaultViewManager {
 		}
 		// An ordinary chapter may restore a proved source cut. Its first forward
 		// observation must still allow Reader measurement to settle the mask.
+		// A recreated first page also owns its proved cut at the exact learned origin.
 		const preserved = this._verticalRlPreservedPageBoundary;
 		if (state.continuationCount <= 0 && (fence <= 0 ||
-			preserved?.pageIndex !== pageIndex || preserved.layoutKey !== state.layoutKey ||
-			!Number.isFinite(preserved.sourceLeftBoundary))) {
+			((pageIndex !== 0 || recordedOffset !== 0) &&
+			(preserved?.pageIndex !== pageIndex || preserved.layoutKey !== state.layoutKey ||
+			!Number.isFinite(preserved.sourceLeftBoundary))))) {
 			return null;
 		}
 		const physicalMask = fence - this.getVerticalRlAppliedContentShift();
@@ -2900,13 +2913,20 @@ class DefaultViewManager {
 		if (!preflight.shouldMeasureText || !preflight.cacheLookup) {
 			return logicalOffset;
 		}
-		if (preflight.cacheLookup.cachedSnap !== null) {
+		const cachedSnap = preflight.cacheLookup.cachedSnap;
+		if (cachedSnap !== null) {
 			appendVerticalRlScrollTrace("boundary-snap-cache-hit", {
 				logicalOffset, cachedSnap: preflight.cacheLookup.cachedSnap,
 				contentWidth, visibleWidth, maxScroll,
 				rightBoundaryOptions: preflight.rightBoundaryOptions
 			});
-			return preflight.cacheLookup.cachedSnap;
+			const cachedLeft = contentWidth - cachedSnap - visibleWidth;
+			const cachedRight = contentWidth - cachedSnap;
+			if (Number.isFinite(options.semanticWindowLogicalOffset) ||
+				!collectVerticalRlBlockMediaRects(doc, win, visibleWidth).some(rect =>
+					rect.centered && rect.right > cachedLeft && rect.left < cachedRight)) {
+				return cachedSnap;
+			}
 		}
 
 		let iframeRect = iframe.getBoundingClientRect();
@@ -2920,7 +2940,11 @@ class DefaultViewManager {
 			}
 		});
 		if (!textRects) {
-			return null;
+			return cachedSnap ?? null;
+		}
+		if (cachedSnap !== null && textRects.some(rect =>
+			rect.right > contentWidth - cachedSnap - visibleWidth && rect.left < contentWidth - cachedSnap)) {
+			return cachedSnap;
 		}
 		let measurementInputs = getVerticalRlBoundarySnapMeasurementInputsHelper(
 			textRects,
@@ -2961,7 +2985,7 @@ class DefaultViewManager {
 		}
 		if (!Number.isFinite(options.semanticWindowLogicalOffset)) {
 			const mediaDpr = Number.isFinite(dpr) && dpr > 0 ? dpr : 1;
-			const mediaLeftGutter = Math.ceil(Math.max(0, visibleWidth - this.getPageAdvance()) * mediaDpr) / mediaDpr;
+			const mediaLeftGutter = getVerticalRlMediaLeftGutter(visibleWidth, this.getPageAdvance(), mediaDpr);
 			snapResult.snapped = resolveVerticalRlBlockMediaOffset(snapResult.snapped, maxScroll, contentWidth, visibleWidth,
 				collectVerticalRlBlockMediaRects(doc, win, visibleWidth), textRects, this.layout.edgeGuardPx || 0, mediaLeftGutter);
 			if (snapResult.cacheEntry) {
@@ -3802,7 +3826,14 @@ class DefaultViewManager {
 			? semanticWindowLogicalOffsetInput
 			: 0;
 		const terminalLayout = this.getVerticalRlTerminalLayout();
-		const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey);
+		// A first page may have a painted source cut without a learned offset.
+		// Resolve its origin only on reverse entry, after Reader has committed
+		// that cut in the same layout; never seed the initial measurement cache.
+		const recordedLeftExtent = options.preserveCachedBoundary &&
+			this._verticalRlAppliedLeftMaskLedgerKey === logicalOffsetCacheKey
+			? this.getRecordedVerticalRlAppliedLeftMask(targetIndex) : null;
+		const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey) ??
+			(targetIndex === 0 && Number(recordedLeftExtent) > 0 ? 0 : null);
 		const preserveContinuationOffset = recordedOffset !== null &&
 			Boolean(terminalLayout?.continuationCount) &&
 			targetIndex >= this.getBaseGeometryPageCount() - 1 && targetIndex < totalPages - 1;
@@ -3872,6 +3903,31 @@ class DefaultViewManager {
 				}
 			}
 		}
+		// A terminal page skips text snapping, but an isolated image still owns its authored center.
+		if (this.isRtlVerticalPaginated() && targetIndex > 0 && targetIndex === totalPages - 1 &&
+			!hasSemanticWindowLogicalOffset && !preserveContinuationOffset && !options.preserveCachedBoundary && !sequentialBoundaryConstraint) {
+			const mediaView = this.views && (this.views.first() || this.views.last());
+			const doc = mediaView?.contents?.document;
+			const win = mediaView?.contents?.window;
+			const visibleWidth = this.layout.pageWidth || this.layout.width || advance || 0;
+			if (doc?.body && win && visibleWidth > 0) {
+				layoutVerticalRlBlockMedia(mediaView.contents, this.getPageAdvance() || visibleWidth, this.layout.edgeGuardPx || 0, visibleWidth);
+				const contentWidth = this.getVerticalRlVisualContentWidth(mediaView);
+				const textRects = collectVisibleTextClientRects(doc, win, doc.body, {
+					minimumTextLength: 1, limit: 1000, supplementTruncatedPrefix: true,
+					horizontalBounds: {
+						left: contentWidth - logicalOffset - 2 * visibleWidth - getVerticalRlEdgeMaskLimitHelper(visibleWidth),
+						right: contentWidth - logicalOffset + visibleWidth + getVerticalRlEdgeMaskLimitHelper(visibleWidth)
+					}
+				});
+				if (textRects) {
+					const dpr = Number(win.devicePixelRatio) || 1;
+					logicalOffset = resolveVerticalRlBlockMediaOffset(logicalOffset, maxScroll, contentWidth, visibleWidth,
+						collectVerticalRlBlockMediaRects(doc, win, visibleWidth), textRects, this.layout.edgeGuardPx || 0,
+						getVerticalRlMediaLeftGutter(visibleWidth, this.getPageAdvance(), dpr));
+				}
+			}
+		}
 		let basePageCount = this.getBaseGeometryPageCount();
 		let snapTolerance = this.getPageSnapTolerance();
 		// Page-index snap tolerance must not suppress observation of a clipped
@@ -3918,8 +3974,6 @@ class DefaultViewManager {
 			}
 		}
 		this._verticalRlSequentialBoundaryConstraint = sequentialBoundaryConstraint;
-		const recordedLeftExtent = options.preserveCachedBoundary
-			? this.getRecordedVerticalRlAppliedLeftMask(targetIndex) : null;
 		const preservedView = this.views && (this.views.first() || this.views.last());
 		const preservedSourceLeftBoundary = cachedLogicalOffset !== null && recordedLeftExtent !== null && preservedView
 			? getVerticalRlCurrentEffectiveLeftBoundaryHelper(
@@ -4020,7 +4074,11 @@ class DefaultViewManager {
 				sameFrame,
 				ownerStillConnected
 			});
-			let terminalTailStateForPromotion = aggregateVerticalRlTerminalTailState({
+			// Semantic restore can move backwards from a CFI terminal landing.
+			// Only the restored window can establish whether its tail is reached.
+			let terminalTailStateForPromotion = hasSemanticWindowLogicalOffset && preserveSourceCut
+				? terminalTailStateAfterApply
+				: aggregateVerticalRlTerminalTailState({
 				before: terminalTailStateBeforeScroll,
 				after: terminalTailStateAfterApply,
 				sameTerminalOwner,

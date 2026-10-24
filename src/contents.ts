@@ -258,8 +258,45 @@ const snapVerticalRlContentWidthToTextBoundaries = ({
 type VerticalRlFrameReflowEvidence = {
 	sourceKey: string;
 	frameWidth: number;
+	frameOrigin?: number;
+	geometryPrecision?: number;
+	sourceText?: string | null;
 	paintLeft: number;
 	followsFrame: boolean;
+};
+
+const sameVerticalRlFrameSource = (current: VerticalRlFrameReflowEvidence, previous: VerticalRlFrameReflowEvidence): boolean => {
+	if (current.sourceText !== previous.sourceText) return false;
+	if (current.sourceKey === previous.sourceKey) return true;
+	const precision = Math.max(current.geometryPrecision || 0, previous.geometryPrecision || 0);
+	if (typeof current.sourceText !== "string" || !current.geometryPrecision || !previous.geometryPrecision || !Number.isFinite(precision)) return false;
+	try {
+		const a: unknown = JSON.parse(current.sourceKey);
+		const b: unknown = JSON.parse(previous.sourceKey);
+		if (!Array.isArray(a) || !Array.isArray(b) || a.length !== 10 || b.length !== 10) return false;
+		if ([0, 1, 4, 5, 6, 7, 8].some(index => a[index] !== b[index])) return false;
+		const close = (left: unknown, right: unknown): boolean => left === right ||
+			(typeof left === "number" && typeof right === "number" && Number.isFinite(left) && Number.isFinite(right) && Math.abs(left - right) <= precision);
+		if (!close(a[2], b[2]) || !close(a[3], b[3])) return false;
+		const boxes = a[9];
+		const oldBoxes = b[9];
+		return Array.isArray(boxes) && Array.isArray(oldBoxes) && boxes.length === oldBoxes.length &&
+			boxes.every((box: unknown, index: number) => Array.isArray(box) && Array.isArray(oldBoxes[index]) &&
+				box.length === 3 && oldBoxes[index].length === 3 && box.every((value: unknown, axis: number) => close(value, oldBoxes[index][axis])));
+	} catch {
+		return false;
+	}
+};
+
+const verticalRlGeometryPrecision = (rect: { left: number; right: number; top: number; bottom: number }, boxes: LineBox[], dpr: number): number => {
+	if (!Number.isFinite(dpr) || dpr <= 0) return 0;
+	const coordinates = [rect.left, rect.right, rect.top, rect.bottom, ...boxes.flatMap(box => [box.left, box.right])];
+	if (!coordinates.every(Number.isFinite)) return 0;
+	const magnitude = Math.max(...coordinates.map(Math.abs));
+	// CSSOM coordinates can be Float32. Bound cancellation in two translated
+	// coordinate differences by four ULPs, always below one physical pixel.
+	const precision = 4 * Math.pow(2, Math.max(-149, Math.floor(Math.log2(magnitude || 1)) - 23));
+	return Number.isFinite(precision) && precision < 1 / dpr ? precision : 0;
 };
 
 const stabilizeVerticalRlSnappedContentWidth = ({
@@ -296,8 +333,8 @@ const stabilizeVerticalRlSnappedContentWidth = ({
 
 	const previousFrame = previous.frameReflow;
 	if (frameReflow && previousFrame && previous.totalPages === totalPages &&
-		frameReflow.sourceKey === previousFrame.sourceKey) {
-		const frameDelta = frameReflow.frameWidth - previousFrame.frameWidth;
+		sameVerticalRlFrameSource(frameReflow, previousFrame)) {
+		const frameDelta = (frameReflow.frameOrigin ?? frameReflow.frameWidth) - (previousFrame.frameOrigin ?? previousFrame.frameWidth);
 		const paintDelta = frameReflow.paintLeft - previousFrame.paintLeft;
 		// Reframing right-anchored text translates its boxes without reflowing it.
 		// Chasing those translated coordinates changes the same page's cache key.
@@ -1971,7 +2008,7 @@ class Contents {
 
 		for (const rect of rects) {
 			if (rect.width > 0 && rect.height > 0) {
-				xs.push(Math.round(rect.left * 2) / 2);
+				xs.push(rect.left);
 				widths.push(rect.width);
 				lineBoxes.push({
 					left: rect.left,
@@ -1987,7 +2024,9 @@ class Contents {
 		for (let i = 1; i < uniqueXs.length; i += 1) {
 			const gap = Math.abs(uniqueXs[i] - uniqueXs[i - 1]);
 			if (gap > 2 && gap < maxGap) {
-				gaps.push(gap);
+				// Round the distance, not each absolute endpoint: a frame translation
+				// must not change the sampling phase of the same column spacing.
+				gaps.push(Math.round(gap * 2) / 2);
 			}
 		}
 
@@ -2232,12 +2271,16 @@ class Contents {
 		const baseSnappedContentWidth = viewportPageWidth && effectivePageAdvance && viewportPageWidth > effectivePageAdvance
 			? ((totalPages - 1) * effectivePageAdvance) + viewportPageWidth
 			: totalPages * pageLength;
+		const frameOrigin = this.documentElement?.getBoundingClientRect?.().right;
+		// A prior expansion moves right-anchored boxes without changing typography.
+		// viewportPageWidth already validates the requested measurement reference.
+		const frameShift = viewportPageWidth && Number.isFinite(frameOrigin) ? viewportPageWidth - frameOrigin! : 0;
 		let snappedContentWidth = snapVerticalRlContentWidthToTextBoundaries({
 			snappedContentWidth: baseSnappedContentWidth,
 			pageLength,
 			totalPages,
 			rawWidth,
-			lineBoxes: metrics.lineBoxes
+			lineBoxes: frameShift ? metrics.lineBoxes.map(box => ({ ...box, left: box.left + frameShift, right: box.right + frameShift })) : metrics.lineBoxes
 		});
 		const frameStyle = content && this.window ? this.window.getComputedStyle(content) : null;
 		const frameWidth = this.documentElement?.clientWidth;
@@ -2254,12 +2297,16 @@ class Contents {
 						frameStyle.letterSpacing, frameStyle.direction,
 						metrics.lineBoxes.map(box => [box.left - rect.left, box.right - rect.left, box.width])
 					]),
-					frameWidth: frameWidth!, paintLeft: rect.left, followsFrame: false
+					frameWidth: frameWidth!,
+					frameOrigin: Number.isFinite(frameOrigin) ? frameOrigin : frameWidth,
+					geometryPrecision: verticalRlGeometryPrecision(rect, metrics.lineBoxes, this.window.devicePixelRatio),
+					sourceText: content.textContent,
+					paintLeft: rect.left, followsFrame: false
 				}
 				: undefined;
 		const frameOriginWidth = this._verticalRlFrameOriginWidth;
 		const sameFrameSource = frameReflow && frameOriginWidth?.frameReflow &&
-			frameReflow.sourceKey === frameOriginWidth.frameReflow.sourceKey &&
+			sameVerticalRlFrameSource(frameReflow, frameOriginWidth.frameReflow) &&
 			frameOriginWidth.totalPages === totalPages && frameOriginWidth.pageLength === pageLength;
 		snappedContentWidth = stabilizeVerticalRlSnappedContentWidth({
 			previous: this._verticalRlStableSnappedContentWidth || (sameFrameSource ? frameOriginWidth : null),

@@ -2,6 +2,43 @@
 
 This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
+## Unreleased
+
+### Release candidate: vertical-rl source boundaries and centered terminal media
+- Release tooling: raise only the Vitest4 test-tool family to4.1.12 for GHSA-qxg6-89mg-rqv8 and GHSA-xp26-3454-mjgp. Runtime dependency versions are unchanged. Full local release verification passes1088 tests/one existing skip and both audits report zero vulnerabilities. A fresh install changes only dependency-path region comments/source maps when rebuilding; executable content matches, and the frozen distributions are retained byte-for-byte.
+- Scope: frame-translation-invariant column measurements, device-pixel mask ownership, first-page reverse-entry fences, authored centered terminal images, and post-restore terminal continuation. No pending rendition Promise change is included.
+- Verification: the frozen Engine source/build passed1088 Chromium tests with one existing skip, TypeScript, build and distribution contracts. CPTW's bounded r9 decision ledger records three typography presets, Web/Android #82/#83 source/paint/media checks and normal online persistence. Some display cells are explicitly adopted from unchanged earlier candidates; this is not a complete historical-matrix rerun or iOS qualification.
+- Provenance: the591-file Engine archive matches the release worktree before this documentation-only entry. Engine ESM SHA256 is59e409eca2e774a69c82e7966f81254f91cac17ca2cac415b7c8c8928431ef6e. Reader r9 separately corrects a fast Web page-exit save; that behavior does not change Engine bytes.
+- History: the local-candidate and rejected-experiment entries below describe their original checkpoints. Later qualification does not erase their failures or broaden their original scope.
+
+### Local candidate: requested viewport reference for initial frame measurement
+- Why: actual Android initialization first measures the author font, then applies the reader preset while the iframe still has its former canvas width. The same captured18px source starts with1119,1147.0909 or1085px extents solely from that prior frame. Raw rectangles and original failures remain archived.
+- Diff Scope: project a copy of the line rectangles from the measured HTML right origin into the requested viewport coordinate reference before content-extent boundary selection. Keep raw source geometry, pitch, masks, offsets and source identity unchanged. Preserve legacy measurement when the reference is unavailable or invalid.
+- Test: private base-canvas projection was rejected for a4px terminal return drift; visible-text-only projection was rejected for a spurious continuation. Requested-viewport projection preserves those existing terminal contracts and the original1147.0909 precision expectation. The new initialization regression now requires that viewport extent after applying the preset; captured old1119 observations remain in the numeric fixture. Source checks and a fresh compiled real-book gate are still required before qualification.
+- Evidence: CPTW retains the903-event Native trace, numeric Engine-only replay, rejected counterfactuals and the same-APK815-source/strict-reverse focused pass with a corrected current-document observer. None of those qualifies this new uncompiled source candidate.
+- Rollback: revert this viewport-coordinate projection, rebuild distributions and consuming Reader; do not change published tags or overwrite original evidence.
+
+### Local candidate: distance sampling and fractional frame-source recognition
+- Why: Android numeric replay reproduces a29px-to28.5px pitch change after a frame translation, followed by a1147.0909-to1146px canvas cache change even after correcting pitch. The actual HTML right edge translates754.18185px while integer clientWidth changes754px; normalized CSSOM geometry also incurs Float32 cancellation.
+- Diff Scope: quantize adjacent column distances rather than absolute endpoints; retain raw line boxes. Use the measured HTML right edge for frame translation. Approximate source geometry recognition requires identical source text, layout and typography, with differences bounded by four Float32 ULPs and less than one physical pixel. Reject changed text, font, measurable geometry and unusable DPR.
+- Test: the captured numeric frame-cache fixture fails before the fix (one failure/eight passes), then passes with the existing focused cases (169 total). Full Chromium1055 passes/one existing skip and typecheck pass. This is an uncompiled source candidate, not real-book qualification or a release.
+- Evidence: CPTW retains the exact Native frame/root geometry, original failed candidates and named Section0024 full-source/glyph/strict forward-reverse gate. The preceding c49 baseline also has missing source, so the rejected first-origin experiment is not the sole proven cause of that omission.
+- Rollback: revert these sampling/frame-source changes, regenerate distributions and rebuild the consuming Reader without rewriting published tags.
+
+### Rejected local candidate: first-rect-relative column-pitch sampling
+- Why: the actual Android Section0024 source retains identical text and computed typography in an independent Contents iframe, but a frame-only translation changes the absolute half-pixel sampling phase and reports29px versus28.5px column pitch.
+- Disposition: the first-rect-relative implementation was rolled back after the named Android source gate failed. Its three canvases stayed1134.09px, but the last page had no fully readable source range and the page union omitted source that the prior candidate exposed. Stability alone does not prove a correct column pitch or readable pagination.
+- Test: the first implementation passed160 focused and1046 Chromium tests with one existing skip plus typecheck/lint/build/contracts, but failed the actual Section0024 source gate. Retain the numeric regression as a red characterization and also require the measured28.795px body-column gaps to resolve to29px, rather than accepting a stable28.5px estimate. No qualification assertion was relaxed.
+- Evidence: CPTW owns the CSSOM-complete same-WebView independent clone, original failed candidates, numeric core fixture, and the named Section0024 forward/reverse/source/glyph gate. The clone reproduces the pitch change, while its viewport measurements alone retain1147.0909; the remaining canvas failure is still open.
+- Rollback: revert this sampling change and its fixture, regenerate distributions, and rebuild the consuming Reader without altering published tags.
+
+### Device-pixel readback ownership for committed vertical-rl masks
+- Why: Android WebView can first quantize a requested CSS scroll offset to a device pixel and then report its float32 representation. The existing float32-only ownership check rejects that exact readback, leaving a stale mask after a normal typography change or reverse turn.
+- Diff Scope: retain the existing exact and float32 comparisons; admit only the exact float32 representation of the recorded offset quantized using the current Contents window's positive devicePixelRatio. Reject neighboring device pixels, neighboring float32 values and missing or invalid DPR. No arbitrary epsilon, source-specific branch, page offset change or disabled mask.
+- Test: the local candidate passes1041 Chromium tests with one existing skip, typecheck, lint, compile/build and nine source/distribution contracts. Focused Native typography/restore evidence and completed CPTW Web cells retain their recorded source/runtime scope; the full three-preset Web/Android matrix remains in progress. The five independently reproduced WebKit baseline failures are not included in the Chromium pass or treated as iOS qualification.
+- Evidence: CPTW keeps the original ownership refusal, independent Engine fixture, compiled candidate hashes, semantic source comparisons and normal Native save/reopen evidence. No release tag or completed whole-matrix qualification is claimed here.
+- Rollback: revert this ownership comparison and its regression fixture, regenerate Engine distributions and rebuild the consuming Reader; do not rewrite a published tag.
+
 ## 2026-10-22
 
 ### Block-media boundaries, observed source coverage and WebView mask ownership
