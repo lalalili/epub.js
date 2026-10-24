@@ -2,24 +2,32 @@ import { afterEach, expect, it } from "vitest";
 import JSZip from "jszip";
 import ePub from "../../src/epub";
 import Contents from "../../src/contents";
-import { layoutVerticalRlBlockMedia, resolveVerticalRlBlockMediaOffset } from "../../src/rendering/block-media";
+import { getVerticalRlMediaLeftGutter, layoutVerticalRlBlockMedia, resolveVerticalRlBlockMediaOffset } from "../../src/rendering/block-media";
+import { getVerticalRlBoundarySnapPreflight } from "../../src/rendering/boundary-mask";
 
 const fixtures = [];
 
-async function createTypographyMediaFixture(fontSize, lineHeight) {
+it("does not add a device pixel for float noise in a native fractional media gutter", () => {
+	expect(getVerticalRlMediaLeftGutter(393.0909118652344, 384, 2.75)).toBe(25 / 2.75);
+	expect(getVerticalRlMediaLeftGutter(393.1, 384, 2.75)).toBe(26 / 2.75);
+	expect(getVerticalRlMediaLeftGutter(400, 384, 2)).toBe(16);
+	expect(getVerticalRlMediaLeftGutter(380, 384, 2.75)).toBe(0);
+});
+
+async function createTypographyMediaFixture(fontSize, lineHeight, { width = 802.1818237304688, height = 221.09091186523438, narrow = false } = {}) {
 	const zip = new JSZip();
 	zip.file("mimetype", "application/epub+zip");
 	zip.file("META-INF/container.xml", '<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0"><rootfiles><rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/></rootfiles></container>');
 	zip.file("OPS/package.opf", '<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="id"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="id">media-reflow-fixture</dc:identifier><dc:title>Media reflow</dc:title><dc:language>en</dc:language></metadata><manifest><item id="one" href="one.xhtml" media-type="application/xhtml+xml"/><item id="image" href="grid.svg" media-type="image/svg+xml"/></manifest><spine page-progression-direction="rtl"><itemref idref="one"/></spine></package>');
 	zip.file("OPS/grid.svg", '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500"><rect width="800" height="500" fill="blue"/></svg>');
-	zip.file("OPS/one.xhtml", `<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Fixture</title><style>html,body{margin:0;padding:0;writing-mode:vertical-rl;direction:ltr;font:${fontSize}px/${lineHeight}px monospace;text-orientation:upright}h1{margin:0;font-size:1.4em;line-height:1.4}p{margin:1em}img{display:block;max-height:209.95px;max-width:100%;width:auto;height:auto;margin:auto}</style></head><body><h1>ABCDEFG</h1><div><br/></div><div><br/></div><p>${"甲".repeat(89)}</p><p>${"乙".repeat(54)}</p><div style="width:100%;writing-mode:horizontal-tb"><img id="media" src="grid.svg"/></div></body></html>`);
+	zip.file("OPS/one.xhtml", `<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Fixture</title><style>html,body{margin:0;padding:0;writing-mode:vertical-rl;direction:ltr;font:${fontSize}px/${lineHeight}px monospace;text-orientation:upright}h1{margin:0;font-size:1.4em;line-height:1.4;${narrow ? "padding:0.5em" : ""}}p{margin:1em}img{display:block;max-height:209.95px;max-width:100%;width:auto;height:auto;margin:auto}</style></head><body><h1>ABCDEFG</h1><div><br/></div><div><br/></div><p>${"甲".repeat(narrow ? 74 : 89)}</p><p>${"乙".repeat(54)}</p><div style="width:100%;writing-mode:horizontal-tb"><img id="media" src="grid.svg"/></div></body></html>`);
 	const host = document.createElement("div");
-	host.style.cssText = "width:802.1818237304688px;height:221.09091186523438px";
+	host.style.cssText = `width:${width}px;height:${height}px`;
 	document.body.appendChild(host);
 	const book = ePub(await zip.generateAsync({ type: "arraybuffer" }));
 	fixtures.push({ book, host });
 	await book.ready;
-	const rendition = book.renderTo(host, { width: 802.1818237304688, height: 221.09091186523438, spread: "none", flow: "paginated" });
+	const rendition = book.renderTo(host, { width, height, spread: "none", flow: "paginated" });
 	await rendition.display(0);
 	await rendition.manager.waitForVerticalRlLayoutReady();
 	return rendition;
@@ -68,6 +76,124 @@ afterEach(() => {
 		book.destroy();
 		host.remove();
 	}
+});
+
+it.each([{ fontSize: 18, lineHeight: 28.8 }, { fontSize: 24, lineHeight: 48 }, { fontSize: 28, lineHeight: 61.6 }])("centers an authored auto-margin image in its text-free final viewport at $fontSize px", async ({ fontSize, lineHeight }) => {
+	const rendition = await createTypographyMediaFixture(fontSize, lineHeight);
+	const manager = rendition.manager;
+	const pages = manager.getTotalPagesForCurrentView();
+	for (let page = 1; page < pages; page++) {
+		await rendition.next();
+		await manager.waitForVerticalRlLayoutReady();
+	}
+	const view = manager.views.first();
+	const frame = view.iframe.getBoundingClientRect();
+	const image = view.contents.document.querySelector("#media").getBoundingClientRect();
+	const viewport = manager.container.getBoundingClientRect();
+	const scale = frame.width / view.iframe.clientWidth;
+	const imageCenter = frame.left + (image.left + image.right) * scale / 2;
+	const viewportCenter = (viewport.left + viewport.right) / 2;
+	const doc = view.contents.document;
+	const text = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+	let visibleText = 0;
+	while (text.nextNode()) {
+		if (!text.currentNode.textContent.trim() || text.currentNode.parentElement.closest("style,script")) continue;
+		const range = doc.createRange();
+		range.selectNodeContents(text.currentNode);
+		visibleText += [...range.getClientRects()].filter(rect => frame.left + rect.right * scale > viewport.left && frame.left + rect.left * scale < viewport.right).length;
+	}
+	expect(visibleText).toBe(0);
+	expect(frame.left + image.left * scale).toBeGreaterThanOrEqual(viewport.left - 1);
+	expect(frame.left + image.right * scale).toBeLessThanOrEqual(viewport.right + 1);
+	expect(Math.abs(imageCenter - viewportCenter)).toBeLessThanOrEqual(1);
+});
+
+it.each([{ fontSize: 18, lineHeight: 28.8 }, { fontSize: 24, lineHeight: 48 }, { fontSize: 28, lineHeight: 61.6 }])("centers the terminal image when its page is selected without a learned offset at $fontSize px", async ({ fontSize, lineHeight }) => {
+	const rendition = await createTypographyMediaFixture(fontSize, lineHeight);
+	const manager = rendition.manager;
+	manager.scrollToLogicalPage(manager.getTotalPagesForCurrentView() - 1, { ignoreCachedLogicalOffset: true });
+	await manager.waitForVerticalRlLayoutReady();
+	const view = manager.views.first();
+	const frame = view.iframe.getBoundingClientRect();
+	const image = view.contents.document.querySelector("#media").getBoundingClientRect();
+	const viewport = manager.container.getBoundingClientRect();
+	const scale = frame.width / view.iframe.clientWidth;
+	expect(Math.abs(frame.left + (image.left + image.right) * scale / 2 - (viewport.left + viewport.right) / 2)).toBeLessThanOrEqual(1);
+	const semanticOffset = manager.getMaxLogicalScrollLeft();
+	manager.scrollToLogicalPage(manager.getTotalPagesForCurrentView() - 1, { semanticWindowLogicalOffset: semanticOffset });
+	await manager.waitForVerticalRlLayoutReady();
+	expect(Math.abs(manager.getNormalizedLogicalScrollLeft() - semanticOffset)).toBeLessThanOrEqual(1);
+	manager.scrollToLogicalPage(manager.getTotalPagesForCurrentView() - 1, { preserveCachedBoundary: true });
+	await manager.waitForVerticalRlLayoutReady();
+	expect(Math.abs(manager.getNormalizedLogicalScrollLeft() - semanticOffset)).toBeLessThanOrEqual(1);
+});
+
+it("fits an authored image before measuring a terminal landing after wrapper styles reset", async () => {
+	const rendition = await createTypographyMediaFixture(28, 61.6);
+	const manager = rendition.manager;
+	const view = manager.views.first();
+	const image = view.contents.document.querySelector("#media");
+	for (const element of [image, image.parentElement]) {
+		element.style.removeProperty("max-width");
+		element.style.removeProperty("margin-right");
+	}
+	expect(image.parentElement.getBoundingClientRect().width).toBeGreaterThan(manager.layout.pageWidth);
+	manager.scrollToLogicalPage(manager.getTotalPagesForCurrentView() - 1, { ignoreCachedLogicalOffset: true });
+	await manager.waitForVerticalRlLayoutReady();
+	const frame = view.iframe.getBoundingClientRect();
+	const rect = image.getBoundingClientRect();
+	const viewport = manager.container.getBoundingClientRect();
+	const scale = frame.width / view.iframe.clientWidth;
+	expect(Math.abs(frame.left + (rect.left + rect.right) * scale / 2 - (viewport.left + viewport.right) / 2)).toBeLessThanOrEqual(1);
+});
+
+it("centers only an isolated authored-centered image without admitting nearby text or another image", () => {
+	const centered = { left: 150, right: 190, width: 40, centered: true };
+	expect(resolveVerticalRlBlockMediaOffset(200, 300, 400, 100, [centered], [])).toBe(180);
+	expect(resolveVerticalRlBlockMediaOffset(200, 300, 400, 100, [{ ...centered, centered: false }], [])).toBe(200);
+	expect(resolveVerticalRlBlockMediaOffset(200, 300, 400, 100, [centered], [{ left: 205, right: 210 }])).toBe(200);
+	expect(resolveVerticalRlBlockMediaOffset(200, 300, 400, 100, [centered, { left: 195, right: 210, width: 15 }], [])).toBe(190);
+	expect(resolveVerticalRlBlockMediaOffset(0, 30, 80, 100, [{ left: 20, right: 60, width: 40, centered: true }], [])).toBe(0);
+});
+
+it("uses the nearest guarded center for the measured fractional Android image window", () => {
+	const pageWidth = 393.0909118652344;
+	const leftGutter = Math.ceil((pageWidth - 384) * 2.75) / 2.75;
+	const media = { left: 13, right: 389, width: 376, centered: true };
+	const offset = resolveVerticalRlBlockMediaOffset(764.727294921875, 768, 1161, pageWidth, [media], [], 0, leftGutter);
+	const left = 1161 - offset - pageWidth;
+	expect(media.left - left).toBeGreaterThanOrEqual(leftGutter - 0.000001);
+	expect(Math.abs((media.left + media.right) / 2 - left - pageWidth / 2)).toBeLessThanOrEqual(1);
+	expect(offset).toBeCloseTo(1161 - pageWidth + leftGutter - media.left, 6);
+});
+
+it("revalidates a cached image-only offset against the current authored media center", async () => {
+	const rendition = await createTypographyMediaFixture(28, 61.6);
+	const manager = rendition.manager;
+	for (let page = 1; page < manager.getTotalPagesForCurrentView(); page++) {
+		await rendition.next();
+		await manager.waitForVerticalRlLayoutReady();
+	}
+	const view = manager.views.first();
+	const maxScroll = manager.getMaxLogicalScrollLeft();
+	manager._verticalRlBoundarySnapCache = null;
+	const expected = manager.snapVerticalRlLogicalOffsetToTextBoundary(maxScroll, maxScroll);
+	const preflight = getVerticalRlBoundarySnapPreflight(null, maxScroll, maxScroll,
+		manager.getVerticalRlVisualContentWidth(view), manager.layout.pageWidth, manager.layout.edgeGuardPx || 0, {},
+		{ iframe: view.iframe, document: view.contents.document, window: view.contents.window, body: view.contents.document.body });
+	expect(preflight.shouldMeasureText).toBe(true);
+	expect(expected).toBeGreaterThan(20);
+	manager._verticalRlBoundarySnapCache = { key: preflight.cacheLookup.cacheKey, value: expected - 20 };
+	expect(manager.snapVerticalRlLogicalOffsetToTextBoundary(maxScroll, maxScroll, {
+		semanticWindowLogicalOffset: expected - 20,
+	})).toBe(expected - 20);
+	const textPreflight = getVerticalRlBoundarySnapPreflight(null, 0, maxScroll,
+		manager.getVerticalRlVisualContentWidth(view), manager.layout.pageWidth, manager.layout.edgeGuardPx || 0, {},
+		{ iframe: view.iframe, document: view.contents.document, window: view.contents.window, body: view.contents.document.body });
+	manager._verticalRlBoundarySnapCache = { key: textPreflight.cacheLookup.cacheKey, value: 0.25 };
+	expect(manager.snapVerticalRlLogicalOffsetToTextBoundary(0, maxScroll)).toBe(0.25);
+	manager._verticalRlBoundarySnapCache = { key: preflight.cacheLookup.cacheKey, value: expected - 20 };
+	expect(manager.snapVerticalRlLogicalOffsetToTextBoundary(maxScroll, maxScroll)).toBeCloseTo(expected, 6);
 });
 
 it("admits a whole-image window without dropping current text or clipping a new text boundary", () => {
@@ -257,4 +383,91 @@ it.each([
 	const delta = snapped - whole.offset;
 	expect(whole.left + delta).toBeGreaterThanOrEqual(whole.clipLeft - 1);
 	expect(whole.right + delta).toBeLessThanOrEqual(whole.clipRight + 1);
+});
+
+// Captured narrow Web input: pageWidth320 / advance288 / guard16, with text just outside the ideal media window.
+it.each([true, false])("reserves only an authored media center in a narrow normal-flow tail (authored=%s)", async (authored) => {
+	const frame = document.createElement("iframe");
+	frame.style.cssText = "width:896px;height:470px;border:0";
+	document.body.appendChild(frame);
+	try {
+		const doc = frame.contentDocument;
+		doc.body.style.cssText = "margin:0;height:470px;writing-mode:vertical-rl;direction:ltr";
+		doc.body.innerHTML = '<div style="position:relative;block-size:560.640625px;margin-left:24px"><span style="position:absolute;left:7px;top:0;font:24px/35px monospace">A</span></div><div style="width:100%;writing-mode:horizontal-tb"><img style="display:block;margin-left:auto;margin-right:auto"/></div>';
+		const image = doc.querySelector("img");
+		image.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="700" height="450"/>');
+		await image.decode();
+		const contents = { document: doc, window: frame.contentWindow, content: doc.body };
+		if (!authored) {
+			image.style.marginLeft = "0px";
+			image.style.marginRight = "0px";
+			layoutVerticalRlBlockMedia(contents, 288, 16);
+			const before = image.getBoundingClientRect().left;
+			const margin = image.parentElement.style.marginRight;
+			layoutVerticalRlBlockMedia(contents, 288, 16, 320);
+			expect(image.getBoundingClientRect().left).toBe(before);
+			expect(image.parentElement.style.marginRight).toBe(margin);
+			return;
+		}
+		layoutVerticalRlBlockMedia(contents, 288, 16, 320);
+		const text = doc.createRange();
+		text.selectNodeContents(doc.querySelector("span"));
+		const bounds = image.getBoundingClientRect();
+		const windowRight = (bounds.left + bounds.right + 320) / 2;
+		expect([...text.getClientRects()].every(rect => rect.left >= windowRight), JSON.stringify({ image: {left: bounds.left, right: bounds.right}, windowRight, text: [...text.getClientRects()].map(rect => ({left: rect.left, right: rect.right})), margin: image.parentElement.style.marginRight, typedLeft: image.computedStyleMap().get("margin-left").toString(), typedRight: image.computedStyleMap().get("margin-right").toString() })).toBe(true);
+		const idealOffset = 896 - windowRight;
+		const integerWindowRight = 896 - Math.round(idealOffset);
+		expect([...text.getClientRects()].every(rect => rect.left >= integerWindowRight), "integer scroll must not introduce neighboring text").toBe(true);
+		expect(Math.abs(Math.round(idealOffset) - idealOffset)).toBeLessThanOrEqual(1);
+		const margin = image.parentElement.style.marginRight;
+		layoutVerticalRlBlockMedia(contents, 288, 16, 320);
+		expect(image.parentElement.style.marginRight, "repeated layout must not accumulate spacing").toBe(margin);
+		expect(image.getBoundingClientRect().width).toBeCloseTo(bounds.width, 6);
+	} finally {
+		frame.remove();
+	}
+});
+
+it("centers a narrow media tail after serialized forward navigation", async () => {
+	const rendition = await createTypographyMediaFixture(24, 48, { width: 320, height: 470, narrow: true });
+	const manager = rendition.manager;
+	const pages = manager.getTotalPagesForCurrentView();
+	for (let page = 1; page < pages; page++) {
+		await rendition.next();
+		await manager.waitForVerticalRlLayoutReady();
+	}
+	const view = manager.views.first();
+	const image = view.contents.document.querySelector("#media").getBoundingClientRect();
+	const frame = view.iframe.getBoundingClientRect();
+	const viewport = manager.container.getBoundingClientRect();
+	const scale = frame.width / view.iframe.clientWidth;
+	const center = frame.left + (image.left + image.right) * scale / 2;
+	expect(Math.abs(center - (viewport.left + viewport.right) / 2)).toBeLessThanOrEqual(1);
+	expect(frame.left + image.left * scale).toBeGreaterThanOrEqual(viewport.left - 1);
+	expect(frame.left + image.right * scale).toBeLessThanOrEqual(viewport.right + 1);
+});
+
+it.each([true, false])("fits only an authored media tail inside both centered fractional-page gutters (authored=%s)", async (authored) => {
+	const frame = document.createElement("iframe");
+	frame.style.cssText = "width:1242.5px;height:470px;border:0";
+	document.body.appendChild(frame);
+	try {
+		const doc = frame.contentDocument;
+		doc.body.style.cssText = "margin:0;height:470px;writing-mode:vertical-rl;direction:ltr";
+		doc.body.innerHTML = '<div style="block-size:888px;margin-left:28px">A</div><div style="width:100%;writing-mode:horizontal-tb"><img style="display:block;margin-left:auto;margin-right:auto"/></div>';
+		const image = doc.querySelector("img");
+		image.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="700" height="450"/>');
+		await image.decode();
+		if (!authored) { image.style.marginLeft="0px"; image.style.marginRight="0px"; }
+		layoutVerticalRlBlockMedia({document:doc,window:frame.contentWindow,content:doc.body},307.5,6,320);
+		const gutter=getVerticalRlMediaLeftGutter(320,307.5,frame.contentWindow.devicePixelRatio);
+		if (authored) {
+			expect(image.getBoundingClientRect().width).toBeLessThanOrEqual(320-2*gutter);
+		} else {
+			expect(image.getBoundingClientRect().width).toBeGreaterThan(320-2*gutter);
+		}
+		expect(doc.querySelector("img")).toBe(image);
+	} finally {
+		frame.remove();
+	}
 });

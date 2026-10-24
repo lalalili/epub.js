@@ -171,6 +171,30 @@ describe("browser DOM traversal platform boundary", () => {
 		}
 	});
 
+	it("measures each text node once when supplementing a prefix and remeasures on the next call", () => {
+		const wrapper = document.createElement("div");
+		wrapper.style.cssText = "position:absolute;left:0;top:0;width:500px;height:40px;font:16px/20px sans-serif";
+		wrapper.innerHTML = '<span style="position:absolute;left:0">First</span><span style="position:absolute;left:100px">Middle</span><span style="position:absolute;left:200px">Last</span>';
+		document.body.append(wrapper);
+		const original = Range.prototype.getClientRects;
+		let measurements = 0;
+		Range.prototype.getClientRects = function() { measurements += 1; return original.call(this); };
+		try {
+			const options = { minimumTextLength: 1, limit: 1, horizontalBounds: { left: 199, right: 299 }, supplementTruncatedPrefix: true };
+			const first = collectVisibleTextClientRects(document, window, wrapper, options);
+			expect(first).toHaveLength(2);
+			expect(first.map(rect => rect.left)).toEqual([0, 200]);
+			expect(measurements).toBe(3);
+			wrapper.lastChild.style.left = "220px";
+			const second = collectVisibleTextClientRects(document, window, wrapper, options);
+			expect(second.map(rect => rect.left)).toEqual([0, 220]);
+			expect(measurements).toBe(6);
+		} finally {
+			Range.prototype.getClientRects = original;
+			wrapper.remove();
+		}
+	});
+
 	it("keeps element child and parent helpers aligned with legacy exports", () => {
 		var doc = parse("<root><group><item id=\"a\" /><item id=\"b\" /><note /></group></root>");
 		var group = doc.getElementsByTagName("group")[0];

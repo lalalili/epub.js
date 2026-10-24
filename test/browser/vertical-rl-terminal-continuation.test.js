@@ -1,6 +1,7 @@
 import { afterEach, expect, it } from "vitest";
 import JSZip from "jszip";
 import ePub from "../../src/epub";
+import { captureSemanticCut } from "../../src/rendering/semantic-cut";
 
 const fixtures = [];
 afterEach(() => {
@@ -99,6 +100,45 @@ it("preserves the early terminal window, reaches the tail, and returns through b
 		expect(returned.offset).toBe(expected.offset);
 		expect(returned.visible).toEqual(expected.visible);
 	}
+}, 60000);
+
+it("reaches the unseen tail after restoring an early terminal semantic window in a fresh manager", async () => {
+	const original = await fixture();
+	const base = state(original.manager).total;
+	let early;
+	for (let turn = 0; turn < base * 2; turn += 1) {
+		const current = state(original.manager);
+		if (current.index === base - 1 && current.total > base) {
+			early = current;
+			break;
+		}
+		await original.manager.next();
+		await original.manager.waitForVerticalRlLayoutReady();
+	}
+	expect(early).toBeDefined();
+	const identity = { publicationIdentifier: "terminal-continuation-fixture", publicationModified: "2026-01-01" };
+	const descriptor = original.manager.createSemanticWindowDescriptor(original.manager.currentLocation()[0], identity);
+	expect(descriptor?.semanticCut).toBeDefined();
+	const fresh = await fixture();
+	expect(state(fresh.manager).total).toBe(base);
+	// Reader first displays the saved CFI, then restores the semantic source cut.
+	await fresh.rendition.display(descriptor.anchors.readingStart.cfi);
+	await fresh.manager.waitForVerticalRlLayoutReady();
+	fresh.manager.scrollToLogicalPage(base - 1);
+	await fresh.manager.waitForVerticalRlLayoutReady();
+	expect(state(fresh.manager).visible).toContain(original.markerB);
+	expect(fresh.manager.restoreSemanticWindowDescriptor(descriptor, identity).status).toBe("applied");
+	const restoredView = fresh.manager.views.first();
+	expect(captureSemanticCut(restoredView.contents.document, restoredView.iframe, restoredView.section.cfiBase)).toEqual(descriptor.semanticCut);
+	await fresh.manager.next();
+	await fresh.manager.waitForVerticalRlLayoutReady();
+	const tail = state(fresh.manager);
+	expect(tail.href).toBe(early.href);
+	expect(tail.visible).toContain(original.markerB);
+	expect(tail.visible).not.toEqual(early.visible);
+	await fresh.manager.next();
+	await fresh.manager.waitForVerticalRlLayoutReady();
+	expect(state(fresh.manager).href).not.toBe(early.href);
 }, 60000);
 
 it("can reserve multiple terminal continuations without losing any learned offsets", async () => {

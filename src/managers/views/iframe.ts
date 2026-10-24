@@ -558,7 +558,7 @@ class IframeView {
 				}
 				const mediaPageWidth = this.layout.effectivePageAdvance || visiblePageWidth;
 				const mediaEdgeGuard = this.layout.edgeGuardPx || 0;
-				layoutVerticalRlBlockMedia(this.contents, mediaPageWidth, mediaEdgeGuard);
+				layoutVerticalRlBlockMedia(this.contents, mediaPageWidth, mediaEdgeGuard, visiblePageWidth);
 				pageMetrics = this.contents.verticalRlPageMetrics(visiblePageWidth, height) as VerticalRlPageMetrics;
 				// Typography can change the column advance during this very measurement.
 				// Fit media against that generation before publishing its canvas size.
@@ -566,7 +566,7 @@ class IframeView {
 					pageMetrics.effectivePageAdvance !== mediaPageWidth ||
 					pageMetrics.edgeGuardPx !== mediaEdgeGuard
 				)) {
-					layoutVerticalRlBlockMedia(this.contents, pageMetrics.effectivePageAdvance, pageMetrics.edgeGuardPx || 0);
+					layoutVerticalRlBlockMedia(this.contents, pageMetrics.effectivePageAdvance, pageMetrics.edgeGuardPx || 0, visiblePageWidth);
 					this.contents.invalidateVerticalRlMetricsCache();
 					pageMetrics = this.contents.verticalRlPageMetrics(visiblePageWidth, height) as VerticalRlPageMetrics;
 				}
