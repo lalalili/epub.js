@@ -2520,10 +2520,14 @@ class Contents {
 		// sets writing-mode, falling back to documentElement computed style.
 		const bodyEl = this.document && this.document.body;
 		if (bodyEl) {
+			const resolveDeclaredMode = (value: string): string =>
+				["inherit", "initial", "unset", "revert", "revert-layer"].includes(value)
+					? this.window.getComputedStyle(bodyEl).getPropertyValue(WRITING_MODE)
+					: value;
 			// Check body inline style first
 			const inlineWM = bodyEl.style && bodyEl.style.getPropertyValue(WRITING_MODE);
 			if (inlineWM && inlineWM !== "horizontal-tb") {
-				return inlineWM;
+				return resolveDeclaredMode(inlineWM);
 			}
 			// Scan stylesheets for body/html/universal writing-mode rules
 			try {
@@ -2537,7 +2541,8 @@ class Contents {
 							const sel = styleRule.selectorText.toLowerCase();
 							if (sel === "body" || sel === "html, body" || sel === "body, html") {
 								const wm = styleRule.style.getPropertyValue(WRITING_MODE);
-								if (wm && wm !== "horizontal-tb") return wm;
+								// CSS-wide keywords such as inherit are not resolved axes.
+								if (wm && wm !== "horizontal-tb") return resolveDeclaredMode(wm);
 							}
 						}
 					}
