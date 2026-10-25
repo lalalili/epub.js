@@ -42,7 +42,7 @@
 	}) : target, mod));
 	//#endregion
 	jszip_dist_jszip = __toESM(jszip_dist_jszip);
-	//#region ../../.local/epub.js/node_modules/type/value/is.js
+	//#region node_modules/type/value/is.js
 	var require_is$4 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var _undefined = void 0;
 		module.exports = function(value) {
@@ -50,7 +50,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/type/object/is.js
+	//#region node_modules/type/object/is.js
 	var require_is$3 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is$4();
 		var possibleTypes = {
@@ -64,7 +64,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/type/prototype/is.js
+	//#region node_modules/type/prototype/is.js
 	var require_is$2 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isObject = require_is$3();
 		module.exports = function(value) {
@@ -78,7 +78,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/type/function/is.js
+	//#region node_modules/type/function/is.js
 	var require_is$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isPrototype = require_is$2();
 		module.exports = function(value) {
@@ -95,7 +95,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/type/plain-function/is.js
+	//#region node_modules/type/plain-function/is.js
 	var require_is = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isFunction = require_is$1();
 		var classRe = /^\s*class[\s{/}]/;
@@ -107,7 +107,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/assign/is-implemented.js
+	//#region node_modules/es5-ext/object/assign/is-implemented.js
 	var require_is_implemented$2 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = function() {
 			var assign = Object.assign, obj;
@@ -118,7 +118,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/keys/is-implemented.js
+	//#region node_modules/es5-ext/object/keys/is-implemented.js
 	var require_is_implemented$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = function() {
 			try {
@@ -129,12 +129,12 @@
 		};
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/function/noop.js
+	//#region node_modules/es5-ext/function/noop.js
 	var require_noop = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = function() {};
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/is-value.js
+	//#region node_modules/es5-ext/object/is-value.js
 	var require_is_value = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var _undefined = require_noop()();
 		module.exports = function(val) {
@@ -142,7 +142,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/keys/shim.js
+	//#region node_modules/es5-ext/object/keys/shim.js
 	var require_shim$2 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is_value();
 		var keys = Object.keys;
@@ -151,12 +151,12 @@
 		};
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/keys/index.js
+	//#region node_modules/es5-ext/object/keys/index.js
 	var require_keys = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = require_is_implemented$1()() ? Object.keys : require_shim$2();
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/valid-value.js
+	//#region node_modules/es5-ext/object/valid-value.js
 	var require_valid_value = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is_value();
 		module.exports = function(value) {
@@ -165,7 +165,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/assign/shim.js
+	//#region node_modules/es5-ext/object/assign/shim.js
 	var require_shim$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var keys = require_keys();
 		var value = require_valid_value();
@@ -189,12 +189,12 @@
 		};
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/assign/index.js
+	//#region node_modules/es5-ext/object/assign/index.js
 	var require_assign = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = require_is_implemented$2()() ? Object.assign : require_shim$1();
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/normalize-options.js
+	//#region node_modules/es5-ext/object/normalize-options.js
 	var require_normalize_options = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is_value();
 		var forEach = Array.prototype.forEach;
@@ -213,7 +213,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/string/#/contains/is-implemented.js
+	//#region node_modules/es5-ext/string/#/contains/is-implemented.js
 	var require_is_implemented = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var str = "razdwatrzy";
 		module.exports = function() {
@@ -222,7 +222,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/string/#/contains/shim.js
+	//#region node_modules/es5-ext/string/#/contains/shim.js
 	var require_shim = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var indexOf = String.prototype.indexOf;
 		module.exports = function(searchString) {
@@ -230,12 +230,12 @@
 		};
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/string/#/contains/index.js
+	//#region node_modules/es5-ext/string/#/contains/index.js
 	var require_contains = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = require_is_implemented()() ? String.prototype.contains : require_shim();
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/d/index.js
+	//#region node_modules/d/index.js
 	var require_d = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is$4();
 		var isPlainFunction = require_is();
@@ -299,7 +299,7 @@
 		};
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/valid-callable.js
+	//#region node_modules/es5-ext/object/valid-callable.js
 	var require_valid_callable = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = function(fn) {
 			if (typeof fn !== "function") throw new TypeError(fn + " is not a function");
@@ -1923,7 +1923,7 @@
 		return content;
 	}
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/@xmldom/xmldom/lib/conventions.js
+	//#region node_modules/@xmldom/xmldom/lib/conventions.js
 	var require_conventions = /* @__PURE__ */ __commonJSMin(((exports) => {
 		/**
 		* Ponyfill for `Array.prototype.find` which is only available in ES6 runtimes.
@@ -2104,7 +2104,7 @@
 		exports.tagNamePattern = tagNamePattern;
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/@xmldom/xmldom/lib/dom.js
+	//#region node_modules/@xmldom/xmldom/lib/dom.js
 	var require_dom = /* @__PURE__ */ __commonJSMin(((exports) => {
 		var conventions = require_conventions();
 		var find = conventions.find;
@@ -3847,7 +3847,7 @@
 		exports.XMLSerializer = XMLSerializer;
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/@xmldom/xmldom/lib/entities.js
+	//#region node_modules/@xmldom/xmldom/lib/entities.js
 	var require_entities = /* @__PURE__ */ __commonJSMin(((exports) => {
 		var freeze = require_conventions().freeze;
 		/**
@@ -6012,7 +6012,7 @@
 		exports.entityMap = exports.HTML_ENTITIES;
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/@xmldom/xmldom/lib/sax.js
+	//#region node_modules/@xmldom/xmldom/lib/sax.js
 	var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
 		var NAMESPACE = require_conventions().NAMESPACE;
 		var tagNamePattern = require_conventions().tagNamePattern;
@@ -6499,7 +6499,7 @@
 		exports.ParseError = ParseError;
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/@xmldom/xmldom/lib/dom-parser.js
+	//#region node_modules/@xmldom/xmldom/lib/dom-parser.js
 	var require_dom_parser = /* @__PURE__ */ __commonJSMin(((exports) => {
 		var conventions = require_conventions();
 		var dom = require_dom();
@@ -12151,8 +12151,15 @@
 			if (mode && this.documentElement) this.documentElement.style.setProperty(WRITING_MODE, mode);
 			const bodyEl = this.document && this.document.body;
 			if (bodyEl) {
+				const resolveDeclaredMode = (value) => [
+					"inherit",
+					"initial",
+					"unset",
+					"revert",
+					"revert-layer"
+				].includes(value) ? this.window.getComputedStyle(bodyEl).getPropertyValue(WRITING_MODE) : value;
 				const inlineWM = bodyEl.style && bodyEl.style.getPropertyValue(WRITING_MODE);
-				if (inlineWM && inlineWM !== "horizontal-tb") return inlineWM;
+				if (inlineWM && inlineWM !== "horizontal-tb") return resolveDeclaredMode(inlineWM);
 				try {
 					const sheets = Array.from(this.document.styleSheets || []);
 					for (const sheet of sheets) {
@@ -12168,7 +12175,7 @@
 								const sel = styleRule.selectorText.toLowerCase();
 								if (sel === "body" || sel === "html, body" || sel === "body, html") {
 									const wm = styleRule.style.getPropertyValue(WRITING_MODE);
-									if (wm && wm !== "horizontal-tb") return wm;
+									if (wm && wm !== "horizontal-tb") return resolveDeclaredMode(wm);
 								}
 							}
 						}
@@ -12230,7 +12237,7 @@
 	};
 	(0, import_event_emitter.default)(Contents.prototype);
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/marks-pane/lib/svg.js
+	//#region node_modules/marks-pane/lib/svg.js
 	var require_svg = /* @__PURE__ */ __commonJSMin(((exports) => {
 		Object.defineProperty(exports, "__esModule", { value: true });
 		exports.createElement = createElement;
@@ -12240,7 +12247,7 @@
 		exports.default = { createElement };
 	}));
 	//#endregion
-	//#region ../../.local/epub.js/node_modules/marks-pane/lib/events.js
+	//#region node_modules/marks-pane/lib/events.js
 	var require_events = /* @__PURE__ */ __commonJSMin(((exports) => {
 		Object.defineProperty(exports, "__esModule", { value: true });
 		exports.proxyMouse = proxyMouse;

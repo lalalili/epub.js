@@ -922,7 +922,7 @@ function Me(e, t, n) {
 	}), e;
 }
 //#endregion
-//#region ../../.local/epub.js/node_modules/@xmldom/xmldom/lib/conventions.js
+//#region node_modules/@xmldom/xmldom/lib/conventions.js
 var Ne = /* @__PURE__ */ s(((e) => {
 	function t(e, t, n) {
 		if (n === void 0 && (n = Array.prototype), e && typeof n.find == "function") return n.find.call(e, t);
@@ -7014,24 +7014,30 @@ var Gt = typeof navigator < "u", Kt = Gt && /Chrome/.test(navigator.userAgent), 
 		e && this.documentElement && this.documentElement.style.setProperty(t, e);
 		let n = this.document && this.document.body;
 		if (n) {
-			let e = n.style && n.style.getPropertyValue(t);
-			if (e && e !== "horizontal-tb") return e;
+			let e = (e) => [
+				"inherit",
+				"initial",
+				"unset",
+				"revert",
+				"revert-layer"
+			].includes(e) ? this.window.getComputedStyle(n).getPropertyValue(t) : e, r = n.style && n.style.getPropertyValue(t);
+			if (r && r !== "horizontal-tb") return e(r);
 			try {
-				let e = Array.from(this.document.styleSheets || []);
-				for (let n of e) {
-					let e;
+				let n = Array.from(this.document.styleSheets || []);
+				for (let r of n) {
+					let n;
 					try {
-						e = Array.from(n.cssRules || []);
+						n = Array.from(r.cssRules || []);
 					} catch {
 						continue;
 					}
-					for (let n of e) {
-						let e = n;
-						if (e.style && e.selectorText) {
-							let n = e.selectorText.toLowerCase();
-							if (n === "body" || n === "html, body" || n === "body, html") {
-								let n = e.style.getPropertyValue(t);
-								if (n && n !== "horizontal-tb") return n;
+					for (let r of n) {
+						let n = r;
+						if (n.style && n.selectorText) {
+							let r = n.selectorText.toLowerCase();
+							if (r === "body" || r === "html, body" || r === "body, html") {
+								let r = n.style.getPropertyValue(t);
+								if (r && r !== "horizontal-tb") return e(r);
 							}
 						}
 					}
@@ -7075,7 +7081,7 @@ var Gt = typeof navigator < "u", Kt = Gt && /Chrome/.test(navigator.userAgent), 
 };
 (0, M.default)(fn.prototype);
 //#endregion
-//#region ../../.local/epub.js/node_modules/marks-pane/lib/svg.js
+//#region node_modules/marks-pane/lib/svg.js
 var pn = /* @__PURE__ */ s(((e) => {
 	Object.defineProperty(e, "__esModule", { value: !0 }), e.createElement = t;
 	function t(e) {
