@@ -91,8 +91,8 @@ export interface Deferred<T = unknown> {
  * @memberof Core
  */
 export const requestAnimationFrame: AnimationFrameRequest | false = platformRequestAnimationFrame;
-const COMMENT_NODE = 8;
-const DOCUMENT_NODE = 9;
+const _COMMENT_NODE = 8;
+const _DOCUMENT_NODE = 9;
 
 /**
  * Generates a UUID
@@ -153,22 +153,22 @@ export function prefixed(unprefixed: string): string {
 
 /**
  * Apply defaults to an object
- * @param {object} obj
+ * @param {object} _obj
  * @returns {object}
  * @memberof Core
  */
-export function defaults<T extends MutableRecord>(obj: T, ..._sources: MutableRecord[]): T {
+export function defaults<T extends MutableRecord>(_obj: T, ..._sources: MutableRecord[]): T {
     return coreDefaults.apply(null, arguments);
 }
 
 /**
  * Extend properties of an object
- * @param {object} target
+ * @param {object} _target
  * @returns {object}
  * @memberof Core
  */
 export function extend<T extends object>(
-    target: T,
+    _target: T,
     ..._sources: Array<object | null | undefined>
 ): T {
     return coreExtend.apply(null, arguments);

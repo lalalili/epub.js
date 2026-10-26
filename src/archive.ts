@@ -58,7 +58,7 @@ class Archive {
     checkRequirements(): void {
         try {
             this.zip = new JSZip() as ArchiveZip;
-        } catch (e) {
+        } catch {
             throw new Error("JSZip lib not loaded");
         }
     }
@@ -174,10 +174,10 @@ class Archive {
     /**
      * Get Text from Archive by Url
      * @param  {string} url
-     * @param  {string} [encoding]
+     * @param  {string} [_encoding]
      * @return {string}
      */
-    getText(url: string, encoding?: string): Promise<string> | undefined {
+    getText(url: string, _encoding?: string): Promise<string> | undefined {
         var decodededUrl = window.decodeURIComponent(url.substr(1)); // Remove first slash
         var entry = this.zip!.file(decodededUrl);
 

@@ -43,7 +43,7 @@ type DeferConstructor = new <T = unknown>() => {
 };
 
 export type LocationInput = string | EpubCFI;
-type LocationIndex = number;
+type _LocationIndex = number;
 
 /**
  * Find Locations for a Book
@@ -248,7 +248,7 @@ class Locations {
 
         try {
             return new EpubCFI(fallbackNode, cfiBase).toString();
-        } catch (error) {
+        } catch {
             return "";
         }
     }

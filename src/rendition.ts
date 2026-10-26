@@ -1126,7 +1126,7 @@ class Rendition {
                                 | undefined;
                             try {
                                 location = this.manager.currentLocation();
-                            } catch (err) {
+                            } catch {
                                 return; // manager may have been destroyed; silently ignore
                             }
                             if (location && isManagerLocationPromise(location)) {
@@ -1205,11 +1205,11 @@ class Rendition {
             boundaryToken = globalThis.__PERSIST_RENDERER_BOUNDARY__?.enter(
                 "rendition:current-location",
             );
-        } catch (_) {}
+        } catch {}
         const finishBoundary = (kind: "returned" | "threw"): void => {
             try {
                 globalThis.__PERSIST_RENDERER_BOUNDARY__?.[kind]?.(boundaryToken);
-            } catch (_) {}
+            } catch {}
         };
         try {
             var location: ManagerLocationResult | Promise<ManagerLocationResult> | undefined =

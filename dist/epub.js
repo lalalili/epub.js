@@ -696,7 +696,7 @@
 				this.hash = this.Url.hash;
 				this.search = this.Url.search;
 				pathname = this.Url.pathname + (this.Url.search ? this.Url.search : "");
-			} catch (e) {
+			} catch {
 				this.Url = void 0;
 				if (this.base) {
 					basePath = new Path(this.base);
@@ -1612,7 +1612,7 @@
 			try {
 				range[method](safeContainer, safeOffset);
 				return true;
-			} catch (e) {
+			} catch {
 				missed = this.fixMiss(steps, offset, doc, ignoreClass);
 				if (missed && missed.container) {
 					safeContainer = missed.container;
@@ -1623,7 +1623,7 @@
 				try {
 					range[method](safeContainer, safeOffset);
 					return true;
-				} catch (_e) {
+				} catch {
 					return false;
 				}
 			}
@@ -1710,7 +1710,7 @@
 		* Adds a function to be run before a hook completes
 		* @example this.content.register(function(){...});
 		*/
-		register(...items) {
+		register(..._items) {
 			for (var i = 0; i < arguments.length; ++i) if (typeof arguments[i] === "function") this.hooks.push(arguments[i]);
 			else for (var j = 0; j < arguments[i].length; ++j) this.hooks.push(arguments[i][j]);
 		}
@@ -1732,7 +1732,7 @@
 		* Triggers a hook to run all functions
 		* @example this.content.trigger(args).then(function(){...});
 		*/
-		trigger(...items) {
+		trigger(..._items) {
 			var args = arguments;
 			var context = this.context;
 			var promises = [];
@@ -1876,7 +1876,7 @@
 				var linkUrl;
 				try {
 					linkUrl = new Url(href, location);
-				} catch (error) {}
+				} catch {}
 				link.onclick = function() {
 					if (sectionHref && href && href.indexOf("#") === 0) fn(sectionHref + href);
 					else if (linkUrl && linkUrl.hash) fn(linkUrl.Path.path + linkUrl.hash);
@@ -8032,7 +8032,7 @@
 			if (children.length) fallbackNode = children[0];
 			try {
 				return new EpubCFI(fallbackNode, cfiBase).toString();
-			} catch (error) {
+			} catch {
 				return "";
 			}
 		}
@@ -8440,10 +8440,10 @@
 		* Parse Spine
 		* @private
 		* @param  {node} spineXml
-		* @param  {Packaging.manifest} manifest
+		* @param  {Packaging.manifest} _manifest
 		* @return {object} spine
 		*/
-		parseSpine(spineXml, manifest) {
+		parseSpine(spineXml, _manifest) {
 			var spine = [];
 			var selected = qsa$1(spineXml, "itemref");
 			Array.prototype.slice.call(selected).forEach(function(item, index) {
@@ -8568,7 +8568,7 @@
 				if (item.rel && item.rel[0] === "cover") this.coverPath = item.href;
 			});
 			this.spineNodeIndex = 0;
-			this.toc = json.toc.map((item, index) => {
+			this.toc = json.toc.map((item, _index) => {
 				item.label = item.title;
 				return item;
 			});
@@ -9058,7 +9058,7 @@
 				if (this.settings.replacements === "base64") newUrl = createBase64Url$1(text, "text/css");
 				else newUrl = createBlobUrl$1(text, "text/css");
 				return newUrl;
-			}, (err) => {
+			}, (_err) => {
 				return Promise.resolve(void 0);
 			});
 		}
@@ -11197,7 +11197,7 @@
 				var rules;
 				try {
 					rules = sheets[i].cssRules;
-				} catch (e) {
+				} catch {
 					return;
 				}
 				if (!rules) return;
@@ -11209,7 +11209,7 @@
 		* @private
 		*/
 		resizeObservers() {
-			this.observer = new ResizeObserver((e) => {
+			this.observer = new ResizeObserver((_e) => {
 				requestAnimationFrame(this.resizeCheck.bind(this));
 			});
 			this.observer.observe(this.document.documentElement);
@@ -11219,7 +11219,7 @@
 		* @private
 		*/
 		mutationObservers() {
-			this.observer = new MutationObserver((mutations) => {
+			this.observer = new MutationObserver((_mutations) => {
 				this.resizeCheck();
 			});
 			this.observer.observe(this.document, {
@@ -11358,7 +11358,7 @@
 		* @param {string} src url
 		*/
 		addStylesheet(src) {
-			return new Promise(function(resolve, reject) {
+			return new Promise(function(resolve, _reject) {
 				var $stylesheet;
 				var ready = false;
 				if (!this.document) {
@@ -11472,7 +11472,7 @@
 		* @returns {Promise} loaded
 		*/
 		addScript(src) {
-			return new Promise(function(resolve, reject) {
+			return new Promise(function(resolve, _reject) {
 				var $script;
 				var ready = false;
 				if (!this.document) {
@@ -11565,7 +11565,7 @@
 		* Handle getting text on selection
 		* @private
 		*/
-		onSelectionChange(e) {
+		onSelectionChange(_e) {
 			if (this.selectionEndTimeout) clearTimeout(this.selectionEndTimeout);
 			this.selectionEndTimeout = setTimeout(function() {
 				var selection = this.window.getSelection();
@@ -11749,7 +11749,7 @@
 					rawWidth,
 					rawHeight: Math.max(rect.height || 0, rect.bottom - Math.min(rect.top, 0))
 				};
-			} catch (e) {
+			} catch {
 				return {
 					left: 0,
 					right: 0,
@@ -11769,7 +11769,7 @@
 				const range = this.document.createRange();
 				range.selectNodeContents(content);
 				rects = Array.from(range.getClientRects ? range.getClientRects() : []);
-			} catch (e) {
+			} catch {
 				rects = [];
 			}
 			const safePageWidth = Number(visiblePageWidth);
@@ -11998,7 +11998,7 @@
 				const range = this.document.createRange();
 				range.selectNodeContents(content);
 				rangeRect = range.getBoundingClientRect();
-			} catch (e) {
+			} catch {
 				rangeRect = null;
 			}
 			const bodyRect = content && content.getBoundingClientRect ? content.getBoundingClientRect() : null;
@@ -12119,7 +12119,7 @@
 						let rules;
 						try {
 							rules = Array.from(sheet.cssRules || []);
-						} catch (e) {
+						} catch {
 							continue;
 						}
 						for (const rule of rules) {
@@ -12133,7 +12133,7 @@
 							}
 						}
 					}
-				} catch (e) {}
+				} catch {}
 			}
 			if (bodyEl) {
 				const bodyComputedWM = this.window.getComputedStyle(bodyEl).getPropertyValue(WRITING_MODE);
@@ -12693,7 +12693,7 @@
 			if (!this.settings.method) this.settings.method = this.supportsSrcdoc ? "srcdoc" : "write";
 			return this.iframe;
 		}
-		render(request, show) {
+		render(request, _show) {
 			this.create();
 			this.size();
 			if (typeof AbortController !== "undefined" && !this._abortController) this._abortController = new AbortController();
@@ -12715,7 +12715,7 @@
 				this.emit(EVENTS.VIEWS.WRITING_MODE, writingMode);
 				this.layout.format(this.contents, this.section, this.axis);
 				this.addListeners();
-				return new Promise((resolve, reject) => {
+				return new Promise((resolve, _reject) => {
 					this.expand();
 					if (this.settings.forceRight) this.element.style.marginLeft = this.width() + "px";
 					resolve();
@@ -12768,7 +12768,7 @@
 			}
 			if (this.displayed && this.iframe) this.expand();
 		}
-		expand(force) {
+		expand(_force) {
 			var width = this.lockedWidth;
 			var height = this.lockedHeight;
 			var columns;
@@ -12970,7 +12970,7 @@
 					if (this.contents) this.layout.format(this.contents);
 				}
 			});
-			this.contents.on(EVENTS.CONTENTS.RESIZE, (e) => {
+			this.contents.on(EVENTS.CONTENTS.RESIZE, (_e) => {
 				if (this.displayed && this.iframe) {
 					this.expand();
 					if (this.contents) this.layout.format(this.contents);
@@ -12995,7 +12995,7 @@
 			this.writingMode = mode;
 		}
 		addListeners() {}
-		removeListeners(layoutFunc) {}
+		removeListeners(_layoutFunc) {}
 		display(request) {
 			var displayed = new Defer$4();
 			if (!this.displayed) this.render(request).then(function() {
@@ -13048,8 +13048,8 @@
 				top: targetPos.top
 			};
 		}
-		onDisplayed(view) {}
-		onResize(view, e) {}
+		onDisplayed(_view) {}
+		onResize(_view, _e) {}
 		bounds(force) {
 			if (force || !this.elementBounds) this.elementBounds = bounds$1(this.element);
 			return this.elementBounds;
@@ -13119,7 +13119,7 @@
 			if (!range) return;
 			let container = range.commonAncestorContainer;
 			let parent = container.nodeType === 1 ? container : container.parentNode;
-			let emitter = (e) => {
+			let emitter = (_e) => {
 				this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
 			};
 			if (range.collapsed && container.nodeType === 1) {
@@ -13733,7 +13733,7 @@
 	var emitTerminalContinuationObservation = (event, owner, values) => {
 		try {
 			globalThis.__PERSIST_TOPOLOGY__?.emit?.(event, owner ?? null, values);
-		} catch (_) {}
+		} catch {}
 	};
 	/** Geometry identity is independent of the dynamically promoted logical count. */
 	function resolveVerticalRlTerminalContinuation(previous, layoutKey) {
@@ -15505,7 +15505,7 @@
 				...detail
 			});
 			if (debugWindow.__EPUB_VRL_SCROLL_TRACE__.length > 4e3) debugWindow.__EPUB_VRL_SCROLL_TRACE__.splice(0, debugWindow.__EPUB_VRL_SCROLL_TRACE__.length - 4e3);
-		} catch (_) {}
+		} catch {}
 	};
 	/**
 	* Record terminal continuation timing without participating in the decision.
@@ -15681,7 +15681,7 @@
 		}
 		addEventListeners() {
 			var scroller;
-			this._onUnload = function(e) {
+			this._onUnload = function(_e) {
 				this.destroy();
 			}.bind(this);
 			window.addEventListener("unload", this._onUnload);
@@ -15716,7 +15716,7 @@
 			this.stage.destroy();
 			this.rendered = false;
 		}
-		onOrientationChange(e) {
+		onOrientationChange(_e) {
 			let { orientation } = window;
 			if (this.optsSettings.resizeOnOrientationChange) this.resize();
 			clearTimeout(this.orientationTimeout);
@@ -15726,7 +15726,7 @@
 				this.emit(EVENTS.MANAGERS.ORIENTATION_CHANGE, orientation);
 			}.bind(this), 500);
 		}
-		onResized(e) {
+		onResized(_e) {
 			this.resize();
 		}
 		resize(width, height, epubcfi) {
@@ -16121,7 +16121,7 @@
 					frameIdentity: getVerticalRlRuntimeIdentity(iframe),
 					documentIdentity: getVerticalRlRuntimeIdentity(contentsDocument)
 				};
-			} catch (_error) {
+			} catch {
 				return {
 					resolution: null,
 					effectiveClip: null,
@@ -16530,7 +16530,7 @@
 					let previousLeftMask = Number.isFinite(recordedPreviousLeftMask) ? recordedPreviousLeftMask : this.getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask);
 					rightAllowance = currentOffset > previousOffset ? getVerticalRlPreviousPageRightMask(visibleWidth, previousPageStep, previousLeftMask, maxMask) : 0;
 				}
-			} catch (error) {
+			} catch {
 				rightAllowance = maxMask;
 			}
 			return {
@@ -16672,7 +16672,7 @@
 				ledger[String(pageIndex)] = leftMask + contentShift;
 				const terminalLayout = this._verticalRlActiveTerminalLayout;
 				if (terminalLayout?.layoutKey === cacheKey) terminalLayout.appliedLeftMasks = ledger;
-			} catch (error) {}
+			} catch {}
 		}
 		getVerticalRlRestoredSemanticMaskWidths() {
 			const saved = this._verticalRlRestoredSemanticMask;
@@ -16740,7 +16740,7 @@
 				let previousOffset = this.getVerticalRlPageOffset(currentPageIndex - 1, totalPages, maxScroll);
 				if (!(currentOffset > previousOffset)) return 0;
 				return getVerticalRlPreviousPageRightMask(this.layout && (this.layout.pageWidth || this.layout.width) || advance, Math.abs(currentOffset - previousOffset), recordedPreviousLeftMask, maxMask);
-			} catch (error) {
+			} catch {
 				return null;
 			}
 		}
@@ -16764,7 +16764,7 @@
 				let currentPageIndex = this.getCurrentPageIndex();
 				if (!(totalPages > 0) || !Number.isFinite(currentPageIndex)) return null;
 				return currentPageIndex >= totalPages - 1 ? 0 : null;
-			} catch (error) {
+			} catch {
 				return null;
 			}
 		}
@@ -17048,7 +17048,7 @@
 							visibleCharacterCount += 1;
 							addHash(`${textNodeOrdinal}:${offset}:${text.charCodeAt(offset)};`);
 						}
-					} catch (_) {
+					} catch {
 						return {
 							status: "unavailable",
 							reason: "semantic-observation-range-failed",
@@ -17397,7 +17397,7 @@
 			try {
 				resolvedStart = contents.range(descriptor.anchors.readingStart.cfi);
 				resolvedEnd = contents.range(descriptor.anchors.readingEndExclusive.cfi);
-			} catch (_) {
+			} catch {
 				traceTerminal("anchor-resolution-failed", { anchorResolution: "invalid" });
 				return {
 					status: "unavailable",
@@ -17535,7 +17535,7 @@
 				const mappedEndRange = contents.range(mapping.end);
 				resolvedStartMatches = mappedStartRange.startContainer === startRange.startContainer && mappedStartRange.startOffset === startRange.startOffset;
 				resolvedEndMatches = mappedEndRange.endContainer === endRange.endContainer && mappedEndRange.endOffset === endRange.endOffset;
-			} catch (_) {
+			} catch {
 				resolvedStartMatches = null;
 				resolvedEndMatches = null;
 			}
@@ -18202,7 +18202,7 @@
 			let boundaryToken;
 			try {
 				boundaryToken = globalThis.__PERSIST_RENDERER_BOUNDARY__?.enter("manager:current-location");
-			} catch (_) {}
+			} catch {}
 			try {
 				if (this.shouldUpdateLayoutForLocation()) this.updateLayout();
 				if (this.isPaginated && this.settings.axis === "horizontal") this.location = this.paginatedLocation();
@@ -18221,12 +18221,12 @@
 				});
 				try {
 					globalThis.__PERSIST_RENDERER_BOUNDARY__?.returned(boundaryToken);
-				} catch (_) {}
+				} catch {}
 				return this.location;
 			} catch (error) {
 				try {
 					globalThis.__PERSIST_RENDERER_BOUNDARY__?.threw(boundaryToken);
-				} catch (_) {}
+				} catch {}
 				throw error;
 			}
 		}
@@ -18706,11 +18706,11 @@
 		triggerViewEvent(e, contents) {
 			this.emit(e.type, e, contents);
 		}
-		onScroll(e) {
+		onScroll(_e) {
 			this.scrollLeft = this.fullsize ? window.scrollX : this.scroller.scrollLeft;
 			this.scrollTop = this.fullsize ? window.scrollY : this.scroller.scrollTop;
 		}
-		onResize(e) {
+		onResize(_e) {
 			this.resizeCanceler = true;
 		}
 		onTouchStart(e) {
@@ -18735,7 +18735,7 @@
 			this.endTouchY = screenY;
 			this.endTime = this.now();
 		}
-		onTouchEnd(e) {
+		onTouchEnd(_e) {
 			if (this.fullsize) this.disableScroll();
 			this.touchCanceler = false;
 			let swipped = this.wasSwiped();
@@ -18900,7 +18900,7 @@
 		add(section) {
 			var view = this.createView(section, void 0);
 			this.views.append(view);
-			view.on(EVENTS.VIEWS.RESIZED, (bounds) => {
+			view.on(EVENTS.VIEWS.RESIZED, (_bounds) => {
 				view.expanded = true;
 			});
 			view.on(EVENTS.VIEWS.AXIS, (axis) => {
@@ -18915,7 +18915,7 @@
 		}
 		append(section) {
 			var view = this.createView(section, void 0);
-			view.on(EVENTS.VIEWS.RESIZED, (bounds) => {
+			view.on(EVENTS.VIEWS.RESIZED, (_bounds) => {
 				view.expanded = true;
 			});
 			view.on(EVENTS.VIEWS.AXIS, (axis) => {
@@ -18965,7 +18965,7 @@
 					if (!view.displayed) {
 						let displayed = view.display(this.request).then(function(view) {
 							view.show();
-						}, (err) => {
+						}, (_err) => {
 							view.hide();
 						});
 						promises.push(displayed);
@@ -19079,8 +19079,8 @@
 				} else this.scrollTo(prevLeft - Math.floor(bounds.width), 0, true);
 			}
 		}
-		addEventListeners(stage) {
-			this._onUnload = function(e) {
+		addEventListeners(_stage) {
+			this._onUnload = function(_e) {
 				this.ignore = true;
 				this.destroy();
 			}.bind(this);
@@ -19761,7 +19761,7 @@
 					var location;
 					try {
 						location = this.manager.currentLocation();
-					} catch (err) {
+					} catch {
 						return;
 					}
 					if (location && isManagerLocationPromise(location)) location.then(function(result) {
@@ -19817,11 +19817,11 @@
 			let boundaryToken;
 			try {
 				boundaryToken = globalThis.__PERSIST_RENDERER_BOUNDARY__?.enter("rendition:current-location");
-			} catch (_) {}
+			} catch {}
 			const finishBoundary = (kind) => {
 				try {
 					globalThis.__PERSIST_RENDERER_BOUNDARY__?.[kind]?.(boundaryToken);
-				} catch (_) {}
+				} catch {}
 			};
 			try {
 				var location = this.manager.currentLocation();
@@ -20127,7 +20127,7 @@
 		checkRequirements() {
 			try {
 				this.zip = new jszip_dist_jszip.default();
-			} catch (e) {
+			} catch {
 				throw new Error("JSZip lib not loaded");
 			}
 		}
@@ -20196,10 +20196,10 @@
 		/**
 		* Get Text from Archive by Url
 		* @param  {string} url
-		* @param  {string} [encoding]
+		* @param  {string} [_encoding]
 		* @return {string}
 		*/
-		getText(url, encoding) {
+		getText(url, _encoding) {
 			var decodededUrl = window.decodeURIComponent(url.substr(1));
 			var entry = this.zip.file(decodededUrl);
 			if (entry) return entry.async("string").then(function(text) {
@@ -22111,7 +22111,7 @@
 				let store = import_localforage.default;
 				if (typeof import_localforage.default === "undefined") store = import_localforage.default;
 				this.storage = store.createInstance({ name: this.name });
-			} catch (e) {
+			} catch {
 				throw new Error("localForage lib not loaded");
 			}
 		}
@@ -22137,7 +22137,7 @@
 		* Update the online / offline status
 		* @private
 		*/
-		status(event) {
+		status(_event) {
 			let online = navigator.onLine;
 			this.online = online;
 			if (online) this.emit("online", this);
@@ -23069,20 +23069,20 @@
 	}
 	/**
 	* Apply defaults to an object
-	* @param {object} obj
+	* @param {object} _obj
 	* @returns {object}
 	* @memberof Core
 	*/
-	function defaults(obj, ..._sources) {
+	function defaults(_obj, ..._sources) {
 		return defaults$1.apply(null, arguments);
 	}
 	/**
 	* Extend properties of an object
-	* @param {object} target
+	* @param {object} _target
 	* @returns {object}
 	* @memberof Core
 	*/
-	function extend(target, ..._sources) {
+	function extend(_target, ..._sources) {
 		return extend$1.apply(null, arguments);
 	}
 	/**

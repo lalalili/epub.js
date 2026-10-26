@@ -402,7 +402,7 @@ assert(
     "internal POSIX path helpers must replace path-webpack",
 );
 assert(
-    sourceIncludes(sectionSource, "type DeferConstructor = new <T = unknown>()") &&
+    sourceIncludes(sectionSource, "type _DeferConstructor = new <T = unknown>()") &&
         sourceIncludes(sectionSource, "reject(error?: unknown): void") &&
         sourceIncludes(sectionSource, "type HookConstructor = new (context?: unknown) => Hook") &&
         !sourceIncludes(sectionSource, "reject(error?: any): void") &&
@@ -1160,7 +1160,7 @@ assert(
 );
 assert(
     sourceIncludes(hookSource, "HookTask = (...args: unknown[]) => unknown") &&
-        sourceIncludes(hookSource, "trigger(...items: unknown[]): Promise<unknown[]>") &&
+        sourceIncludes(hookSource, "trigger(..._items: unknown[]): Promise<unknown[]>") &&
         sourceIncludes(hookSource, "@param {unknown} context scope of this") &&
         !sourceIncludes(hookSource, "@param {any} context scope of this") &&
         sourceIncludes(hookTypes, "HookTask = (...args: unknown[]) => unknown") &&

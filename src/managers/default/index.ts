@@ -232,7 +232,7 @@ const appendVerticalRlScrollTrace = (stage: string, detail: Record<string, unkno
                 debugWindow.__EPUB_VRL_SCROLL_TRACE__.length - 4000,
             );
         }
-    } catch (_) {
+    } catch {
         // Diagnostics must never change Reader behavior.
     }
 };
@@ -758,7 +758,7 @@ class DefaultViewManager {
     addEventListeners() {
         var scroller;
 
-        this._onUnload = function (e: Event) {
+        this._onUnload = function (_e: Event) {
             this.destroy();
         }.bind(this);
 
@@ -824,7 +824,7 @@ class DefaultViewManager {
 		*/
     }
 
-    onOrientationChange(e?: Event): void {
+    onOrientationChange(_e?: Event): void {
         let { orientation } = window;
 
         if (this.optsSettings.resizeOnOrientationChange) {
@@ -851,7 +851,7 @@ class DefaultViewManager {
         );
     }
 
-    onResized(e?: Event): void {
+    onResized(_e?: Event): void {
         this.resize();
     }
 
@@ -1546,7 +1546,7 @@ class DefaultViewManager {
                 frameIdentity: getVerticalRlRuntimeIdentity(iframe),
                 documentIdentity: getVerticalRlRuntimeIdentity(contentsDocument),
             };
-        } catch (_error) {
+        } catch {
             return {
                 resolution: null,
                 effectiveClip: null,
@@ -2334,7 +2334,7 @@ class DefaultViewManager {
                           )
                         : 0;
             }
-        } catch (error) {
+        } catch {
             rightAllowance = maxMask;
         }
 
@@ -2613,7 +2613,7 @@ class DefaultViewManager {
             if (terminalLayout?.layoutKey === cacheKey) {
                 terminalLayout.appliedLeftMasks = ledger;
             }
-        } catch (error) {
+        } catch {
             // 記錄失敗只會讓右遮罩退回推算值，不影響顯示正確性。
         }
     }
@@ -2769,7 +2769,7 @@ class DefaultViewManager {
                 recordedPreviousLeftMask as number,
                 maxMask,
             );
-        } catch (error) {
+        } catch {
             return null;
         }
     }
@@ -2801,7 +2801,7 @@ class DefaultViewManager {
             }
 
             return currentPageIndex >= totalPages - 1 ? 0 : null;
-        } catch (error) {
+        } catch {
             return null;
         }
     }
@@ -3280,7 +3280,7 @@ class DefaultViewManager {
                         visibleCharacterCount += 1;
                         addHash(`${textNodeOrdinal}:${offset}:${text.charCodeAt(offset)};`);
                     }
-                } catch (_) {
+                } catch {
                     return {
                         status: "unavailable",
                         reason: "semantic-observation-range-failed",
@@ -3937,7 +3937,7 @@ class DefaultViewManager {
         try {
             resolvedStart = contents.range(descriptor.anchors.readingStart.cfi);
             resolvedEnd = contents.range(descriptor.anchors.readingEndExclusive.cfi);
-        } catch (_) {
+        } catch {
             traceTerminal("anchor-resolution-failed", { anchorResolution: "invalid" });
             return { status: "unavailable", reason: "anchor-resolution-failed" };
         }
@@ -4213,7 +4213,7 @@ class DefaultViewManager {
                 resolvedEndMatches =
                     mappedEndRange.endContainer === endRange.endContainer &&
                     mappedEndRange.endOffset === endRange.endOffset;
-            } catch (_) {
+            } catch {
                 resolvedStartMatches = null;
                 resolvedEndMatches = null;
             }
@@ -5284,7 +5284,7 @@ class DefaultViewManager {
     next(options?: { persistResourceCorrelation?: unknown }): Promise<unknown> | void {
         this._pendingVerticalRlTarget = undefined;
         var next: ManagerSection | undefined;
-        var left: number;
+        var _left: number;
 
         let dir = this.settings.direction;
 
@@ -5567,7 +5567,7 @@ class DefaultViewManager {
             boundaryToken = globalThis.__PERSIST_RENDERER_BOUNDARY__?.enter(
                 "manager:current-location",
             );
-        } catch (_) {}
+        } catch {}
         try {
             if (this.shouldUpdateLayoutForLocation()) {
                 this.updateLayout();
@@ -5593,12 +5593,12 @@ class DefaultViewManager {
             });
             try {
                 globalThis.__PERSIST_RENDERER_BOUNDARY__?.returned(boundaryToken);
-            } catch (_) {}
+            } catch {}
             return this.location;
         } catch (error) {
             try {
                 globalThis.__PERSIST_RENDERER_BOUNDARY__?.threw(boundaryToken);
-            } catch (_) {}
+            } catch {}
             throw error;
         }
     }

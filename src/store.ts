@@ -108,7 +108,7 @@ class Store {
             this.storage = store.createInstance({
                 name: this.name,
             });
-        } catch (e) {
+        } catch {
             throw new Error("localForage lib not loaded");
         }
     }
@@ -137,7 +137,7 @@ class Store {
      * Update the online / offline status
      * @private
      */
-    status(event?: Event): void {
+    status(_event?: Event): void {
         let online = navigator.onLine;
         this.online = online;
         if (online) {

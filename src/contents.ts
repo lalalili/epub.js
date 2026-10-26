@@ -1332,7 +1332,7 @@ class Contents {
             // Firefox errors if we access cssRules cross-domain
             try {
                 rules = sheets[i].cssRules;
-            } catch (e) {
+            } catch {
                 return;
             }
             if (!rules) return; // Stylesheets changed
@@ -1353,7 +1353,7 @@ class Contents {
      */
     resizeObservers() {
         // create an observer instance
-        this.observer = new ResizeObserver((e) => {
+        this.observer = new ResizeObserver((_e) => {
             requestAnimationFrame(this.resizeCheck.bind(this));
         });
 
@@ -1367,7 +1367,7 @@ class Contents {
      */
     mutationObservers() {
         // create an observer instance
-        this.observer = new MutationObserver((mutations) => {
+        this.observer = new MutationObserver((_mutations) => {
             this.resizeCheck();
         });
 
@@ -1570,7 +1570,7 @@ class Contents {
             function (
                 this: Contents,
                 resolve: (value: boolean) => void,
-                reject: (reason?: unknown) => void,
+                _reject: (reason?: unknown) => void,
             ) {
                 var $stylesheet: HTMLLinkElement | null;
                 var ready = false;
@@ -1729,7 +1729,7 @@ class Contents {
             function (
                 this: Contents,
                 resolve: (value: boolean) => void,
-                reject: (reason?: unknown) => void,
+                _reject: (reason?: unknown) => void,
             ) {
                 var $script: HTMLScriptElement;
                 var ready = false;
@@ -1861,7 +1861,7 @@ class Contents {
      * Handle getting text on selection
      * @private
      */
-    onSelectionChange(e?: Event): void {
+    onSelectionChange(_e?: Event): void {
         if (this.selectionEndTimeout) {
             clearTimeout(this.selectionEndTimeout);
         }
@@ -2110,7 +2110,7 @@ class Contents {
                 rawWidth,
                 rawHeight: Math.max(rect.height || 0, rect.bottom - Math.min(rect.top, 0)),
             };
-        } catch (e) {
+        } catch {
             return {
                 left: 0,
                 right: 0,
@@ -2134,7 +2134,7 @@ class Contents {
             const range = this.document.createRange();
             range.selectNodeContents(content);
             rects = Array.from(range.getClientRects ? range.getClientRects() : []);
-        } catch (e) {
+        } catch {
             rects = [];
         }
 
@@ -2547,7 +2547,7 @@ class Contents {
             const range = this.document.createRange();
             range.selectNodeContents(content);
             rangeRect = range.getBoundingClientRect();
-        } catch (e) {
+        } catch {
             rangeRect = null;
         }
 
@@ -2728,7 +2728,7 @@ class Contents {
                     let rules;
                     try {
                         rules = Array.from(sheet.cssRules || []);
-                    } catch (e) {
+                    } catch {
                         continue;
                     }
                     for (const rule of rules) {
@@ -2743,7 +2743,7 @@ class Contents {
                         }
                     }
                 }
-            } catch (e) {
+            } catch {
                 /* ignore */
             }
         }

@@ -293,14 +293,14 @@ class Snap {
         (this as unknown as EventedSnap).emit(e.type, e, contents);
     }
 
-    onScroll(e: Event): void {
+    onScroll(_e: Event): void {
         this.scrollLeft = this.fullsize
             ? window.scrollX
             : (this.scroller as HTMLElement).scrollLeft;
         this.scrollTop = this.fullsize ? window.scrollY : (this.scroller as HTMLElement).scrollTop;
     }
 
-    onResize(e: Event): void {
+    onResize(_e: Event): void {
         this.resizeCanceler = true;
     }
 
@@ -339,7 +339,7 @@ class Snap {
         this.endTime = this.now();
     }
 
-    onTouchEnd(e: Event): void {
+    onTouchEnd(_e: Event): void {
         if (this.fullsize) {
             this.disableScroll();
         }

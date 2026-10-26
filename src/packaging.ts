@@ -262,10 +262,10 @@ class Packaging {
      * Parse Spine
      * @private
      * @param  {node} spineXml
-     * @param  {Packaging.manifest} manifest
+     * @param  {Packaging.manifest} _manifest
      * @return {object} spine
      */
-    parseSpine(spineXml: Element, manifest: PackagingManifest): PackagingSpineItem[] {
+    parseSpine(spineXml: Element, _manifest: PackagingManifest): PackagingSpineItem[] {
         var spine: PackagingSpineItem[] = [];
 
         var selected = qsa(spineXml, "itemref");
@@ -464,7 +464,7 @@ class Packaging {
 
         this.spineNodeIndex = 0;
 
-        this.toc = json.toc.map((item, index) => {
+        this.toc = json.toc.map((item, _index) => {
             item.label = item.title;
             return item;
         });

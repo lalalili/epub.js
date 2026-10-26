@@ -42,7 +42,7 @@ const emitTerminalContinuationObservation = (
                 };
             }
         ).__PERSIST_TOPOLOGY__?.emit?.(event, owner ?? null, values);
-    } catch (_) {
+    } catch {
         // Diagnostics must never alter pagination behavior.
     }
 };

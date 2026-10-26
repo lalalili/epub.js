@@ -6,9 +6,9 @@ import Contents from "./contents";
 import * as utils from "./utils/core";
 import { EPUBJS_VERSION } from "./utils/constants";
 
-import IframeView from "./managers/views/iframe";
-import DefaultViewManager from "./managers/default";
-import ContinuousViewManager from "./managers/continuous";
+import _IframeView from "./managers/views/iframe";
+import _DefaultViewManager from "./managers/default";
+import _ContinuousViewManager from "./managers/continuous";
 
 interface EpubFactory {
     (url: BookInput, options?: BookOptions): Book;

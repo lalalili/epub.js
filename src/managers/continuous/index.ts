@@ -196,7 +196,7 @@ class ContinuousViewManager extends DefaultViewManager {
 
         this.views.append(view);
 
-        view.on(EVENTS.VIEWS.RESIZED, (bounds: ViewBounds) => {
+        view.on(EVENTS.VIEWS.RESIZED, (_bounds: ViewBounds) => {
             view.expanded = true;
         });
 
@@ -218,7 +218,7 @@ class ContinuousViewManager extends DefaultViewManager {
     append(section: unknown) {
         var view = this.createView(section, undefined);
 
-        view.on(EVENTS.VIEWS.RESIZED, (bounds: ViewBounds) => {
+        view.on(EVENTS.VIEWS.RESIZED, (_bounds: ViewBounds) => {
             view.expanded = true;
         });
 
@@ -292,7 +292,7 @@ class ContinuousViewManager extends DefaultViewManager {
                         function (view: ContinuousView) {
                             view.show();
                         },
-                        (err: unknown) => {
+                        (_err: unknown) => {
                             view.hide();
                         },
                     );
@@ -508,8 +508,8 @@ class ContinuousViewManager extends DefaultViewManager {
         }
     }
 
-    addEventListeners(stage?: unknown) {
-        this._onUnload = function (e: Event) {
+    addEventListeners(_stage?: unknown) {
+        this._onUnload = function (_e: Event) {
             this.ignore = true;
             // this.scrollTo(0,0);
             this.destroy();

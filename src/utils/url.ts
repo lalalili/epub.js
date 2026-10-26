@@ -63,7 +63,7 @@ class Url {
                 this.search = this.Url.search;
 
                 pathname = this.Url.pathname + (this.Url.search ? this.Url.search : "");
-            } catch (e) {
+            } catch {
                 // Skip URL parsing
                 this.Url = undefined;
                 // resolve the pathname from the base

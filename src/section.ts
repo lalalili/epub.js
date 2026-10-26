@@ -52,7 +52,7 @@ export type SectionRequest = (
 type SerializerConstructor = new () => {
     serializeToString(input: Node): string;
 };
-type DeferConstructor = new <T = unknown>() => {
+type _DeferConstructor = new <T = unknown>() => {
     promise: Promise<T>;
     resolve(value?: T): void;
     reject(error?: unknown): void;

@@ -24,16 +24,6 @@
         },
         {
             "filename": "src/archive.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter 'e' is caught but never used."
-        },
-        {
-            "filename": "src/archive.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'encoding' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/archive.ts",
             "code": "typescript(no-floating-promises)",
             "message": "Promises must be awaited, add void operator to ignore."
         },
@@ -144,61 +134,6 @@
         },
         {
             "filename": "src/contents.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter 'e' is caught but never used."
-        },
-        {
-            "filename": "src/contents.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter 'e' is caught but never used."
-        },
-        {
-            "filename": "src/contents.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter 'e' is caught but never used."
-        },
-        {
-            "filename": "src/contents.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter 'e' is caught but never used."
-        },
-        {
-            "filename": "src/contents.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter 'e' is caught but never used."
-        },
-        {
-            "filename": "src/contents.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter 'e' is caught but never used."
-        },
-        {
-            "filename": "src/contents.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/contents.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/contents.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'mutations' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/contents.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'reject' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/contents.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'reject' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/contents.ts",
             "code": "typescript(no-floating-promises)",
             "message": "Promises must be awaited, add void operator to ignore."
         },
@@ -216,31 +151,6 @@
             "filename": "src/core/types.ts",
             "code": "typescript(no-base-to-string)",
             "message": "'n' will use Object's default stringification format ('[object Object]') when stringified."
-        },
-        {
-            "filename": "src/epub.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Identifier 'ContinuousViewManager' is imported but never used."
-        },
-        {
-            "filename": "src/epub.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Identifier 'DefaultViewManager' is imported but never used."
-        },
-        {
-            "filename": "src/epub.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Identifier 'IframeView' is imported but never used."
-        },
-        {
-            "filename": "src/epubcfi.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter '_e' is caught but never used."
-        },
-        {
-            "filename": "src/epubcfi.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter 'e' is caught but never used."
         },
         {
             "filename": "src/epubcfi.ts",
@@ -254,16 +164,6 @@
         },
         {
             "filename": "src/locations.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter 'error' is caught but never used."
-        },
-        {
-            "filename": "src/locations.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Type alias 'LocationIndex' is declared but never used."
-        },
-        {
-            "filename": "src/locations.ts",
             "code": "typescript(no-unsafe-declaration-merging)",
             "message": "Unsafe declaration merging between classes and interfaces."
         },
@@ -274,31 +174,6 @@
         },
         {
             "filename": "src/managers/continuous/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'bounds' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/continuous/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'bounds' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/continuous/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/continuous/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'err' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/continuous/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'stage' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/continuous/index.ts",
             "code": "typescript(no-floating-promises)",
             "message": "Promises must be awaited, add void operator to ignore."
         },
@@ -341,86 +216,6 @@
             "filename": "src/managers/default/index.ts",
             "code": "eslint(no-unused-expressions)",
             "message": "Expected expression to be used"
-        },
-        {
-            "filename": "src/managers/default/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter '_' is caught but never used."
-        },
-        {
-            "filename": "src/managers/default/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter '_' is caught but never used."
-        },
-        {
-            "filename": "src/managers/default/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter '_' is caught but never used."
-        },
-        {
-            "filename": "src/managers/default/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter '_' is caught but never used."
-        },
-        {
-            "filename": "src/managers/default/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter '_' is caught but never used."
-        },
-        {
-            "filename": "src/managers/default/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter '_' is caught but never used."
-        },
-        {
-            "filename": "src/managers/default/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter '_' is caught but never used."
-        },
-        {
-            "filename": "src/managers/default/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter '_error' is caught but never used."
-        },
-        {
-            "filename": "src/managers/default/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter 'error' is caught but never used."
-        },
-        {
-            "filename": "src/managers/default/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter 'error' is caught but never used."
-        },
-        {
-            "filename": "src/managers/default/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter 'error' is caught but never used."
-        },
-        {
-            "filename": "src/managers/default/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter 'error' is caught but never used."
-        },
-        {
-            "filename": "src/managers/default/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/default/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/default/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/default/index.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Variable 'left' is declared but never used. Unused variables should start with a '_'."
         },
         {
             "filename": "src/managers/default/index.ts",
@@ -451,21 +246,6 @@
             "filename": "src/managers/helpers/snap.ts",
             "code": "eslint(no-unused-expressions)",
             "message": "Expected expression to be used"
-        },
-        {
-            "filename": "src/managers/helpers/snap.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/helpers/snap.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/helpers/snap.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
         },
         {
             "filename": "src/managers/helpers/snap.ts",
@@ -504,51 +284,6 @@
         },
         {
             "filename": "src/managers/views/iframe.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/views/iframe.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/views/iframe.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/views/iframe.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'force' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/views/iframe.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'layoutFunc' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/views/iframe.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'reject' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/views/iframe.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'show' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/views/iframe.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'view' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/views/iframe.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'view' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/views/iframe.ts",
             "code": "typescript(no-base-to-string)",
             "message": "'data[key]' will use Object's default stringification format ('[object Object]') when stringified."
         },
@@ -579,41 +314,6 @@
         },
         {
             "filename": "src/managers/views/inline.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/views/inline.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'force' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/views/inline.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'layoutFunc' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/views/inline.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'min' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/views/inline.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'min' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/views/inline.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'view' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/views/inline.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'view' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/managers/views/inline.ts",
             "code": "typescript(no-floating-promises)",
             "message": "Promises must be awaited, add void operator to ignore."
         },
@@ -631,16 +331,6 @@
             "filename": "src/mapping.ts",
             "code": "typescript(unbound-method)",
             "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
-        },
-        {
-            "filename": "src/packaging.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'index' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/packaging.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'manifest' is declared but never used. Unused parameters should start with a '_'."
         },
         {
             "filename": "src/pagelist.ts",
@@ -668,29 +358,9 @@
             "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
         },
         {
-            "filename": "src/rendering/terminal-continuation.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter '_' is caught but never used."
-        },
-        {
             "filename": "src/rendition.ts",
             "code": "eslint(no-unused-expressions)",
             "message": "Expected expression to be used"
-        },
-        {
-            "filename": "src/rendition.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter '_' is caught but never used."
-        },
-        {
-            "filename": "src/rendition.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter '_' is caught but never used."
-        },
-        {
-            "filename": "src/rendition.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter 'err' is caught but never used."
         },
         {
             "filename": "src/rendition.ts",
@@ -764,11 +434,6 @@
         },
         {
             "filename": "src/resources.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'err' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/resources.ts",
             "code": "typescript(no-redundant-type-constituents)",
             "message": "base64 is overridden by string in this union type."
         },
@@ -789,11 +454,6 @@
         },
         {
             "filename": "src/section.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Type alias 'DeferConstructor' is declared but never used."
-        },
-        {
-            "filename": "src/section.ts",
             "code": "typescript(no-this-alias)",
             "message": "Unexpected aliasing of 'this' to local variable."
         },
@@ -801,16 +461,6 @@
             "filename": "src/section.ts",
             "code": "typescript(no-this-alias)",
             "message": "Unexpected aliasing of 'this' to local variable."
-        },
-        {
-            "filename": "src/store.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter 'e' is caught but never used."
-        },
-        {
-            "filename": "src/store.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'event' is declared but never used. Unused parameters should start with a '_'."
         },
         {
             "filename": "src/store.ts",
@@ -838,41 +488,6 @@
             "message": "Promises must be awaited, add void operator to ignore."
         },
         {
-            "filename": "src/utils/core.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'obj' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/utils/core.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'target' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/utils/core.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Variable 'COMMENT_NODE' is declared but never used. Unused variables should start with a '_'."
-        },
-        {
-            "filename": "src/utils/core.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Variable 'DOCUMENT_NODE' is declared but never used. Unused variables should start with a '_'."
-        },
-        {
-            "filename": "src/utils/hook.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'items' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/utils/hook.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Parameter 'items' is declared but never used. Unused parameters should start with a '_'."
-        },
-        {
-            "filename": "src/utils/path-posix.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Variable 'hasRoot' is declared but never used. Unused variables should start with a '_'."
-        },
-        {
             "filename": "src/utils/queue.ts",
             "code": "typescript(no-floating-promises)",
             "message": "Promises must be awaited, add void operator to ignore."
@@ -886,11 +501,6 @@
             "filename": "src/utils/queue.ts",
             "code": "typescript(no-floating-promises)",
             "message": "Promises must be awaited, add void operator to ignore."
-        },
-        {
-            "filename": "src/utils/replacements.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter 'error' is caught but never used."
         },
         {
             "filename": "src/utils/request.ts",
@@ -946,11 +556,6 @@
             "filename": "src/utils/timing.ts",
             "code": "typescript(no-this-alias)",
             "message": "Unexpected aliasing of 'this' to local variable."
-        },
-        {
-            "filename": "src/utils/url.ts",
-            "code": "eslint(no-unused-vars)",
-            "message": "Catch parameter 'e' is caught but never used."
         }
     ]
 }

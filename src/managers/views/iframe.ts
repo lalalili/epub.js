@@ -321,7 +321,7 @@ class IframeView {
         return this.iframe;
     }
 
-    render(request?: unknown, show?: boolean) {
+    render(request?: unknown, _show?: boolean) {
         // view.onLayout = this.layout.format.bind(this.layout);
         this.create();
 
@@ -391,7 +391,7 @@ class IframeView {
                     // Listen for events that require an expansion of the iframe
                     this.addListeners();
 
-                    return new Promise<void>((resolve, reject) => {
+                    return new Promise<void>((resolve, _reject) => {
                         // Expand the iframe to the full size of the content
                         this.expand();
 
@@ -483,7 +483,7 @@ class IframeView {
     }
 
     // Resize a single axis based on content dimensions
-    expand(force?: boolean) {
+    expand(_force?: boolean) {
         var width = this.lockedWidth;
         var height = this.lockedHeight;
         var columns;
@@ -873,7 +873,7 @@ class IframeView {
             }
         });
 
-        this.contents.on(EVENTS.CONTENTS.RESIZE, (e: Bounds) => {
+        this.contents.on(EVENTS.CONTENTS.RESIZE, (_e: Bounds) => {
             if (this.displayed && this.iframe) {
                 this.expand();
                 if (this.contents) {
@@ -915,7 +915,7 @@ class IframeView {
         //TODO: Add content listeners for expanding
     }
 
-    removeListeners(layoutFunc?: unknown) {
+    removeListeners(_layoutFunc?: unknown) {
         //TODO: remove content listeners for expanding
     }
 
@@ -995,11 +995,11 @@ class IframeView {
         };
     }
 
-    onDisplayed(view: IframeView) {
+    onDisplayed(_view: IframeView) {
         // Stub, override with a custom functions
     }
 
-    onResize(view: IframeView, e: Bounds) {
+    onResize(_view: IframeView, _e: Bounds) {
         // Stub, override with a custom functions
     }
 
@@ -1111,7 +1111,7 @@ class IframeView {
         let container = range.commonAncestorContainer;
         let parent = container.nodeType === 1 ? container : container.parentNode;
 
-        let emitter = (e: Event) => {
+        let emitter = (_e: Event) => {
             this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
         };
 

@@ -103,7 +103,7 @@ export function replaceLinks(contents: Element, fn: LinkCallback, sectionHref?: 
             var linkUrl: Url | undefined;
             try {
                 linkUrl = new Url(href, location);
-            } catch (error) {
+            } catch {
                 // NOOP
             }
 

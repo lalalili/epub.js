@@ -291,7 +291,7 @@ class InlineView {
     }
 
     // Resize a single axis based on content dimensions
-    expand(force?: boolean) {
+    expand(_force?: boolean) {
         var width = this.lockedWidth;
         var height = this.lockedHeight;
 
@@ -318,11 +318,11 @@ class InlineView {
         this._expanding = false;
     }
 
-    contentWidth(min?: number) {
+    contentWidth(_min?: number) {
         return this.frame.scrollWidth;
     }
 
-    contentHeight(min?: number) {
+    contentHeight(_min?: number) {
         return this.frame.scrollHeight;
     }
 
@@ -405,7 +405,7 @@ class InlineView {
         //TODO: Add content listeners for expanding
     }
 
-    removeListeners(layoutFunc?: unknown) {
+    removeListeners(_layoutFunc?: unknown) {
         //TODO: remove content listeners for expanding
     }
 
@@ -467,11 +467,11 @@ class InlineView {
         };
     }
 
-    onDisplayed(view: InlineView) {
+    onDisplayed(_view: InlineView) {
         // Stub, override with a custom functions
     }
 
-    onResize(view: InlineView, e: Bounds) {
+    onResize(_view: InlineView, _e: Bounds) {
         // Stub, override with a custom functions
     }
 

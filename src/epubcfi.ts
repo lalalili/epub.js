@@ -1030,7 +1030,7 @@ class EpubCFI {
         try {
             range[method](safeContainer, safeOffset);
             return true;
-        } catch (e) {
+        } catch {
             missed = this.fixMiss(steps, offset, doc, ignoreClass);
             if (missed && missed.container) {
                 safeContainer = missed.container;
@@ -1046,7 +1046,7 @@ class EpubCFI {
             try {
                 range[method](safeContainer, safeOffset);
                 return true;
-            } catch (_e) {
+            } catch {
                 return false;
             }
         }

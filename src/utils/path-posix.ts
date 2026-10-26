@@ -101,7 +101,7 @@ export function dirnamePath(value: string | null): string {
         return ".";
     }
 
-    const hasRoot = value.startsWith("/");
+    const _hasRoot = value.startsWith("/");
     const trimmed = value.replace(/\/+$/, "");
     const separatorIndex = trimmed.lastIndexOf("/");
 

@@ -286,7 +286,7 @@ class Resources {
 
                 return newUrl;
             },
-            (err) => {
+            (_err) => {
                 // handle response errors
                 return Promise.resolve(undefined);
             },

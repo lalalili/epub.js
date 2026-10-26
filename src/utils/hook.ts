@@ -24,7 +24,7 @@ class Hook {
      * Adds a function to be run before a hook completes
      * @example this.content.register(function(){...});
      */
-    register(...items: HookRegistration[]): void {
+    register(..._items: HookRegistration[]): void {
         for (var i = 0; i < arguments.length; ++i) {
             if (typeof arguments[i] === "function") {
                 this.hooks.push(arguments[i] as HookTask);
@@ -56,7 +56,7 @@ class Hook {
      * Triggers a hook to run all functions
      * @example this.content.trigger(args).then(function(){...});
      */
-    trigger(...items: unknown[]): Promise<unknown[]> {
+    trigger(..._items: unknown[]): Promise<unknown[]> {
         var args = arguments;
         var context = this.context;
         var promises: Promise<unknown>[] = [];
