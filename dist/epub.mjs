@@ -9567,8 +9567,8 @@ var Ti = class {
 	}
 	getVerticalRlCurrentEffectiveLeftBoundary() {
 		if (!this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) return null;
-		let e = this.views.first() || this.views.last(), t = e ? this.getVerticalRlVisualContentWidth(e) : 0, n = this.getPageAdvance() || 0, r = this.layout.pageWidth || this.layout.width || n || this.container.clientWidth || 0, i = this.getNormalizedLogicalScrollLeft(), a = this.container.dataset?.epubVrlEdgeMaskLeft === void 0 ? this.getVerticalRlRenderedEdgeMaskWidths() : this.getVerticalRlAppliedEdgeMaskWidths();
-		return Rr(t, i, r, (Number(a && a.left) || 0) + this.getVerticalRlAppliedContentShift());
+		let e = this.views.first() || this.views.last(), t = e ? this.getVerticalRlVisualContentWidth(e) : 0, n = this.getPageAdvance() || 0, r = this.layout.pageWidth || this.layout.width || n || this.container.clientWidth || 0, i = this.getNormalizedLogicalScrollLeft(), a = this.getRecordedVerticalRlAppliedLeftMask(this.getCurrentPageIndex()) === 0, o = this.container.dataset?.epubVrlEdgeMaskLeft !== void 0 || a ? this.getVerticalRlAppliedEdgeMaskWidths() : this.getVerticalRlRenderedEdgeMaskWidths();
+		return Rr(t, i, r, (Number(o && o.left) || 0) + this.getVerticalRlAppliedContentShift());
 	}
 	getVerticalRlCurrentEffectiveRightBoundary() {
 		if (!this.isRtlVerticalPaginated() || !this.container || !this.views || !this.layout) return null;

@@ -1732,8 +1732,12 @@ class DefaultViewManager {
             this.container.clientWidth ||
             0;
         let currentOffset = this.getNormalizedLogicalScrollLeft();
+        // Applying a zero mask removes its dataset and overlay. Preserve that
+        // painted observation instead of reviving a computed exclusion zone.
+        const recordedZeroMask =
+            this.getRecordedVerticalRlAppliedLeftMask(this.getCurrentPageIndex()) === 0;
         let currentMaskWidths =
-            this.container.dataset?.epubVrlEdgeMaskLeft !== undefined
+            this.container.dataset?.epubVrlEdgeMaskLeft !== undefined || recordedZeroMask
                 ? this.getVerticalRlAppliedEdgeMaskWidths()
                 : this.getVerticalRlRenderedEdgeMaskWidths();
         let currentLeftMask =

@@ -16228,7 +16228,8 @@
 			let advance = this.getPageAdvance() || 0;
 			let visibleWidth = this.layout.pageWidth || this.layout.width || advance || this.container.clientWidth || 0;
 			let currentOffset = this.getNormalizedLogicalScrollLeft();
-			let currentMaskWidths = this.container.dataset?.epubVrlEdgeMaskLeft !== void 0 ? this.getVerticalRlAppliedEdgeMaskWidths() : this.getVerticalRlRenderedEdgeMaskWidths();
+			const recordedZeroMask = this.getRecordedVerticalRlAppliedLeftMask(this.getCurrentPageIndex()) === 0;
+			let currentMaskWidths = this.container.dataset?.epubVrlEdgeMaskLeft !== void 0 || recordedZeroMask ? this.getVerticalRlAppliedEdgeMaskWidths() : this.getVerticalRlRenderedEdgeMaskWidths();
 			return getVerticalRlCurrentEffectiveLeftBoundary(contentWidth, currentOffset, visibleWidth, (Number(currentMaskWidths && currentMaskWidths.left) || 0) + this.getVerticalRlAppliedContentShift());
 		}
 		getVerticalRlCurrentEffectiveRightBoundary() {
