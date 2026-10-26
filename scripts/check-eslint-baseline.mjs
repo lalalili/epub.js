@@ -29,6 +29,13 @@ export function runLint() {
         spawnSync("pnpm", ["exec", "vp", "lint", "src", "--format", "json", "--threads", "2"], {
             cwd: root,
             encoding: "utf8",
+            env: {
+                ...process.env,
+                OXC_THREADS: "2",
+                    GOMAXPROCS: "2",
+                RAYON_NUM_THREADS: "2",
+                UV_THREADPOOL_SIZE: "2",
+            },
             maxBuffer: 30 * 1024 * 1024,
         }),
     );
