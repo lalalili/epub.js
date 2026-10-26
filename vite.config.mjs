@@ -2,6 +2,9 @@ import { defineConfig } from "vite-plus";
 
 export default defineConfig({
     fmt: {
+        tabWidth: 4,
+        useTabs: false,
+        overrides: [{ files: ["*.yaml"], options: { tabWidth: 2 } }],
         ignorePatterns: ["dist/**", "lib/**", "documentation/**", "books/**", "test/fixtures/**"],
     },
     lint: {
