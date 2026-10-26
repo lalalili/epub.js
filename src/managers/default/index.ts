@@ -4512,7 +4512,7 @@ class DefaultViewManager {
             ? semanticWindowLogicalOffsetInput
             : 0;
         const terminalLayout = this.getVerticalRlTerminalLayout();
-        // A first page may have a painted source cut without a learned offset.
+        // A first page may have a committed source cut (including zero) without a learned offset.
         // Resolve its origin only on reverse entry, after Reader has committed
         // that cut in the same layout; never seed the initial measurement cache.
         const recordedLeftExtent =
@@ -4522,7 +4522,12 @@ class DefaultViewManager {
                 : null;
         const recordedOffset =
             this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey) ??
-            (targetIndex === 0 && Number(recordedLeftExtent) > 0 ? 0 : null);
+            (targetIndex === 0 &&
+            recordedLeftExtent !== null &&
+            Number.isFinite(recordedLeftExtent) &&
+            recordedLeftExtent >= 0
+                ? 0
+                : null);
         const preserveContinuationOffset =
             recordedOffset !== null &&
             Boolean(terminalLayout?.continuationCount) &&

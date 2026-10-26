@@ -17699,7 +17699,7 @@
 			let semanticWindowLogicalOffset = hasSemanticWindowLogicalOffset ? semanticWindowLogicalOffsetInput : 0;
 			const terminalLayout = this.getVerticalRlTerminalLayout();
 			const recordedLeftExtent = options.preserveCachedBoundary && this._verticalRlAppliedLeftMaskLedgerKey === logicalOffsetCacheKey ? this.getRecordedVerticalRlAppliedLeftMask(targetIndex) : null;
-			const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey) ?? (targetIndex === 0 && Number(recordedLeftExtent) > 0 ? 0 : null);
+			const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey) ?? (targetIndex === 0 && recordedLeftExtent !== null && Number.isFinite(recordedLeftExtent) && recordedLeftExtent >= 0 ? 0 : null);
 			const preserveContinuationOffset = recordedOffset !== null && Boolean(terminalLayout?.continuationCount) && targetIndex >= this.getBaseGeometryPageCount() - 1 && targetIndex < totalPages - 1;
 			let cachedLogicalOffset = hasSemanticWindowLogicalOffset ? Math.max(0, Math.min(maxScroll, semanticWindowLogicalOffset)) : ignoreCachedLogicalOffset && !preserveContinuationOffset ? null : recordedOffset;
 			if (this.isRtlVerticalPaginated() && targetIndex > 0) {

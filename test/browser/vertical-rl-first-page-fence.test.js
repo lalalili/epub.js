@@ -72,13 +72,22 @@ it("preserves the committed 24px source cut when reverse entry has no cached fir
     expect(manager.getCachedVerticalRlLogicalPageOffset(0, "same-source-layout")).toBe(0);
 });
 
-it.each([{ sameLayout: false }, { recorded: NaN }, { preserve: false }])(
-    "does not restore an unproved first-page source cut %j",
-    (options) => {
-        const manager = returningPage(options);
-        expect(manager._verticalRlPreservedPageBoundary?.sourceLeftBoundary).toBeUndefined();
-    },
-);
+it("preserves a proved zero source cut when reverse entry has no cached first-page offset", () => {
+    const manager = returningPage({ recorded: 0 });
+    expect(manager._verticalRlPreservedPageBoundary?.sourceLeftBoundary).toBe(8448);
+    expect(manager.getCachedVerticalRlLogicalPageOffset(0, "same-source-layout")).toBe(0);
+});
+
+it.each([
+    { sameLayout: false },
+    { recorded: NaN },
+    { recorded: null },
+    { recorded: -1 },
+    { preserve: false },
+])("does not restore an unproved first-page source cut %j", (options) => {
+    const manager = returningPage(options);
+    expect(manager._verticalRlPreservedPageBoundary?.sourceLeftBoundary).toBeUndefined();
+});
 
 function recreatedFirstPage({ offset = 0, cached = 0, sameLayout = true, fence = 24 } = {}) {
     const manager = firstPage({ offset });
