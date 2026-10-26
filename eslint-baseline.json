@@ -23,21 +23,6 @@
             "message": "Unsafe declaration merging between classes and interfaces."
         },
         {
-            "filename": "src/archive.ts",
-            "code": "typescript(no-floating-promises)",
-            "message": "Promises must be awaited, add void operator to ignore."
-        },
-        {
-            "filename": "src/archive.ts",
-            "code": "typescript(no-floating-promises)",
-            "message": "Promises must be awaited, add void operator to ignore."
-        },
-        {
-            "filename": "src/archive.ts",
-            "code": "typescript(no-floating-promises)",
-            "message": "Promises must be awaited, add void operator to ignore."
-        },
-        {
             "filename": "src/book.ts",
             "code": "eslint(no-unused-expressions)",
             "message": "Expected expression to be used"
@@ -461,16 +446,6 @@
             "filename": "src/section.ts",
             "code": "typescript(no-this-alias)",
             "message": "Unexpected aliasing of 'this' to local variable."
-        },
-        {
-            "filename": "src/store.ts",
-            "code": "typescript(no-floating-promises)",
-            "message": "Promises must be awaited, add void operator to ignore."
-        },
-        {
-            "filename": "src/store.ts",
-            "code": "typescript(no-floating-promises)",
-            "message": "Promises must be awaited, add void operator to ignore."
         },
         {
             "filename": "src/store.ts",

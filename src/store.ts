@@ -418,21 +418,25 @@ class Store {
             response = base64Response;
 
             if (base64Response) {
-                base64Response.then((tempUrl) => {
-                    this.urlCache[url] = tempUrl as string;
-                    deferred.resolve(tempUrl as string);
-                });
+                base64Response
+                    .then((tempUrl) => {
+                        this.urlCache[url] = tempUrl as string;
+                        deferred.resolve(tempUrl as string);
+                    })
+                    .catch((error: unknown) => deferred.reject(error));
             }
         } else {
             var blobResponse = this.getBlob(url);
             response = blobResponse;
 
             if (blobResponse) {
-                blobResponse.then((blob) => {
-                    tempUrl = _URL.createObjectURL(blob as Blob);
-                    this.urlCache[url] = tempUrl;
-                    deferred.resolve(tempUrl);
-                });
+                blobResponse
+                    .then((blob) => {
+                        tempUrl = _URL.createObjectURL(blob as Blob);
+                        this.urlCache[url] = tempUrl;
+                        deferred.resolve(tempUrl);
+                    })
+                    .catch((error: unknown) => deferred.reject(error));
             }
         }
 

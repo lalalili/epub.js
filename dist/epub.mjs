@@ -15070,7 +15070,7 @@ var Ui = /* @__PURE__ */ u((/* @__PURE__ */ s(((e, t) => {
 		return t ||= i.extension, r = t == "blob" ? this.getBlob(e) : this.getText(e), r ? r.then((e) => {
 			let r = this.handleResponse(e, t);
 			n.resolve(r);
-		}) : n.reject({
+		}).catch((e) => n.reject(e)) : n.reject({
 			message: "File not found in the epub: " + e,
 			stack: (/* @__PURE__ */ Error()).stack
 		}), n.promise;
@@ -15103,12 +15103,12 @@ var Ui = /* @__PURE__ */ u((/* @__PURE__ */ s(((e, t) => {
 			var s = this.getBase64(e);
 			a = s, s && s.then((t) => {
 				this.urlCache[e] = t, n.resolve(t);
-			});
+			}).catch((e) => n.reject(e));
 		} else {
 			var c = this.getBlob(e);
 			a = c, c && c.then((t) => {
 				i = r.createObjectURL(t), this.urlCache[e] = i, n.resolve(i);
-			});
+			}).catch((e) => n.reject(e));
 		}
 		return a || n.reject({
 			message: "File not found in the epub: " + e,
@@ -16546,12 +16546,12 @@ var Ui = /* @__PURE__ */ u((/* @__PURE__ */ s(((e, t) => {
 			var s = this.getBase64(e);
 			a = s, s && s.then((t) => {
 				this.urlCache[e] = t, n.resolve(t);
-			});
+			}).catch((e) => n.reject(e));
 		} else {
 			var c = this.getBlob(e);
 			a = c, c && c.then((t) => {
 				i = r.createObjectURL(t), this.urlCache[e] = i, n.resolve(i);
-			});
+			}).catch((e) => n.reject(e));
 		}
 		return a || n.reject({
 			message: "File not found in storage: " + e,

@@ -20161,7 +20161,7 @@
 			if (response) response.then((r) => {
 				let result = this.handleResponse(r, type);
 				deferred.resolve(result);
-			});
+			}).catch((error) => deferred.reject(error));
 			else deferred.reject({
 				message: "File not found in the epub: " + url,
 				stack: (/* @__PURE__ */ new Error()).stack
@@ -20244,7 +20244,7 @@
 				if (base64Response) base64Response.then((tempUrl) => {
 					this.urlCache[url] = tempUrl;
 					deferred.resolve(tempUrl);
-				});
+				}).catch((error) => deferred.reject(error));
 			} else {
 				var blobResponse = this.getBlob(url);
 				response = blobResponse;
@@ -20252,7 +20252,7 @@
 					tempUrl = _URL.createObjectURL(blob);
 					this.urlCache[url] = tempUrl;
 					deferred.resolve(tempUrl);
-				});
+				}).catch((error) => deferred.reject(error));
 			}
 			if (!response) deferred.reject({
 				message: "File not found in the epub: " + url,
@@ -22294,7 +22294,7 @@
 				if (base64Response) base64Response.then((tempUrl) => {
 					this.urlCache[url] = tempUrl;
 					deferred.resolve(tempUrl);
-				});
+				}).catch((error) => deferred.reject(error));
 			} else {
 				var blobResponse = this.getBlob(url);
 				response = blobResponse;
@@ -22302,7 +22302,7 @@
 					tempUrl = _URL.createObjectURL(blob);
 					this.urlCache[url] = tempUrl;
 					deferred.resolve(tempUrl);
-				});
+				}).catch((error) => deferred.reject(error));
 			}
 			if (!response) deferred.reject({
 				message: "File not found in storage: " + url,

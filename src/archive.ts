@@ -112,10 +112,12 @@ class Archive {
         }
 
         if (response) {
-            response.then((r) => {
-                let result = this.handleResponse(r, type);
-                deferred.resolve(result);
-            });
+            response
+                .then((r) => {
+                    let result = this.handleResponse(r, type);
+                    deferred.resolve(result);
+                })
+                .catch((error: unknown) => deferred.reject(error));
         } else {
             deferred.reject({
                 message: "File not found in the epub: " + url,
@@ -231,21 +233,25 @@ class Archive {
             response = base64Response;
 
             if (base64Response) {
-                base64Response.then((tempUrl) => {
-                    this.urlCache[url] = tempUrl;
-                    deferred.resolve(tempUrl);
-                });
+                base64Response
+                    .then((tempUrl) => {
+                        this.urlCache[url] = tempUrl;
+                        deferred.resolve(tempUrl);
+                    })
+                    .catch((error: unknown) => deferred.reject(error));
             }
         } else {
             var blobResponse = this.getBlob(url);
             response = blobResponse;
 
             if (blobResponse) {
-                blobResponse.then((blob) => {
-                    tempUrl = _URL.createObjectURL(blob);
-                    this.urlCache[url] = tempUrl;
-                    deferred.resolve(tempUrl);
-                });
+                blobResponse
+                    .then((blob) => {
+                        tempUrl = _URL.createObjectURL(blob);
+                        this.urlCache[url] = tempUrl;
+                        deferred.resolve(tempUrl);
+                    })
+                    .catch((error: unknown) => deferred.reject(error));
             }
         }
 
