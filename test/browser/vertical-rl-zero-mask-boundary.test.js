@@ -44,3 +44,56 @@ describe("vertical-rl applied zero-mask source boundary", () => {
         expect(manager({ shift: 22 }).getVerticalRlCurrentEffectiveLeftBoundary()).toBe(1388);
     });
 });
+
+describe("vertical-rl replay of a committed zero exclusion", () => {
+    function committedZero({
+        preserved = true,
+        pageIndex = 8,
+        recordedOffset = 10298,
+        currentOffset = 10298,
+        shift = 0,
+    } = {}) {
+        const value = Object.create(DefaultViewManager.prototype);
+        value._verticalRlActiveTerminalLayout = { layoutKey: "same-layout", continuationCount: 0 };
+        value._verticalRlAppliedLeftMaskLedgerKey = "same-layout";
+        value._verticalRlPreservedPageBoundary = preserved
+            ? { pageIndex, layoutKey: "same-layout", sourceLeftBoundary: 1366 }
+            : null;
+        value.isRtlVerticalPaginated = () => true;
+        value.getCurrentPageIndex = () => pageIndex;
+        value.getTotalPagesForCurrentView = () => 10;
+        value.getCachedVerticalRlLogicalPageOffset = () => recordedOffset;
+        value.getNormalizedLogicalScrollLeft = () => currentOffset;
+        value.getRecordedVerticalRlAppliedLeftMask = () => 0;
+        value.getVerticalRlAppliedContentShift = () => shift;
+        return value;
+    }
+
+    it("replays a source-proven zero instead of re-expanding its excluded column", () => {
+        expect(committedZero().getVerticalRlCommittedLeftMaskForCurrentOffset(324)).toBe(0);
+    });
+
+    it.each([
+        ["initial measurement", { preserved: false }],
+        [
+            "initial first page",
+            { preserved: false, pageIndex: 0, recordedOffset: 0, currentOffset: 0 },
+        ],
+        ["changed offset", { currentOffset: 10346 }],
+        ["negative physical mask", { shift: 16 }],
+    ])("does not freeze a zero exclusion during %s", (_name, options) => {
+        expect(
+            committedZero(options).getVerticalRlCommittedLeftMaskForCurrentOffset(324),
+        ).toBeNull();
+    });
+
+    it.each([
+        ["different layout", { layoutKey: "other-layout" }],
+        ["different page", { pageIndex: 7 }],
+        ["unproven source boundary", { sourceLeftBoundary: undefined }],
+    ])("requires the same source fence after %s", (_name, patch) => {
+        const value = committedZero();
+        Object.assign(value._verticalRlPreservedPageBoundary, patch);
+        expect(value.getVerticalRlCommittedLeftMaskForCurrentOffset(324)).toBeNull();
+    });
+});

@@ -2863,13 +2863,14 @@ class DefaultViewManager {
         // observation must still allow Reader measurement to settle the mask.
         // A recreated first page also owns its proved cut at the exact learned origin.
         const preserved = this._verticalRlPreservedPageBoundary;
+        const hasPreservedSourceBoundary =
+            preserved?.pageIndex === pageIndex &&
+            preserved.layoutKey === state.layoutKey &&
+            Number.isFinite(preserved.sourceLeftBoundary);
         if (
             state.continuationCount <= 0 &&
-            (fence <= 0 ||
-                ((pageIndex !== 0 || recordedOffset !== 0) &&
-                    (preserved?.pageIndex !== pageIndex ||
-                        preserved.layoutKey !== state.layoutKey ||
-                        !Number.isFinite(preserved.sourceLeftBoundary))))
+            !hasPreservedSourceBoundary &&
+            (fence <= 0 || pageIndex !== 0 || recordedOffset !== 0)
         ) {
             return null;
         }

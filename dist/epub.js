@@ -16793,7 +16793,8 @@
 			const fence = this.getRecordedVerticalRlAppliedLeftMask(pageIndex);
 			if (fence === null || !Number.isFinite(fence)) return null;
 			const preserved = this._verticalRlPreservedPageBoundary;
-			if (state.continuationCount <= 0 && (fence <= 0 || (pageIndex !== 0 || recordedOffset !== 0) && (preserved?.pageIndex !== pageIndex || preserved.layoutKey !== state.layoutKey || !Number.isFinite(preserved.sourceLeftBoundary)))) return null;
+			const hasPreservedSourceBoundary = preserved?.pageIndex === pageIndex && preserved.layoutKey === state.layoutKey && Number.isFinite(preserved.sourceLeftBoundary);
+			if (state.continuationCount <= 0 && !hasPreservedSourceBoundary && (fence <= 0 || pageIndex !== 0 || recordedOffset !== 0)) return null;
 			const physicalMask = fence - this.getVerticalRlAppliedContentShift();
 			return physicalMask >= 0 && physicalMask <= maxMask ? physicalMask : null;
 		}

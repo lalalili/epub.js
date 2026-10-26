@@ -9941,10 +9941,10 @@ var Ti = class {
 		if (r === null || !Number.isFinite(i) || r !== i && Math.fround(r) !== Math.fround(i)) return null;
 		let a = this.getRecordedVerticalRlAppliedLeftMask(n);
 		if (a === null || !Number.isFinite(a)) return null;
-		let o = this._verticalRlPreservedPageBoundary;
-		if (t.continuationCount <= 0 && (a <= 0 || (n !== 0 || r !== 0) && (o?.pageIndex !== n || o.layoutKey !== t.layoutKey || !Number.isFinite(o.sourceLeftBoundary)))) return null;
-		let s = a - this.getVerticalRlAppliedContentShift();
-		return s >= 0 && s <= e ? s : null;
+		let o = this._verticalRlPreservedPageBoundary, s = o?.pageIndex === n && o.layoutKey === t.layoutKey && Number.isFinite(o.sourceLeftBoundary);
+		if (t.continuationCount <= 0 && !s && (a <= 0 || n !== 0 || r !== 0)) return null;
+		let c = a - this.getVerticalRlAppliedContentShift();
+		return c >= 0 && c <= e ? c : null;
 	}
 	syncVerticalRlViewportClip() {
 		if (!this.container || !this.container.style) return;
