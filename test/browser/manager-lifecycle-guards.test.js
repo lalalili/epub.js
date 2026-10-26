@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 import DefaultViewManager from "../../src/managers/default";
 
 /**
@@ -15,59 +15,59 @@ import DefaultViewManager from "../../src/managers/default";
  * pin the guards that keep a pre-render call harmless.
  */
 describe("DefaultViewManager stage lifecycle guards", () => {
-	function createUnrenderedManager() {
-		const manager = Object.create(DefaultViewManager.prototype);
+    function createUnrenderedManager() {
+        const manager = Object.create(DefaultViewManager.prototype);
 
-		manager.stage = undefined;
+        manager.stage = undefined;
 
-		return manager;
-	}
+        return manager;
+    }
 
-	it("returns a usable bounds object before render instead of throwing", () => {
-		const manager = createUnrenderedManager();
+    it("returns a usable bounds object before render instead of throwing", () => {
+        const manager = createUnrenderedManager();
 
-		expect(() => manager.bounds()).not.toThrow();
-		expect(manager.bounds()).toEqual({ width: 0, height: 0, top: 0, left: 0 });
-	});
+        expect(() => manager.bounds()).not.toThrow();
+        expect(manager.bounds()).toEqual({ width: 0, height: 0, top: 0, left: 0 });
+    });
 
-	it("prefers the last known bounds when one was already measured", () => {
-		const manager = createUnrenderedManager();
+    it("prefers the last known bounds when one was already measured", () => {
+        const manager = createUnrenderedManager();
 
-		manager._bounds = { width: 390, height: 844, top: 0, left: 0 };
+        manager._bounds = { width: 390, height: 844, top: 0, left: 0 };
 
-		expect(manager.bounds()).toEqual({ width: 390, height: 844, top: 0, left: 0 });
-	});
+        expect(manager.bounds()).toEqual({ width: 390, height: 844, top: 0, left: 0 });
+    });
 
-	it("ignores resize before render rather than dereferencing the missing stage", () => {
-		const manager = createUnrenderedManager();
+    it("ignores resize before render rather than dereferencing the missing stage", () => {
+        const manager = createUnrenderedManager();
 
-		expect(() => manager.resize(390, 844)).not.toThrow();
-	});
+        expect(() => manager.resize(390, 844)).not.toThrow();
+    });
 
-	it("cancels the vertical-rl boundary snap retry on destroy", () => {
-		const manager = Object.create(DefaultViewManager.prototype);
-		const cleared = [];
+    it("cancels the vertical-rl boundary snap retry on destroy", () => {
+        const manager = Object.create(DefaultViewManager.prototype);
+        const cleared = [];
 
-		manager.stage = { destroy: () => {} };
-		manager.clear = () => {};
-		manager.removeEventListeners = () => {};
-		manager.removeVerticalRlViewportClip = () => {};
-		manager.orientationTimeout = 1;
-		manager.resizeTimeout = 2;
-		manager.afterScrolled = 3;
-		manager._verticalRlBoundarySnapAfterScroll = 4;
+        manager.stage = { destroy: () => {} };
+        manager.clear = () => {};
+        manager.removeEventListeners = () => {};
+        manager.removeVerticalRlViewportClip = () => {};
+        manager.orientationTimeout = 1;
+        manager.resizeTimeout = 2;
+        manager.afterScrolled = 3;
+        manager._verticalRlBoundarySnapAfterScroll = 4;
 
-		const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout").mockImplementation((id) => {
-			cleared.push(id);
-		});
+        const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout").mockImplementation((id) => {
+            cleared.push(id);
+        });
 
-		try {
-			manager.destroy();
-		} finally {
-			clearTimeoutSpy.mockRestore();
-		}
+        try {
+            manager.destroy();
+        } finally {
+            clearTimeoutSpy.mockRestore();
+        }
 
-		// 沒清掉的話，銷毀後這個重試仍會醒來並操作已拆掉的 stage。
-		expect(cleared).toContain(4);
-	});
+        // 沒清掉的話，銷毀後這個重試仍會醒來並操作已拆掉的 stage。
+        expect(cleared).toContain(4);
+    });
 });

@@ -10,353 +10,358 @@ import { parseMarkup as parse } from "../../platform/parser";
 import { EVENTS } from "../../utils/constants";
 
 type Bounds = {
-	width: number;
-	height: number;
-	widthDelta?: number;
-	heightDelta?: number;
+    width: number;
+    height: number;
+    widthDelta?: number;
+    heightDelta?: number;
 };
 
 type InlineViewLayout = {
-	name?: string;
-	format?: (contents: Contents, section?: InlineViewSection, axis?: string) => void;
+    name?: string;
+    format?: (contents: Contents, section?: InlineViewSection, axis?: string) => void;
 };
 
 type InlineViewSection = {
-	index: number;
-	render: (request?: unknown) => Promise<string>;
+    index: number;
+    render: (request?: unknown) => Promise<string>;
 };
 
 type InlineViewSettings = {
-	ignoreClass: string;
-	axis: string;
-	width: number;
-	height: number;
-	layout: InlineViewLayout;
-	globalLayoutProperties: Record<string, unknown>;
+    ignoreClass: string;
+    axis: string;
+    width: number;
+    height: number;
+    layout: InlineViewLayout;
+    globalLayoutProperties: Record<string, unknown>;
 };
 
 type InlineDisplayReject = (reason?: unknown, view?: InlineView) => void;
 
 const Defer = defer as unknown as {
-	new<T = unknown>(): CoreDeferred<T>;
+    new <T = unknown>(): CoreDeferred<T>;
 };
 
 const ContentsCtor = Contents as unknown as {
-	new(doc: Document, content: Element, cfiBase?: string, sectionIndex?: number, sectionHref?: string): Contents;
+    new (
+        doc: Document,
+        content: Element,
+        cfiBase?: string,
+        sectionIndex?: number,
+        sectionHref?: string,
+    ): Contents;
 };
 
 class InlineView {
-	settings: InlineViewSettings;
-	id: string;
-	section: InlineViewSection;
-	index: number;
-	element: HTMLElement;
-	added: boolean;
-	displayed: boolean;
-	rendered: boolean;
-	width: number | null;
-	height: number | null;
-	fixedWidth: number;
-	fixedHeight: number;
-	epubcfi: EpubCFI;
-	layout: InlineViewLayout;
-	frame: HTMLElement | null = null;
-	resizing = false;
-	_width: number | null = null;
-	_height: number | null = null;
-	_textWidth: number | null = null;
-	_textHeight: number | null = null;
-	lockedWidth?: number;
-	lockedHeight?: number;
-	elementBounds?: Bounds;
-	prevBounds?: Bounds;
-	_expanding?: boolean;
-	_needsReframe?: boolean;
-	document?: Document;
-	window?: Window | null;
-	contents?: Contents;
-	rendering?: boolean;
-	stopExpanding?: boolean;
-	createContainer?: () => HTMLElement;
-
-	constructor(section: InlineViewSection, options?: Partial<InlineViewSettings>) {
-		this.settings = extend({
-			ignoreClass : "",
-			axis: "vertical",
-			width: 0,
-			height: 0,
-			layout: undefined,
-			globalLayoutProperties: {},
-		}, options || {});
-
-		this.id = "epubjs-view:" + uuid();
-		this.section = section;
-		this.index = section.index;
-
-		this.element = this.container(this.settings.axis);
-
-		this.added = false;
-		this.displayed = false;
-		this.rendered = false;
-
-		this.width  = this.settings.width;
-		this.height = this.settings.height;
-
-		this.fixedWidth  = 0;
-		this.fixedHeight = 0;
-
-		// Blank Cfi for Parsing
-		this.epubcfi = new EpubCFI();
-
-		this.layout = this.settings.layout;
-		// Dom events to listen for
-		// this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
-
-	}
-
-	container(axis?: string) {
-		var element = document.createElement("div");
-
-		element.classList.add("epub-view");
-
-		// if(this.settings.axis === "horizontal") {
-		//   element.style.width = "auto";
-		//   element.style.height = "0";
-		// } else {
-		//   element.style.width = "0";
-		//   element.style.height = "auto";
-		// }
-
-		element.style.overflow = "hidden";
-
-		if(axis && axis == "horizontal"){
-			element.style.display = "inline-block";
-		} else {
-			element.style.display = "block";
-		}
-
-		return element;
-	}
-
-	create() {
-
-		if(this.frame) {
-			return this.frame;
-		}
-
-		if(!this.element) {
-			this.element = this.createContainer();
-		}
-
-		this.frame = document.createElement("div");
-		this.frame.id = this.id;
-		this.frame.style.overflow = "hidden";
-		this.frame.style.wordSpacing = "initial";
-		this.frame.style.lineHeight = "initial";
-
-		this.resizing = true;
-
-		// this.frame.style.display = "none";
-		this.element.style.visibility = "hidden";
-		this.frame.style.visibility = "hidden";
-
-		if(this.settings.axis === "horizontal") {
-			this.frame.style.width = "auto";
-			this.frame.style.height = "0";
-		} else {
-			this.frame.style.width = "0";
-			this.frame.style.height = "auto";
-		}
-
-		this._width = 0;
-		this._height = 0;
-
-		this.element.appendChild(this.frame);
-		this.added = true;
-
-		this.elementBounds = bounds(this.element);
-
-		return this.frame;
-	}
-
-	render(request?: unknown, show?: boolean) {
-
-		// view.onLayout = this.layout.format.bind(this.layout);
-		this.create();
-
-		// Fit to size of the container, apply padding
-		this.size();
-
-		// Render Chain
-		return this.section.render(request)
-			.then(function(contents: string){
-				return this.load(contents);
-			}.bind(this))
-			// .then(function(doc){
-			// 	return this.hooks.content.trigger(view, this);
-			// }.bind(this))
-			.then(function(){
-				// this.settings.layout.format(view.contents);
-				// return this.hooks.layout.trigger(view, this);
-			}.bind(this))
-			// .then(function(){
-			// 	return this.display();
-			// }.bind(this))
-			// .then(function(){
-			// 	return this.hooks.render.trigger(view, this);
-			// }.bind(this))
-			.then(function(){
-
-				// apply the layout function to the contents
-				this.settings.layout.format(this.contents);
-
-				// Expand the iframe to the full size of the content
-				// this.expand();
-
-				// Listen for events that require an expansion of the iframe
-				this.addListeners();
-
-				if(show !== false) {
-					//this.q.enqueue(function(view){
-					this.show();
-					//}, view);
-				}
-				// this.map = new Map(view, this.layout);
-				//this.hooks.show.trigger(view, this);
-				this.emit(EVENTS.VIEWS.RENDERED, this.section);
-
-			}.bind(this))
-			.catch(function(e: unknown){
-				this.emit(EVENTS.VIEWS.LOAD_ERROR, e);
-			}.bind(this));
-
-	}
-
-	// Determine locks base on settings
-	size(_width?: number, _height?: number) {
-		var width = _width || this.settings.width;
-		var height = _height || this.settings.height;
-
-		if(this.layout.name === "pre-paginated") {
-			// TODO: check if these are different than the size set in chapter
-			this.lock("both", width, height);
-		} else if(this.settings.axis === "horizontal") {
-			this.lock("height", width, height);
-		} else {
-			this.lock("width", width, height);
-		}
-
-	}
-
-	// Lock an axis to element dimensions, taking borders into account
-	lock(what: string, width?: number | false, height?: number | false) {
-		var elBorders = borders(this.element);
-		var iframeBorders;
-
-		if(this.frame) {
-			iframeBorders = borders(this.frame);
-		} else {
-			iframeBorders = {width: 0, height: 0};
-		}
-
-		if(what == "width" && isNumber(width)){
-			this.lockedWidth = Number(width) - elBorders.width - iframeBorders.width;
-			this.resize(this.lockedWidth, false); //  width keeps ratio correct
-		}
-
-		if(what == "height" && isNumber(height)){
-			this.lockedHeight = Number(height) - elBorders.height - iframeBorders.height;
-			this.resize(false, this.lockedHeight);
-		}
-
-		if(what === "both" &&
-				isNumber(width) &&
-				isNumber(height)){
-
-			this.lockedWidth = Number(width) - elBorders.width - iframeBorders.width;
-			this.lockedHeight = Number(height) - elBorders.height - iframeBorders.height;
-
-			this.resize(this.lockedWidth, this.lockedHeight);
-		}
-
-	}
-
-	// Resize a single axis based on content dimensions
-	expand(force?: boolean) {
-		var width = this.lockedWidth;
-		var height = this.lockedHeight;
-
-		var textWidth, textHeight;
-
-		if(!this.frame || this._expanding) return;
-
-		this._expanding = true;
-
-		// Expand Horizontally
-		if(this.settings.axis === "horizontal") {
-			width = this.contentWidth(textWidth);
-		} // Expand Vertically
-		else if(this.settings.axis === "vertical") {
-			height = this.contentHeight(textHeight);
-		}
-
-		// Only Resize if dimensions have changed or
-		// if Frame is still hidden, so needs reframing
-		if(this._needsReframe || width != this._width || height != this._height){
-			this.resize(width, height);
-		}
-
-		this._expanding = false;
-	}
-
-	contentWidth(min?: number) {
-		return this.frame.scrollWidth;
-	}
-
-	contentHeight(min?: number) {
-		return this.frame.scrollHeight;
-	}
-
-
-	resize(width?: number | false, height?: number | false) {
-
-		if(!this.frame) return;
-
-		if(isNumber(width)){
-			this.frame.style.width = width + "px";
-			this._width = Number(width);
-		}
-
-		if(isNumber(height)){
-			this.frame.style.height = height + "px";
-			this._height = Number(height);
-		}
-
-		this.prevBounds = this.elementBounds;
-
-		this.elementBounds = bounds(this.element);
-
-		let size = {
-			width: this.elementBounds.width,
-			height: this.elementBounds.height,
-			widthDelta: this.elementBounds.width - this.prevBounds.width,
-			heightDelta: this.elementBounds.height - this.prevBounds.height,
-		};
-
-		this.onResize(this, size);
-
-		this.emit(EVENTS.VIEWS.RESIZED, size);
-
-	}
-
-
-	load(contents: string) {
-		var loading = new Defer<Contents>();
-		var loaded = loading.promise;
-		var doc = parse(contents, "text/html");
-		var body = qs(doc, "body");
-
-		/*
+    settings: InlineViewSettings;
+    id: string;
+    section: InlineViewSection;
+    index: number;
+    element: HTMLElement;
+    added: boolean;
+    displayed: boolean;
+    rendered: boolean;
+    width: number | null;
+    height: number | null;
+    fixedWidth: number;
+    fixedHeight: number;
+    epubcfi: EpubCFI;
+    layout: InlineViewLayout;
+    frame: HTMLElement | null = null;
+    resizing = false;
+    _width: number | null = null;
+    _height: number | null = null;
+    _textWidth: number | null = null;
+    _textHeight: number | null = null;
+    lockedWidth?: number;
+    lockedHeight?: number;
+    elementBounds?: Bounds;
+    prevBounds?: Bounds;
+    _expanding?: boolean;
+    _needsReframe?: boolean;
+    document?: Document;
+    window?: Window | null;
+    contents?: Contents;
+    rendering?: boolean;
+    stopExpanding?: boolean;
+    createContainer?: () => HTMLElement;
+
+    constructor(section: InlineViewSection, options?: Partial<InlineViewSettings>) {
+        this.settings = extend(
+            {
+                ignoreClass: "",
+                axis: "vertical",
+                width: 0,
+                height: 0,
+                layout: undefined,
+                globalLayoutProperties: {},
+            },
+            options || {},
+        );
+
+        this.id = "epubjs-view:" + uuid();
+        this.section = section;
+        this.index = section.index;
+
+        this.element = this.container(this.settings.axis);
+
+        this.added = false;
+        this.displayed = false;
+        this.rendered = false;
+
+        this.width = this.settings.width;
+        this.height = this.settings.height;
+
+        this.fixedWidth = 0;
+        this.fixedHeight = 0;
+
+        // Blank Cfi for Parsing
+        this.epubcfi = new EpubCFI();
+
+        this.layout = this.settings.layout;
+        // Dom events to listen for
+        // this.listenedEvents = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "click", "touchend", "touchstart"];
+    }
+
+    container(axis?: string) {
+        var element = document.createElement("div");
+
+        element.classList.add("epub-view");
+
+        // if(this.settings.axis === "horizontal") {
+        //   element.style.width = "auto";
+        //   element.style.height = "0";
+        // } else {
+        //   element.style.width = "0";
+        //   element.style.height = "auto";
+        // }
+
+        element.style.overflow = "hidden";
+
+        if (axis && axis == "horizontal") {
+            element.style.display = "inline-block";
+        } else {
+            element.style.display = "block";
+        }
+
+        return element;
+    }
+
+    create() {
+        if (this.frame) {
+            return this.frame;
+        }
+
+        if (!this.element) {
+            this.element = this.createContainer();
+        }
+
+        this.frame = document.createElement("div");
+        this.frame.id = this.id;
+        this.frame.style.overflow = "hidden";
+        this.frame.style.wordSpacing = "initial";
+        this.frame.style.lineHeight = "initial";
+
+        this.resizing = true;
+
+        // this.frame.style.display = "none";
+        this.element.style.visibility = "hidden";
+        this.frame.style.visibility = "hidden";
+
+        if (this.settings.axis === "horizontal") {
+            this.frame.style.width = "auto";
+            this.frame.style.height = "0";
+        } else {
+            this.frame.style.width = "0";
+            this.frame.style.height = "auto";
+        }
+
+        this._width = 0;
+        this._height = 0;
+
+        this.element.appendChild(this.frame);
+        this.added = true;
+
+        this.elementBounds = bounds(this.element);
+
+        return this.frame;
+    }
+
+    render(request?: unknown, show?: boolean) {
+        // view.onLayout = this.layout.format.bind(this.layout);
+        this.create();
+
+        // Fit to size of the container, apply padding
+        this.size();
+
+        // Render Chain
+        return (
+            this.section
+                .render(request)
+                .then(
+                    function (contents: string) {
+                        return this.load(contents);
+                    }.bind(this),
+                )
+                // .then(function(doc){
+                // 	return this.hooks.content.trigger(view, this);
+                // }.bind(this))
+                .then(
+                    function () {
+                        // this.settings.layout.format(view.contents);
+                        // return this.hooks.layout.trigger(view, this);
+                    }.bind(this),
+                )
+                // .then(function(){
+                // 	return this.display();
+                // }.bind(this))
+                // .then(function(){
+                // 	return this.hooks.render.trigger(view, this);
+                // }.bind(this))
+                .then(
+                    function () {
+                        // apply the layout function to the contents
+                        this.settings.layout.format(this.contents);
+
+                        // Expand the iframe to the full size of the content
+                        // this.expand();
+
+                        // Listen for events that require an expansion of the iframe
+                        this.addListeners();
+
+                        if (show !== false) {
+                            //this.q.enqueue(function(view){
+                            this.show();
+                            //}, view);
+                        }
+                        // this.map = new Map(view, this.layout);
+                        //this.hooks.show.trigger(view, this);
+                        this.emit(EVENTS.VIEWS.RENDERED, this.section);
+                    }.bind(this),
+                )
+                .catch(
+                    function (e: unknown) {
+                        this.emit(EVENTS.VIEWS.LOAD_ERROR, e);
+                    }.bind(this),
+                )
+        );
+    }
+
+    // Determine locks base on settings
+    size(_width?: number, _height?: number) {
+        var width = _width || this.settings.width;
+        var height = _height || this.settings.height;
+
+        if (this.layout.name === "pre-paginated") {
+            // TODO: check if these are different than the size set in chapter
+            this.lock("both", width, height);
+        } else if (this.settings.axis === "horizontal") {
+            this.lock("height", width, height);
+        } else {
+            this.lock("width", width, height);
+        }
+    }
+
+    // Lock an axis to element dimensions, taking borders into account
+    lock(what: string, width?: number | false, height?: number | false) {
+        var elBorders = borders(this.element);
+        var iframeBorders;
+
+        if (this.frame) {
+            iframeBorders = borders(this.frame);
+        } else {
+            iframeBorders = { width: 0, height: 0 };
+        }
+
+        if (what == "width" && isNumber(width)) {
+            this.lockedWidth = Number(width) - elBorders.width - iframeBorders.width;
+            this.resize(this.lockedWidth, false); //  width keeps ratio correct
+        }
+
+        if (what == "height" && isNumber(height)) {
+            this.lockedHeight = Number(height) - elBorders.height - iframeBorders.height;
+            this.resize(false, this.lockedHeight);
+        }
+
+        if (what === "both" && isNumber(width) && isNumber(height)) {
+            this.lockedWidth = Number(width) - elBorders.width - iframeBorders.width;
+            this.lockedHeight = Number(height) - elBorders.height - iframeBorders.height;
+
+            this.resize(this.lockedWidth, this.lockedHeight);
+        }
+    }
+
+    // Resize a single axis based on content dimensions
+    expand(_force?: boolean) {
+        var width = this.lockedWidth;
+        var height = this.lockedHeight;
+
+        var textWidth, textHeight;
+
+        if (!this.frame || this._expanding) return;
+
+        this._expanding = true;
+
+        // Expand Horizontally
+        if (this.settings.axis === "horizontal") {
+            width = this.contentWidth(textWidth);
+        } // Expand Vertically
+        else if (this.settings.axis === "vertical") {
+            height = this.contentHeight(textHeight);
+        }
+
+        // Only Resize if dimensions have changed or
+        // if Frame is still hidden, so needs reframing
+        if (this._needsReframe || width != this._width || height != this._height) {
+            this.resize(width, height);
+        }
+
+        this._expanding = false;
+    }
+
+    contentWidth(_min?: number) {
+        return this.frame.scrollWidth;
+    }
+
+    contentHeight(_min?: number) {
+        return this.frame.scrollHeight;
+    }
+
+    resize(width?: number | false, height?: number | false) {
+        if (!this.frame) return;
+
+        if (isNumber(width)) {
+            this.frame.style.width = width + "px";
+            this._width = Number(width);
+        }
+
+        if (isNumber(height)) {
+            this.frame.style.height = height + "px";
+            this._height = Number(height);
+        }
+
+        this.prevBounds = this.elementBounds;
+
+        this.elementBounds = bounds(this.element);
+
+        let size = {
+            width: this.elementBounds.width,
+            height: this.elementBounds.height,
+            widthDelta: this.elementBounds.width - this.prevBounds.width,
+            heightDelta: this.elementBounds.height - this.prevBounds.height,
+        };
+
+        this.onResize(this, size);
+
+        this.emit(EVENTS.VIEWS.RESIZED, size);
+    }
+
+    load(contents: string) {
+        var loading = new Defer<Contents>();
+        var loaded = loading.promise;
+        var doc = parse(contents, "text/html");
+        var body = qs(doc, "body");
+
+        /*
 		var srcs = doc.querySelectorAll("[src]");
 
 		Array.prototype.slice.call(srcs)
@@ -372,143 +377,137 @@ class InlineView {
 				}
 			}.bind(this));
 		*/
-		this.frame.innerHTML = body.innerHTML;
+        this.frame.innerHTML = body.innerHTML;
 
-		this.document = this.frame.ownerDocument;
-		this.window = this.document.defaultView;
+        this.document = this.frame.ownerDocument;
+        this.window = this.document.defaultView;
 
-		this.contents = new ContentsCtor(this.document, this.frame);
+        this.contents = new ContentsCtor(this.document, this.frame);
 
-		this.rendering = false;
+        this.rendering = false;
 
-		loading.resolve(this.contents);
+        loading.resolve(this.contents);
 
+        return loaded;
+    }
 
-		return loaded;
-	}
+    setLayout(layout: InlineViewLayout) {
+        this.layout = layout;
+    }
 
-	setLayout(layout: InlineViewLayout) {
-		this.layout = layout;
-	}
+    resizeListenters() {
+        // Test size again
+        // clearTimeout(this.expanding);
+        // this.expanding = setTimeout(this.expand.bind(this), 350);
+    }
 
+    addListeners() {
+        //TODO: Add content listeners for expanding
+    }
 
-	resizeListenters() {
-		// Test size again
-		// clearTimeout(this.expanding);
-		// this.expanding = setTimeout(this.expand.bind(this), 350);
-	}
+    removeListeners(_layoutFunc?: unknown) {
+        //TODO: remove content listeners for expanding
+    }
 
-	addListeners() {
-		//TODO: Add content listeners for expanding
-	}
+    display(request?: unknown) {
+        var displayed = new Defer<InlineView>();
 
-	removeListeners(layoutFunc?: unknown) {
-		//TODO: remove content listeners for expanding
-	}
+        if (!this.displayed) {
+            this.render(request).then(
+                function () {
+                    this.emit(EVENTS.VIEWS.DISPLAYED, this);
+                    this.onDisplayed(this);
 
-	display(request?: unknown) {
-		var displayed = new Defer<InlineView>();
+                    this.displayed = true;
 
-		if (!this.displayed) {
+                    displayed.resolve(this);
+                }.bind(this),
+                function (err: unknown) {
+                    const reject = displayed.reject as InlineDisplayReject | null;
+                    reject && reject(err, this);
+                }.bind(this),
+            );
+        } else {
+            displayed.resolve(this);
+        }
 
-			this.render(request).then(function () {
+        return displayed.promise;
+    }
 
-				this.emit(EVENTS.VIEWS.DISPLAYED, this);
-				this.onDisplayed(this);
+    show() {
+        this.element.style.visibility = "visible";
 
-				this.displayed = true;
+        if (this.frame) {
+            this.frame.style.visibility = "visible";
+        }
 
-				displayed.resolve(this);
+        this.emit(EVENTS.VIEWS.SHOWN, this);
+    }
 
-			}.bind(this), function (err: unknown) {
-				const reject = displayed.reject as InlineDisplayReject | null;
-				reject && reject(err, this);
-			}.bind(this));
+    hide() {
+        // this.frame.style.display = "none";
+        this.element.style.visibility = "hidden";
+        this.frame.style.visibility = "hidden";
 
-		} else {
-			displayed.resolve(this);
-		}
+        this.stopExpanding = true;
+        this.emit(EVENTS.VIEWS.HIDDEN, this);
+    }
 
+    position() {
+        return this.element.getBoundingClientRect();
+    }
 
-		return displayed.promise;
-	}
+    locationOf(target: string | EpubCFI) {
+        var parentPos = this.frame.getBoundingClientRect();
+        var targetPos = this.contents.locationOf(target, this.settings.ignoreClass);
 
-	show() {
+        return {
+            left: window.scrollX + parentPos.left + targetPos.left,
+            top: window.scrollY + parentPos.top + targetPos.top,
+        };
+    }
 
-		this.element.style.visibility = "visible";
+    onDisplayed(_view: InlineView) {
+        // Stub, override with a custom functions
+    }
 
-		if(this.frame){
-			this.frame.style.visibility = "visible";
-		}
+    onResize(_view: InlineView, _e: Bounds) {
+        // Stub, override with a custom functions
+    }
 
-		this.emit(EVENTS.VIEWS.SHOWN, this);
-	}
+    bounds() {
+        if (!this.elementBounds) {
+            this.elementBounds = bounds(this.element);
+        }
+        return this.elementBounds;
+    }
 
-	hide() {
-		// this.frame.style.display = "none";
-		this.element.style.visibility = "hidden";
-		this.frame.style.visibility = "hidden";
+    destroy() {
+        if (this.displayed) {
+            this.displayed = false;
 
-		this.stopExpanding = true;
-		this.emit(EVENTS.VIEWS.HIDDEN, this);
-	}
+            this.removeListeners();
 
-	position() {
-		return this.element.getBoundingClientRect();
-	}
+            this.stopExpanding = true;
+            this.element.removeChild(this.frame);
+            this.displayed = false;
+            this.frame = null;
 
-	locationOf(target: string | EpubCFI) {
-		var parentPos = this.frame.getBoundingClientRect();
-		var targetPos = this.contents.locationOf(target, this.settings.ignoreClass);
-
-		return {
-			"left": window.scrollX + parentPos.left + targetPos.left,
-			"top": window.scrollY + parentPos.top + targetPos.top
-		};
-	}
-
-	onDisplayed(view: InlineView) {
-		// Stub, override with a custom functions
-	}
-
-	onResize(view: InlineView, e: Bounds) {
-		// Stub, override with a custom functions
-	}
-
-	bounds() {
-		if(!this.elementBounds) {
-			this.elementBounds = bounds(this.element);
-		}
-		return this.elementBounds;
-	}
-
-	destroy() {
-
-		if(this.displayed){
-			this.displayed = false;
-
-			this.removeListeners();
-
-			this.stopExpanding = true;
-			this.element.removeChild(this.frame);
-			this.displayed = false;
-			this.frame = null;
-
-			this._textWidth = null;
-			this._textHeight = null;
-			this._width = null;
-			this._height = null;
-		}
-		// this.element.style.height = "0px";
-		// this.element.style.width = "0px";
-	}
+            this._textWidth = null;
+            this._textHeight = null;
+            this._width = null;
+            this._height = null;
+        }
+        // this.element.style.height = "0px";
+        // this.element.style.width = "0px";
+    }
 }
 
 interface InlineView {
-	emit(type: string, ...args: unknown[]): void;
-	on(type: string, listener: (...args: unknown[]) => void): unknown;
-	off(type: string, listener: (...args: unknown[]) => void): unknown;
-	once(type: string, listener: (...args: unknown[]) => void): unknown;
+    emit(type: string, ...args: unknown[]): void;
+    on(type: string, listener: (...args: unknown[]) => void): unknown;
+    off(type: string, listener: (...args: unknown[]) => void): unknown;
+    once(type: string, listener: (...args: unknown[]) => void): unknown;
 }
 
 EventEmitter(InlineView.prototype);

@@ -9,7 +9,7 @@ export type BlobContent = BlobPart[] | BlobPart | string | ArrayBuffer | ArrayBu
  * @returns {Blob} Browser Blob instance.
  */
 export function createBlob(content: BlobContent, mime: string): Blob {
-	return new Blob([content as BlobPart], { type: mime });
+    return new Blob([content as BlobPart], { type: mime });
 }
 
 /**
@@ -19,10 +19,10 @@ export function createBlob(content: BlobContent, mime: string): Blob {
  * @returns {string} Browser object URL.
  */
 export function createBlobUrl(content: BlobContent, mime: string): string {
-	var blob = createBlob(content, mime);
-	var URLConstructor = getURLConstructor() as typeof URL;
+    var blob = createBlob(content, mime);
+    var URLConstructor = getURLConstructor() as typeof URL;
 
-	return URLConstructor.createObjectURL(blob);
+    return URLConstructor.createObjectURL(blob);
 }
 
 /**
@@ -31,9 +31,9 @@ export function createBlobUrl(content: BlobContent, mime: string): string {
  * @returns {void}
  */
 export function revokeBlobUrl(url: string): void {
-	var URLConstructor = getURLConstructor() as typeof URL;
+    var URLConstructor = getURLConstructor() as typeof URL;
 
-	return URLConstructor.revokeObjectURL(url);
+    return URLConstructor.revokeObjectURL(url);
 }
 
 /**
@@ -43,15 +43,15 @@ export function revokeBlobUrl(url: string): void {
  * @returns {string | undefined} Base64 data URL.
  */
 export function createBase64Url(content: string, mime: string): string {
-	var data;
+    var data;
 
-	if (typeof(content as unknown) !== "string") {
-		return undefined as unknown as string;
-	}
+    if (typeof (content as unknown) !== "string") {
+        return undefined as unknown as string;
+    }
 
-	data = btoa(content);
+    data = btoa(content);
 
-	return "data:" + mime + ";base64," + data;
+    return "data:" + mime + ";base64," + data;
 }
 
 /**
@@ -60,15 +60,15 @@ export function createBase64Url(content: string, mime: string): string {
  * @returns {Promise<string | ArrayBuffer | null>} Base64 data URL.
  */
 export function blobToBase64(blob: Blob): Promise<string | ArrayBuffer | null> {
-	return new Promise(function(resolve, reject) {
-		var reader = new FileReader();
+    return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
 
-		reader.onloadend = function() {
-			resolve(reader.result);
-		};
-		reader.onerror = function() {
-			reject(reader.error);
-		};
-		reader.readAsDataURL(blob);
-	});
+        reader.onloadend = function () {
+            resolve(reader.result);
+        };
+        reader.onerror = function () {
+            reject(reader.error);
+        };
+        reader.readAsDataURL(blob);
+    });
 }

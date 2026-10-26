@@ -1,7 +1,536 @@
 {
-  "maxErrors": 232,
-  "maxWarnings": 606,
-  "command": "eslint -c .eslintrc.js src",
-  "updated": "2026-06-01",
-  "note": "Transitional ceiling for legacy ESLint debt. Reduce these numbers whenever existing lint issues are fixed."
+    "version": 2,
+    "note": "Explicit pre-existing warning inventory, not lint-clean qualification. No errors are accepted. New, moved, duplicated or resolved diagnostics fail the comparison; remove resolved entries after review. Promise, type migration and pagination warnings require behavior-specific evidence before edits.",
+    "warnings": [
+        {
+            "filename": "src/annotations.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "highlight is overridden by string in this union type."
+        },
+        {
+            "filename": "src/annotations.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "mark is overridden by string in this union type."
+        },
+        {
+            "filename": "src/annotations.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "underline is overridden by string in this union type."
+        },
+        {
+            "filename": "src/annotations.ts",
+            "code": "typescript(no-unsafe-declaration-merging)",
+            "message": "Unsafe declaration merging between classes and interfaces."
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "typescript(no-base-to-string)",
+            "message": "'url' may use Object's default stringification format ('[object Object]') when stringified."
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "typescript(no-this-alias)",
+            "message": "Unexpected aliasing of 'this' to local variable."
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "typescript(no-unsafe-declaration-merging)",
+            "message": "Unsafe declaration merging between classes and interfaces."
+        },
+        {
+            "filename": "src/contents.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/contents.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/contents.ts",
+            "code": "typescript(no-unsafe-declaration-merging)",
+            "message": "Unsafe declaration merging between classes and interfaces."
+        },
+        {
+            "filename": "src/core/types.ts",
+            "code": "typescript(no-base-to-string)",
+            "message": "'n' will use Object's default stringification format ('[object Object]') when stringified."
+        },
+        {
+            "filename": "src/core/types.ts",
+            "code": "typescript(no-base-to-string)",
+            "message": "'n' will use Object's default stringification format ('[object Object]') when stringified."
+        },
+        {
+            "filename": "src/epubcfi.ts",
+            "code": "typescript(no-this-alias)",
+            "message": "Unexpected aliasing of 'this' to local variable."
+        },
+        {
+            "filename": "src/layout.ts",
+            "code": "typescript(no-unsafe-declaration-merging)",
+            "message": "Unsafe declaration merging between classes and interfaces."
+        },
+        {
+            "filename": "src/locations.ts",
+            "code": "typescript(no-unsafe-declaration-merging)",
+            "message": "Unsafe declaration merging between classes and interfaces."
+        },
+        {
+            "filename": "src/locations.ts",
+            "code": "typescript(unbound-method)",
+            "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        {
+            "filename": "src/managers/continuous/index.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/continuous/index.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/continuous/index.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/continuous/index.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/continuous/index.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/continuous/index.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "typescript(unbound-method)",
+            "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        {
+            "filename": "src/managers/helpers/snap.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/managers/helpers/snap.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/managers/helpers/snap.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/helpers/snap.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/helpers/stage.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "horizontal is overridden by string in this union type."
+        },
+        {
+            "filename": "src/managers/helpers/stage.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "vertical is overridden by string in this union type."
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "typescript(no-base-to-string)",
+            "message": "'data[key]' will use Object's default stringification format ('[object Object]') when stringified."
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "typescript(no-this-alias)",
+            "message": "Unexpected aliasing of 'this' to local variable."
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "typescript(no-unsafe-declaration-merging)",
+            "message": "Unsafe declaration merging between classes and interfaces."
+        },
+        {
+            "filename": "src/managers/views/inline.ts",
+            "code": "eslint(no-unassigned-vars)",
+            "message": "'textHeight' is always 'undefined' because it's never assigned."
+        },
+        {
+            "filename": "src/managers/views/inline.ts",
+            "code": "eslint(no-unassigned-vars)",
+            "message": "'textWidth' is always 'undefined' because it's never assigned."
+        },
+        {
+            "filename": "src/managers/views/inline.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/managers/views/inline.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/views/inline.ts",
+            "code": "typescript(no-unsafe-declaration-merging)",
+            "message": "Unsafe declaration merging between classes and interfaces."
+        },
+        {
+            "filename": "src/mapping.ts",
+            "code": "typescript(unbound-method)",
+            "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        {
+            "filename": "src/mapping.ts",
+            "code": "typescript(unbound-method)",
+            "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        {
+            "filename": "src/pagelist.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "-1 is overridden by number in this union type."
+        },
+        {
+            "filename": "src/pagelist.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "-1 is overridden by number in this union type."
+        },
+        {
+            "filename": "src/pagelist.ts",
+            "code": "typescript(unbound-method)",
+            "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        {
+            "filename": "src/pagelist.ts",
+            "code": "typescript(unbound-method)",
+            "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        {
+            "filename": "src/platform/browser.ts",
+            "code": "typescript(unbound-method)",
+            "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-unsafe-declaration-merging)",
+            "message": "Unsafe declaration merging between classes and interfaces."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(unbound-method)",
+            "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(unbound-method)",
+            "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        {
+            "filename": "src/resources.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "base64 is overridden by string in this union type."
+        },
+        {
+            "filename": "src/resources.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "blob is overridden by string in this union type."
+        },
+        {
+            "filename": "src/resources.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "none is overridden by string in this union type."
+        },
+        {
+            "filename": "src/section.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/section.ts",
+            "code": "typescript(no-this-alias)",
+            "message": "Unexpected aliasing of 'this' to local variable."
+        },
+        {
+            "filename": "src/section.ts",
+            "code": "typescript(no-this-alias)",
+            "message": "Unexpected aliasing of 'this' to local variable."
+        },
+        {
+            "filename": "src/store.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/store.ts",
+            "code": "typescript(no-unsafe-declaration-merging)",
+            "message": "Unsafe declaration merging between classes and interfaces."
+        },
+        {
+            "filename": "src/themes.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/utils/queue.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/utils/queue.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/utils/queue.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "binary is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "blob is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "htm is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "html is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "json is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "ncx is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "opf is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "text is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "xhtml is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "xml is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/timing.ts",
+            "code": "typescript(no-this-alias)",
+            "message": "Unexpected aliasing of 'this' to local variable."
+        }
+    ]
 }

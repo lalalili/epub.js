@@ -1,57 +1,52 @@
-import { describe, expect, it } from "vitest";
-import {
-	createBlobUrl,
-	defer,
-	parse,
-	uuid
-} from "../../src/utils/core";
+import { describe, expect, it } from "vite-plus/test";
+import { createBlobUrl, defer, parse, uuid } from "../../src/utils/core";
 import ePub, {
-	Book,
-	Contents,
-	EpubCFI,
-	Layout,
-	Rendition,
-	parseSmilClock,
-	parseSmilDocument,
-	replaceBase,
-	replaceCanonical,
-	replaceLinks,
-	replaceMeta,
-	request,
-	resolveSmilHref,
-	substitute
+    Book,
+    Contents,
+    EpubCFI,
+    Layout,
+    Rendition,
+    parseSmilClock,
+    parseSmilDocument,
+    replaceBase,
+    replaceCanonical,
+    replaceLinks,
+    replaceMeta,
+    request,
+    resolveSmilHref,
+    substitute,
 } from "../../src/index";
 
 describe("browser public api", () => {
-	it("exposes the package root exports in a real browser", () => {
-		expect(typeof ePub).toBe("function");
-		expect(ePub.Book).toBe(Book);
-		expect(ePub.Rendition).toBe(Rendition);
-		expect(ePub.Contents).toBe(Contents);
-		expect(ePub.CFI).toBe(EpubCFI);
-		expect(typeof ePub.VERSION).toBe("string");
+    it("exposes the package root exports in a real browser", () => {
+        expect(typeof ePub).toBe("function");
+        expect(ePub.Book).toBe(Book);
+        expect(ePub.Rendition).toBe(Rendition);
+        expect(ePub.Contents).toBe(Contents);
+        expect(ePub.CFI).toBe(EpubCFI);
+        expect(typeof ePub.VERSION).toBe("string");
 
-		expect(typeof Book).toBe("function");
-		expect(typeof Rendition).toBe("function");
-		expect(typeof Contents).toBe("function");
-		expect(typeof EpubCFI).toBe("function");
-		expect(typeof Layout).toBe("function");
-		expect(typeof request).toBe("function");
-		expect(typeof parseSmilClock).toBe("function");
-		expect(typeof parseSmilDocument).toBe("function");
-		expect(typeof replaceBase).toBe("function");
-		expect(typeof replaceCanonical).toBe("function");
-		expect(typeof replaceLinks).toBe("function");
-		expect(typeof replaceMeta).toBe("function");
-		expect(typeof resolveSmilHref).toBe("function");
-		expect(typeof substitute).toBe("function");
-	});
+        expect(typeof Book).toBe("function");
+        expect(typeof Rendition).toBe("function");
+        expect(typeof Contents).toBe("function");
+        expect(typeof EpubCFI).toBe("function");
+        expect(typeof Layout).toBe("function");
+        expect(typeof request).toBe("function");
+        expect(typeof parseSmilClock).toBe("function");
+        expect(typeof parseSmilDocument).toBe("function");
+        expect(typeof replaceBase).toBe("function");
+        expect(typeof replaceCanonical).toBe("function");
+        expect(typeof replaceLinks).toBe("function");
+        expect(typeof replaceMeta).toBe("function");
+        expect(typeof resolveSmilHref).toBe("function");
+        expect(typeof substitute).toBe("function");
+    });
 
-	it("keeps the legacy ePub.utils facade attached to the package root", () => {
-		expect(ePub.utils.uuid).toBe(uuid);
-		expect(ePub.utils.defer).toBe(defer);
-		expect(ePub.utils.parse).toBe(parse);
-		expect(ePub.utils.createBlobUrl).toBe(createBlobUrl);
-		expect(typeof ePub.utils.uuid()).toBe("string");
-	});
+    it("keeps the legacy ePub.utils facade attached to the package root", () => {
+        expect(ePub.utils.uuid).toBe(uuid);
+        expect(ePub.utils.defer).toBe(defer);
+        expect(ePub.utils.parse).toBe(parse);
+        expect(ePub.utils.createBlobUrl).toBe(createBlobUrl);
+        expect(typeof ePub.utils.uuid()).toBe("string");
+    });
 });

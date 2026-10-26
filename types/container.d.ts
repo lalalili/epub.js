@@ -1,15 +1,15 @@
 export type ContainerDocument = XMLDocument & {
-  xmlEncoding?: string | null;
+    xmlEncoding?: string | null;
 };
 
 export default class Container {
-  constructor(containerDocument?: ContainerDocument);
+    constructor(containerDocument?: ContainerDocument);
 
-  packagePath?: string | null;
-  directory?: string;
-  encoding?: string | null;
+    packagePath?: string | null;
+    directory?: string;
+    encoding?: string | null;
 
-  parse(containerDocument?: ContainerDocument): void;
+    parse(containerDocument?: ContainerDocument): void;
 
-  destroy(): void;
+    destroy(): void;
 }

@@ -4,220 +4,294 @@ import { isXml } from "./mime";
 import Path from "./path";
 
 export type JsonValue =
-	| null
-	| boolean
-	| number
-	| string
-	| JsonValue[]
-	| { [key: string]: JsonValue };
+    | null
+    | boolean
+    | number
+    | string
+    | JsonValue[]
+    | { [key: string]: JsonValue };
 
 export type RequestType =
-	| "binary"
-	| "blob"
-	| "json"
-	| "xml"
-	| "opf"
-	| "ncx"
-	| "xhtml"
-	| "html"
-	| "htm"
-	| "text"
-	| string;
+    | "binary"
+    | "blob"
+    | "json"
+    | "xml"
+    | "opf"
+    | "ncx"
+    | "xhtml"
+    | "html"
+    | "htm"
+    | "text"
+    | string;
 
 export type RequestHeaders = Record<string, string>;
 export type RequestResponse = ArrayBuffer | Blob | string | JsonValue | Document | XMLDocument;
 
 export interface RequestMethod {
-	(url: string, type: "binary", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<ArrayBuffer>;
-	(url: string, type: "blob", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<Blob>;
-	(url: string, type: "json", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<JsonValue>;
-	(url: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<Document | XMLDocument>;
-	(url: string, type: "text", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<string>;
-	(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<RequestResponse>;
+    (
+        url: string,
+        type: "binary",
+        withCredentials?: boolean,
+        headers?: RequestHeaders,
+        signal?: AbortSignal,
+    ): Promise<ArrayBuffer>;
+    (
+        url: string,
+        type: "blob",
+        withCredentials?: boolean,
+        headers?: RequestHeaders,
+        signal?: AbortSignal,
+    ): Promise<Blob>;
+    (
+        url: string,
+        type: "json",
+        withCredentials?: boolean,
+        headers?: RequestHeaders,
+        signal?: AbortSignal,
+    ): Promise<JsonValue>;
+    (
+        url: string,
+        type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm",
+        withCredentials?: boolean,
+        headers?: RequestHeaders,
+        signal?: AbortSignal,
+    ): Promise<Document | XMLDocument>;
+    (
+        url: string,
+        type: "text",
+        withCredentials?: boolean,
+        headers?: RequestHeaders,
+        signal?: AbortSignal,
+    ): Promise<string>;
+    (
+        url: string,
+        type?: RequestType | null,
+        withCredentials?: boolean,
+        headers?: RequestHeaders,
+        signal?: AbortSignal,
+    ): Promise<RequestResponse>;
 }
 
 type DeferConstructor = new () => {
-	promise: Promise<RequestResponse>;
-	resolve(value?: RequestResponse): void;
-	reject(error?: unknown): void;
+    promise: Promise<RequestResponse>;
+    resolve(value?: RequestResponse): void;
+    reject(error?: unknown): void;
 };
 
-function request(url: string, type: "binary", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<ArrayBuffer>;
-function request(url: string, type: "blob", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<Blob>;
-function request(url: string, type: "json", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<JsonValue>;
-function request(url: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<Document | XMLDocument>;
-function request(url: string, type: "text", withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<string>;
-function request(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<RequestResponse>;
-function request(url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal): Promise<RequestResponse> {
-	var supportsURL = (typeof window != "undefined") ? window.URL : false; // TODO: fallback for url if window isn't defined
-	var BLOB_RESPONSE: XMLHttpRequestResponseType = supportsURL ? "blob" : "arraybuffer";
+function request(
+    url: string,
+    type: "binary",
+    withCredentials?: boolean,
+    headers?: RequestHeaders,
+    signal?: AbortSignal,
+): Promise<ArrayBuffer>;
+function request(
+    url: string,
+    type: "blob",
+    withCredentials?: boolean,
+    headers?: RequestHeaders,
+    signal?: AbortSignal,
+): Promise<Blob>;
+function request(
+    url: string,
+    type: "json",
+    withCredentials?: boolean,
+    headers?: RequestHeaders,
+    signal?: AbortSignal,
+): Promise<JsonValue>;
+function request(
+    url: string,
+    type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm",
+    withCredentials?: boolean,
+    headers?: RequestHeaders,
+    signal?: AbortSignal,
+): Promise<Document | XMLDocument>;
+function request(
+    url: string,
+    type: "text",
+    withCredentials?: boolean,
+    headers?: RequestHeaders,
+    signal?: AbortSignal,
+): Promise<string>;
+function request(
+    url: string,
+    type?: RequestType | null,
+    withCredentials?: boolean,
+    headers?: RequestHeaders,
+    signal?: AbortSignal,
+): Promise<RequestResponse>;
+function request(
+    url: string,
+    type?: RequestType | null,
+    withCredentials?: boolean,
+    headers?: RequestHeaders,
+    signal?: AbortSignal,
+): Promise<RequestResponse> {
+    var supportsURL = typeof window != "undefined" ? window.URL : false; // TODO: fallback for url if window isn't defined
+    var BLOB_RESPONSE: XMLHttpRequestResponseType = supportsURL ? "blob" : "arraybuffer";
 
-	var deferred = new (defer as unknown as DeferConstructor)();
+    var deferred = new (defer as unknown as DeferConstructor)();
 
-	if (signal?.aborted) {
-		deferred.reject(new DOMException("Aborted", "AbortError"));
-		return deferred.promise;
-	}
+    if (signal?.aborted) {
+        deferred.reject(new DOMException("Aborted", "AbortError"));
+        return deferred.promise;
+    }
 
-	var xhr = new XMLHttpRequest();
-	var onSignalAbort: (() => void) | undefined;
+    var xhr = new XMLHttpRequest();
+    var onSignalAbort: (() => void) | undefined;
 
-	//-- Check from PDF.js:
-	//   https://github.com/mozilla/pdf.js/blob/master/web/compatibility.js
-	var xhrPrototype = XMLHttpRequest.prototype;
+    //-- Check from PDF.js:
+    //   https://github.com/mozilla/pdf.js/blob/master/web/compatibility.js
+    var xhrPrototype = XMLHttpRequest.prototype;
 
-	var header: string;
+    var header: string;
 
-	if (!("overrideMimeType" in xhrPrototype)) {
-		// IE10 might have response, but not overrideMimeType
-		Object.defineProperty(xhrPrototype, "overrideMimeType", {
-			value: function xmlHttpRequestOverrideMimeType() {}
-		});
-	}
+    if (!("overrideMimeType" in xhrPrototype)) {
+        // IE10 might have response, but not overrideMimeType
+        Object.defineProperty(xhrPrototype, "overrideMimeType", {
+            value: function xmlHttpRequestOverrideMimeType() {},
+        });
+    }
 
-	if(withCredentials) {
-		xhr.withCredentials = true;
-	}
+    if (withCredentials) {
+        xhr.withCredentials = true;
+    }
 
-	xhr.onreadystatechange = handler;
-	xhr.onerror = err;
-	xhr.onabort = aborted;
+    xhr.onreadystatechange = handler;
+    xhr.onerror = err;
+    xhr.onabort = aborted;
 
-	xhr.open("GET", url, true);
+    xhr.open("GET", url, true);
 
-	for(header in headers || {}) {
-		xhr.setRequestHeader(header, headers![header]);
-	}
+    for (header in headers || {}) {
+        xhr.setRequestHeader(header, headers![header]);
+    }
 
-	if(type == "json") {
-		xhr.setRequestHeader("Accept", "application/json");
-	}
+    if (type == "json") {
+        xhr.setRequestHeader("Accept", "application/json");
+    }
 
-	// If type isn"t set, determine it from the file extension
-	if(!type) {
-		type = new Path(url).extension;
-	}
+    // If type isn"t set, determine it from the file extension
+    if (!type) {
+        type = new Path(url).extension;
+    }
 
-	if(type == "blob"){
-		xhr.responseType = BLOB_RESPONSE;
-	}
+    if (type == "blob") {
+        xhr.responseType = BLOB_RESPONSE;
+    }
 
+    if (isXml(type)) {
+        // xhr.responseType = "document";
+        xhr.overrideMimeType("text/xml"); // for OPF parsing
+    }
 
-	if(isXml(type)) {
-		// xhr.responseType = "document";
-		xhr.overrideMimeType("text/xml"); // for OPF parsing
-	}
+    if (type == "xhtml") {
+        // xhr.responseType = "document";
+    }
 
-	if(type == "xhtml") {
-		// xhr.responseType = "document";
-	}
+    if (type == "html" || type == "htm") {
+        // xhr.responseType = "document";
+    }
 
-	if(type == "html" || type == "htm") {
-		// xhr.responseType = "document";
-	}
+    if (type == "binary") {
+        xhr.responseType = "arraybuffer";
+    }
 
-	if(type == "binary") {
-		xhr.responseType = "arraybuffer";
-	}
+    if (signal) {
+        onSignalAbort = () => {
+            xhr.abort();
+        };
+        signal.addEventListener("abort", onSignalAbort, { once: true });
+    }
 
-	if (signal) {
-		onSignalAbort = () => {
-			xhr.abort();
-		};
-		signal.addEventListener("abort", onSignalAbort, { once: true });
-	}
+    xhr.send();
 
-	xhr.send();
+    function err(e: ProgressEvent<XMLHttpRequestEventTarget>) {
+        cleanup();
+        deferred.reject(e);
+    }
 
-	function err(e: ProgressEvent<XMLHttpRequestEventTarget>) {
-		cleanup();
-		deferred.reject(e);
-	}
+    function aborted() {
+        cleanup();
+        deferred.reject(new DOMException("Aborted", "AbortError"));
+    }
 
-	function aborted() {
-		cleanup();
-		deferred.reject(new DOMException("Aborted", "AbortError"));
-	}
+    function cleanup() {
+        if (signal && onSignalAbort) {
+            signal.removeEventListener("abort", onSignalAbort);
+        }
+    }
 
-	function cleanup() {
-		if (signal && onSignalAbort) {
-			signal.removeEventListener("abort", onSignalAbort);
-		}
-	}
+    function handler(this: XMLHttpRequest) {
+        if (this.readyState === XMLHttpRequest.DONE) {
+            if (signal?.aborted) {
+                return;
+            }
 
-	function handler(this: XMLHttpRequest) {
-		if (this.readyState === XMLHttpRequest.DONE) {
-			if (signal?.aborted) {
-				return;
-			}
+            cleanup();
+            var responseXML: Document | false = false;
 
-			cleanup();
-			var responseXML: Document | false = false;
+            if (this.responseType === "" || this.responseType === "document") {
+                responseXML = this.responseXML;
+            }
 
-			if(this.responseType === "" || this.responseType === "document") {
-				responseXML = this.responseXML;
-			}
+            if (this.status === 200 || this.status === 0 || responseXML) {
+                //-- Firefox is reporting 0 for blob urls
+                var r: RequestResponse;
 
-			if (this.status === 200 || this.status === 0 || responseXML) { //-- Firefox is reporting 0 for blob urls
-				var r: RequestResponse;
+                if (!this.response && !responseXML) {
+                    deferred.reject({
+                        status: this.status,
+                        message: "Empty Response",
+                        stack: new Error().stack,
+                    });
+                    return deferred.promise;
+                }
 
-				if (!this.response && !responseXML) {
-					deferred.reject({
-						status: this.status,
-						message : "Empty Response",
-						stack : new Error().stack
-					});
-					return deferred.promise;
-				}
+                if (this.status === 403) {
+                    deferred.reject({
+                        status: this.status,
+                        response: this.response,
+                        message: "Forbidden",
+                        stack: new Error().stack,
+                    });
+                    return deferred.promise;
+                }
+                if (responseXML) {
+                    r = responseXML;
+                } else if (isXml(type)) {
+                    // xhr.overrideMimeType("text/xml"); // for OPF parsing
+                    // If this.responseXML wasn't set, try to parse using a DOMParser from text
+                    r = parse(this.response, "text/xml");
+                } else if (type == "xhtml") {
+                    r = parse(this.response, "application/xhtml+xml");
+                } else if (type == "html" || type == "htm") {
+                    r = parse(this.response, "text/html");
+                } else if (type == "json") {
+                    r = JSON.parse(this.response) as JsonValue;
+                } else if (type == "blob") {
+                    if (supportsURL) {
+                        r = this.response as Blob;
+                    } else {
+                        //-- Safari doesn't support responseType blob, so create a blob from arraybuffer
+                        r = new Blob([this.response as BlobPart]);
+                    }
+                } else {
+                    r = this.response as ArrayBuffer | string;
+                }
 
-				if (this.status === 403) {
-					deferred.reject({
-						status: this.status,
-						response: this.response,
-						message : "Forbidden",
-						stack : new Error().stack
-					});
-					return deferred.promise;
-				}
-				if(responseXML){
-					r = responseXML;
-				} else if(isXml(type)){
-					// xhr.overrideMimeType("text/xml"); // for OPF parsing
-					// If this.responseXML wasn't set, try to parse using a DOMParser from text
-					r = parse(this.response, "text/xml");
-				} else if(type == "xhtml"){
-					r = parse(this.response, "application/xhtml+xml");
-				} else if(type == "html" || type == "htm"){
-					r = parse(this.response, "text/html");
-				} else if(type == "json"){
-					r = JSON.parse(this.response) as JsonValue;
-				} else if(type == "blob"){
+                deferred.resolve(r);
+            } else {
+                deferred.reject({
+                    status: this.status,
+                    message: this.response,
+                    stack: new Error().stack,
+                });
+            }
+        }
+    }
 
-					if(supportsURL) {
-						r = this.response as Blob;
-					} else {
-						//-- Safari doesn't support responseType blob, so create a blob from arraybuffer
-						r = new Blob([this.response as BlobPart]);
-					}
-
-				} else {
-					r = this.response as ArrayBuffer | string;
-				}
-
-				deferred.resolve(r);
-			} else {
-
-				deferred.reject({
-					status: this.status,
-					message : this.response,
-					stack : new Error().stack
-				});
-
-			}
-		}
-	}
-
-	return deferred.promise;
+    return deferred.promise;
 }
 
 export default request;

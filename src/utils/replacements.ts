@@ -4,144 +4,138 @@ import Url from "./url";
 export type LinkCallback = (href: string) => void;
 
 export type SectionLike = {
-	canonical?: string;
-	idref?: string;
-	url?: string;
+    canonical?: string;
+    idref?: string;
+    url?: string;
 };
 
 export function replaceBase(doc?: Document, section?: SectionLike): void {
-	var base;
-	var head;
-	var url = section.url;
-	var absolute = (url.indexOf("://") > -1);
+    var base;
+    var head;
+    var url = section.url;
+    var absolute = url.indexOf("://") > -1;
 
-	if(!doc){
-		return;
-	}
+    if (!doc) {
+        return;
+    }
 
-	head = qs(doc, "head") as Element;
-	base = qs(head, "base");
+    head = qs(doc, "head") as Element;
+    base = qs(head, "base");
 
-	if(!base) {
-		base = doc.createElement("base");
-		head.insertBefore(base, head.firstChild);
-	}
+    if (!base) {
+        base = doc.createElement("base");
+        head.insertBefore(base, head.firstChild);
+    }
 
-	// Fix for Safari crashing if the url doesn't have an origin
-	if (!absolute && window && window.location) {
-		url = window.location.origin + url;
-	}
+    // Fix for Safari crashing if the url doesn't have an origin
+    if (!absolute && window && window.location) {
+        url = window.location.origin + url;
+    }
 
-	base.setAttribute("href", url);
+    base.setAttribute("href", url);
 }
 
 export function replaceCanonical(doc?: Document, section?: SectionLike): void {
-	var head;
-	var link;
-	var url = section.canonical;
+    var head;
+    var link;
+    var url = section.canonical;
 
-	if(!doc){
-		return;
-	}
+    if (!doc) {
+        return;
+    }
 
-	head = qs(doc, "head") as Element;
-	link = qs(head, "link[rel='canonical']");
+    head = qs(doc, "head") as Element;
+    link = qs(head, "link[rel='canonical']");
 
-	if (link) {
-		link.setAttribute("href", url);
-	} else {
-		link = doc.createElement("link");
-		link.setAttribute("rel", "canonical");
-		link.setAttribute("href", url);
-		head.appendChild(link);
-	}
+    if (link) {
+        link.setAttribute("href", url);
+    } else {
+        link = doc.createElement("link");
+        link.setAttribute("rel", "canonical");
+        link.setAttribute("href", url);
+        head.appendChild(link);
+    }
 }
 
 export function replaceMeta(doc?: Document, section?: SectionLike): void {
-	var head;
-	var meta;
-	var id = section.idref;
-	if(!doc){
-		return;
-	}
+    var head;
+    var meta;
+    var id = section.idref;
+    if (!doc) {
+        return;
+    }
 
-	head = qs(doc, "head") as Element;
-	meta = qs(head, "meta[name='dc.identifier']");
+    head = qs(doc, "head") as Element;
+    meta = qs(head, "meta[name='dc.identifier']");
 
-	if (meta) {
-		meta.setAttribute("content", id);
-	} else {
-		meta = doc.createElement("meta");
-		meta.setAttribute("name", "dc.identifier");
-		meta.setAttribute("content", id);
-		head.appendChild(meta);
-	}
+    if (meta) {
+        meta.setAttribute("content", id);
+    } else {
+        meta = doc.createElement("meta");
+        meta.setAttribute("name", "dc.identifier");
+        meta.setAttribute("content", id);
+        head.appendChild(meta);
+    }
 }
 
 // TODO: move me to Contents
 export function replaceLinks(contents: Element, fn: LinkCallback, sectionHref?: string): void {
+    var links = contents.querySelectorAll("a[href]");
 
-	var links = contents.querySelectorAll("a[href]");
+    if (!links.length) {
+        return;
+    }
 
-	if (!links.length) {
-		return;
-	}
+    var base = qs(contents.ownerDocument, "base");
+    var location = base ? base.getAttribute("href") : undefined;
+    var replaceLink = function (link: HTMLAnchorElement) {
+        var href = link.getAttribute("href") as string;
 
-	var base = qs(contents.ownerDocument, "base");
-	var location = base ? base.getAttribute("href") : undefined;
-	var replaceLink = function(link: HTMLAnchorElement){
-		var href = link.getAttribute("href") as string;
+        if (href.indexOf("mailto:") === 0) {
+            return;
+        }
 
-		if(href.indexOf("mailto:") === 0){
-			return;
-		}
+        var absolute = href.indexOf("://") > -1;
 
-		var absolute = (href.indexOf("://") > -1);
+        if (absolute) {
+            link.setAttribute("target", "_blank");
+        } else {
+            var linkUrl: Url | undefined;
+            try {
+                linkUrl = new Url(href, location);
+            } catch {
+                // NOOP
+            }
 
-		if(absolute){
+            link.onclick = function () {
+                if (sectionHref && href && href.indexOf("#") === 0) {
+                    fn(sectionHref + href);
+                } else if (linkUrl && linkUrl.hash) {
+                    fn(linkUrl.Path.path + linkUrl.hash);
+                } else if (linkUrl) {
+                    fn(linkUrl.Path.path);
+                } else {
+                    fn(href);
+                }
 
-			link.setAttribute("target", "_blank");
+                return false;
+            };
+        }
+    }.bind(this);
 
-		}else{
-			var linkUrl: Url | undefined;
-			try {
-				linkUrl = new Url(href, location);	
-			} catch(error) {
-				// NOOP
-			}
-
-			link.onclick = function(){
-
-				if(sectionHref && href && href.indexOf("#") === 0) {
-					fn(sectionHref + href);
-				} else if(linkUrl && linkUrl.hash) {
-					fn(linkUrl.Path.path + linkUrl.hash);
-				} else if(linkUrl){
-					fn(linkUrl.Path.path);
-				} else {
-					fn(href);
-				}
-
-				return false;
-			};
-		}
-	}.bind(this);
-
-	for (var i = 0; i < links.length; i++) {
-		replaceLink(links[i] as HTMLAnchorElement);
-	}
-
-
+    for (var i = 0; i < links.length; i++) {
+        replaceLink(links[i] as HTMLAnchorElement);
+    }
 }
 
 export function substitute(content: string, urls: string[], replacements: string[]): string {
-	urls.forEach(function(url, i){
-		if (url && replacements[i]) {
-			// Account for special characters in the file name.
-			// See https://stackoverflow.com/a/6318729.
-			url = url.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-			content = content.replace(new RegExp(url, "g"), replacements[i]);
-		}
-	});
-	return content;
+    urls.forEach(function (url, i) {
+        if (url && replacements[i]) {
+            // Account for special characters in the file name.
+            // See https://stackoverflow.com/a/6318729.
+            url = url.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+            content = content.replace(new RegExp(url, "g"), replacements[i]);
+        }
+    });
+    return content;
 }

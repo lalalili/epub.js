@@ -1,7 +1,7 @@
 (function(global, factory) {
 	typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require("jszip/dist/jszip")) : typeof define === "function" && define.amd ? define(["jszip/dist/jszip"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.ePub = factory(global.JSZip));
 })(this, function(jszip_dist_jszip) {
-	//#region \0rolldown/runtime.js
+	// \0rolldown/runtime.js
 	var __create = Object.create;
 	var __defProp = Object.defineProperty;
 	var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -16,7 +16,7 @@
 			throw err = [e], e;
 		}
 	};
-	var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).exports, mod), cb = null), mod.exports);
+	var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).exports, mod, mod.exports), cb = null), mod.exports);
 	var __exportAll = (all, no_symbols) => {
 		let target = {};
 		for (var name in all) __defProp(target, name, {
@@ -36,21 +36,19 @@
 		}
 		return to;
 	};
-	var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", {
+	var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule || !__hasOwnProp.call(mod, "default") ? __defProp(target, "default", {
 		value: mod,
 		enumerable: true
 	}) : target, mod));
-	//#endregion
 	jszip_dist_jszip = __toESM(jszip_dist_jszip);
-	//#region ../../.local/epub.js/node_modules/type/value/is.js
+	// node_modules/.pnpm/type@2.7.3/node_modules/type/value/is.js
 	var require_is$4 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var _undefined = void 0;
 		module.exports = function(value) {
 			return value !== _undefined && value !== null;
 		};
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/type/object/is.js
+	// node_modules/.pnpm/type@2.7.3/node_modules/type/object/is.js
 	var require_is$3 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is$4();
 		var possibleTypes = {
@@ -63,8 +61,7 @@
 			return hasOwnProperty.call(possibleTypes, typeof value);
 		};
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/type/prototype/is.js
+	// node_modules/.pnpm/type@2.7.3/node_modules/type/prototype/is.js
 	var require_is$2 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isObject = require_is$3();
 		module.exports = function(value) {
@@ -77,8 +74,7 @@
 			}
 		};
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/type/function/is.js
+	// node_modules/.pnpm/type@2.7.3/node_modules/type/function/is.js
 	var require_is$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isPrototype = require_is$2();
 		module.exports = function(value) {
@@ -94,8 +90,7 @@
 			return !isPrototype(value);
 		};
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/type/plain-function/is.js
+	// node_modules/.pnpm/type@2.7.3/node_modules/type/plain-function/is.js
 	var require_is = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isFunction = require_is$1();
 		var classRe = /^\s*class[\s{/}]/;
@@ -106,8 +101,7 @@
 			return true;
 		};
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/assign/is-implemented.js
+	// node_modules/.pnpm/es5-ext@0.10.64/node_modules/es5-ext/object/assign/is-implemented.js
 	var require_is_implemented$2 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = function() {
 			var assign = Object.assign, obj;
@@ -117,8 +111,7 @@
 			return obj.foo + obj.bar + obj.trzy === "razdwatrzy";
 		};
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/keys/is-implemented.js
+	// node_modules/.pnpm/es5-ext@0.10.64/node_modules/es5-ext/object/keys/is-implemented.js
 	var require_is_implemented$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = function() {
 			try {
@@ -128,21 +121,18 @@
 			}
 		};
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/function/noop.js
+	// node_modules/.pnpm/es5-ext@0.10.64/node_modules/es5-ext/function/noop.js
 	var require_noop = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = function() {};
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/is-value.js
+	// node_modules/.pnpm/es5-ext@0.10.64/node_modules/es5-ext/object/is-value.js
 	var require_is_value = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var _undefined = require_noop()();
 		module.exports = function(val) {
 			return val !== _undefined && val !== null;
 		};
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/keys/shim.js
+	// node_modules/.pnpm/es5-ext@0.10.64/node_modules/es5-ext/object/keys/shim.js
 	var require_shim$2 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is_value();
 		var keys = Object.keys;
@@ -150,13 +140,11 @@
 			return keys(isValue(object) ? Object(object) : object);
 		};
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/keys/index.js
+	// node_modules/.pnpm/es5-ext@0.10.64/node_modules/es5-ext/object/keys/index.js
 	var require_keys = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = require_is_implemented$1()() ? Object.keys : require_shim$2();
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/valid-value.js
+	// node_modules/.pnpm/es5-ext@0.10.64/node_modules/es5-ext/object/valid-value.js
 	var require_valid_value = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is_value();
 		module.exports = function(value) {
@@ -164,8 +152,7 @@
 			return value;
 		};
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/assign/shim.js
+	// node_modules/.pnpm/es5-ext@0.10.64/node_modules/es5-ext/object/assign/shim.js
 	var require_shim$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var keys = require_keys();
 		var value = require_valid_value();
@@ -188,13 +175,11 @@
 			return dest;
 		};
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/assign/index.js
+	// node_modules/.pnpm/es5-ext@0.10.64/node_modules/es5-ext/object/assign/index.js
 	var require_assign = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = require_is_implemented$2()() ? Object.assign : require_shim$1();
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/normalize-options.js
+	// node_modules/.pnpm/es5-ext@0.10.64/node_modules/es5-ext/object/normalize-options.js
 	var require_normalize_options = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is_value();
 		var forEach = Array.prototype.forEach;
@@ -212,8 +197,7 @@
 			return result;
 		};
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/string/#/contains/is-implemented.js
+	// node_modules/.pnpm/es5-ext@0.10.64/node_modules/es5-ext/string/#/contains/is-implemented.js
 	var require_is_implemented = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var str = "razdwatrzy";
 		module.exports = function() {
@@ -221,21 +205,18 @@
 			return str.contains("dwa") === true && str.contains("foo") === false;
 		};
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/string/#/contains/shim.js
+	// node_modules/.pnpm/es5-ext@0.10.64/node_modules/es5-ext/string/#/contains/shim.js
 	var require_shim = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var indexOf = String.prototype.indexOf;
 		module.exports = function(searchString) {
 			return indexOf.call(this, searchString, arguments[1]) > -1;
 		};
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/string/#/contains/index.js
+	// node_modules/.pnpm/es5-ext@0.10.64/node_modules/es5-ext/string/#/contains/index.js
 	var require_contains = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = require_is_implemented()() ? String.prototype.contains : require_shim();
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/d/index.js
+	// node_modules/.pnpm/d@1.0.2/node_modules/d/index.js
 	var require_d = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var isValue = require_is$4();
 		var isPlainFunction = require_is();
@@ -298,16 +279,14 @@
 			return !options ? desc : assign(normalizeOpts(options), desc);
 		};
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/es5-ext/object/valid-callable.js
+	// node_modules/.pnpm/es5-ext@0.10.64/node_modules/es5-ext/object/valid-callable.js
 	var require_valid_callable = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		module.exports = function(fn) {
 			if (typeof fn !== "function") throw new TypeError(fn + " is not a function");
 			return fn;
 		};
 	}));
-	//#endregion
-	//#region src/core/async.ts
+	// src/core/async.ts
 	var import_event_emitter = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
 		var d = require_d();
 		var callable = require_valid_callable();
@@ -354,8 +333,10 @@
 			if (!data[type]) return this;
 			listeners = data[type];
 			if (typeof listeners === "object") {
-				for (i = 0; candidate = listeners[i]; ++i) if (candidate === listener || candidate.__eeOnceListener__ === listener) if (listeners.length === 2) data[type] = listeners[i ? 0 : 1];
-				else listeners.splice(i, 1);
+				for (i = 0; candidate = listeners[i]; ++i) if (candidate === listener || candidate.__eeOnceListener__ === listener) {
+					if (listeners.length === 2) data[type] = listeners[i ? 0 : 1];
+					else listeners.splice(i, 1);
+				}
 			} else if (listeners === listener || listeners.__eeOnceListener__ === listener) delete data[type];
 			return this;
 		};
@@ -432,8 +413,7 @@
 		});
 		Object.freeze(this);
 	}
-	//#endregion
-	//#region src/core/collections.ts
+	// src/core/collections.ts
 	function defaultCompare(a, b) {
 		if (a > b) return 1;
 		if (a < b) return -1;
@@ -522,8 +502,7 @@
 		if (compared === -1) return indexOfSorted$1(item, array, compareFunction, pivot, end);
 		else return indexOfSorted$1(item, array, compareFunction, start, pivot);
 	}
-	//#endregion
-	//#region src/utils/path-posix.ts
+	// src/utils/path-posix.ts
 	function assertPath(value) {
 		if (typeof value !== "string") throw new TypeError(`Path must be a string. Received ${String(value)}`);
 	}
@@ -595,8 +574,7 @@
 			name: hasExtension ? base.slice(0, dotIndex) : base
 		};
 	}
-	//#endregion
-	//#region src/utils/path.ts
+	// src/utils/path.ts
 	/**
 	* Creates a Path object for parsing and manipulation of a path strings
 	*
@@ -677,8 +655,7 @@
 			return this.path;
 		}
 	};
-	//#endregion
-	//#region src/utils/url.ts
+	// src/utils/url.ts
 	/**
 	* creates a Url object for parsing and manipulation of a url string
 	* @param	{string} urlString	a url string (relative or absolute)
@@ -719,7 +696,7 @@
 				this.hash = this.Url.hash;
 				this.search = this.Url.search;
 				pathname = this.Url.pathname + (this.Url.search ? this.Url.search : "");
-			} catch (e) {
+			} catch {
 				this.Url = void 0;
 				if (this.base) {
 					basePath = new Path(this.base);
@@ -764,8 +741,7 @@
 			return this.href;
 		}
 	};
-	//#endregion
-	//#region src/platform/traversal.ts
+	// src/platform/traversal.ts
 	var ELEMENT_NODE$2 = 1;
 	var TEXT_NODE$2 = 3;
 	/**
@@ -927,8 +903,10 @@
 		var childNodes = el.childNodes;
 		for (var i = 0; i < childNodes.length; i++) {
 			let node = childNodes[i];
-			if (node.nodeType === 1 && node.nodeName.toLowerCase() === nodeName) if (single) return node;
-			else result.push(node);
+			if (node.nodeType === 1 && node.nodeName.toLowerCase() === nodeName) {
+				if (single) return node;
+				else result.push(node);
+			}
 		}
 		if (!single) return result;
 	}
@@ -980,8 +958,7 @@
 	function indexOfElementNode$1(elementNode) {
 		return indexOfNode$1(elementNode, ELEMENT_NODE$2);
 	}
-	//#endregion
-	//#region src/compat/range.ts
+	// src/compat/range.ts
 	/**
 	* Lightweight Polyfill for DOM Range.
 	*/
@@ -1052,8 +1029,7 @@
 		}
 		toString() {}
 	};
-	//#endregion
-	//#region src/core/types.ts
+	// src/core/types.ts
 	/**
 	* Checks if a node is an element
 	* @param {unknown} obj Candidate object.
@@ -1089,8 +1065,7 @@
 	function type$1(obj) {
 		return Object.prototype.toString.call(obj).slice(8, -1);
 	}
-	//#endregion
-	//#region src/epubcfi.ts
+	// src/epubcfi.ts
 	var ELEMENT_NODE$1 = 1;
 	var TEXT_NODE$1 = 3;
 	var COMMENT_NODE = 8;
@@ -1218,9 +1193,9 @@
 				index = (num - 1) / 2;
 			}
 			return {
-				"type": stepType,
-				"index": index,
-				"id": id || null
+				type: stepType,
+				index,
+				id: id || null
 			};
 		}
 		parseTerminal(termialStr) {
@@ -1232,8 +1207,8 @@
 			} else characterOffset = parseInt(termialStr);
 			if (!isNumber$1(characterOffset)) characterOffset = null;
 			return {
-				"offset": characterOffset,
-				"assertion": textLocationAssertion
+				offset: characterOffset,
+				assertion: textLocationAssertion
 			};
 		}
 		getChapterComponent(cfiStr) {
@@ -1329,10 +1304,10 @@
 			var nodeType = node.nodeType === TEXT_NODE$1 ? "text" : "element";
 			var element = node;
 			return {
-				"id": element.id,
-				"tagName": element.tagName,
-				"type": nodeType,
-				"index": this.position(node)
+				id: element.id,
+				tagName: element.tagName,
+				type: nodeType,
+				index: this.position(node)
 			};
 		}
 		filteredStep(node, ignoreClass) {
@@ -1341,10 +1316,10 @@
 			if (!filteredNode) return;
 			nodeType = filteredNode.nodeType === TEXT_NODE$1 ? "text" : "element";
 			return {
-				"id": filteredNode.id,
-				"tagName": filteredNode.tagName,
-				"type": nodeType,
-				"index": this.filteredPosition(filteredNode, ignoreClass)
+				id: filteredNode.id,
+				tagName: filteredNode.tagName,
+				type: nodeType,
+				index: this.filteredPosition(filteredNode, ignoreClass)
 			};
 		}
 		pathTo(node, offset, ignoreClass) {
@@ -1366,8 +1341,8 @@
 			if (offset != null && offset >= 0) {
 				segment.terminal.offset = offset;
 				if (segment.steps[segment.steps.length - 1].type != "text") segment.steps.push({
-					"type": "text",
-					"index": 0
+					type: "text",
+					index: 0
 				});
 			}
 			return segment;
@@ -1416,14 +1391,15 @@
 					terminal: null
 				};
 				var len = cfi.start.steps.length;
-				var i;
-				for (i = 0; i < len; i++) if (this.equalStep(cfi.start.steps[i], cfi.end.steps[i])) if (i === len - 1) {
-					if (cfi.start.terminal === cfi.end.terminal) {
-						cfi.path.steps.push(cfi.start.steps[i]);
-						cfi.range = false;
-					}
-				} else cfi.path.steps.push(cfi.start.steps[i]);
-				else break;
+				var i = 0;
+				for (; i < len; i++) if (this.equalStep(cfi.start.steps[i], cfi.end.steps[i])) {
+					if (i === len - 1) {
+						if (cfi.start.terminal === cfi.end.terminal) {
+							cfi.path.steps.push(cfi.start.steps[i]);
+							cfi.range = false;
+						}
+					} else cfi.path.steps.push(cfi.start.steps[i]);
+				} else break;
 				cfi.start.steps = cfi.start.steps.slice(cfi.path.steps.length);
 				cfi.end.steps = cfi.end.steps.slice(cfi.path.steps.length);
 			}
@@ -1480,9 +1456,10 @@
 			var totalOffset = offset;
 			if (anchor.parentNode.classList.contains(ignoreClass || "")) curr = anchor.parentNode;
 			while (curr.previousSibling) {
-				if (curr.previousSibling.nodeType === ELEMENT_NODE$1) if (curr.previousSibling.classList.contains(ignoreClass || "")) totalOffset += curr.previousSibling.textContent.length;
-				else break;
-				else totalOffset += curr.previousSibling.textContent.length;
+				if (curr.previousSibling.nodeType === ELEMENT_NODE$1) {
+					if (curr.previousSibling.classList.contains(ignoreClass || "")) totalOffset += curr.previousSibling.textContent.length;
+					else break;
+				} else totalOffset += curr.previousSibling.textContent.length;
 				curr = curr.previousSibling;
 			}
 			return totalOffset;
@@ -1565,15 +1542,16 @@
 			var children;
 			var step;
 			var len = steps.length;
-			var i;
-			for (i = 0; i < len; i++) {
+			var i = 0;
+			for (; i < len; i++) {
 				step = steps[i];
-				if (step.type === "element") if (step.id) container = doc.getElementById(step.id);
-				else {
-					children = container.children || findChildren$1(container);
-					container = children[step.index];
-				}
-				else if (step.type === "text") container = this.textNodes(container, ignoreClass)[step.index];
+				if (step.type === "element") {
+					if (step.id) container = doc.getElementById(step.id);
+					else {
+						children = container.children || findChildren$1(container);
+						container = children[step.index];
+					}
+				} else if (step.type === "text") container = this.textNodes(container, ignoreClass)[step.index];
 				if (!container) break;
 			}
 			return container;
@@ -1634,7 +1612,7 @@
 			try {
 				range[method](safeContainer, safeOffset);
 				return true;
-			} catch (e) {
+			} catch {
 				missed = this.fixMiss(steps, offset, doc, ignoreClass);
 				if (missed && missed.container) {
 					safeContainer = missed.container;
@@ -1645,7 +1623,7 @@
 				try {
 					range[method](safeContainer, safeOffset);
 					return true;
-				} catch (_e) {
+				} catch {
 					return false;
 				}
 			}
@@ -1720,8 +1698,7 @@
 			}
 		}
 	};
-	//#endregion
-	//#region src/utils/hook.ts
+	// src/utils/hook.ts
 	var Hook = class {
 		context;
 		hooks;
@@ -1733,7 +1710,7 @@
 		* Adds a function to be run before a hook completes
 		* @example this.content.register(function(){...});
 		*/
-		register(...items) {
+		register(..._items) {
 			for (var i = 0; i < arguments.length; ++i) if (typeof arguments[i] === "function") this.hooks.push(arguments[i]);
 			else for (var j = 0; j < arguments[i].length; ++j) this.hooks.push(arguments[i][j]);
 		}
@@ -1755,7 +1732,7 @@
 		* Triggers a hook to run all functions
 		* @example this.content.trigger(args).then(function(){...});
 		*/
-		trigger(...items) {
+		trigger(..._items) {
 			var args = arguments;
 			var context = this.context;
 			var promises = [];
@@ -1777,8 +1754,7 @@
 			return this.hooks = [];
 		}
 	};
-	//#endregion
-	//#region src/platform/dom.ts
+	// src/platform/dom.ts
 	/**
 	* Select the first matching element with legacy fallback behavior.
 	* @param {Element | Document} el Root element or document.
@@ -1841,8 +1817,7 @@
 			for (var i = 0; i < elements.length; i++) if (elements[i].getAttributeNS("http://www.idpf.org/2007/ops", "type") === type || elements[i].getAttribute("epub:type") === type) return elements[i];
 		} else return query;
 	}
-	//#endregion
-	//#region src/utils/replacements.ts
+	// src/utils/replacements.ts
 	function replaceBase(doc, section) {
 		var base;
 		var head;
@@ -1901,7 +1876,7 @@
 				var linkUrl;
 				try {
 					linkUrl = new Url(href, location);
-				} catch (error) {}
+				} catch {}
 				link.onclick = function() {
 					if (sectionHref && href && href.indexOf("#") === 0) fn(sectionHref + href);
 					else if (linkUrl && linkUrl.hash) fn(linkUrl.Path.path + linkUrl.hash);
@@ -1922,8 +1897,7 @@
 		});
 		return content;
 	}
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/@xmldom/xmldom/lib/conventions.js
+	// node_modules/.pnpm/@xmldom+xmldom@0.8.15/node_modules/@xmldom/xmldom/lib/conventions.js
 	var require_conventions = /* @__PURE__ */ __commonJSMin(((exports) => {
 		/**
 		* Ponyfill for `Array.prototype.find` which is only available in ES6 runtimes.
@@ -2103,8 +2077,7 @@
 		exports.nameChar = nameChar;
 		exports.tagNamePattern = tagNamePattern;
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/@xmldom/xmldom/lib/dom.js
+	// node_modules/.pnpm/@xmldom+xmldom@0.8.15/node_modules/@xmldom/xmldom/lib/dom.js
 	var require_dom = /* @__PURE__ */ __commonJSMin(((exports) => {
 		var conventions = require_conventions();
 		var find = conventions.find;
@@ -3618,8 +3591,10 @@
 									});
 								}
 								var filteredAttr = nodeFilter ? nodeFilter(attr) : attr;
-								if (filteredAttr) if (typeof filteredAttr === "string") buf.push(filteredAttr);
-								else addSerializedAttribute(buf, filteredAttr.name, filteredAttr.value, requireWellFormed);
+								if (filteredAttr) {
+									if (typeof filteredAttr === "string") buf.push(filteredAttr);
+									else addSerializedAttribute(buf, filteredAttr.name, filteredAttr.value, requireWellFormed);
+								}
 							}
 							if (nodeName === prefixedNodeName && needNamespaceDefine(n, html, childNs)) {
 								var nodePrefix = n.prefix || "";
@@ -3846,8 +3821,7 @@
 		exports.walkDOM = walkDOM;
 		exports.XMLSerializer = XMLSerializer;
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/@xmldom/xmldom/lib/entities.js
+	// node_modules/.pnpm/@xmldom+xmldom@0.8.15/node_modules/@xmldom/xmldom/lib/entities.js
 	var require_entities = /* @__PURE__ */ __commonJSMin(((exports) => {
 		var freeze = require_conventions().freeze;
 		/**
@@ -6011,8 +5985,7 @@
 		*/
 		exports.entityMap = exports.HTML_ENTITIES;
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/@xmldom/xmldom/lib/sax.js
+	// node_modules/.pnpm/@xmldom+xmldom@0.8.15/node_modules/@xmldom/xmldom/lib/sax.js
 	var require_sax = /* @__PURE__ */ __commonJSMin(((exports) => {
 		var NAMESPACE = require_conventions().NAMESPACE;
 		var tagNamePattern = require_conventions().tagNamePattern;
@@ -6281,9 +6254,7 @@
 							var value = source.slice(start, p);
 							errorHandler.warning("attribute \"" + value + "\" missed quot(\")!!");
 							addAttribute(attrName, value, start);
-						case S_ATTR_END:
-							s = S_TAG_SPACE;
-							break;
+						case S_ATTR_END: s = S_TAG_SPACE;
 					}
 					else switch (s) {
 						case S_ATTR_SPACE:
@@ -6498,8 +6469,7 @@
 		exports.XMLReader = XMLReader;
 		exports.ParseError = ParseError;
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/@xmldom/xmldom/lib/dom-parser.js
+	// node_modules/.pnpm/@xmldom+xmldom@0.8.15/node_modules/@xmldom/xmldom/lib/dom-parser.js
 	var require_dom_parser = /* @__PURE__ */ __commonJSMin(((exports) => {
 		var conventions = require_conventions();
 		var dom = require_dom();
@@ -6736,8 +6706,7 @@
 		exports.normalizeLineEndings = normalizeLineEndings;
 		exports.DOMParser = DOMParser;
 	}));
-	//#endregion
-	//#region src/platform/browser.ts
+	// src/platform/browser.ts
 	var import_lib = (/* @__PURE__ */ __commonJSMin(((exports) => {
 		var dom = require_dom();
 		exports.DOMImplementation = dom.DOMImplementation;
@@ -6759,8 +6728,7 @@
 		var win = getWindow();
 		return win ? win.requestAnimationFrame || win.mozRequestAnimationFrame || win.webkitRequestAnimationFrame || win.msRequestAnimationFrame : false;
 	})();
-	//#endregion
-	//#region src/platform/parser.ts
+	// src/platform/parser.ts
 	/**
 	* Resolve the parser constructor for browser/native or XMLDOM parsing.
 	* @param {boolean} forceXMLDom Force XMLDOMParser even when native parser exists.
@@ -6792,15 +6760,14 @@
 	function parseMarkup(markup, mime, forceXMLDom) {
 		return new (getParserConstructor(forceXMLDom))().parseFromString(stripByteOrderMark(markup), mime);
 	}
-	//#endregion
-	//#region src/utils/mime.ts
+	// src/utils/mime.ts
 	var table = {
-		"application": {
-			"ecmascript": ["es", "ecma"],
-			"javascript": "js",
-			"ogg": "ogx",
-			"pdf": "pdf",
-			"postscript": [
+		application: {
+			ecmascript: ["es", "ecma"],
+			javascript: "js",
+			ogg: "ogx",
+			pdf: "pdf",
+			postscript: [
 				"ps",
 				"ai",
 				"eps",
@@ -6810,16 +6777,16 @@
 				"eps3"
 			],
 			"rdf+xml": "rdf",
-			"smil": ["smi", "smil"],
+			smil: ["smi", "smil"],
 			"xhtml+xml": ["xhtml", "xht"],
-			"xml": [
+			xml: [
 				"xml",
 				"xsl",
 				"xsd",
 				"opf",
 				"ncx"
 			],
-			"zip": "zip",
+			zip: "zip",
 			"x-httpd-eruby": "rhtml",
 			"x-latex": "latex",
 			"x-maker": [
@@ -6837,15 +6804,15 @@
 			"epub+zip": "epub",
 			"font-tdpfr": "pfr",
 			"inkml+xml": ["ink", "inkml"],
-			"json": "json",
+			json: "json",
 			"jsonml+json": "jsonml",
 			"mathml+xml": "mathml",
 			"metalink+xml": "metalink",
-			"mp4": "mp4s",
+			mp4: "mp4s",
 			"omdoc+xml": "omdoc",
-			"oxps": "oxps",
+			oxps: "oxps",
 			"vnd.amazon.ebook": "azw",
-			"widget": "wgt",
+			widget: "wgt",
 			"x-dtbook+xml": "dtb",
 			"x-dtbresource+xml": "res",
 			"x-font-bdf": "bdf",
@@ -6875,15 +6842,15 @@
 			"x-compressed": "tgz",
 			"x-gzip": "gz"
 		},
-		"audio": {
-			"flac": "flac",
-			"midi": [
+		audio: {
+			flac: "flac",
+			midi: [
 				"mid",
 				"midi",
 				"kar",
 				"rmi"
 			],
-			"mpeg": [
+			mpeg: [
 				"mpga",
 				"mpega",
 				"mp2",
@@ -6893,8 +6860,8 @@
 				"m2a",
 				"m3a"
 			],
-			"mpegurl": "m3u",
-			"ogg": [
+			mpegurl: "m3u",
+			ogg: [
 				"oga",
 				"ogg",
 				"spx"
@@ -6906,47 +6873,47 @@
 			],
 			"x-ms-wma": "wma",
 			"x-wav": "wav",
-			"adpcm": "adp",
-			"mp4": "mp4a",
-			"webm": "weba",
+			adpcm: "adp",
+			mp4: "mp4a",
+			webm: "weba",
 			"x-aac": "aac",
 			"x-caf": "caf",
 			"x-matroska": "mka",
 			"x-pn-realaudio-plugin": "rmp",
-			"xm": "xm",
-			"mid": ["mid", "rmi"]
+			xm: "xm",
+			mid: ["mid", "rmi"]
 		},
-		"image": {
-			"gif": "gif",
-			"ief": "ief",
-			"jpeg": [
+		image: {
+			gif: "gif",
+			ief: "ief",
+			jpeg: [
 				"jpeg",
 				"jpg",
 				"jpe"
 			],
-			"pcx": "pcx",
-			"png": "png",
+			pcx: "pcx",
+			png: "png",
 			"svg+xml": ["svg", "svgz"],
-			"tiff": ["tiff", "tif"],
+			tiff: ["tiff", "tif"],
 			"x-icon": "ico",
-			"bmp": "bmp",
-			"webp": "webp",
+			bmp: "bmp",
+			webp: "webp",
 			"x-pict": ["pic", "pct"],
 			"x-tga": "tga",
 			"cis-cod": "cod"
 		},
-		"text": {
+		text: {
 			"cache-manifest": ["manifest", "appcache"],
-			"css": "css",
-			"csv": "csv",
-			"html": [
+			css: "css",
+			csv: "csv",
+			html: [
 				"html",
 				"htm",
 				"shtml",
 				"stm"
 			],
-			"mathml": "mml",
-			"plain": [
+			mathml: "mml",
+			plain: [
 				"txt",
 				"text",
 				"brf",
@@ -6957,12 +6924,12 @@
 				"in",
 				"bas"
 			],
-			"richtext": "rtx",
+			richtext: "rtx",
 			"tab-separated-values": "tsv",
 			"x-bibtex": "bib"
 		},
-		"video": {
-			"mpeg": [
+		video: {
+			mpeg: [
 				"mpeg",
 				"mpg",
 				"mpe",
@@ -6972,13 +6939,13 @@
 				"mpa",
 				"mpv2"
 			],
-			"mp4": [
+			mp4: [
 				"mp4",
 				"mp4v",
 				"mpg4"
 			],
-			"quicktime": ["qt", "mov"],
-			"ogg": "ogv",
+			quicktime: ["qt", "mov"],
+			ogg: "ogv",
 			"vnd.mpegurl": ["mxu", "m4u"],
 			"x-flv": "flv",
 			"x-la-asf": ["lsf", "lsx"],
@@ -7001,16 +6968,16 @@
 				"mks"
 			],
 			"3gpp2": "3g2",
-			"h261": "h261",
-			"h263": "h263",
-			"h264": "h264",
-			"jpeg": "jpgv",
-			"jpm": ["jpm", "jpgm"],
-			"mj2": ["mj2", "mjp2"],
+			h261: "h261",
+			h263: "h263",
+			h264: "h264",
+			jpeg: "jpgv",
+			jpm: ["jpm", "jpgm"],
+			mj2: ["mj2", "mjp2"],
 			"vnd.ms-playready.media.pyv": "pyv",
 			"vnd.uvvu.mp4": ["uvu", "uvvu"],
 			"vnd.vivo": "viv",
-			"webm": "webm",
+			webm: "webm",
 			"x-f4v": "f4v",
 			"x-m4v": "m4v",
 			"x-ms-vob": "vob",
@@ -7045,8 +7012,7 @@
 		].indexOf(ext) > -1;
 	}
 	var mime_default = { lookup };
-	//#endregion
-	//#region src/utils/request.ts
+	// src/utils/request.ts
 	function request(url, type, withCredentials, headers, signal) {
 		var supportsURL = typeof window != "undefined" ? window.URL : false;
 		var BLOB_RESPONSE = supportsURL ? "blob" : "arraybuffer";
@@ -7121,9 +7087,10 @@
 					else if (type == "xhtml") r = parseMarkup(this.response, "application/xhtml+xml");
 					else if (type == "html" || type == "htm") r = parseMarkup(this.response, "text/html");
 					else if (type == "json") r = JSON.parse(this.response);
-					else if (type == "blob") if (supportsURL) r = this.response;
-					else r = new Blob([this.response]);
-					else r = this.response;
+					else if (type == "blob") {
+						if (supportsURL) r = this.response;
+						else r = new Blob([this.response]);
+					} else r = this.response;
 					deferred.resolve(r);
 				} else deferred.reject({
 					status: this.status,
@@ -7134,8 +7101,7 @@
 		}
 		return deferred.promise;
 	}
-	//#endregion
-	//#region src/section.ts
+	// src/section.ts
 	var persistDocumentSourceKey = Symbol.for("epub.persist.documentSource.v1");
 	var nextPersistContentId = 0;
 	var nextPersistReuseId = 0;
@@ -7458,8 +7424,7 @@
 			this.cfiBase = void 0;
 		}
 	};
-	//#endregion
-	//#region src/spine.ts
+	// src/spine.ts
 	/**
 	* A collection of Spine Items
 	*/
@@ -7725,8 +7690,7 @@
 			this.length = void 0;
 		}
 	};
-	//#endregion
-	//#region src/utils/queue.ts
+	// src/utils/queue.ts
 	var Defer$5 = defer$1;
 	/**
 	* Queue for handling tasks one at a time
@@ -7761,12 +7725,12 @@
 				deferred = new Defer$5();
 				promise = deferred.promise;
 				queued = {
-					"task": task,
-					"args": args,
-					"deferred": deferred,
-					"promise": promise
+					task,
+					args,
+					deferred,
+					promise
 				};
-			} else queued = { "promise": task };
+			} else queued = { promise: task };
 			this._q.push(queued);
 			if (this.paused == false && !this.running) this.run();
 			return queued.promise;
@@ -7864,8 +7828,7 @@
 			this.paused = true;
 		}
 	};
-	//#endregion
-	//#region src/utils/constants.ts
+	// src/utils/constants.ts
 	var DOM_EVENTS = [
 		"keydown",
 		"keyup",
@@ -7929,8 +7892,7 @@
 			DETACH: "detach"
 		}
 	};
-	//#endregion
-	//#region src/locations.ts
+	// src/locations.ts
 	/**
 	* Find Locations for a Book
 	* @param {Spine} spine
@@ -8070,7 +8032,7 @@
 			if (children.length) fallbackNode = children[0];
 			try {
 				return new EpubCFI(fallbackNode, cfiBase).toString();
-			} catch (error) {
+			} catch {
 				return "";
 			}
 		}
@@ -8122,9 +8084,11 @@
 			this._locationsWords = [];
 			this._wordCounter = 0;
 			this.spine.each(function(section) {
-				if (section.linear) if (start) {
-					if (section.index >= start.spinePos) this.q.enqueue(this.processWords.bind(this), section, wordCount, start, count);
-				} else this.q.enqueue(this.processWords.bind(this), section, wordCount, start, count);
+				if (section.linear) {
+					if (start) {
+						if (section.index >= start.spinePos) this.q.enqueue(this.processWords.bind(this), section, wordCount, start, count);
+					} else this.q.enqueue(this.processWords.bind(this), section, wordCount, start, count);
+				}
 			}.bind(this));
 			return this.q.run().then(function() {
 				if (this._currentCfi) this.currentLocation = this._currentCfi;
@@ -8159,8 +8123,10 @@
 			var startNode;
 			if (startCfi && section.index === startCfi.spinePos) startNode = startCfi.findNode(startCfi.range ? startCfi.path.steps.concat(startCfi.start.steps) : startCfi.path.steps, contents.ownerDocument);
 			var parser = function(node) {
-				if (!foundStartNode) if (node === startNode) foundStartNode = true;
-				else return false;
+				if (!foundStartNode) {
+					if (node === startNode) foundStartNode = true;
+					else return false;
+				}
 				if (node.textContent.length < 10) {
 					if (node.textContent.trim().length === 0) return false;
 				}
@@ -8318,8 +8284,7 @@
 		}
 	};
 	(0, import_event_emitter.default)(Locations.prototype);
-	//#endregion
-	//#region src/container.ts
+	// src/container.ts
 	/**
 	* Handles Parsing and Accessing an Epub Container
 	* @class
@@ -8354,8 +8319,7 @@
 			this.encoding = void 0;
 		}
 	};
-	//#endregion
-	//#region src/packaging.ts
+	// src/packaging.ts
 	/**
 	* Open Packaging Format Parser
 	* @class
@@ -8405,13 +8369,13 @@
 			this.metadata = this.parseMetadata(metadataNode);
 			this.metadata.direction = spineNode.getAttribute("page-progression-direction");
 			return {
-				"metadata": this.metadata,
-				"spine": this.spine,
-				"manifest": this.manifest,
-				"navPath": this.navPath,
-				"ncxPath": this.ncxPath,
-				"coverPath": this.coverPath,
-				"spineNodeIndex": this.spineNodeIndex
+				metadata: this.metadata,
+				spine: this.spine,
+				manifest: this.manifest,
+				navPath: this.navPath,
+				ncxPath: this.ncxPath,
+				coverPath: this.coverPath,
+				spineNodeIndex: this.spineNodeIndex
 			};
 		}
 		/**
@@ -8452,13 +8416,13 @@
 				var id = item.getAttribute("id"), href = item.getAttribute("href") || "", type = item.getAttribute("media-type") || "", overlay = item.getAttribute("media-overlay") || "", fallback = item.getAttribute("fallback") || "", properties = item.getAttribute("properties") || "";
 				if (!id) return;
 				manifest[id] = {
-					"href": href,
-					"type": type,
-					"overlay": overlay,
-					"mediaOverlay": overlay,
-					"fallback": fallback,
-					"fallbackChain": [],
-					"properties": properties.length ? properties.split(" ") : []
+					href,
+					type,
+					overlay,
+					mediaOverlay: overlay,
+					fallback,
+					fallbackChain: [],
+					properties: properties.length ? properties.split(" ") : []
 				};
 			});
 			Object.keys(manifest).forEach(function(id) {
@@ -8476,10 +8440,10 @@
 		* Parse Spine
 		* @private
 		* @param  {node} spineXml
-		* @param  {Packaging.manifest} manifest
+		* @param  {Packaging.manifest} _manifest
 		* @return {object} spine
 		*/
-		parseSpine(spineXml, manifest) {
+		parseSpine(spineXml, _manifest) {
 			var spine = [];
 			var selected = qsa$1(spineXml, "itemref");
 			Array.prototype.slice.call(selected).forEach(function(item, index) {
@@ -8487,11 +8451,11 @@
 				var props = item.getAttribute("properties") || "";
 				var propArray = props.length ? props.split(" ") : [];
 				var itemref = {
-					"id": item.getAttribute("id"),
-					"idref": idref,
-					"linear": item.getAttribute("linear") || "yes",
-					"properties": propArray,
-					"index": index
+					id: item.getAttribute("id"),
+					idref,
+					linear: item.getAttribute("linear") || "yes",
+					properties: propArray,
+					index
 				};
 				spine.push(itemref);
 			});
@@ -8518,7 +8482,7 @@
 		* @return {string}
 		*/
 		findNavPath(manifestNode) {
-			var node = qsp$1(manifestNode, "item", { "properties": "nav" });
+			var node = qsp$1(manifestNode, "item", { properties: "nav" });
 			return node ? node.getAttribute("href") : false;
 		}
 		/**
@@ -8548,9 +8512,9 @@
 		*/
 		findCoverPath(packageXml) {
 			qs$1(packageXml, "package").getAttribute("version");
-			var node = qsp$1(packageXml, "item", { "properties": "cover-image" });
+			var node = qsp$1(packageXml, "item", { properties: "cover-image" });
 			if (node) return node.getAttribute("href");
-			var metaCover = qsp$1(packageXml, "meta", { "name": "cover" });
+			var metaCover = qsp$1(packageXml, "meta", { name: "cover" });
 			if (metaCover) {
 				var coverId = metaCover.getAttribute("content");
 				var cover = packageXml.getElementById(coverId);
@@ -8580,7 +8544,7 @@
 		* @return {string} text
 		*/
 		getPropertyText(xml, property) {
-			var el = qsp$1(xml, "meta", { "property": property });
+			var el = qsp$1(xml, "meta", { property });
 			if (el && el.childNodes.length) return el.childNodes[0].nodeValue || "";
 			return "";
 		}
@@ -8604,19 +8568,19 @@
 				if (item.rel && item.rel[0] === "cover") this.coverPath = item.href;
 			});
 			this.spineNodeIndex = 0;
-			this.toc = json.toc.map((item, index) => {
+			this.toc = json.toc.map((item, _index) => {
 				item.label = item.title;
 				return item;
 			});
 			return {
-				"metadata": this.metadata,
-				"spine": this.spine,
-				"manifest": this.manifest,
-				"navPath": this.navPath,
-				"ncxPath": this.ncxPath,
-				"coverPath": this.coverPath,
-				"spineNodeIndex": this.spineNodeIndex,
-				"toc": this.toc
+				metadata: this.metadata,
+				spine: this.spine,
+				manifest: this.manifest,
+				navPath: this.navPath,
+				ncxPath: this.ncxPath,
+				coverPath: this.coverPath,
+				spineNodeIndex: this.spineNodeIndex,
+				toc: this.toc
 			};
 		}
 		destroy() {
@@ -8629,8 +8593,7 @@
 			this.metadata = void 0;
 		}
 	};
-	//#endregion
-	//#region src/navigation.ts
+	// src/navigation.ts
 	/**
 	* Navigation Parser
 	* @param {document} xml navigation html / xhtml / ncx
@@ -8771,11 +8734,11 @@
 			let nested = filterChildren$1(item, "ol", true);
 			if (nested) subitems = this.parseNavList(nested, id);
 			return {
-				"id": id,
-				"href": src,
-				"label": text,
-				"subitems": subitems,
-				"parent": parent
+				id,
+				href: src,
+				label: text,
+				subitems,
+				parent
 			};
 		}
 		/**
@@ -8812,9 +8775,9 @@
 			if (!content) return;
 			let type = content.getAttributeNS("http://www.idpf.org/2007/ops", "type") || void 0;
 			return {
-				"href": content.getAttribute("href") || "",
-				"label": content.textContent || "",
-				"type": type
+				href: content.getAttribute("href") || "",
+				label: content.textContent || "",
+				type
 			};
 		}
 		/**
@@ -8852,11 +8815,11 @@
 			var id = item.getAttribute("id") || "", src = qs$1(item, "content").getAttribute("src") || "", navLabel = qs$1(item, "navLabel"), text = navLabel.textContent ? navLabel.textContent : "", subitems = [], parentNode = item.parentNode, parent;
 			if (parentNode && (parentNode.nodeName === "navPoint" || parentNode.nodeName.split(":").slice(-1)[0] === "navPoint")) parent = parentNode.getAttribute("id") || void 0;
 			return {
-				"id": id,
-				"href": src,
-				"label": text,
-				"subitems": subitems,
-				"parent": parent
+				id,
+				href: src,
+				label: text,
+				subitems,
+				parent
 			};
 		}
 		/**
@@ -8881,8 +8844,7 @@
 			return this.toc.forEach(fn);
 		}
 	};
-	//#endregion
-	//#region src/platform/blob.ts
+	// src/platform/blob.ts
 	/**
 	* Create a Blob using the browser platform implementation.
 	* @param {BlobContent} content Blob content.
@@ -8939,8 +8901,7 @@
 			reader.readAsDataURL(blob);
 		});
 	}
-	//#endregion
-	//#region src/resources.ts
+	// src/resources.ts
 	/**
 	* Handle Package Resources
 	* @class
@@ -9022,7 +8983,7 @@
 		createUrl(url) {
 			var parsedUrl = new Url(url);
 			var mimeType = mime_default.lookup(parsedUrl.filename);
-			if (this.settings.archive) return this.settings.archive.createUrl(url, { "base64": this.settings.replacements === "base64" });
+			if (this.settings.archive) return this.settings.archive.createUrl(url, { base64: this.settings.replacements === "base64" });
 			else if (this.settings.replacements === "base64") return this.settings.request(url, "blob").then((blob) => {
 				return blobToBase64(blob);
 			}).then((blob) => {
@@ -9097,7 +9058,7 @@
 				if (this.settings.replacements === "base64") newUrl = createBase64Url$1(text, "text/css");
 				else newUrl = createBlobUrl$1(text, "text/css");
 				return newUrl;
-			}, (err) => {
+			}, (_err) => {
 				return Promise.resolve(void 0);
 			});
 		}
@@ -9151,8 +9112,7 @@
 			this.cssUrls = void 0;
 		}
 	};
-	//#endregion
-	//#region src/pagelist.ts
+	// src/pagelist.ts
 	/**
 	* Page List Parser
 	* @param {document} [xml]
@@ -9236,8 +9196,8 @@
 		ncxItem(item) {
 			var pageText = qs$1(qs$1(item, "navLabel"), "text").textContent || "";
 			return {
-				"href": qs$1(item, "content").getAttribute("src") || "",
-				"page": pageText
+				href: qs$1(item, "content").getAttribute("src") || "",
+				page: pageText
 			};
 		}
 		/**
@@ -9253,14 +9213,14 @@
 				packageUrl = split[0];
 				cfi = split.length > 1 ? split[1] : false;
 				return {
-					"cfi": cfi,
-					"href": href,
-					"packageUrl": packageUrl,
-					"page": page
+					cfi,
+					href,
+					packageUrl,
+					page
 				};
 			} else return {
-				"href": href,
-				"page": page
+				href,
+				page
 			};
 		}
 		/**
@@ -9367,8 +9327,7 @@
 			this.ncx = void 0;
 		}
 	};
-	//#endregion
-	//#region src/layout.ts
+	// src/layout.ts
 	/**
 	* Figures out the CSS values to apply for a layout
 	* @class
@@ -9580,8 +9539,7 @@
 		}
 	};
 	(0, import_event_emitter.default)(Layout.prototype);
-	//#endregion
-	//#region src/themes.ts
+	// src/themes.ts
 	/**
 	* Themes to apply to displayed content
 	* @class
@@ -9595,10 +9553,10 @@
 		_injected;
 		constructor(rendition) {
 			this.rendition = rendition;
-			this._themes = { "default": {
-				"rules": {},
-				"url": "",
-				"serialized": ""
+			this._themes = { default: {
+				rules: {},
+				url: "",
+				serialized: ""
 			} };
 			this._overrides = {};
 			this._current = "default";
@@ -9636,8 +9594,10 @@
 		* @param {object} themes
 		*/
 		registerThemes(themes) {
-			for (var theme in themes) if (themes.hasOwnProperty(theme)) if (typeof themes[theme] === "string") this.registerUrl(theme, themes[theme]);
-			else this.registerRules(theme, themes[theme]);
+			for (var theme in themes) if (themes.hasOwnProperty(theme)) {
+				if (typeof themes[theme] === "string") this.registerUrl(theme, themes[theme]);
+				else this.registerRules(theme, themes[theme]);
+			}
 		}
 		/**
 		* Register a theme by passing its css as string
@@ -9645,7 +9605,7 @@
 		* @param {string} css
 		*/
 		registerCss(name, css) {
-			this._themes[name] = { "serialized": css };
+			this._themes[name] = { serialized: css };
 			if (this._injected[name] || name == "default") this.update(name);
 		}
 		/**
@@ -9655,7 +9615,7 @@
 		*/
 		registerUrl(name, input) {
 			var url = new Url(input);
-			this._themes[name] = { "url": url.toString() };
+			this._themes[name] = { url: url.toString() };
 			if (this._injected[name] || name == "default") this.update(name);
 		}
 		/**
@@ -9664,7 +9624,7 @@
 		* @param {object} rules
 		*/
 		registerRules(name, rules) {
-			this._themes[name] = { "rules": rules };
+			this._themes[name] = { rules };
 			if (this._injected[name] || name == "default") this.update(name);
 		}
 		/**
@@ -9776,8 +9736,7 @@
 			this._injected = void 0;
 		}
 	};
-	//#endregion
-	//#region src/annotations.ts
+	// src/annotations.ts
 	/**
 	* Handles managing adding & removing Annotations
 	* @param {Rendition} rendition
@@ -10007,8 +9966,7 @@
 		text() {}
 	};
 	(0, import_event_emitter.default)(Annotation.prototype);
-	//#endregion
-	//#region src/compat/css.ts
+	// src/compat/css.ts
 	/**
 	* Resolve the CSS property spelling supported by the current browser.
 	*
@@ -10040,8 +9998,7 @@
 		for (var i = 0; i < length; i++) if (typeof style[prefixes[i] + lower] != "undefined") return prefixes[i] + lower;
 		return unprefixed;
 	}
-	//#endregion
-	//#region src/platform/layout.ts
+	// src/platform/layout.ts
 	function sumStylePixels(style, props) {
 		var total = 0;
 		props.forEach(function(prop) {
@@ -10143,8 +10100,7 @@
 			height
 		};
 	}
-	//#endregion
-	//#region src/mapping.ts
+	// src/mapping.ts
 	/**
 	* Map text locations to CFI ranges
 	* @class
@@ -10485,8 +10441,7 @@
 			return this.horizontal;
 		}
 	};
-	//#endregion
-	//#region src/rendering/block-media.ts
+	// src/rendering/block-media.ts
 	var originalStyles = /* @__PURE__ */ new WeakMap();
 	var fittedMediaDocuments = /* @__PURE__ */ new WeakSet();
 	function getVerticalRlMediaLeftGutter(pageWidth, pageAdvance, dpr) {
@@ -10625,8 +10580,7 @@
 			remaining = gap - (bounds.right - image.getBoundingClientRect().right);
 		}
 	}
-	//#endregion
-	//#region src/rendering/page-metrics.ts
+	// src/rendering/page-metrics.ts
 	function countPagesWithFractionalTolerance(totalLength, pageLength) {
 		if (!Number.isFinite(totalLength) || totalLength <= 0 || !Number.isFinite(pageLength) || pageLength <= 0) return 1;
 		const ratio = totalLength / pageLength;
@@ -10654,8 +10608,7 @@
 		const shift = Number(boundaryShift) || 0;
 		return !!(isRtlVerticalPaginated && advance && width && width - advance > 1 && shift === 0);
 	}
-	//#endregion
-	//#region src/contents.ts
+	// src/contents.ts
 	var hasNavigator = typeof navigator !== "undefined";
 	var isChrome = hasNavigator && /Chrome/.test(navigator.userAgent);
 	var isWebkit = hasNavigator && !isChrome && /AppleWebKit/.test(navigator.userAgent);
@@ -11094,12 +11047,12 @@
 		viewport(options) {
 			var $viewport = this.document.querySelector("meta[name='viewport']");
 			var parsed = {
-				"width": void 0,
-				"height": void 0,
-				"scale": void 0,
-				"minimum": void 0,
-				"maximum": void 0,
-				"scalable": void 0
+				width: void 0,
+				height: void 0,
+				scale: void 0,
+				minimum: void 0,
+				maximum: void 0,
+				scalable: void 0
 			};
 			var newContent = [];
 			var settings = {};
@@ -11244,7 +11197,7 @@
 				var rules;
 				try {
 					rules = sheets[i].cssRules;
-				} catch (e) {
+				} catch {
 					return;
 				}
 				if (!rules) return;
@@ -11256,7 +11209,7 @@
 		* @private
 		*/
 		resizeObservers() {
-			this.observer = new ResizeObserver((e) => {
+			this.observer = new ResizeObserver((_e) => {
 				requestAnimationFrame(this.resizeCheck.bind(this));
 			});
 			this.observer.observe(this.document.documentElement);
@@ -11266,7 +11219,7 @@
 		* @private
 		*/
 		mutationObservers() {
-			this.observer = new MutationObserver((mutations) => {
+			this.observer = new MutationObserver((_mutations) => {
 				this.resizeCheck();
 			});
 			this.observer.observe(this.document, {
@@ -11315,8 +11268,8 @@
 		locationOf(target, ignoreClass) {
 			var position;
 			var targetPos = {
-				"left": 0,
-				"top": 0
+				left: 0,
+				top: 0
 			};
 			if (!this.document) return targetPos;
 			if (this.epubcfi.isCfiString(target)) {
@@ -11405,7 +11358,7 @@
 		* @param {string} src url
 		*/
 		addStylesheet(src) {
-			return new Promise(function(resolve, reject) {
+			return new Promise(function(resolve, _reject) {
 				var $stylesheet;
 				var ready = false;
 				if (!this.document) {
@@ -11519,7 +11472,7 @@
 		* @returns {Promise} loaded
 		*/
 		addScript(src) {
-			return new Promise(function(resolve, reject) {
+			return new Promise(function(resolve, _reject) {
 				var $script;
 				var ready = false;
 				if (!this.document) {
@@ -11612,7 +11565,7 @@
 		* Handle getting text on selection
 		* @private
 		*/
-		onSelectionChange(e) {
+		onSelectionChange(_e) {
 			if (this.selectionEndTimeout) clearTimeout(this.selectionEndTimeout);
 			this.selectionEndTimeout = setTimeout(function() {
 				var selection = this.window.getSelection();
@@ -11796,7 +11749,7 @@
 					rawWidth,
 					rawHeight: Math.max(rect.height || 0, rect.bottom - Math.min(rect.top, 0))
 				};
-			} catch (e) {
+			} catch {
 				return {
 					left: 0,
 					right: 0,
@@ -11816,7 +11769,7 @@
 				const range = this.document.createRange();
 				range.selectNodeContents(content);
 				rects = Array.from(range.getClientRects ? range.getClientRects() : []);
-			} catch (e) {
+			} catch {
 				rects = [];
 			}
 			const safePageWidth = Number(visiblePageWidth);
@@ -12045,7 +11998,7 @@
 				const range = this.document.createRange();
 				range.selectNodeContents(content);
 				rangeRect = range.getBoundingClientRect();
-			} catch (e) {
+			} catch {
 				rangeRect = null;
 			}
 			const bodyRect = content && content.getBoundingClientRect ? content.getBoundingClientRect() : null;
@@ -12151,15 +12104,22 @@
 			if (mode && this.documentElement) this.documentElement.style.setProperty(WRITING_MODE, mode);
 			const bodyEl = this.document && this.document.body;
 			if (bodyEl) {
+				const resolveDeclaredMode = (value) => [
+					"inherit",
+					"initial",
+					"unset",
+					"revert",
+					"revert-layer"
+				].includes(value) ? this.window.getComputedStyle(bodyEl).getPropertyValue(WRITING_MODE) : value;
 				const inlineWM = bodyEl.style && bodyEl.style.getPropertyValue(WRITING_MODE);
-				if (inlineWM && inlineWM !== "horizontal-tb") return inlineWM;
+				if (inlineWM && inlineWM !== "horizontal-tb") return resolveDeclaredMode(inlineWM);
 				try {
 					const sheets = Array.from(this.document.styleSheets || []);
 					for (const sheet of sheets) {
 						let rules;
 						try {
 							rules = Array.from(sheet.cssRules || []);
-						} catch (e) {
+						} catch {
 							continue;
 						}
 						for (const rule of rules) {
@@ -12168,12 +12128,12 @@
 								const sel = styleRule.selectorText.toLowerCase();
 								if (sel === "body" || sel === "html, body" || sel === "body, html") {
 									const wm = styleRule.style.getPropertyValue(WRITING_MODE);
-									if (wm && wm !== "horizontal-tb") return wm;
+									if (wm && wm !== "horizontal-tb") return resolveDeclaredMode(wm);
 								}
 							}
 						}
 					}
-				} catch (e) {}
+				} catch {}
 			}
 			if (bodyEl) {
 				const bodyComputedWM = this.window.getComputedStyle(bodyEl).getPropertyValue(WRITING_MODE);
@@ -12229,8 +12189,7 @@
 		}
 	};
 	(0, import_event_emitter.default)(Contents.prototype);
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/marks-pane/lib/svg.js
+	// node_modules/.pnpm/marks-pane@1.0.9/node_modules/marks-pane/lib/svg.js
 	var require_svg = /* @__PURE__ */ __commonJSMin(((exports) => {
 		Object.defineProperty(exports, "__esModule", { value: true });
 		exports.createElement = createElement;
@@ -12239,8 +12198,7 @@
 		}
 		exports.default = { createElement };
 	}));
-	//#endregion
-	//#region ../../.local/epub.js/node_modules/marks-pane/lib/events.js
+	// node_modules/.pnpm/marks-pane@1.0.9/node_modules/marks-pane/lib/events.js
 	var require_events = /* @__PURE__ */ __commonJSMin(((exports) => {
 		Object.defineProperty(exports, "__esModule", { value: true });
 		exports.proxyMouse = proxyMouse;
@@ -12330,8 +12288,7 @@
 			return false;
 		}
 	}));
-	//#endregion
-	//#region src/managers/views/iframe.ts
+	// src/managers/views/iframe.ts
 	var import_marks = (/* @__PURE__ */ __commonJSMin(((exports) => {
 		Object.defineProperty(exports, "__esModule", { value: true });
 		exports.Underline = exports.Highlight = exports.Mark = exports.Pane = void 0;
@@ -12736,7 +12693,7 @@
 			if (!this.settings.method) this.settings.method = this.supportsSrcdoc ? "srcdoc" : "write";
 			return this.iframe;
 		}
-		render(request, show) {
+		render(request, _show) {
 			this.create();
 			this.size();
 			if (typeof AbortController !== "undefined" && !this._abortController) this._abortController = new AbortController();
@@ -12758,7 +12715,7 @@
 				this.emit(EVENTS.VIEWS.WRITING_MODE, writingMode);
 				this.layout.format(this.contents, this.section, this.axis);
 				this.addListeners();
-				return new Promise((resolve, reject) => {
+				return new Promise((resolve, _reject) => {
 					this.expand();
 					if (this.settings.forceRight) this.element.style.marginLeft = this.width() + "px";
 					resolve();
@@ -12811,7 +12768,7 @@
 			}
 			if (this.displayed && this.iframe) this.expand();
 		}
-		expand(force) {
+		expand(_force) {
 			var width = this.lockedWidth;
 			var height = this.lockedHeight;
 			var columns;
@@ -13013,7 +12970,7 @@
 					if (this.contents) this.layout.format(this.contents);
 				}
 			});
-			this.contents.on(EVENTS.CONTENTS.RESIZE, (e) => {
+			this.contents.on(EVENTS.CONTENTS.RESIZE, (_e) => {
 				if (this.displayed && this.iframe) {
 					this.expand();
 					if (this.contents) this.layout.format(this.contents);
@@ -13038,7 +12995,7 @@
 			this.writingMode = mode;
 		}
 		addListeners() {}
-		removeListeners(layoutFunc) {}
+		removeListeners(_layoutFunc) {}
 		display(request) {
 			var displayed = new Defer$4();
 			if (!this.displayed) this.render(request).then(function() {
@@ -13087,12 +13044,12 @@
 		locationOf(target) {
 			var targetPos = this.contents.locationOf(target, this.settings.ignoreClass);
 			return {
-				"left": targetPos.left,
-				"top": targetPos.top
+				left: targetPos.left,
+				top: targetPos.top
 			};
 		}
-		onDisplayed(view) {}
-		onResize(view, e) {}
+		onDisplayed(_view) {}
+		onResize(_view, _e) {}
 		bounds(force) {
 			if (force || !this.elementBounds) this.elementBounds = bounds$1(this.element);
 			return this.elementBounds;
@@ -13100,7 +13057,7 @@
 		highlight(cfiRange, data = {}, cb, className = "epubjs-hl", styles = {}) {
 			if (!this.contents) return;
 			const attributes = Object.assign({
-				"fill": "yellow",
+				fill: "yellow",
 				"fill-opacity": "0.3",
 				"mix-blend-mode": "multiply"
 			}, styles);
@@ -13113,9 +13070,9 @@
 			let m = new import_marks.Highlight(range, className, data, attributes);
 			let h = this.pane.addMark(m);
 			this.highlights[cfiRange] = {
-				"mark": h,
-				"element": h.element,
-				"listeners": [emitter, cb]
+				mark: h,
+				element: h.element,
+				listeners: [emitter, cb]
 			};
 			h.element.setAttribute("ref", className);
 			h.element.addEventListener("click", emitter);
@@ -13129,7 +13086,7 @@
 		underline(cfiRange, data = {}, cb, className = "epubjs-ul", styles = {}) {
 			if (!this.contents) return;
 			const attributes = Object.assign({
-				"stroke": "black",
+				stroke: "black",
 				"stroke-opacity": "0.3",
 				"mix-blend-mode": "multiply"
 			}, styles);
@@ -13142,9 +13099,9 @@
 			let m = new import_marks.Underline(range, className, data, attributes);
 			let h = this.pane.addMark(m);
 			this.underlines[cfiRange] = {
-				"mark": h,
-				"element": h.element,
-				"listeners": [emitter, cb]
+				mark: h,
+				element: h.element,
+				listeners: [emitter, cb]
 			};
 			h.element.setAttribute("ref", className);
 			h.element.addEventListener("click", emitter);
@@ -13162,7 +13119,7 @@
 			if (!range) return;
 			let container = range.commonAncestorContainer;
 			let parent = container.nodeType === 1 ? container : container.parentNode;
-			let emitter = (e) => {
+			let emitter = (_e) => {
 				this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
 			};
 			if (range.collapsed && container.nodeType === 1) {
@@ -13188,9 +13145,9 @@
 			this.placeMark(mark, range);
 			this.element.appendChild(mark);
 			this.marks[cfiRange] = {
-				"element": mark,
-				"range": range,
-				"listeners": [emitter, cb]
+				element: mark,
+				range,
+				listeners: [emitter, cb]
 			};
 			return parent;
 		}
@@ -13286,8 +13243,7 @@
 		}
 	};
 	(0, import_event_emitter.default)(IframeView.prototype);
-	//#endregion
-	//#region src/rendering/combined-text-paint.ts
+	// src/rendering/combined-text-paint.ts
 	/** Serialize source without this module's temporary paint hints, using a detached clone. */
 	function readCombinedTextPaintSource(document) {
 		const body = document.body;
@@ -13358,8 +13314,7 @@
 	var init_combined_text_paint = __esmMin((() => {
 		hints = /* @__PURE__ */ new WeakMap();
 	}));
-	//#endregion
-	//#region src/utils/scrolltype.ts
+	// src/utils/scrolltype.ts
 	init_combined_text_paint();
 	function scrollType() {
 		var type = "reverse";
@@ -13398,8 +13353,7 @@
 		definer.appendChild(innerDiv);
 		return definer;
 	}
-	//#endregion
-	//#region src/rendering/semantic-cut.ts
+	// src/rendering/semantic-cut.ts
 	var LIMIT = 12e3;
 	function semanticDigest(text) {
 		const bytes = new TextEncoder().encode(text), length = bytes.length;
@@ -13775,12 +13729,11 @@
 			};
 		}
 	}
-	//#endregion
-	//#region src/rendering/terminal-continuation.ts
+	// src/rendering/terminal-continuation.ts
 	var emitTerminalContinuationObservation = (event, owner, values) => {
 		try {
 			globalThis.__PERSIST_TOPOLOGY__?.emit?.(event, owner ?? null, values);
-		} catch (_) {}
+		} catch {}
 	};
 	/** Geometry identity is independent of the dynamically promoted logical count. */
 	function resolveVerticalRlTerminalContinuation(previous, layoutKey) {
@@ -14056,8 +14009,7 @@
 			direction
 		};
 	}
-	//#endregion
-	//#region src/rendering/logical-page.ts
+	// src/rendering/logical-page.ts
 	function getVerticalRlLogicalPageStepToNextPage(pageAdvance, totalPages, currentPageIndex, nextPageIndex, currentOffset, nextOffset, hasStructuralPageGutter) {
 		const advance = Number(pageAdvance) || 0;
 		const total = Number(totalPages) || 0;
@@ -14127,8 +14079,7 @@
 		const pageIndex = Math.floor((normalized + .5) / advance);
 		return Math.max(0, Math.min(pageCount - 1, pageIndex));
 	}
-	//#endregion
-	//#region src/rendering/edge-mask.ts
+	// src/rendering/edge-mask.ts
 	function getVerticalRlEdgeMaskLimit(pageAdvance) {
 		const advance = Number(pageAdvance) || 0;
 		return Math.max(0, Math.floor(advance / 4));
@@ -14251,8 +14202,7 @@
 		if (!delta) return currentLeft;
 		return Math.max(0, Math.min(Math.max(0, Number(leftMaxMask) || 0), currentLeft + delta));
 	}
-	//#endregion
-	//#region src/rendering/raw-right-snap.ts
+	// src/rendering/raw-right-snap.ts
 	function getVerticalRlRequiredRawRightMask(currentRequiredRawRightMask, rectLeft, rectRight, rawLeft, rawRight, previousRawLeft, previousPageStep, edgeTolerance) {
 		const currentRequired = Math.max(0, Number(currentRequiredRawRightMask) || 0);
 		const left = Number(rectLeft) || 0;
@@ -14438,8 +14388,7 @@
 			expandBeyondPaintGuard: aggregate.expandBeyondPaintGuard
 		};
 	}
-	//#endregion
-	//#region src/rendering/raw-left-snap.ts
+	// src/rendering/raw-left-snap.ts
 	function getVerticalRlRawLeftSnapRectInput(rectLeft, rectRight, rawLeft, rawRight, nextPageStep, edgeTolerance) {
 		const left = Number(rectLeft) || 0;
 		const right = Number(rectRight) || 0;
@@ -14537,8 +14486,7 @@
 			left: snappedLeft
 		};
 	}
-	//#endregion
-	//#region src/rendering/boundary-mask.ts
+	// src/rendering/boundary-mask.ts
 	function getVerticalRlCurrentEffectiveLeftBoundary(contentWidth, currentOffset, visibleWidth, currentLeftMask) {
 		const effectiveLeftBoundary = Number(contentWidth) - Number(currentOffset) - Number(visibleWidth) + (Number(currentLeftMask) || 0);
 		return Number.isFinite(effectiveLeftBoundary) && effectiveLeftBoundary > 0 ? effectiveLeftBoundary : null;
@@ -14964,8 +14912,7 @@
 	function getVerticalRlBoundarySnapPipelineResult(cacheKey, measurementInputs, logicalOffset, contentWidth, visibleWidth, maxScroll, maxRightBoundaryOptions = {}, rightBoundaryOptions = {}) {
 		return getVerticalRlBoundarySnapResult(cacheKey, getVerticalRlBoundarySnapDelta(measurementInputs.rects, logicalOffset, contentWidth, visibleWidth, maxScroll, measurementInputs.deltaInputs.edgeGuard, measurementInputs.deltaInputs.structuralMasks.left, measurementInputs.deltaInputs.structuralMasks.right, measurementInputs.deltaInputs.boundaryShift, measurementInputs.deltaInputs.edgeGuardPx, measurementInputs.deltaInputs.structuralBleed, maxRightBoundaryOptions), logicalOffset, maxScroll, contentWidth, rightBoundaryOptions);
 	}
-	//#endregion
-	//#region src/utils/timing.ts
+	// src/utils/timing.ts
 	function debounce(callback, wait = 0, options = {}) {
 		const leading = options.leading === true;
 		const trailing = options.trailing !== false;
@@ -15023,8 +14970,7 @@
 			trailing: options.trailing !== false
 		});
 	}
-	//#endregion
-	//#region src/managers/helpers/stage.ts
+	// src/managers/helpers/stage.ts
 	var Stage = class {
 		settings;
 		id;
@@ -15065,13 +15011,15 @@
 			}
 			if (width) container.style.width = width;
 			if (height) container.style.height = height;
-			if (overflow) if (overflow === "scroll" && axis === "vertical") {
-				container.style.overflowY = overflow;
-				container.style.overflowX = "hidden";
-			} else if (overflow === "scroll" && axis === "horizontal") {
-				container.style.overflowY = "hidden";
-				container.style.overflowX = overflow;
-			} else container.style.overflow = overflow;
+			if (overflow) {
+				if (overflow === "scroll" && axis === "vertical") {
+					container.style.overflowY = overflow;
+					container.style.overflowX = "hidden";
+				} else if (overflow === "scroll" && axis === "horizontal") {
+					container.style.overflowY = "hidden";
+					container.style.overflowX = overflow;
+				} else container.style.overflow = overflow;
+			}
 			if (direction) {
 				container.dir = direction;
 				container.style["direction"] = direction;
@@ -15203,13 +15151,15 @@
 			this.settings.dir = dir;
 		}
 		overflow(overflow) {
-			if (this.container) if (overflow === "scroll" && this.settings.axis === "vertical") {
-				this.container.style.overflowY = overflow;
-				this.container.style.overflowX = "hidden";
-			} else if (overflow === "scroll" && this.settings.axis === "horizontal") {
-				this.container.style.overflowY = "hidden";
-				this.container.style.overflowX = overflow;
-			} else this.container.style.overflow = overflow;
+			if (this.container) {
+				if (overflow === "scroll" && this.settings.axis === "vertical") {
+					this.container.style.overflowY = overflow;
+					this.container.style.overflowX = "hidden";
+				} else if (overflow === "scroll" && this.settings.axis === "horizontal") {
+					this.container.style.overflowY = "hidden";
+					this.container.style.overflowX = overflow;
+				} else this.container.style.overflow = overflow;
+			}
 			this.settings.overflow = overflow;
 		}
 		destroy() {
@@ -15220,8 +15170,7 @@
 			}
 		}
 	};
-	//#endregion
-	//#region src/managers/helpers/views.ts
+	// src/managers/helpers/views.ts
 	var Views = class {
 		container;
 		_views;
@@ -15265,8 +15214,10 @@
 		}
 		insert(view, index) {
 			this._views.splice(index, 0, view);
-			if (this.container) if (index < this.container.children.length) this.container.insertBefore(view.element, this.container.children[index]);
-			else this.container.appendChild(view.element);
+			if (this.container) {
+				if (index < this.container.children.length) this.container.insertBefore(view.element, this.container.children[index]);
+				else this.container.appendChild(view.element);
+			}
 			this.length++;
 			return view;
 		}
@@ -15332,8 +15283,7 @@
 			this.hidden = true;
 		}
 	};
-	//#endregion
-	//#region src/rendering/observed-coverage-dom.ts
+	// src/rendering/observed-coverage-dom.ts
 	var observed_coverage_dom_exports = /* @__PURE__ */ __exportAll({ captureObservedCoverageDom: () => captureObservedCoverageDom });
 	/**
 	* Read only the supplied live frame. Source rects and the actual screen clip are
@@ -15500,8 +15450,7 @@
 			r.bottom
 		].every(Number.isFinite) && r.right > r.left && r.bottom > r.top;
 	}));
-	//#endregion
-	//#region src/managers/default/index.ts
+	// src/managers/default/index.ts
 	init_combined_text_paint();
 	var Deferred = defer$1;
 	var getVerticalRlTerminalOwnerClipRelation = (observation) => {
@@ -15556,7 +15505,7 @@
 				...detail
 			});
 			if (debugWindow.__EPUB_VRL_SCROLL_TRACE__.length > 4e3) debugWindow.__EPUB_VRL_SCROLL_TRACE__.splice(0, debugWindow.__EPUB_VRL_SCROLL_TRACE__.length - 4e3);
-		} catch (_) {}
+		} catch {}
 	};
 	/**
 	* Record terminal continuation timing without participating in the decision.
@@ -15732,7 +15681,7 @@
 		}
 		addEventListeners() {
 			var scroller;
-			this._onUnload = function(e) {
+			this._onUnload = function(_e) {
 				this.destroy();
 			}.bind(this);
 			window.addEventListener("unload", this._onUnload);
@@ -15767,7 +15716,7 @@
 			this.stage.destroy();
 			this.rendered = false;
 		}
-		onOrientationChange(e) {
+		onOrientationChange(_e) {
 			let { orientation } = window;
 			if (this.optsSettings.resizeOnOrientationChange) this.resize();
 			clearTimeout(this.orientationTimeout);
@@ -15777,7 +15726,7 @@
 				this.emit(EVENTS.MANAGERS.ORIENTATION_CHANGE, orientation);
 			}.bind(this), 500);
 		}
-		onResized(e) {
+		onResized(_e) {
 			this.resize();
 		}
 		resize(width, height, epubcfi) {
@@ -16172,7 +16121,7 @@
 					frameIdentity: getVerticalRlRuntimeIdentity(iframe),
 					documentIdentity: getVerticalRlRuntimeIdentity(contentsDocument)
 				};
-			} catch (_error) {
+			} catch {
 				return {
 					resolution: null,
 					effectiveClip: null,
@@ -16581,7 +16530,7 @@
 					let previousLeftMask = Number.isFinite(recordedPreviousLeftMask) ? recordedPreviousLeftMask : this.getPreviousVerticalRlLeftMask(previousPageStep, left, maxMask);
 					rightAllowance = currentOffset > previousOffset ? getVerticalRlPreviousPageRightMask(visibleWidth, previousPageStep, previousLeftMask, maxMask) : 0;
 				}
-			} catch (error) {
+			} catch {
 				rightAllowance = maxMask;
 			}
 			return {
@@ -16723,7 +16672,7 @@
 				ledger[String(pageIndex)] = leftMask + contentShift;
 				const terminalLayout = this._verticalRlActiveTerminalLayout;
 				if (terminalLayout?.layoutKey === cacheKey) terminalLayout.appliedLeftMasks = ledger;
-			} catch (error) {}
+			} catch {}
 		}
 		getVerticalRlRestoredSemanticMaskWidths() {
 			const saved = this._verticalRlRestoredSemanticMask;
@@ -16791,7 +16740,7 @@
 				let previousOffset = this.getVerticalRlPageOffset(currentPageIndex - 1, totalPages, maxScroll);
 				if (!(currentOffset > previousOffset)) return 0;
 				return getVerticalRlPreviousPageRightMask(this.layout && (this.layout.pageWidth || this.layout.width) || advance, Math.abs(currentOffset - previousOffset), recordedPreviousLeftMask, maxMask);
-			} catch (error) {
+			} catch {
 				return null;
 			}
 		}
@@ -16815,7 +16764,7 @@
 				let currentPageIndex = this.getCurrentPageIndex();
 				if (!(totalPages > 0) || !Number.isFinite(currentPageIndex)) return null;
 				return currentPageIndex >= totalPages - 1 ? 0 : null;
-			} catch (error) {
+			} catch {
 				return null;
 			}
 		}
@@ -17099,7 +17048,7 @@
 							visibleCharacterCount += 1;
 							addHash(`${textNodeOrdinal}:${offset}:${text.charCodeAt(offset)};`);
 						}
-					} catch (_) {
+					} catch {
 						return {
 							status: "unavailable",
 							reason: "semantic-observation-range-failed",
@@ -17448,7 +17397,7 @@
 			try {
 				resolvedStart = contents.range(descriptor.anchors.readingStart.cfi);
 				resolvedEnd = contents.range(descriptor.anchors.readingEndExclusive.cfi);
-			} catch (_) {
+			} catch {
 				traceTerminal("anchor-resolution-failed", { anchorResolution: "invalid" });
 				return {
 					status: "unavailable",
@@ -17586,7 +17535,7 @@
 				const mappedEndRange = contents.range(mapping.end);
 				resolvedStartMatches = mappedStartRange.startContainer === startRange.startContainer && mappedStartRange.startOffset === startRange.startOffset;
 				resolvedEndMatches = mappedEndRange.endContainer === endRange.endContainer && mappedEndRange.endOffset === endRange.endOffset;
-			} catch (_) {
+			} catch {
 				resolvedStartMatches = null;
 				resolvedEndMatches = null;
 			}
@@ -18123,9 +18072,10 @@
 			}.bind(this)).then(function() {
 				if (this.isPaginated && this.settings.axis === "horizontal") {
 					let pageAdvance = this.getPageAdvance();
-					if (this.settings.direction === "rtl") if (this.isRtlVerticalPaginated()) this.scrollToLogicalPageInLayout(null);
-					else this.scrollToLogicalPage(this.getTotalPagesForCurrentView() - 1);
-					else this.scrollTo(this.container.scrollWidth - pageAdvance, 0, true);
+					if (this.settings.direction === "rtl") {
+						if (this.isRtlVerticalPaginated()) this.scrollToLogicalPageInLayout(null);
+						else this.scrollToLogicalPage(this.getTotalPagesForCurrentView() - 1);
+					} else this.scrollTo(this.container.scrollWidth - pageAdvance, 0, true);
 				}
 				this.views.show();
 			}.bind(this));
@@ -18252,7 +18202,7 @@
 			let boundaryToken;
 			try {
 				boundaryToken = globalThis.__PERSIST_RENDERER_BOUNDARY__?.enter("manager:current-location");
-			} catch (_) {}
+			} catch {}
 			try {
 				if (this.shouldUpdateLayoutForLocation()) this.updateLayout();
 				if (this.isPaginated && this.settings.axis === "horizontal") this.location = this.paginatedLocation();
@@ -18271,12 +18221,12 @@
 				});
 				try {
 					globalThis.__PERSIST_RENDERER_BOUNDARY__?.returned(boundaryToken);
-				} catch (_) {}
+				} catch {}
 				return this.location;
 			} catch (error) {
 				try {
 					globalThis.__PERSIST_RENDERER_BOUNDARY__?.threw(boundaryToken);
-				} catch (_) {}
+				} catch {}
 				throw error;
 			}
 		}
@@ -18577,8 +18527,10 @@
 			this.stage && this.stage.axis(axis);
 			this.viewSettings.axis = axis;
 			if (this.mapping) this.mapping = new Mapping(this.layout.props, this.settings.direction, this.settings.axis);
-			if (this.layout) if (axis === "vertical") this.layout.spread("none");
-			else this.layout.spread(this.layout.settings.spread);
+			if (this.layout) {
+				if (axis === "vertical") this.layout.spread("none");
+				else this.layout.spread(this.layout.settings.spread);
+			}
 		}
 		updateFlow(flow, defaultScrolledOverflow = "auto") {
 			let isPaginated = flow === "paginated" || flow === "auto";
@@ -18612,8 +18564,7 @@
 		}
 	};
 	(0, import_event_emitter.default)(DefaultViewManager.prototype);
-	//#endregion
-	//#region src/managers/helpers/snap.ts
+	// src/managers/helpers/snap.ts
 	var Defer$3 = defer$1;
 	var PI_D2 = Math.PI / 2;
 	var EASING_EQUATIONS = {
@@ -18755,11 +18706,11 @@
 		triggerViewEvent(e, contents) {
 			this.emit(e.type, e, contents);
 		}
-		onScroll(e) {
+		onScroll(_e) {
 			this.scrollLeft = this.fullsize ? window.scrollX : this.scroller.scrollLeft;
 			this.scrollTop = this.fullsize ? window.scrollY : this.scroller.scrollTop;
 		}
-		onResize(e) {
+		onResize(_e) {
 			this.resizeCanceler = true;
 		}
 		onTouchStart(e) {
@@ -18784,7 +18735,7 @@
 			this.endTouchY = screenY;
 			this.endTime = this.now();
 		}
-		onTouchEnd(e) {
+		onTouchEnd(_e) {
 			if (this.fullsize) this.disableScroll();
 			this.touchCanceler = false;
 			let swipped = this.wasSwiped();
@@ -18862,8 +18813,7 @@
 		}
 	};
 	(0, import_event_emitter.default)(Snap.prototype);
-	//#endregion
-	//#region src/managers/continuous/index.ts
+	// src/managers/continuous/index.ts
 	var Defer$2 = defer$1;
 	var ContinuousViewManager = class extends DefaultViewManager {
 		constructor(options) {
@@ -18950,7 +18900,7 @@
 		add(section) {
 			var view = this.createView(section, void 0);
 			this.views.append(view);
-			view.on(EVENTS.VIEWS.RESIZED, (bounds) => {
+			view.on(EVENTS.VIEWS.RESIZED, (_bounds) => {
 				view.expanded = true;
 			});
 			view.on(EVENTS.VIEWS.AXIS, (axis) => {
@@ -18965,7 +18915,7 @@
 		}
 		append(section) {
 			var view = this.createView(section, void 0);
-			view.on(EVENTS.VIEWS.RESIZED, (bounds) => {
+			view.on(EVENTS.VIEWS.RESIZED, (_bounds) => {
 				view.expanded = true;
 			});
 			view.on(EVENTS.VIEWS.AXIS, (axis) => {
@@ -19015,7 +18965,7 @@
 					if (!view.displayed) {
 						let displayed = view.display(this.request).then(function(view) {
 							view.show();
-						}, (err) => {
+						}, (_err) => {
 							view.hide();
 						});
 						promises.push(displayed);
@@ -19121,13 +19071,16 @@
 			}
 			var bounds = view.bounds();
 			this.views.remove(view);
-			if (above) if (this.settings.axis === "vertical") this.scrollTo(0, prevTop - bounds.height, true);
-			else if (this.settings.direction === "rtl") if (!this.settings.fullsize) this.scrollTo(prevLeft, 0, true);
-			else this.scrollTo(prevLeft + Math.floor(bounds.width), 0, true);
-			else this.scrollTo(prevLeft - Math.floor(bounds.width), 0, true);
+			if (above) {
+				if (this.settings.axis === "vertical") this.scrollTo(0, prevTop - bounds.height, true);
+				else if (this.settings.direction === "rtl") {
+					if (!this.settings.fullsize) this.scrollTo(prevLeft, 0, true);
+					else this.scrollTo(prevLeft + Math.floor(bounds.width), 0, true);
+				} else this.scrollTo(prevLeft - Math.floor(bounds.width), 0, true);
+			}
 		}
-		addEventListeners(stage) {
-			this._onUnload = function(e) {
+		addEventListeners(_stage) {
+			this._onUnload = function(_e) {
 				this.ignore = true;
 				this.destroy();
 			}.bind(this);
@@ -19230,8 +19183,7 @@
 			if (this.snapper) this.snapper.destroy();
 		}
 	};
-	//#endregion
-	//#region src/rendition.ts
+	// src/rendition.ts
 	var Defer$1 = defer$1;
 	function isManagerLocationPromise(location) {
 		return typeof location.then === "function";
@@ -19413,9 +19365,7 @@
 				case "none":
 					this.settings.spread = "none";
 					break;
-				case "both":
-					this.settings.spread = true;
-					break;
+				case "both": this.settings.spread = true;
 			}
 			if (!this.manager) {
 				this.ViewManager = this.requireManager(this.settings.manager);
@@ -19462,8 +19412,8 @@
 		attachTo(element) {
 			return this.q.enqueue(function() {
 				this.manager.render(element, {
-					"width": this.settings.width,
-					"height": this.settings.height
+					width: this.settings.width,
+					height: this.settings.height
 				});
 				/**
 				* Emit that rendering has attached to an element
@@ -19811,7 +19761,7 @@
 					var location;
 					try {
 						location = this.manager.currentLocation();
-					} catch (err) {
+					} catch {
 						return;
 					}
 					if (location && isManagerLocationPromise(location)) location.then(function(result) {
@@ -19867,11 +19817,11 @@
 			let boundaryToken;
 			try {
 				boundaryToken = globalThis.__PERSIST_RENDERER_BOUNDARY__?.enter("rendition:current-location");
-			} catch (_) {}
+			} catch {}
 			const finishBoundary = (kind) => {
 				try {
 					globalThis.__PERSIST_RENDERER_BOUNDARY__?.[kind]?.(boundaryToken);
-				} catch (_) {}
+				} catch {}
 			};
 			try {
 				var location = this.manager.currentLocation();
@@ -20056,7 +20006,7 @@
 			let height = (contents.content.offsetHeight - (parseFloat(computed.paddingTop) + parseFloat(computed.paddingBottom))) * .95;
 			let horizontalPadding = parseFloat(computed.paddingLeft) + parseFloat(computed.paddingRight);
 			contents.addStylesheetRules({
-				"img": {
+				img: {
 					"max-width": (this._layout.columnWidth ? this._layout.columnWidth - horizontalPadding + "px" : "100%") + "!important",
 					"max-height": height + "px!important",
 					"object-fit": "contain",
@@ -20064,7 +20014,7 @@
 					"break-inside": "avoid",
 					"box-sizing": "border-box"
 				},
-				"svg": {
+				svg: {
 					"max-width": (this._layout.columnWidth ? this._layout.columnWidth - horizontalPadding + "px" : "100%") + "!important",
 					"max-height": height + "px!important",
 					"page-break-inside": "avoid",
@@ -20156,8 +20106,7 @@
 		}
 	};
 	(0, import_event_emitter.default)(Rendition.prototype);
-	//#endregion
-	//#region src/archive.ts
+	// src/archive.ts
 	/**
 	* Handles Unzipping a requesting files from an Epub Archive
 	* @class
@@ -20178,7 +20127,7 @@
 		checkRequirements() {
 			try {
 				this.zip = new jszip_dist_jszip.default();
-			} catch (e) {
+			} catch {
 				throw new Error("JSZip lib not loaded");
 			}
 		}
@@ -20189,7 +20138,7 @@
 		* @return {Promise} zipfile
 		*/
 		open(input, isBase64) {
-			return this.zip.loadAsync(input, { "base64": isBase64 });
+			return this.zip.loadAsync(input, { base64: isBase64 });
 		}
 		/**
 		* Load and Open an archive
@@ -20199,7 +20148,7 @@
 		*/
 		openUrl(zipUrl, isBase64) {
 			return request(zipUrl, "binary").then((data) => {
-				return this.zip.loadAsync(data, { "base64": isBase64 });
+				return this.zip.loadAsync(data, { base64: isBase64 });
 			});
 		}
 		request(url, type) {
@@ -20212,7 +20161,7 @@
 			if (response) response.then((r) => {
 				let result = this.handleResponse(r, type);
 				deferred.resolve(result);
-			});
+			}).catch((error) => deferred.reject(error));
 			else deferred.reject({
 				message: "File not found in the epub: " + url,
 				stack: (/* @__PURE__ */ new Error()).stack
@@ -20247,10 +20196,10 @@
 		/**
 		* Get Text from Archive by Url
 		* @param  {string} url
-		* @param  {string} [encoding]
+		* @param  {string} [_encoding]
 		* @return {string}
 		*/
-		getText(url, encoding) {
+		getText(url, _encoding) {
 			var decodededUrl = window.decodeURIComponent(url.substr(1));
 			var entry = this.zip.file(decodededUrl);
 			if (entry) return entry.async("string").then(function(text) {
@@ -20295,7 +20244,7 @@
 				if (base64Response) base64Response.then((tempUrl) => {
 					this.urlCache[url] = tempUrl;
 					deferred.resolve(tempUrl);
-				});
+				}).catch((error) => deferred.reject(error));
 			} else {
 				var blobResponse = this.getBlob(url);
 				response = blobResponse;
@@ -20303,7 +20252,7 @@
 					tempUrl = _URL.createObjectURL(blob);
 					this.urlCache[url] = tempUrl;
 					deferred.resolve(tempUrl);
-				});
+				}).catch((error) => deferred.reject(error));
 			}
 			if (!response) deferred.reject({
 				message: "File not found in the epub: " + url,
@@ -20333,8 +20282,7 @@
 	https://localforage.github.io/localForage
 	(c) 2013-2017 Mozilla, Apache License 2.0
 	*/
-	//#endregion
-	//#region src/store.ts
+	// src/store.ts
 	var import_localforage = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
 		(function(f) {
 			if (typeof exports === "object" && typeof module !== "undefined") module.exports = f();
@@ -20370,7 +20318,7 @@
 				for (var o = 0; o < r.length; o++) s(r[o]);
 				return s;
 			})({
-				1: [function(_dereq_, module$1, exports$1) {
+				1: [function(_dereq_, module, exports) {
 					(function(global) {
 						"use strict";
 						var Mutation = global.MutationObserver || global.WebKitMutationObserver;
@@ -20417,13 +20365,13 @@
 							}
 							draining = false;
 						}
-						module$1.exports = immediate;
+						module.exports = immediate;
 						function immediate(task) {
 							if (queue.push(task) === 1 && !draining) scheduleDrain();
 						}
 					}).call(this, typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
 				}, {}],
-				2: [function(_dereq_, module$2, exports$2) {
+				2: [function(_dereq_, module, exports) {
 					"use strict";
 					var immediate = _dereq_(1);
 					/* istanbul ignore next */
@@ -20432,7 +20380,7 @@
 					var REJECTED = ["REJECTED"];
 					var FULFILLED = ["FULFILLED"];
 					var PENDING = ["PENDING"];
-					module$2.exports = Promise;
+					module.exports = Promise;
 					function Promise(resolver) {
 						if (typeof resolver !== "function") throw new TypeError("resolver must be a function");
 						this.state = PENDING;
@@ -20607,13 +20555,13 @@
 						}
 					}
 				}, { "1": 1 }],
-				3: [function(_dereq_, module$3, exports$3) {
+				3: [function(_dereq_, module, exports) {
 					(function(global) {
 						"use strict";
 						if (typeof global.Promise !== "function") global.Promise = _dereq_(2);
 					}).call(this, typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
 				}, { "2": 2 }],
-				4: [function(_dereq_, module$4, exports$4) {
+				4: [function(_dereq_, module, exports) {
 					"use strict";
 					var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function(obj) {
 						return typeof obj;
@@ -20748,10 +20696,12 @@
 					function _getConnection(dbInfo, upgradeNeeded) {
 						return new Promise$1(function(resolve, reject) {
 							dbContexts[dbInfo.name] = dbContexts[dbInfo.name] || createDbContext();
-							if (dbInfo.db) if (upgradeNeeded) {
-								_deferReadiness(dbInfo);
-								dbInfo.db.close();
-							} else return resolve(dbInfo.db);
+							if (dbInfo.db) {
+								if (upgradeNeeded) {
+									_deferReadiness(dbInfo);
+									dbInfo.db.close();
+								} else return resolve(dbInfo.db);
+							}
 							var dbArgs = [dbInfo.name];
 							if (upgradeNeeded) dbArgs.push(dbInfo.version);
 							var openreq = idb.open.apply(idb, dbArgs);
@@ -21315,8 +21265,8 @@
 					function bufferToString(buffer) {
 						var bytes = new Uint8Array(buffer);
 						var base64String = "";
-						var i;
-						for (i = 0; i < bytes.length; i += 3) {
+						var i = 0;
+						for (; i < bytes.length; i += 3) {
 							base64String += BASE_CHARS[bytes[i] >> 2];
 							base64String += BASE_CHARS[(bytes[i] & 3) << 4 | bytes[i + 1] >> 4];
 							base64String += BASE_CHARS[(bytes[i + 1] & 15) << 2 | bytes[i + 2] >> 6];
@@ -21937,13 +21887,15 @@
 						for (var i = 1; i < arguments.length; i++) {
 							var arg = arguments[i];
 							if (arg) {
-								for (var _key in arg) if (arg.hasOwnProperty(_key)) if (isArray(arg[_key])) arguments[0][_key] = arg[_key].slice();
-								else arguments[0][_key] = arg[_key];
+								for (var _key in arg) if (arg.hasOwnProperty(_key)) {
+									if (isArray(arg[_key])) arguments[0][_key] = arg[_key].slice();
+									else arguments[0][_key] = arg[_key];
+								}
 							}
 						}
 						return arguments[0];
 					}
-					module$4.exports = new (function() {
+					module.exports = new (function() {
 						function LocalForage(options) {
 							_classCallCheck(this, LocalForage);
 							for (var driverTypeKey in DefaultDrivers) if (DefaultDrivers.hasOwnProperty(driverTypeKey)) {
@@ -22011,9 +21963,10 @@
 										DriverSupport[driverName] = support;
 										resolve();
 									};
-									if ("_support" in driverObject) if (driverObject._support && typeof driverObject._support === "function") driverObject._support().then(setDriverSupport, reject);
-									else setDriverSupport(!!driverObject._support);
-									else setDriverSupport(true);
+									if ("_support" in driverObject) {
+										if (driverObject._support && typeof driverObject._support === "function") driverObject._support().then(setDriverSupport, reject);
+										else setDriverSupport(!!driverObject._support);
+									} else setDriverSupport(true);
 								} catch (e) {
 									reject(e);
 								}
@@ -22158,7 +22111,7 @@
 				let store = import_localforage.default;
 				if (typeof import_localforage.default === "undefined") store = import_localforage.default;
 				this.storage = store.createInstance({ name: this.name });
-			} catch (e) {
+			} catch {
 				throw new Error("localForage lib not loaded");
 			}
 		}
@@ -22184,7 +22137,7 @@
 		* Update the online / offline status
 		* @private
 		*/
-		status(event) {
+		status(_event) {
 			let online = navigator.onLine;
 			this.online = online;
 			if (online) this.emit("online", this);
@@ -22341,7 +22294,7 @@
 				if (base64Response) base64Response.then((tempUrl) => {
 					this.urlCache[url] = tempUrl;
 					deferred.resolve(tempUrl);
-				});
+				}).catch((error) => deferred.reject(error));
 			} else {
 				var blobResponse = this.getBlob(url);
 				response = blobResponse;
@@ -22349,7 +22302,7 @@
 					tempUrl = _URL.createObjectURL(blob);
 					this.urlCache[url] = tempUrl;
 					deferred.resolve(tempUrl);
-				});
+				}).catch((error) => deferred.reject(error));
 			}
 			if (!response) deferred.reject({
 				message: "File not found in storage: " + url,
@@ -22374,8 +22327,7 @@
 		}
 	};
 	(0, import_event_emitter.default)(Store.prototype);
-	//#endregion
-	//#region src/displayoptions.ts
+	// src/displayoptions.ts
 	/**
 	* Open DisplayOptions Format Parser
 	* @class
@@ -22416,9 +22368,7 @@
 					case "open-to-spread":
 						this.openToSpread = value;
 						break;
-					case "orientation-lock":
-						this.orientationLock = value;
-						break;
+					case "orientation-lock": this.orientationLock = value;
 				}
 			});
 			return this;
@@ -22430,8 +22380,7 @@
 			this.orientationLock = void 0;
 		}
 	};
-	//#endregion
-	//#region src/book.ts
+	// src/book.ts
 	var Defer = defer$1;
 	var CONTAINER_PATH = "META-INF/container.xml";
 	var IBOOKS_DISPLAY_OPTIONS_PATH = "META-INF/com.apple.ibooks.display-options.xml";
@@ -23014,8 +22963,7 @@
 		}
 	};
 	(0, import_event_emitter.default)(Book.prototype);
-	//#endregion
-	//#region src/utils/core.ts
+	// src/utils/core.ts
 	/**
 	* Core Utilities and Helpers
 	* @module Core
@@ -23121,20 +23069,20 @@
 	}
 	/**
 	* Apply defaults to an object
-	* @param {object} obj
+	* @param {object} _obj
 	* @returns {object}
 	* @memberof Core
 	*/
-	function defaults(obj, ..._sources) {
+	function defaults(_obj, ..._sources) {
 		return defaults$1.apply(null, arguments);
 	}
 	/**
 	* Extend properties of an object
-	* @param {object} target
+	* @param {object} _target
 	* @returns {object}
 	* @memberof Core
 	*/
-	function extend(target, ..._sources) {
+	function extend(_target, ..._sources) {
 		return extend$1.apply(null, arguments);
 	}
 	/**
@@ -23440,8 +23388,7 @@
 	* @memberof Core
 	*/
 	var RangeObject = class extends RangeObject$1 {};
-	//#endregion
-	//#region src/epub.ts
+	// src/epub.ts
 	/**
 	* Creates a new Book
 	* @param {string|ArrayBuffer} url URL, Path or ArrayBuffer
@@ -23460,7 +23407,6 @@
 	ePub.Contents = Contents;
 	ePub.CFI = EpubCFI;
 	ePub.utils = core_exports;
-	//#endregion
 	return ePub;
 });
 

@@ -26,18 +26,20 @@ jobs:
     name: typecheck + browser tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      EPUBJS_EXPECTED_NODE_VERSION: '26.12.1'
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Setup Node
-        uses: actions/setup-node@v5
+      - name: Setup pinned Node and pnpm
+        uses: pnpm/setup@v3.0.0
         with:
-          node-version: 24
-          cache: npm
+          version: 12.15.0
+          runtime: node@26.12.1
 
       - name: Install
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       # 瀏覽器測試走 @vitest/browser-playwright，runner 預裝的 Chrome 不算數，
       # 必須讓 Playwright 裝自己的 chromium。
@@ -49,16 +51,25 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Install Playwright chromium
-        run: npx playwright install chromium
+        run: pnpm exec playwright install chromium
 
       - name: Typecheck
-        run: npm run typecheck
+        run: pnpm run typecheck
+
+      - name: Verify lint gate and legacy warning inventory
+        run: pnpm run test:lint-gate && pnpm run lint
+
+      - name: Check authored formatting
+        run: pnpm run fmt:check
+
+      - name: Verify installed toolchain
+        run: pnpm run check:toolchain
 
       - name: Browser tests
-        run: npm run test:browser
+        run: pnpm run test:browser
 
   release:
     name: verify release
@@ -71,31 +82,33 @@ jobs:
       fail-fast: false
       matrix:
         node-version:
-          - 22
-          - 24
+          - 22.23.4
+          - 24.22.1
+          - 26.12.1
     env:
       CHROME_BIN: /usr/bin/google-chrome
+      EPUBJS_EXPECTED_NODE_VERSION: ${{ matrix.node-version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Setup Node ${{ matrix.node-version }}
-        uses: actions/setup-node@v5
+      - name: Setup Node ${{ matrix.node-version }} and pnpm
+        uses: pnpm/setup@v3.0.0
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: npm
+          version: 12.15.0
+          runtime: node@${{ matrix.node-version }}
 
       - name: Install
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Install Playwright chromium
-        run: npx playwright install chromium
+        run: pnpm exec playwright install chromium
 
       - name: Verify release
-        run: npm run verify:release
+        run: pnpm run verify:release

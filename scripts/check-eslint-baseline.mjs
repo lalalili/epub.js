@@ -1,57 +1,97 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { assertVitePlusImports } from "./check-vite-plus-imports.mjs";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const baselinePath = path.join(root, "eslint-baseline.json");
-const baseline = JSON.parse(readFileSync(baselinePath, "utf8"));
-
-const result = spawnSync(
-	"npx",
-	["eslint", "-c", ".eslintrc.js", "src", "--format", "json"],
-	{
-		cwd: root,
-		encoding: "utf8",
-		maxBuffer: 30 * 1024 * 1024
-	}
-);
-
-if (result.error) {
-	console.error(result.error.message);
-	process.exit(1);
+export function readLintReport(result) {
+    if (result.error || result.status !== 0) {
+        throw new Error(
+            result.error?.message || result.stderr || `Lint exited with status ${result.status}`,
+        );
+    }
+    const report = JSON.parse(result.stdout);
+    if (
+        !Number.isInteger(report.number_of_files) ||
+        report.number_of_files < 1 ||
+        !Array.isArray(report.diagnostics)
+    ) {
+        throw new Error("Lint must scan source files and return diagnostics.");
+    }
+    if (report.diagnostics.some(({ severity }) => severity !== "warning" && severity !== "error")) {
+        throw new Error("Unknown lint diagnostic severity.");
+    }
+    return report;
 }
 
-if (!result.stdout.trim()) {
-	console.log("ESLint baseline: 0 errors, 0 warnings.");
-	process.exit(0);
+export function runLint() {
+    const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+    assertVitePlusImports(root, ["src"]);
+    const report = readLintReport(
+        spawnSync("pnpm", ["exec", "vp", "lint", "src", "--format", "json", "--threads", "2"], {
+            cwd: root,
+            encoding: "utf8",
+            env: {
+                ...process.env,
+                OXC_THREADS: "2",
+                GOMAXPROCS: "2",
+                RAYON_NUM_THREADS: "2",
+                UV_THREADPOOL_SIZE: "2",
+            },
+            maxBuffer: 30 * 1024 * 1024,
+        }),
+    );
+    const sourceFiles = readdirSync(path.join(root, "src"), {
+        recursive: true,
+        withFileTypes: true,
+    }).filter((entry) => entry.isFile() && /\.[cm]?[jt]sx?$/.test(entry.name));
+    if (report.number_of_files !== sourceFiles.length) {
+        throw new Error(
+            `Lint scanned ${report.number_of_files} files; expected ${sourceFiles.length} source files.`,
+        );
+    }
+    for (const diagnostic of report.diagnostics) {
+        console.error(
+            `${diagnostic.filename}: ${diagnostic.severity}: ${diagnostic.code}: ${diagnostic.message}`,
+        );
+    }
+    const errors = report.diagnostics.filter(({ severity }) => severity === "error").length;
+    const warnings = report.diagnostics.filter(({ severity }) => severity === "warning").length;
+    console.log(`Lint: ${report.number_of_files} files, ${errors} errors, ${warnings} warnings.`);
+    const baseline = JSON.parse(readFileSync(path.join(root, "eslint-baseline.json"), "utf8"));
+    const unmatched = compareWarnings(report, baseline);
+    if (unmatched.length) {
+        console.error("Lint findings differ from the recorded legacy warnings:", unmatched);
+    }
+    console.log(
+        `Recorded legacy warnings: ${warnings}. Strict zero-warning qualification: ${warnings === 0 ? "passed" : "not passed"}.`,
+    );
+    return errors === 0 &&
+        unmatched.length === 0 &&
+        (!process.argv.includes("--strict") || warnings === 0)
+        ? 0
+        : 1;
 }
 
-let report;
-
-try {
-	report = JSON.parse(result.stdout);
-} catch (error) {
-	console.error("Failed to parse ESLint JSON output.");
-	console.error(error.message);
-	process.exit(1);
+export function compareWarnings(report, baseline) {
+    if (baseline.version !== 2 || !Array.isArray(baseline.warnings)) {
+        throw new Error("Expected an explicit version 2 warning inventory.");
+    }
+    const key = ({ filename, code, message }) => JSON.stringify([filename, code, message]);
+    const actual = report.diagnostics
+        .filter(({ severity }) => severity === "warning")
+        .map(key)
+        .sort();
+    const expected = baseline.warnings.map(key).sort();
+    return actual
+        .filter((value, index) => value !== expected[index])
+        .concat(expected.filter((value, index) => value !== actual[index]));
 }
-
-const totals = report.reduce(
-	(counts, fileReport) => {
-		counts.errors += fileReport.errorCount;
-		counts.warnings += fileReport.warningCount;
-		return counts;
-	},
-	{ errors: 0, warnings: 0 }
-);
-
-console.log(
-	`ESLint baseline: ${totals.errors}/${baseline.maxErrors} errors, ` +
-		`${totals.warnings}/${baseline.maxWarnings} warnings.`
-);
-
-if (totals.errors > baseline.maxErrors || totals.warnings > baseline.maxWarnings) {
-	console.error("ESLint baseline exceeded. Fix the new lint debt or lower the existing baseline after cleanup.");
-	process.exit(1);
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+    try {
+        process.exitCode = runLint();
+    } catch (error) {
+        console.error(error.message);
+        process.exitCode = 1;
+    }
 }

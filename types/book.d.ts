@@ -1,8 +1,4 @@
-import {
-  PackagingManifest,
-  PackagingMetadata,
-  PackagingTocItem
-} from "./packaging";
+import { PackagingManifest, PackagingMetadata, PackagingTocItem } from "./packaging";
 import Rendition, { RenditionOptions } from "./rendition";
 import Section from "./section";
 import Archive, { ArchiveZip } from "./archive";
@@ -20,59 +16,65 @@ import Store from "./store";
 import DisplayOptions from "./displayoptions";
 import EpubCFI from "./epubcfi";
 import { Deferred } from "./utils/core";
-import { JsonValue, RequestHeaders, RequestMethod, RequestResponse, RequestType } from "./utils/request";
+import {
+    JsonValue,
+    RequestHeaders,
+    RequestMethod,
+    RequestResponse,
+    RequestType,
+} from "./utils/request";
 import { RangeObject } from "./compat/range";
 
 export type BookInput = string | ArrayBuffer | Blob;
 
 export type BookNavigationPackaging = Packaging & {
-  pageList?: PageListDocument;
-  toc?: Array<PackagingTocItem>;
-  navPath?: string | false;
-  ncxPath?: string | false;
+    pageList?: PageListDocument;
+    toc?: Array<PackagingTocItem>;
+    navPath?: string | false;
+    ncxPath?: string | false;
 };
 
 export interface BookOptions {
-  requestMethod?: RequestMethod;
-  requestCredentials?: boolean;
-  requestHeaders?: RequestHeaders;
-  encoding?: string;
-  replacements?: string;
-  canonical?: (path: string) => string;
-  openAs?: string;
-  store?: string;
+    requestMethod?: RequestMethod;
+    requestCredentials?: boolean;
+    requestHeaders?: RequestHeaders;
+    encoding?: string;
+    replacements?: string;
+    canonical?: (path: string) => string;
+    openAs?: string;
+    store?: string;
 }
 
 export interface BookLoading {
-  metadata: Deferred<PackagingMetadata>;
-  spine: Deferred<Spine>;
-  manifest: Deferred<PackagingManifest>;
-  cover: Deferred<string | undefined>;
-  navigation: Deferred<Navigation>;
-  pageList: Deferred<PageList | undefined>;
-  resources: Deferred<Resources>;
-  displayOptions: Deferred<DisplayOptions>;
+    metadata: Deferred<PackagingMetadata>;
+    spine: Deferred<Spine>;
+    manifest: Deferred<PackagingManifest>;
+    cover: Deferred<string | undefined>;
+    navigation: Deferred<Navigation>;
+    pageList: Deferred<PageList | undefined>;
+    resources: Deferred<Resources>;
+    displayOptions: Deferred<DisplayOptions>;
 }
 
 export interface BookLoaded {
-  metadata: Promise<PackagingMetadata>;
-  spine: Promise<Spine>;
-  manifest: Promise<PackagingManifest>;
-  cover: Promise<string | undefined>;
-  navigation: Promise<Navigation>;
-  pageList: Promise<PageList | undefined>;
-  resources: Promise<Resources>;
-  displayOptions: Promise<DisplayOptions>;
+    metadata: Promise<PackagingMetadata>;
+    spine: Promise<Spine>;
+    manifest: Promise<PackagingManifest>;
+    cover: Promise<string | undefined>;
+    navigation: Promise<Navigation>;
+    pageList: Promise<PageList | undefined>;
+    resources: Promise<Resources>;
+    displayOptions: Promise<DisplayOptions>;
 }
 
 export type BookReady = [
-  PackagingManifest,
-  Spine,
-  PackagingMetadata,
-  string | undefined,
-  Navigation,
-  Resources,
-  DisplayOptions
+    PackagingManifest,
+    Spine,
+    PackagingMetadata,
+    string | undefined,
+    Navigation,
+    Resources,
+    DisplayOptions,
 ];
 
 export default class Book {
@@ -97,14 +99,13 @@ export default class Book {
     archived: boolean;
     archive?: Archive;
     resources?: Resources;
-    rendition?: Rendition
+    rendition?: Rendition;
     container?: Container;
     packaging?: Packaging;
     package?: Packaging;
     storage?: Store;
     displayOptions?: DisplayOptions;
     cover?: string;
-
 
     canonical(path: string): string;
 
@@ -121,7 +122,10 @@ export default class Book {
     load(path: string, type: "binary"): Promise<ArrayBuffer>;
     load(path: string, type: "blob"): Promise<Blob>;
     load(path: string, type: "json"): Promise<JsonValue>;
-    load(path: string, type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm"): Promise<Document | XMLDocument>;
+    load(
+        path: string,
+        type: "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm",
+    ): Promise<Document | XMLDocument>;
     load(path: string, type: "text"): Promise<string>;
     load(path: string, type?: RequestType | null): Promise<RequestResponse>;
 
@@ -166,5 +170,4 @@ export default class Book {
     on(type: string, listener: (...args: unknown[]) => void): unknown;
 
     once(type: string, listener: (...args: unknown[]) => void): unknown;
-
 }

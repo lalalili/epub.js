@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { getVerticalRlCleanPageEdgeMaskInput } from "../../src/rendering/boundary-mask";
 
 /**
@@ -19,66 +19,57 @@ import { getVerticalRlCleanPageEdgeMaskInput } from "../../src/rendering/boundar
  *   glyph-width divisibility.
  */
 describe("Vertical RL clean-page edge mask input characterization", function () {
-	const advance = 384;
-	const totalPages = 10;
-	const pageIndex = 1;
-	const gridOffset = 384;
+    const advance = 384;
+    const totalPages = 10;
+    const pageIndex = 1;
+    const gridOffset = 384;
 
-	function buildInput({ actualOffset, sequentialBoundaryPageIndex = null }) {
-		return getVerticalRlCleanPageEdgeMaskInput(
-			advance,
-			totalPages,
-			pageIndex,
-			gridOffset,
-			gridOffset - advance,
-			actualOffset,
-			gridOffset,
-			sequentialBoundaryPageIndex
-		);
-	}
+    function buildInput({ actualOffset, sequentialBoundaryPageIndex = null }) {
+        return getVerticalRlCleanPageEdgeMaskInput(
+            advance,
+            totalPages,
+            pageIndex,
+            gridOffset,
+            gridOffset - advance,
+            actualOffset,
+            gridOffset,
+            sequentialBoundaryPageIndex,
+        );
+    }
 
-	it("does not force the raw left mask when the offset sits on the grid", function () {
-		const input = buildInput({ actualOffset: gridOffset });
+    it("does not force the raw left mask when the offset sits on the grid", function () {
+        const input = buildInput({ actualOffset: gridOffset });
 
-		expect(input).not.toBeNull();
-		expect(input.forceRawLeftMask).toBe(false);
-	});
+        expect(input).not.toBeNull();
+        expect(input.forceRawLeftMask).toBe(false);
+    });
 
-	it("tolerates sub-pixel drift of up to 1px without forcing the raw left mask", function () {
-		const input = buildInput({ actualOffset: gridOffset - 1 });
+    it("tolerates sub-pixel drift of up to 1px without forcing the raw left mask", function () {
+        const input = buildInput({ actualOffset: gridOffset - 1 });
 
-		expect(input.forceRawLeftMask).toBe(false);
-	});
+        expect(input.forceRawLeftMask).toBe(false);
+    });
 
-	it("forces the raw left mask once the offset drifts more than 1px off the grid", function () {
-		// 359 is the offset observed on 9789570538069 24px/2.0 after the
-		// text-boundary snap deliberately moved the page off the grid.
-		const input = buildInput({ actualOffset: 359 });
+    it("forces the raw left mask once the offset drifts more than 1px off the grid", function () {
+        // 359 is the offset observed on 9789570538069 24px/2.0 after the
+        // text-boundary snap deliberately moved the page off the grid.
+        const input = buildInput({ actualOffset: 359 });
 
-		expect(input.forceRawLeftMask).toBe(true);
-	});
+        expect(input.forceRawLeftMask).toBe(true);
+    });
 
-	it("forces the raw left mask on a sequential boundary page even when on the grid", function () {
-		const input = buildInput({
-			actualOffset: gridOffset,
-			sequentialBoundaryPageIndex: pageIndex
-		});
+    it("forces the raw left mask on a sequential boundary page even when on the grid", function () {
+        const input = buildInput({
+            actualOffset: gridOffset,
+            sequentialBoundaryPageIndex: pageIndex,
+        });
 
-		expect(input.forceRawLeftMask).toBe(true);
-	});
+        expect(input.forceRawLeftMask).toBe(true);
+    });
 
-	it("returns null for the first page, where no clean-page mask applies", function () {
-		const input = getVerticalRlCleanPageEdgeMaskInput(
-			advance,
-			totalPages,
-			0,
-			0,
-			0,
-			0,
-			0,
-			null
-		);
+    it("returns null for the first page, where no clean-page mask applies", function () {
+        const input = getVerticalRlCleanPageEdgeMaskInput(advance, totalPages, 0, 0, 0, 0, 0, null);
 
-		expect(input).toBeNull();
-	});
+        expect(input).toBeNull();
+    });
 });

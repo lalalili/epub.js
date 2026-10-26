@@ -1,9 +1,9 @@
 import {
-	isAbsolutePath,
-	parsePath,
-	relativePath,
-	resolvePath,
-	type ParsedPosixPath
+    isAbsolutePath,
+    parsePath,
+    relativePath,
+    resolvePath,
+    type ParsedPosixPath,
 } from "./path-posix";
 
 export type ParsedPath = ParsedPosixPath;
@@ -16,101 +16,100 @@ export type ParsedPath = ParsedPosixPath;
  * @class
  */
 class Path {
-	path: string;
-	directory: string;
-	filename: string;
-	extension: string;
-	splitPathRe: RegExp;
+    path: string;
+    directory: string;
+    filename: string;
+    extension: string;
+    splitPathRe: RegExp;
 
-	constructor(pathString: string) {
-		var protocol;
-		var parsed;
+    constructor(pathString: string) {
+        var protocol;
+        var parsed;
 
-		protocol = pathString.indexOf("://");
-		if (protocol > -1) {
-			pathString = new URL(pathString).pathname;
-		}
+        protocol = pathString.indexOf("://");
+        if (protocol > -1) {
+            pathString = new URL(pathString).pathname;
+        }
 
-		parsed = this.parse(pathString);
+        parsed = this.parse(pathString);
 
-		this.path = pathString;
+        this.path = pathString;
 
-		if (this.isDirectory(pathString)) {
-			this.directory = pathString;
-		} else {
-			this.directory = parsed.dir + "/";
-		}
+        if (this.isDirectory(pathString)) {
+            this.directory = pathString;
+        } else {
+            this.directory = parsed.dir + "/";
+        }
 
-		this.filename = parsed.base;
-		this.extension = parsed.ext.slice(1);
+        this.filename = parsed.base;
+        this.extension = parsed.ext.slice(1);
+    }
 
-	}
+    /**
+     * Parse the path: https://nodejs.org/api/path.html#path_path_parse_path
+     * @param	{string} what
+     * @returns {object}
+     */
+    parse(what: string): ParsedPath {
+        return parsePath(what);
+    }
 
-	/**
-	 * Parse the path: https://nodejs.org/api/path.html#path_path_parse_path
-	 * @param	{string} what
-	 * @returns {object}
-	 */
-	parse (what: string): ParsedPath {
-		return parsePath(what);
-	}
+    /**
+     * @param	{string} what
+     * @returns {boolean}
+     */
+    isAbsolute(what?: string): boolean {
+        return isAbsolutePath(what || this.path);
+    }
 
-	/**
-	 * @param	{string} what
-	 * @returns {boolean}
-	 */
-	isAbsolute (what?: string): boolean {
-		return isAbsolutePath(what || this.path);
-	}
+    /**
+     * Check if path ends with a directory
+     * @param	{string} what
+     * @returns {boolean}
+     */
+    isDirectory(what: string): boolean {
+        return what.charAt(what.length - 1) === "/";
+    }
 
-	/**
-	 * Check if path ends with a directory
-	 * @param	{string} what
-	 * @returns {boolean}
-	 */
-	isDirectory (what: string): boolean {
-		return (what.charAt(what.length-1) === "/");
-	}
+    /**
+     * Resolve a path against the directory of the Path
+     *
+     * https://nodejs.org/api/path.html#path_path_resolve_paths
+     * @param	{string} what
+     * @returns {string} resolved
+     */
+    resolve(what: string): string {
+        return resolvePath(this.directory, what);
+    }
 
-	/**
-	 * Resolve a path against the directory of the Path
-	 *
-	 * https://nodejs.org/api/path.html#path_path_resolve_paths
-	 * @param	{string} what
-	 * @returns {string} resolved
-	 */
-	resolve (what: string): string {
-		return resolvePath(this.directory, what);
-	}
+    /**
+     * Resolve a path relative to the directory of the Path
+     *
+     * https://nodejs.org/api/path.html#path_path_relative_from_to
+     * @param	{string} what
+     * @returns {string} relative
+     */
+    relative(what: string): string {
+        var isAbsolute = what && what.indexOf("://") > -1;
 
-	/**
-	 * Resolve a path relative to the directory of the Path
-	 *
-	 * https://nodejs.org/api/path.html#path_path_relative_from_to
-	 * @param	{string} what
-	 * @returns {string} relative
-	 */
-	relative (what: string): string {
-		var isAbsolute = what && (what.indexOf("://") > -1);
+        if (isAbsolute) {
+            return what;
+        }
 
-		if (isAbsolute) {
-			return what;
-		}
+        return relativePath(this.directory, what);
+    }
 
-		return relativePath(this.directory, what);
-	}
+    splitPath(filename: string): string[] {
+        return this.splitPathRe.exec(filename).slice(1);
+    }
 
-	splitPath(filename: string): string[] {
-		return this.splitPathRe.exec(filename).slice(1);
-	}
-
-	/**
-	 * Return the path string
-	 * @returns {string} path
-	 */
-	toString (): string {
-		return this.path;
-	}
+    /**
+     * Return the path string
+     * @returns {string} path
+     */
+    toString(): string {
+        return this.path;
+    }
 }
 
 export default Path;

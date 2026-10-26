@@ -1,105 +1,104 @@
 {
-  "name": "epubjs",
-  "version": "0.3.93",
-  "description": "Parse and render EPUB documents in the browser",
-  "main": "./dist/epub.cjs",
-  "module": "./dist/epub.mjs",
-  "browser": "./dist/epub.js",
-  "types": "./types/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./types/index.d.ts",
-      "import": "./dist/epub.mjs",
-      "require": "./dist/epub.cjs",
-      "default": "./dist/epub.mjs"
+    "name": "epubjs",
+    "version": "0.3.93",
+    "description": "Parse and render EPUB documents in the browser",
+    "homepage": "https://github.com/lalalili/epub.js#readme",
+    "bugs": {
+        "url": "https://github.com/lalalili/epub.js/issues"
     },
-    "./package.json": "./package.json"
-  },
-  "files": [
-    "dist",
-    "lib",
-    "src",
-    "types",
-    "!types/epubjs-tests.ts",
-    "!types/global-namespace-tests.ts",
-    "!types/tsconfig.json",
-    "README.md",
-    "PATCHLOG.md",
-    "license"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/lalalili/epub.js.git"
-  },
-  "bugs": {
-    "url": "https://github.com/lalalili/epub.js/issues"
-  },
-  "homepage": "https://github.com/lalalili/epub.js#readme",
-  "directories": {
-    "test": "test"
-  },
-  "scripts": {
-    "test": "npm run test:browser",
-    "test:legacy": "node -e \"console.log('No legacy Karma tests remain; use npm run test:browser')\"",
-    "test:browser": "vitest run --config vitest.browser.config.mjs",
-    "docs": "npm run docs:md",
-    "docs:html": "typedoc --options typedoc.html.json",
-    "docs:md": "typedoc --options typedoc.json",
-    "lint": "node scripts/check-eslint-baseline.mjs",
-    "start": "vite --host localhost --port 8080",
-    "build": "npm run build:modules && npm run build:umd && npm run build:umd:min && npm run build:clean",
-    "build:modules": "vite build --config vite.config.mjs",
-    "build:umd": "vite build --config vite.umd.config.mjs",
-    "build:umd:min": "MINIFY=true vite build --config vite.umd.config.mjs",
-    "build:clean": "node -e \"const fs = require('fs'); for (const p of ['dist/epub.js']) fs.writeFileSync(p, fs.readFileSync(p, 'utf8').replace(/[ \\\\t]+$/gm, ''));\"",
-    "minify": "npm run build:umd:min",
-    "verify:contracts": "npm run verify:docs-modernization && npm run verify:package-entry && npm run verify:gate1-readiness && npm run verify:test-modernization && npm run verify:pack-contents && npm run verify:packed-package-entry && npm run verify:release-gate && npm run verify:internal-boundaries && npm run verify:typescript-source-pipeline",
-    "verify:docs-modernization": "node scripts/verify-docs-modernization.mjs",
-    "verify:gate1-readiness": "node scripts/verify-gate1-readiness.mjs",
-    "verify:internal-boundaries": "node scripts/verify-internal-boundaries.mjs",
-    "verify:pack-contents": "node scripts/verify-pack-contents.mjs",
-    "verify:package-entry": "node scripts/verify-package-entry.mjs",
-    "verify:packed-package-entry": "node scripts/verify-packed-package-entry.mjs",
-    "verify:release": "npm run lint && npm run typecheck && npm run compile && npm run build && npm run docs:md && npm run verify:contracts && npm run test:browser && npm audit && npm audit --omit=dev && npm pack --dry-run",
-    "verify:release-gate": "node scripts/verify-release-gate.mjs",
-    "verify:test-modernization": "node scripts/verify-test-modernization.mjs",
-    "verify:typescript-source-pipeline": "node scripts/verify-typescript-source-pipeline.mjs",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "compile": "babel --extensions \".js,.ts\" -d lib/ src/",
-    "watch": "babel --extensions \".js,.ts\" --watch -d lib/ src/",
-    "prepare": "npm run compile && npm run build"
-  },
-  "author": "fchasen@gmail.com",
-  "license": "BSD-2-Clause",
-  "overrides": {
-    "brace-expansion": "^5.0.12",
-    "diff": "^8.0.3",
-    "serialize-javascript": "^7.0.5",
-    "tmp": "^0.2.6",
-    "uuid": "^11.1.1",
-    "markdown-it": "^14.3.3"
-  },
-  "devDependencies": {
-    "@babel/cli": "^8.0.6",
-    "@babel/core": "^8.0.6",
-    "@babel/preset-env": "^8.0.6",
-    "@babel/preset-typescript": "^8.0.1",
-    "@babel/runtime": "^7.29.7",
-    "@vitest/browser-playwright": "^4.1.12",
-    "babel-plugin-polyfill-corejs3": "^1.0.0",
-    "eslint": "^8.57.1",
-    "playwright": "^1.60.0",
-    "typedoc": "^0.28.19",
-    "typedoc-plugin-markdown": "^4.11.0",
-    "typescript": "^6.0.3",
-    "vite": "~8.1.6",
-    "vitest": "^4.1.12"
-  },
-  "dependencies": {
-    "@xmldom/xmldom": "^0.8.13",
-    "event-emitter": "^0.3.5",
-    "jszip": "^3.10.1",
-    "localforage": "^1.10.0",
-    "marks-pane": "^1.0.9"
-  }
+    "license": "BSD-2-Clause",
+    "author": "fchasen@gmail.com",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/lalalili/epub.js.git"
+    },
+    "directories": {
+        "test": "test"
+    },
+    "files": [
+        "dist",
+        "lib",
+        "src",
+        "types",
+        "!types/epubjs-tests.ts",
+        "!types/global-namespace-tests.ts",
+        "!types/tsconfig.json",
+        "README.md",
+        "PATCHLOG.md",
+        "license"
+    ],
+    "main": "./dist/epub.cjs",
+    "module": "./dist/epub.mjs",
+    "browser": "./dist/epub.js",
+    "types": "./types/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./types/index.d.ts",
+            "import": "./dist/epub.mjs",
+            "require": "./dist/epub.cjs",
+            "default": "./dist/epub.mjs"
+        },
+        "./package.json": "./package.json"
+    },
+    "scripts": {
+        "check:toolchain": "node scripts/check-toolchain.mjs",
+        "test": "pnpm run test:browser",
+        "test:legacy": "node -e \"console.log('No legacy Karma tests remain; use pnpm run test:browser')\"",
+        "test:browser": "vp test run --config vitest.browser.config.mjs",
+        "docs": "pnpm run docs:md",
+        "docs:html": "typedoc --options typedoc.html.json",
+        "docs:md": "typedoc --options typedoc.json",
+        "lint": "node scripts/check-eslint-baseline.mjs",
+        "lint:strict": "node scripts/check-eslint-baseline.mjs --strict",
+        "test:lint-gate": "node --test scripts/check-eslint-baseline.test.mjs scripts/source-contract.test.mjs scripts/check-vite-plus-imports.test.mjs",
+        "fmt": "vp fmt src scripts test types type-tests *.mjs *.json *.yaml",
+        "fmt:check": "pnpm run fmt --check",
+        "start": "vp dev --host localhost --port 8080",
+        "build": "npm run build:modules && npm run build:umd && npm run build:umd:min && npm run build:clean",
+        "build:modules": "vp build --config vite.config.mjs",
+        "build:umd": "vp build --config vite.umd.config.mjs",
+        "build:umd:min": "MINIFY=true vp build --config vite.umd.config.mjs",
+        "build:clean": "node -e \"const fs = require('fs'); for (const p of ['dist/epub.js']) fs.writeFileSync(p, fs.readFileSync(p, 'utf8').replace(/[ \\\\t]+$/gm, ''));\"",
+        "minify": "pnpm run build:umd:min",
+        "verify:contracts": "pnpm run verify:docs-modernization && pnpm run verify:package-entry && pnpm run verify:gate1-readiness && pnpm run verify:test-modernization && pnpm run verify:pack-contents && pnpm run verify:packed-package-entry && pnpm run verify:release-gate && pnpm run verify:internal-boundaries && pnpm run verify:typescript-source-pipeline",
+        "verify:docs-modernization": "node scripts/verify-docs-modernization.mjs",
+        "verify:gate1-readiness": "node scripts/verify-gate1-readiness.mjs",
+        "verify:internal-boundaries": "node scripts/verify-internal-boundaries.mjs",
+        "verify:pack-contents": "node scripts/verify-pack-contents.mjs",
+        "verify:package-entry": "node scripts/verify-package-entry.mjs",
+        "verify:packed-package-entry": "node scripts/verify-packed-package-entry.mjs",
+        "verify:release": "pnpm run lint && pnpm run typecheck && pnpm run compile && pnpm run build && pnpm run docs:md && pnpm run verify:contracts && pnpm run test:browser && pnpm audit && pnpm audit --prod && npm pack --dry-run",
+        "verify:release-gate": "node scripts/verify-release-gate.mjs",
+        "verify:test-modernization": "node scripts/verify-test-modernization.mjs",
+        "verify:typescript-source-pipeline": "node scripts/verify-typescript-source-pipeline.mjs",
+        "typecheck": "tsc -p tsconfig.json --noEmit",
+        "compile": "babel --extensions \".js,.ts\" -d lib/ src/",
+        "watch": "babel --extensions \".js,.ts\" --watch -d lib/ src/",
+        "prepare": "npm run compile && npm run build"
+    },
+    "dependencies": {
+        "@xmldom/xmldom": "^0.8.13",
+        "event-emitter": "^0.3.5",
+        "jszip": "^3.10.1",
+        "localforage": "^1.10.0",
+        "marks-pane": "^1.0.9"
+    },
+    "devDependencies": {
+        "@babel/cli": "^8.0.6",
+        "@babel/core": "^8.0.6",
+        "@babel/preset-env": "^8.0.6",
+        "@babel/preset-typescript": "^8.0.1",
+        "@babel/runtime": "^7.29.7",
+        "@vitest/browser-playwright": "5.0.5",
+        "babel-plugin-polyfill-corejs3": "^1.0.0",
+        "eslint": "^8.57.1",
+        "playwright": "^1.60.0",
+        "typedoc": "^0.28.19",
+        "typedoc-plugin-markdown": "^4.11.0",
+        "typescript": "^6.0.3",
+        "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0",
+        "vite-plus": "1.4.0",
+        "vitest": "5.0.5"
+    },
+    "packageManager": "pnpm@12.15.0"
 }

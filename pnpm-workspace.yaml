@@ -1,0 +1,29 @@
+packages:
+  - .
+
+strictDepBuilds: true
+
+allowBuilds:
+  esbuild: true
+  core-js: false
+  es5-ext: false
+
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@1.4.0
+  vite-plus: 1.4.0
+
+overrides:
+  vite@*: "catalog:"
+  vitest: 5.0.5
+  brace-expansion: ^5.0.12
+  diff: ^8.0.3
+  serialize-javascript: ^7.0.5
+  tmp: ^0.2.6
+  uuid: ^11.1.1
+  markdown-it: ^14.3.3
+
+peerDependencyRules:
+  allowAny:
+    - vite
+  allowedVersions:
+    vite: "*"

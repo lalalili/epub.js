@@ -2,18 +2,18 @@ import { PackagingManifest } from "./packaging";
 import Archive from "./archive";
 
 export interface ResourceManifestItem {
-  href: string,
-  type?: string,
-  [key: string]: unknown
+    href: string;
+    type?: string;
+    [key: string]: unknown;
 }
 
 export interface ResourceManifest {
-  [key: string]: ResourceManifestItem
+    [key: string]: ResourceManifestItem;
 }
 
 export interface ResourceArchive {
-  createUrl(url: string, options?: { base64?: boolean }): Promise<string>;
-  getText(url: string): Promise<string> | undefined;
+    createUrl(url: string, options?: { base64?: boolean }): Promise<string>;
+    getText(url: string): Promise<string> | undefined;
 }
 
 export type ResourceArchiveInput = ResourceArchive | Archive;
@@ -21,58 +21,62 @@ export type ResourceArchiveInput = ResourceArchive | Archive;
 export type ResourceResolver = (href: string) => string;
 
 export interface ResourceRequest {
-  (url: string, type: "blob"): Promise<Blob>;
-  (url: string, type: "text"): Promise<string>;
+    (url: string, type: "blob"): Promise<Blob>;
+    (url: string, type: "text"): Promise<string>;
 }
 
 export type ReplacementMode = "base64" | "blob" | "none" | string;
 
 export interface ResourceOptions {
-  replacements?: ReplacementMode,
-  archive?: ResourceArchiveInput,
-  resolver?: ResourceResolver,
-  request?: ResourceRequest
+    replacements?: ReplacementMode;
+    archive?: ResourceArchiveInput;
+    resolver?: ResourceResolver;
+    request?: ResourceRequest;
 }
 
 export interface ResourceSettings {
-  replacements: ReplacementMode,
-  archive?: ResourceArchiveInput,
-  resolver?: ResourceResolver,
-  request?: ResourceRequest
+    replacements: ReplacementMode;
+    archive?: ResourceArchiveInput;
+    resolver?: ResourceResolver;
+    request?: ResourceRequest;
 }
 
 export default class Resources {
-  constructor(manifest: ResourceManifest | PackagingManifest, options?: ResourceOptions);
+    constructor(manifest: ResourceManifest | PackagingManifest, options?: ResourceOptions);
 
-  settings?: ResourceSettings;
-  manifest?: ResourceManifest;
-  resources?: Array<ResourceManifestItem>;
-  replacementUrls?: Array<string>;
-  html?: Array<ResourceManifestItem>;
-  assets?: Array<ResourceManifestItem>;
-  css?: Array<ResourceManifestItem>;
-  urls?: Array<string>;
-  cssUrls?: Array<string>;
+    settings?: ResourceSettings;
+    manifest?: ResourceManifest;
+    resources?: Array<ResourceManifestItem>;
+    replacementUrls?: Array<string>;
+    html?: Array<ResourceManifestItem>;
+    assets?: Array<ResourceManifestItem>;
+    css?: Array<ResourceManifestItem>;
+    urls?: Array<string>;
+    cssUrls?: Array<string>;
 
-  process(manifest: ResourceManifest | PackagingManifest): void;
+    process(manifest: ResourceManifest | PackagingManifest): void;
 
-  split(): void;
+    split(): void;
 
-  splitUrls(): void;
+    splitUrls(): void;
 
-  createUrl(url: string): Promise<string>;
+    createUrl(url: string): Promise<string>;
 
-  replacements(): Promise<Array<string | null>>;
+    replacements(): Promise<Array<string | null>>;
 
-  replaceCss(archive?: ResourceArchiveInput, resolver?: ResourceResolver): Promise<Array<void>>;
+    replaceCss(archive?: ResourceArchiveInput, resolver?: ResourceResolver): Promise<Array<void>>;
 
-  createCssFile(href: string, archive?: ResourceArchiveInput, resolver?: ResourceResolver): Promise<string | undefined>;
+    createCssFile(
+        href: string,
+        archive?: ResourceArchiveInput,
+        resolver?: ResourceResolver,
+    ): Promise<string | undefined>;
 
-  relativeTo(absolute: string, resolver?: ResourceResolver): Array<string>;
+    relativeTo(absolute: string, resolver?: ResourceResolver): Array<string>;
 
-  get(path: string): Promise<string> | undefined;
+    get(path: string): Promise<string> | undefined;
 
-  substitute(content: string, url?: string): string;
+    substitute(content: string, url?: string): string;
 
-  destroy(): void;
+    destroy(): void;
 }

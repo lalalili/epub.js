@@ -12,34 +12,54 @@ export type StoreHeaders = Record<string, string>;
 export type StoreRequestResponse = RequestResponse | StoreData;
 export type StoreMarkupRequestType = "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm";
 export interface StoreRequest {
-	(url: string, type: "binary", withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreData>;
-	(url: string, type: "blob", withCredentials?: boolean, headers?: StoreHeaders): Promise<Blob>;
-	(url: string, type: "json", withCredentials?: boolean, headers?: StoreHeaders): Promise<JsonValue>;
-	(url: string, type: StoreMarkupRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<Document | XMLDocument>;
-	(url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreRequestResponse>;
+    (
+        url: string,
+        type: "binary",
+        withCredentials?: boolean,
+        headers?: StoreHeaders,
+    ): Promise<StoreData>;
+    (url: string, type: "blob", withCredentials?: boolean, headers?: StoreHeaders): Promise<Blob>;
+    (
+        url: string,
+        type: "json",
+        withCredentials?: boolean,
+        headers?: StoreHeaders,
+    ): Promise<JsonValue>;
+    (
+        url: string,
+        type: StoreMarkupRequestType,
+        withCredentials?: boolean,
+        headers?: StoreHeaders,
+    ): Promise<Document | XMLDocument>;
+    (
+        url: string,
+        type?: StoreRequestType,
+        withCredentials?: boolean,
+        headers?: StoreHeaders,
+    ): Promise<StoreRequestResponse>;
 }
 export type StoreResolver = (href: string) => string;
 export interface StoreStorage {
-	getItem(key: string): Promise<StoreData | null | undefined>;
-	setItem(key: string, value: StoreData): Promise<StoreData>;
+    getItem(key: string): Promise<StoreData | null | undefined>;
+    setItem(key: string, value: StoreData): Promise<StoreData>;
 }
 export interface StoreResource {
-	href: string;
+    href: string;
 }
 export interface StoreResources {
-	resources: StoreResource[];
+    resources: StoreResource[];
 }
 export interface StoreUrlOptions {
-	base64?: boolean;
+    base64?: boolean;
 }
 type UrlFactory = typeof URL & {
-	webkitURL?: typeof URL;
-	mozURL?: typeof URL;
+    webkitURL?: typeof URL;
+    mozURL?: typeof URL;
 };
 type DeferConstructor = new <T = unknown>() => {
-	promise: Promise<T>;
-	resolve(value?: T): void;
-	reject(error?: unknown): void;
+    promise: Promise<T>;
+    resolve(value?: T): void;
+    reject(error?: unknown): void;
 };
 
 /**
@@ -50,390 +70,415 @@ type DeferConstructor = new <T = unknown>() => {
  * @param {function} [resolver]
  */
 class Store {
-	urlCache: Record<string, string>;
-	storage?: StoreStorage;
-	name: string;
-	requester: StoreRequest;
-	resolver?: StoreResolver;
-	online: boolean;
-	_status?: (event?: Event) => void;
+    urlCache: Record<string, string>;
+    storage?: StoreStorage;
+    name: string;
+    requester: StoreRequest;
+    resolver?: StoreResolver;
+    online: boolean;
+    _status?: (event?: Event) => void;
 
-	constructor(name: string, requester?: StoreRequest, resolver?: StoreResolver) {
-		this.urlCache = {};
+    constructor(name: string, requester?: StoreRequest, resolver?: StoreResolver) {
+        this.urlCache = {};
 
-		this.storage = undefined;
+        this.storage = undefined;
 
-		this.name = name;
-		this.requester = requester || httpRequest;
-		this.resolver = resolver;
+        this.name = name;
+        this.requester = requester || httpRequest;
+        this.resolver = resolver;
 
-		this.online = true;
+        this.online = true;
 
-		this.checkRequirements();
+        this.checkRequirements();
 
-		this.addListeners();
-	}
+        this.addListeners();
+    }
 
-	/**
-	 * Checks to see if localForage exists in global namspace,
-	 * Requires localForage if it isn't there
-	 * @private
-	 */
-	checkRequirements(): void {
-		try {
-			let store = localforage;
-			if (typeof localforage === "undefined") {
-				store = localforage;
-			}
-			this.storage = store.createInstance({
-				name: this.name
-			});
-		} catch (e) {
-			throw new Error("localForage lib not loaded");
-		}
-	}
+    /**
+     * Checks to see if localForage exists in global namspace,
+     * Requires localForage if it isn't there
+     * @private
+     */
+    checkRequirements(): void {
+        try {
+            let store = localforage;
+            if (typeof localforage === "undefined") {
+                store = localforage;
+            }
+            this.storage = store.createInstance({
+                name: this.name,
+            });
+        } catch {
+            throw new Error("localForage lib not loaded");
+        }
+    }
 
-	/**
-	 * Add online and offline event listeners
-	 * @private
-	 */
-	addListeners(): void {
-		this._status = this.status.bind(this);
-		window.addEventListener("online",  this._status);
-		window.addEventListener("offline", this._status);
-	}
+    /**
+     * Add online and offline event listeners
+     * @private
+     */
+    addListeners(): void {
+        this._status = this.status.bind(this);
+        window.addEventListener("online", this._status);
+        window.addEventListener("offline", this._status);
+    }
 
-	/**
-	 * Remove online and offline event listeners
-	 * @private
-	 */
-	removeListeners(): void {
-		window.removeEventListener("online",  this._status);
-		window.removeEventListener("offline", this._status);
-		this._status = undefined;
-	}
+    /**
+     * Remove online and offline event listeners
+     * @private
+     */
+    removeListeners(): void {
+        window.removeEventListener("online", this._status);
+        window.removeEventListener("offline", this._status);
+        this._status = undefined;
+    }
 
-	/**
-	 * Update the online / offline status
-	 * @private
-	 */
-	status(event?: Event): void {
-		let online = navigator.onLine;
-		this.online = online;
-		if (online) {
-			this.emit("online", this);
-		} else {
-			this.emit("offline", this);
-		}
-	}
+    /**
+     * Update the online / offline status
+     * @private
+     */
+    status(_event?: Event): void {
+        let online = navigator.onLine;
+        this.online = online;
+        if (online) {
+            this.emit("online", this);
+        } else {
+            this.emit("offline", this);
+        }
+    }
 
-	/**
-	 * Add all of a book resources to the store
-	 * @param  {Resources} resources  book resources
-	 * @param  {boolean} [force] force resaving resources
-	 * @return {Promise<object>} store objects
-	 */
-	add(resources: StoreResources, force?: boolean): Promise<StoreData[]> {
-		let mapped = resources.resources.map((item) => {
-			let { href } = item;
-			let url = this.resolver!(href);
-			let encodedUrl = window.encodeURIComponent(url);
+    /**
+     * Add all of a book resources to the store
+     * @param  {Resources} resources  book resources
+     * @param  {boolean} [force] force resaving resources
+     * @return {Promise<object>} store objects
+     */
+    add(resources: StoreResources, force?: boolean): Promise<StoreData[]> {
+        let mapped = resources.resources.map((item) => {
+            let { href } = item;
+            let url = this.resolver!(href);
+            let encodedUrl = window.encodeURIComponent(url);
 
-			return this.storage!.getItem(encodedUrl).then((item) => {
-				if (!item || force) {
-					return this.requester(url, "binary")
-						.then((data) => {
-							return this.storage!.setItem(encodedUrl, data);
-						});
-				} else {
-					return item;
-				}
-			});
+            return this.storage!.getItem(encodedUrl).then((item) => {
+                if (!item || force) {
+                    return this.requester(url, "binary").then((data) => {
+                        return this.storage!.setItem(encodedUrl, data);
+                    });
+                } else {
+                    return item;
+                }
+            });
+        });
+        return Promise.all(mapped);
+    }
 
-		});
-		return Promise.all(mapped);
-	}
+    /**
+     * Put binary data from a url to storage
+     * @param  {string} url  a url to request from storage
+     * @param  {boolean} [withCredentials]
+     * @param  {object} [headers]
+     * @return {Promise<Blob>}
+     */
+    put(url: string, withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreData> {
+        let encodedUrl = window.encodeURIComponent(url);
 
-	/**
-	 * Put binary data from a url to storage
-	 * @param  {string} url  a url to request from storage
-	 * @param  {boolean} [withCredentials]
-	 * @param  {object} [headers]
-	 * @return {Promise<Blob>}
-	 */
-	put(url: string, withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreData> {
-		let encodedUrl = window.encodeURIComponent(url);
+        return this.storage!.getItem(encodedUrl).then((result) => {
+            if (!result) {
+                return this.requester(url, "binary", withCredentials, headers).then((data) => {
+                    return this.storage!.setItem(encodedUrl, data);
+                });
+            }
+            return result;
+        });
+    }
 
-		return this.storage!.getItem(encodedUrl).then((result) => {
-			if (!result) {
-				return this.requester(url, "binary", withCredentials, headers).then((data) => {
-					return this.storage!.setItem(encodedUrl, data);
-				});
-			}
-			return result;
-		});
-	}
+    /**
+     * Request a url
+     * @param  {string} url  a url to request from storage
+     * @param  {string} [type] specify the type of the returned result
+     * @param  {boolean} [withCredentials]
+     * @param  {object} [headers]
+     * @return {Promise<Blob | string | JSON | Document | XMLDocument>}
+     */
+    request(
+        url: string,
+        type: "blob",
+        withCredentials?: boolean,
+        headers?: StoreHeaders,
+    ): Promise<Blob>;
+    request(
+        url: string,
+        type: "json",
+        withCredentials?: boolean,
+        headers?: StoreHeaders,
+    ): Promise<JsonValue>;
+    request(
+        url: string,
+        type: StoreMarkupRequestType,
+        withCredentials?: boolean,
+        headers?: StoreHeaders,
+    ): Promise<Document | XMLDocument>;
+    request(
+        url: string,
+        type?: StoreRequestType,
+        withCredentials?: boolean,
+        headers?: StoreHeaders,
+    ): Promise<RequestResponse>;
+    request(
+        url: string,
+        type?: StoreRequestType,
+        withCredentials?: boolean,
+        headers?: StoreHeaders,
+    ): Promise<StoreRequestResponse> {
+        if (this.online) {
+            // From network
+            return this.requester(url, type, withCredentials, headers).then((data) => {
+                // save to store if not present
+                this.put(url);
+                return data;
+            });
+        } else {
+            // From store
+            return this.retrieve(url, type);
+        }
+    }
 
-	/**
-	 * Request a url
-	 * @param  {string} url  a url to request from storage
-	 * @param  {string} [type] specify the type of the returned result
-	 * @param  {boolean} [withCredentials]
-	 * @param  {object} [headers]
-	 * @return {Promise<Blob | string | JSON | Document | XMLDocument>}
-	 */
-	request(url: string, type: "blob", withCredentials?: boolean, headers?: StoreHeaders): Promise<Blob>;
-	request(url: string, type: "json", withCredentials?: boolean, headers?: StoreHeaders): Promise<JsonValue>;
-	request(url: string, type: StoreMarkupRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<Document | XMLDocument>;
-	request(url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<RequestResponse>;
-	request(url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreRequestResponse> {
-		if (this.online) {
-			// From network
-			return this.requester(url, type, withCredentials, headers).then((data) => {
-				// save to store if not present
-				this.put(url);
-				return data;
-			});
-		} else {
-			// From store
-			return this.retrieve(url, type);
-		}
+    /**
+     * Request a url from storage
+     * @param  {string} url  a url to request from storage
+     * @param  {string} [type] specify the type of the returned result
+     * @return {Promise<Blob | string | JSON | Document | XMLDocument>}
+     */
+    retrieve(url: string, type: "blob"): Promise<Blob>;
+    retrieve(url: string, type: "json"): Promise<JsonValue>;
+    retrieve(url: string, type: StoreMarkupRequestType): Promise<Document | XMLDocument>;
+    retrieve(url: string, type?: StoreRequestType): Promise<RequestResponse>;
+    retrieve(url: string, type?: StoreRequestType): Promise<RequestResponse> {
+        var response: Promise<Blob | string | ArrayBuffer | null | undefined>;
+        var path = new Path(url);
 
-	}
+        // If type isn't set, determine it from the file extension
+        if (!type) {
+            type = path.extension;
+        }
 
-	/**
-	 * Request a url from storage
-	 * @param  {string} url  a url to request from storage
-	 * @param  {string} [type] specify the type of the returned result
-	 * @return {Promise<Blob | string | JSON | Document | XMLDocument>}
-	 */
-	retrieve(url: string, type: "blob"): Promise<Blob>;
-	retrieve(url: string, type: "json"): Promise<JsonValue>;
-	retrieve(url: string, type: StoreMarkupRequestType): Promise<Document | XMLDocument>;
-	retrieve(url: string, type?: StoreRequestType): Promise<RequestResponse>;
-	retrieve(url: string, type?: StoreRequestType): Promise<RequestResponse> {
-		var response: Promise<Blob | string | ArrayBuffer | null | undefined>;
-		var path = new Path(url);
+        if (type == "blob") {
+            response = this.getBlob(url);
+        } else {
+            response = this.getText(url);
+        }
 
-		// If type isn't set, determine it from the file extension
-		if(!type) {
-			type = path.extension;
-		}
+        return response.then((r) => {
+            var deferred = new (defer as unknown as DeferConstructor)<RequestResponse>();
+            var result: RequestResponse;
+            if (r) {
+                result = this.handleResponse(r as RequestResponse, type);
+                deferred.resolve(result);
+            } else {
+                deferred.reject({
+                    message: "File not found in storage: " + url,
+                    stack: new Error().stack,
+                });
+            }
+            return deferred.promise;
+        });
+    }
 
-		if(type == "blob"){
-			response = this.getBlob(url);
-		} else {
-			response = this.getText(url);
-		}
+    /**
+     * Handle the response from request
+     * @private
+     * @param  {RequestResponse} response
+     * @param  {string} [type]
+     * @return {RequestResponse} the parsed result
+     */
+    handleResponse(response: string, type: "json"): JsonValue;
+    handleResponse(response: string, type: StoreMarkupRequestType): Document | XMLDocument;
+    handleResponse(response: RequestResponse, type?: StoreRequestType): RequestResponse;
+    handleResponse(response: RequestResponse, type?: StoreRequestType): RequestResponse {
+        var r;
 
+        if (type == "json") {
+            r = JSON.parse(response as string);
+        } else if (isXml(type)) {
+            r = parse(response as string, "text/xml");
+        } else if (type == "xhtml") {
+            r = parse(response as string, "application/xhtml+xml");
+        } else if (type == "html" || type == "htm") {
+            r = parse(response as string, "text/html");
+        } else {
+            r = response;
+        }
 
-		return response.then((r) => {
-			var deferred = new (defer as unknown as DeferConstructor)<RequestResponse>();
-			var result: RequestResponse;
-			if (r) {
-				result = this.handleResponse(r as RequestResponse, type);
-				deferred.resolve(result);
-			} else {
-				deferred.reject({
-					message : "File not found in storage: " + url,
-					stack : new Error().stack
-				});
-			}
-			return deferred.promise;
-		});
-	}
+        return r;
+    }
 
-	/**
-	 * Handle the response from request
-	 * @private
-	 * @param  {RequestResponse} response
-	 * @param  {string} [type]
-	 * @return {RequestResponse} the parsed result
-	 */
-	handleResponse(response: string, type: "json"): JsonValue;
-	handleResponse(response: string, type: StoreMarkupRequestType): Document | XMLDocument;
-	handleResponse(response: RequestResponse, type?: StoreRequestType): RequestResponse;
-	handleResponse(response: RequestResponse, type?: StoreRequestType): RequestResponse {
-		var r;
+    /**
+     * Get a Blob from Storage by Url
+     * @param  {string} url
+     * @param  {string} [mimeType]
+     * @return {Blob}
+     */
+    getBlob(url: string, mimeType?: string): Promise<Blob | undefined> {
+        let encodedUrl = window.encodeURIComponent(url);
 
-		if(type == "json") {
-			r = JSON.parse(response as string);
-		} else if(isXml(type)) {
-			r = parse(response as string, "text/xml");
-		} else if(type == "xhtml") {
-			r = parse(response as string, "application/xhtml+xml");
-		} else if(type == "html" || type == "htm") {
-			r = parse(response as string, "text/html");
-		} else {
-			r = response;
-		}
+        return this.storage!.getItem(encodedUrl).then(function (uint8array) {
+            if (!uint8array) return;
 
-		return r;
-	}
+            mimeType = mimeType || mime.lookup(url);
 
-	/**
-	 * Get a Blob from Storage by Url
-	 * @param  {string} url
-	 * @param  {string} [mimeType]
-	 * @return {Blob}
-	 */
-	getBlob(url: string, mimeType?: string): Promise<Blob | undefined> {
-		let encodedUrl = window.encodeURIComponent(url);
+            return new Blob([uint8array as BlobPart], { type: mimeType });
+        });
+    }
 
-		return this.storage!.getItem(encodedUrl).then(function(uint8array) {
-			if(!uint8array) return;
+    /**
+     * Get Text from Storage by Url
+     * @param  {string} url
+     * @param  {string} [mimeType]
+     * @return {string}
+     */
+    getText(url: string, mimeType?: string): Promise<string | ArrayBuffer | null | undefined> {
+        let encodedUrl = window.encodeURIComponent(url);
 
-			mimeType = mimeType || mime.lookup(url);
+        mimeType = mimeType || mime.lookup(url);
 
-			return new Blob([uint8array as BlobPart], {type : mimeType});
-		});
+        return this.storage!.getItem(encodedUrl).then(function (uint8array) {
+            var deferred = new (defer as unknown as DeferConstructor)<
+                string | ArrayBuffer | null
+            >();
+            var reader = new FileReader();
+            var blob: Blob;
 
-	}
+            if (!uint8array) return;
 
-	/**
-	 * Get Text from Storage by Url
-	 * @param  {string} url
-	 * @param  {string} [mimeType]
-	 * @return {string}
-	 */
-	getText(url: string, mimeType?: string): Promise<string | ArrayBuffer | null | undefined> {
-		let encodedUrl = window.encodeURIComponent(url);
+            blob = new Blob([uint8array as BlobPart], { type: mimeType });
 
-		mimeType = mimeType || mime.lookup(url);
+            reader.addEventListener("loadend", () => {
+                deferred.resolve(reader.result);
+            });
 
-		return this.storage!.getItem(encodedUrl).then(function(uint8array) {
-			var deferred = new (defer as unknown as DeferConstructor)<string | ArrayBuffer | null>();
-			var reader = new FileReader();
-			var blob: Blob;
+            reader.readAsText(blob, mimeType);
 
-			if(!uint8array) return;
+            return deferred.promise;
+        });
+    }
 
-			blob = new Blob([uint8array as BlobPart], {type : mimeType});
+    /**
+     * Get a base64 encoded result from Storage by Url
+     * @param  {string} url
+     * @param  {string} [mimeType]
+     * @return {string} base64 encoded
+     */
+    getBase64(url: string, mimeType?: string): Promise<string | ArrayBuffer | null | undefined> {
+        let encodedUrl = window.encodeURIComponent(url);
 
-			reader.addEventListener("loadend", () => {
-				deferred.resolve(reader.result);
-			});
+        mimeType = mimeType || mime.lookup(url);
 
-			reader.readAsText(blob, mimeType);
+        return this.storage!.getItem(encodedUrl).then((uint8array) => {
+            var deferred = new (defer as unknown as DeferConstructor)<
+                string | ArrayBuffer | null
+            >();
+            var reader = new FileReader();
+            var blob: Blob;
 
-			return deferred.promise;
-		});
-	}
+            if (!uint8array) return;
 
-	/**
-	 * Get a base64 encoded result from Storage by Url
-	 * @param  {string} url
-	 * @param  {string} [mimeType]
-	 * @return {string} base64 encoded
-	 */
-	getBase64(url: string, mimeType?: string): Promise<string | ArrayBuffer | null | undefined> {
-		let encodedUrl = window.encodeURIComponent(url);
+            blob = new Blob([uint8array as BlobPart], { type: mimeType });
 
-		mimeType = mimeType || mime.lookup(url);
+            reader.addEventListener("loadend", () => {
+                deferred.resolve(reader.result);
+            });
+            reader.readAsDataURL(blob);
 
-		return this.storage!.getItem(encodedUrl).then((uint8array) => {
-			var deferred = new (defer as unknown as DeferConstructor)<string | ArrayBuffer | null>();
-			var reader = new FileReader();
-			var blob: Blob;
+            return deferred.promise;
+        });
+    }
 
-			if(!uint8array) return;
+    /**
+     * Create a Url from a stored item
+     * @param  {string} url
+     * @param  {object} [options.base64] use base64 encoding or blob url
+     * @return {Promise} url promise with Url string
+     */
+    createUrl(url: string, options?: StoreUrlOptions): Promise<string> {
+        var deferred = new (defer as unknown as DeferConstructor)<string>();
+        var _URL = (window.URL ||
+            (window as unknown as UrlFactory).webkitURL ||
+            (window as unknown as UrlFactory).mozURL) as typeof URL;
+        var tempUrl: string;
+        var response: Promise<Blob | string | ArrayBuffer | null | undefined>;
+        var useBase64 = options && options.base64;
 
-			blob = new Blob([uint8array as BlobPart], {type : mimeType});
+        if (url in this.urlCache) {
+            deferred.resolve(this.urlCache[url]);
+            return deferred.promise;
+        }
 
-			reader.addEventListener("loadend", () => {
-				deferred.resolve(reader.result);
-			});
-			reader.readAsDataURL(blob);
+        if (useBase64) {
+            var base64Response = this.getBase64(url);
+            response = base64Response;
 
-			return deferred.promise;
-		});
-	}
+            if (base64Response) {
+                base64Response
+                    .then((tempUrl) => {
+                        this.urlCache[url] = tempUrl as string;
+                        deferred.resolve(tempUrl as string);
+                    })
+                    .catch((error: unknown) => deferred.reject(error));
+            }
+        } else {
+            var blobResponse = this.getBlob(url);
+            response = blobResponse;
 
-	/**
-	 * Create a Url from a stored item
-	 * @param  {string} url
-	 * @param  {object} [options.base64] use base64 encoding or blob url
-	 * @return {Promise} url promise with Url string
-	 */
-	createUrl(url: string, options?: StoreUrlOptions): Promise<string> {
-		var deferred = new (defer as unknown as DeferConstructor)<string>();
-		var _URL = (window.URL || (window as unknown as UrlFactory).webkitURL || (window as unknown as UrlFactory).mozURL) as typeof URL;
-		var tempUrl: string;
-		var response: Promise<Blob | string | ArrayBuffer | null | undefined>;
-		var useBase64 = options && options.base64;
+            if (blobResponse) {
+                blobResponse
+                    .then((blob) => {
+                        tempUrl = _URL.createObjectURL(blob as Blob);
+                        this.urlCache[url] = tempUrl;
+                        deferred.resolve(tempUrl);
+                    })
+                    .catch((error: unknown) => deferred.reject(error));
+            }
+        }
 
-		if(url in this.urlCache) {
-			deferred.resolve(this.urlCache[url]);
-			return deferred.promise;
-		}
+        if (!response) {
+            deferred.reject({
+                message: "File not found in storage: " + url,
+                stack: new Error().stack,
+            });
+        }
 
-		if (useBase64) {
-			var base64Response = this.getBase64(url);
-			response = base64Response;
+        return deferred.promise;
+    }
 
-			if (base64Response) {
-					base64Response.then((tempUrl) => {
+    /**
+     * Revoke Temp Url for a archive item
+     * @param  {string} url url of the item in the store
+     */
+    revokeUrl(url: string): void {
+        var _URL = (window.URL ||
+            (window as unknown as UrlFactory).webkitURL ||
+            (window as unknown as UrlFactory).mozURL) as typeof URL;
+        var fromCache = this.urlCache[url];
+        if (fromCache) _URL.revokeObjectURL(fromCache);
+    }
 
-						this.urlCache[url] = tempUrl as string;
-						deferred.resolve(tempUrl as string);
-
-					});
-
-			}
-
-		} else {
-
-			var blobResponse = this.getBlob(url);
-			response = blobResponse;
-
-			if (blobResponse) {
-					blobResponse.then((blob) => {
-
-						tempUrl = _URL.createObjectURL(blob as Blob);
-						this.urlCache[url] = tempUrl;
-						deferred.resolve(tempUrl);
-
-					});
-
-			}
-		}
-
-
-		if (!response) {
-			deferred.reject({
-				message : "File not found in storage: " + url,
-				stack : new Error().stack
-			});
-		}
-
-		return deferred.promise;
-	}
-
-	/**
-	 * Revoke Temp Url for a archive item
-	 * @param  {string} url url of the item in the store
-	 */
-	revokeUrl(url: string): void {
-		var _URL = (window.URL || (window as unknown as UrlFactory).webkitURL || (window as unknown as UrlFactory).mozURL) as typeof URL;
-		var fromCache = this.urlCache[url];
-		if(fromCache) _URL.revokeObjectURL(fromCache);
-	}
-
-	destroy(): void {
-		var _URL = (window.URL || (window as unknown as UrlFactory).webkitURL || (window as unknown as UrlFactory).mozURL) as typeof URL;
-		for (const fromCache of Object.values(this.urlCache)) {
-			_URL.revokeObjectURL(fromCache);
-		}
-		this.urlCache = {};
-		this.removeListeners();
-	}
+    destroy(): void {
+        var _URL = (window.URL ||
+            (window as unknown as UrlFactory).webkitURL ||
+            (window as unknown as UrlFactory).mozURL) as typeof URL;
+        for (const fromCache of Object.values(this.urlCache)) {
+            _URL.revokeObjectURL(fromCache);
+        }
+        this.urlCache = {};
+        this.removeListeners();
+    }
 }
 
 interface Store {
-	emit(eventName: string, ...args: unknown[]): void;
-	on(eventName: string, listener: (...args: unknown[]) => void): unknown;
-	off(eventName: string, listener: (...args: unknown[]) => void): unknown;
-	once(eventName: string, listener: (...args: unknown[]) => void): unknown;
+    emit(eventName: string, ...args: unknown[]): void;
+    on(eventName: string, listener: (...args: unknown[]) => void): unknown;
+    off(eventName: string, listener: (...args: unknown[]) => void): unknown;
+    once(eventName: string, listener: (...args: unknown[]) => void): unknown;
 }
 
 EventEmitter(Store.prototype);
