@@ -1736,8 +1736,11 @@ class DefaultViewManager {
         // painted observation instead of reviving a computed exclusion zone.
         const recordedZeroMask =
             this.getRecordedVerticalRlAppliedLeftMask(this.getCurrentPageIndex()) === 0;
+        // A final page can prove no left exclusion before its zero ledger exists.
         let currentMaskWidths =
-            this.container.dataset?.epubVrlEdgeMaskLeft !== undefined || recordedZeroMask
+            this.container.dataset?.epubVrlEdgeMaskLeft !== undefined ||
+            recordedZeroMask ||
+            this.getVerticalRlProvenLeftMaskAllowance() === 0
                 ? this.getVerticalRlAppliedEdgeMaskWidths()
                 : this.getVerticalRlRenderedEdgeMaskWidths();
         let currentLeftMask =

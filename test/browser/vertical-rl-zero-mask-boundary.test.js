@@ -40,6 +40,35 @@ describe("vertical-rl applied zero-mask source boundary", () => {
         ).toBe(1414);
     });
 
+    function singlePage({ proven = null, applied = 0, dataset = {} } = {}) {
+        const value = manager({ recorded: null, applied, dataset });
+        value.getVerticalRlVisualContentWidth = () => 1296;
+        value.getNormalizedLogicalScrollLeft = () => 0;
+        value.getPageAdvance = () => 1276;
+        value.getCurrentPageIndex = () => 0;
+        value.getVerticalRlRenderedEdgeMaskWidths = () => ({ left: 20, right: 0 });
+        value.getVerticalRlProvenLeftMaskAllowance = () => proven;
+        return value;
+    }
+
+    it("reports no positive final-page seam before its zero ledger exists", () => {
+        expect(singlePage({ proven: 0 }).getVerticalRlCurrentEffectiveLeftBoundary()).toBeNull();
+    });
+
+    it("retains an explicit painted mask even when no final-page exclusion is allowed", () => {
+        expect(
+            singlePage({
+                proven: 0,
+                applied: 20,
+                dataset: { epubVrlEdgeMaskLeft: "20" },
+            }).getVerticalRlCurrentEffectiveLeftBoundary(),
+        ).toBe(20);
+    });
+
+    it("retains the computed fallback when the final-page exclusion is not proved", () => {
+        expect(singlePage().getVerticalRlCurrentEffectiveLeftBoundary()).toBe(20);
+    });
+
     it("retains the independently applied iframe shift with a zero mask", () => {
         expect(manager({ shift: 22 }).getVerticalRlCurrentEffectiveLeftBoundary()).toBe(1388);
     });
