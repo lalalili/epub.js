@@ -98,7 +98,14 @@ class Queue {
             if (task) {
                 // console.log(task)
 
-                result = task.apply(this.context, inwait.args);
+                try {
+                    result = task.apply(this.context, inwait.args);
+                } catch (error) {
+                    // The enqueue caller owns the task failure; the scheduler
+                    // must continue just as it does for a rejected async task.
+                    inwait.deferred?.reject?.call(this.context, error);
+                    return Promise.resolve();
+                }
 
                 if (result && typeof (result as PromiseLike<unknown>)["then"] === "function") {
                     // Task is a function that returns a promise
@@ -147,7 +154,12 @@ class Queue {
             if (this._q.length) {
                 this.dequeue().then(
                     function () {
-                        this.run();
+                        return this.run();
+                    }.bind(this),
+                    function () {
+                        // A bare promise retains its rejection for enqueue callers.
+                        // Its scheduler branch still advances the remaining tasks.
+                        return this.run();
                     }.bind(this),
                 );
             } else {
@@ -178,6 +190,10 @@ class Queue {
                 function () {
                     this.running = undefined;
                     return this.flush();
+                }.bind(this),
+                function (error: unknown) {
+                    this.running = undefined;
+                    throw error;
                 }.bind(this),
             );
 

@@ -9,6 +9,23 @@ function nextFrame() {
     });
 }
 
+async function settleTask(promise) {
+    let timeout;
+    try {
+        return await Promise.race([
+            promise.then(
+                (value) => ({ status: "fulfilled", value }),
+                (reason) => ({ status: "rejected", reason }),
+            ),
+            new Promise((resolve) => {
+                timeout = window.setTimeout(() => resolve({ status: "pending" }), 500);
+            }),
+        ]);
+    } finally {
+        window.clearTimeout(timeout);
+    }
+}
+
 describe("Queue", function () {
     it("runs function tasks sequentially and resolves their values", function () {
         var queue = new Queue({ prefix: "ctx" });
@@ -103,6 +120,62 @@ describe("Queue", function () {
                     expect(reason).toBe(error);
                 },
             );
+    });
+
+    it("continues after a rejected promise task while retaining the caller's rejection", async () => {
+        const queue = new Queue();
+        const error = new Error("promise task failed");
+        queue.pause();
+        const rejected = queue.enqueue(Promise.reject(error)).catch((reason) => reason);
+        const next = queue.enqueue(() => "after failure");
+        const drained = queue.run();
+        try {
+            expect(await settleTask(rejected)).toEqual({ status: "fulfilled", value: error });
+            expect(await settleTask(next)).toEqual({ status: "fulfilled", value: "after failure" });
+            expect(await settleTask(drained)).toEqual({ status: "fulfilled", value: undefined });
+        } finally {
+            queue.stop();
+        }
+    });
+
+    it("rejects synchronous task errors and runs the following task", async () => {
+        const queue = new Queue();
+        const error = new Error("synchronous task failed");
+        queue.pause();
+        const rejected = queue
+            .enqueue(() => {
+                throw error;
+            })
+            .catch((reason) => reason);
+        const next = queue.enqueue(() => "after failure");
+        const drained = queue.run();
+        try {
+            expect(await settleTask(rejected)).toEqual({ status: "fulfilled", value: error });
+            expect(await settleTask(next)).toEqual({ status: "fulfilled", value: "after failure" });
+            expect(await settleTask(drained)).toEqual({ status: "fulfilled", value: undefined });
+        } finally {
+            queue.stop();
+        }
+    });
+
+    it("releases the running state after a failed flush so a later task can run", async () => {
+        const queue = new Queue();
+        const error = new Error("flush task failed");
+        queue.pause();
+        const rejected = queue.enqueue(Promise.reject(error)).catch((reason) => reason);
+        queue.paused = false;
+        const flushed = queue.flush().catch((reason) => reason);
+        try {
+            expect(await settleTask(rejected)).toEqual({ status: "fulfilled", value: error });
+            expect(await settleTask(flushed)).toEqual({ status: "fulfilled", value: error });
+            const next = queue.enqueue(() => "after flush failure");
+            expect(await settleTask(next)).toEqual({
+                status: "fulfilled",
+                value: "after flush failure",
+            });
+        } finally {
+            queue.stop();
+        }
     });
 
     it("throws when enqueue is called without a task", function () {
