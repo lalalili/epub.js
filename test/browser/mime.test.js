@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import mime, { isXml } from "../../src/utils/mime";
 import { isXml as legacyIsXml } from "../../src/utils/core";
 

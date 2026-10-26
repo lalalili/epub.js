@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { prefixed as prefixedCssProperty } from "../../src/compat/css";
 import { prefixed as corePrefixed } from "../../src/utils/core";
 

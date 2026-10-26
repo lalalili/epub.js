@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { RangeObject } from "../../src/compat/range";
 import EpubCFI from "../../src/epubcfi";
 import chapter from "../fixtures/chapter1.xhtml?raw";

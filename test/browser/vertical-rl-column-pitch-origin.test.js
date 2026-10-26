@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { expect, it } from "vite-plus/test";
 import Contents from "../../src/contents";
 
 // Numeric Range geometry from the Android Section0024 Engine-only clone.

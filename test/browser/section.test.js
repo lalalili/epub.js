@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 import ePub from "../../src/epub";
 import Section from "../../src/section";
 import { fixtureUrl } from "./helpers/fixtures";

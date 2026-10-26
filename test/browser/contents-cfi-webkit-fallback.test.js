@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
 import EpubCFI from "../../src/epubcfi";
 
 const PAGE_ADVANCE = 802;

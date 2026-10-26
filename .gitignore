@@ -19,3 +19,4 @@ documentation/html
 .vitest-attachments
 test/browser/__screenshots__
 types/*.js
+.vitest/

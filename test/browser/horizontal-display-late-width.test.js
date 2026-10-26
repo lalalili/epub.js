@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import DefaultViewManager from "../../src/managers/default";
 import { EVENTS } from "../../src/utils/constants";
 

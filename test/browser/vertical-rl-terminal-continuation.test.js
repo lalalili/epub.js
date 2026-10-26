@@ -1,4 +1,4 @@
-import { afterEach, expect, it } from "vitest";
+import { afterEach, expect, it } from "vite-plus/test";
 import JSZip from "jszip";
 import ePub from "../../src/epub";
 import { captureSemanticCut } from "../../src/rendering/semantic-cut";

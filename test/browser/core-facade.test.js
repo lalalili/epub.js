@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import * as core from "../../src/utils/core";
 
 describe("legacy core facade", () => {

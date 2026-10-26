@@ -1,4 +1,4 @@
-import { it, expect } from "vitest";
+import { it, expect } from "vite-plus/test";
 import DefaultViewManager from "../../src/managers/default";
 
 it.each([

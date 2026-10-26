@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import Contents from "../../src/contents";
 import DefaultViewManager from "../../src/managers/default";
 import IframeView from "../../src/managers/views/iframe";

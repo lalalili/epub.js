@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { RangeObject } from "../../src/compat/range";
 import { RangeObject as LegacyRangeObject } from "../../src/utils/core";
 import EpubCFI from "../../src/epubcfi";

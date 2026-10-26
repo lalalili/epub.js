@@ -1,5 +1,5 @@
-import { t as e } from "./combined-text-paint-D3ZdtJcJ.mjs";
-//#region src/rendering/observed-coverage-dom.ts
+import { t as e } from "./combined-text-paint-th3Qo_HR.mjs";
+// src/rendering/observed-coverage-dom.ts
 var t = /* @__PURE__ */ new WeakMap(), n = 0, r = (e) => [
 	e.left,
 	e.right,
@@ -18,7 +18,7 @@ async function i(i) {
 		top: (e.top - b) / v + S,
 		bottom: (e.bottom - b) / v + S
 	});
-	(!d || !f || !s || !a.body) && l("disconnected-or-foreign-document"), (!(_ > 0) || !(v > 0)) && l("invalid-frame-scale");
+	d && f && s && a.body || l("disconnected-or-foreign-document"), _ > 0 && v > 0 || l("invalid-frame-scale");
 	for (let e = o; e; e = e.parentElement) {
 		let t = e.ownerDocument.defaultView?.getComputedStyle(e);
 		if (t?.transform && t.transform !== "none") {
@@ -33,16 +33,10 @@ async function i(i) {
 			top: t.top + S,
 			bottom: t.bottom + S
 		};
-		if (r(n)) {
-			if (p.length >= h) {
-				m = !0;
-				return;
-			}
-			p.push({
-				identity: e,
-				rect: n
-			});
-		}
+		r(n) && (p.length >= h ? m = !0 : p.push({
+			identity: e,
+			rect: n
+		}));
 	}, T = (e) => {
 		let t = [];
 		for (let n = e; n && n !== a.body; n = n.parentNode) {
@@ -72,11 +66,11 @@ async function i(i) {
 		for (let e of a.body.querySelectorAll("img,svg,video,canvas,object,iframe")) {
 			if (m) break;
 			let t = s.getComputedStyle(e);
-			t.display === "none" || t.visibility !== "visible" || (e instanceof s.HTMLImageElement && (!e.complete || !e.naturalWidth) && l("image-not-loaded"), ["OBJECT", "IFRAME"].includes(e.tagName.toUpperCase()) && l("nested-document-not-inventoried"), Array.from(e.getClientRects()).forEach((t, n) => w(`media:${T(e)}:${n}`, t)));
+			t.display !== "none" && t.visibility === "visible" && (e instanceof s.HTMLImageElement && (!e.complete || !e.naturalWidth) && l("image-not-loaded"), ["OBJECT", "IFRAME"].includes(e.tagName.toUpperCase()) && l("nested-document-not-inventoried"), Array.from(e.getClientRects()).forEach((t, n) => w(`media:${T(e)}:${n}`, t)));
 		}
 	}
 	let E = C(i.rawScreenViewport), D = C(i.effectiveScreenViewport);
-	(!r(E) || !r(D)) && l("invalid-viewport"), m && l("source-limit-reached");
+	r(E) && r(D) || l("invalid-viewport"), m && l("source-limit-reached");
 	let O = a.body?.innerHTML, k = e(a), A = new TextEncoder().encode(JSON.stringify([k.markup, p])), j = !1, M = new MutationObserver(() => {
 		j = !0;
 	});
@@ -95,7 +89,7 @@ async function i(i) {
 		M.disconnect();
 	}
 	let F = Array.from(new Uint8Array(N), (e) => e.toString(16).padStart(2, "0")).join(""), I = Array.from(new Uint8Array(P), (e) => e.toString(16).padStart(2, "0")).join("");
-	return (!o.isConnected || o.contentDocument !== a || a.defaultView !== s) && l("document-changed-during-capture"), {
+	return o.isConnected && o.contentDocument === a && a.defaultView === s || l("document-changed-during-capture"), {
 		version: 2,
 		sources: p,
 		inventoryComplete: c.length === 0,
@@ -121,7 +115,6 @@ async function i(i) {
 		}
 	};
 }
-//#endregion
 export { i as captureObservedCoverageDom };
 
-//# sourceMappingURL=observed-coverage-dom-BQLM8pzF.mjs.map
+//# sourceMappingURL=observed-coverage-dom-D1xHhcDY.mjs.map

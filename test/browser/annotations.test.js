@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import Annotations from "../../src/annotations";
 import { EVENTS } from "../../src/utils/constants";
 

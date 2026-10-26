@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import Views from "../../src/managers/helpers/views";
 import IframeView, { stripScriptTagsFromContents } from "../../src/managers/views/iframe";
 import InlineView from "../../src/managers/views/inline";

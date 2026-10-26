@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vite-plus/test";
 import { captureObservedCoverageDom } from "../../src/rendering/observed-coverage-dom";
 import { assessObservedCoverage } from "../../src/rendering/observed-coverage";
 import DefaultViewManager from "../../src/managers/default";

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 import Rendition from "../../src/rendition";
 
 const rightCfi = "epubcfi(/2/130[color_page_04]!/4/1:0)";

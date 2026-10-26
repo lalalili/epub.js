@@ -26,6 +26,13 @@ released Reader packages through Composer as a compatibility host.
 
 ## Getting started
 
+The development toolchain is Node.js 26.12.1, pnpm 12.15.0 and Vite+ 1.4.0.
+Use `pnpm install --frozen-lockfile` for a reproducible checkout. Release CI also
+checks Node 22.23.4 and 24.22.1; the build runtime does not redefine consumer support.
+The `prepare` and nested build runners retain `npm run` so source-package consumers
+do not need a separate pnpm binary. Toolchain dependencies use concrete npm-compatible
+versions; pnpm remains the canonical installer and lockfile owner.
+
 If using archived `.epub` files in a browser build, include JSZip before
 epub.js:
 
@@ -119,7 +126,7 @@ server-side.
 Install dependencies with npm:
 
 ```sh
-npm install
+pnpm install --frozen-lockfile
 ```
 
 Run the local example server:
@@ -152,48 +159,55 @@ npm test
 through Vitest Browser Mode:
 
 ```sh
-npm run test:browser
+pnpm run test:browser
 ```
 
 Add new tests under `test/browser/**/*.test.js`.
 
-The legacy Karma suite has been removed. `npm run test:legacy` is kept as a
+The legacy Karma suite has been removed. `pnpm run test:legacy` is kept as a
 compatibility no-op for older automation:
 
 ```sh
-npm run test:legacy
+pnpm run test:legacy
 ```
 
 Before cutting a fork release, run:
 
 ```sh
-npm run verify:release
+pnpm run verify:release
 ```
 
-`npm run lint` enforces the current ESLint debt ceiling from
-`eslint-baseline.json`. The legacy source tree is not lint-clean yet, but CI
-must fail if the total error or warning count increases. When lint debt is
-fixed, lower the matching baseline counts in the same change.
+`pnpm run lint` scans the TypeScript source with Vite Plus and compares each
+warning's file, rule and message against `eslint-baseline.json`. Tool failures,
+invalid or empty scans, errors, and new or changed warnings fail the gate.
+Resolved warnings must be removed from the inventory in the same change.
+This legacy inventory is not a zero-warning qualification: use
+`pnpm run lint:strict` for that check. Promise ownership and pagination warnings
+require focused runtime evidence before behavior changes. Run
+`pnpm run test:lint-gate` to verify failure handling and inventory comparisons.
 
-`npm run verify:contracts` checks the package entry surface, TypeDoc toolchain,
+Use `pnpm run fmt:check` for authored code and configuration. Generated assets,
+documentation and book fixtures are excluded; `pnpm run fmt` applies formatting.
+
+`pnpm run verify:contracts` checks the package entry surface, TypeDoc toolchain,
 Vitest-only test layout, dry-run tarball contents, and packed-package consumer
 resolution that Aitehub release tarball consumers depend on. It also verifies
 the shared release gate wiring used by CI and the internal source boundary that
 keeps `utils/core` as a public compatibility facade.
 
-`npm run verify:release` runs the full fork release gate: lint, TypeScript
+`pnpm run verify:release` runs the full fork release gate: lint, TypeScript
 declarations, Babel output, Vite/Rollup builds, TypeDoc Markdown, package
 contracts, Vitest Browser Mode, dependency audits, and the final `npm pack
 --dry-run` lifecycle check.
 
 The fork should keep both full dependency audit and production dependency audit
-clean. `npm run docs:md` is powered by TypeDoc from the public declaration
+clean. `pnpm run docs:md` is powered by TypeDoc from the public declaration
 entry point, so API documentation reflects the package surface consumed by
 Aitehub.
 
 ## Building for distribution
 
-Builds are bundled with Vite/Rollup. The package entry points are:
+Builds use Vite+ library mode. The package entry points are:
 
 - `dist/epub.mjs` for ESM consumers
 - `dist/epub.cjs` for CommonJS consumers
@@ -206,13 +220,13 @@ The `dist/epub*` release files are tracked intentionally because Aitehub
 consumes GitHub codeload tarballs.
 
 ```sh
-npm run prepare
+pnpm run prepare
 ```
 
 For development rebuilds:
 
 ```sh
-npm run build
+pnpm run build
 ```
 
 Legacy webpack builds have been removed. Vite/Rollup is the supported
@@ -224,13 +238,13 @@ Generated TypeDoc API documentation is included at
 [`documentation/md/API.md`](documentation/md/API.md). Regenerate it with:
 
 ```sh
-npm run docs:md
+pnpm run docs:md
 ```
 
 For local HTML browsing, run:
 
 ```sh
-npm run docs:html
+pnpm run docs:html
 ```
 
 Because this fork is maintained for Aitehub integration, fork-specific changes

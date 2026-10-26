@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vite-plus/test";
 import ePub from "../../src/epub";
 import EpubCFI from "../../src/epubcfi";
 import { fixtureUrl } from "./helpers/fixtures";

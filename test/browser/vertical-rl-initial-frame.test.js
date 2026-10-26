@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { expect, it } from "vite-plus/test";
 import Contents from "../../src/contents";
 import fixture from "../fixtures/vertical-rl-initial-frame-geometry.json";
 

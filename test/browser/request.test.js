@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
 import request from "../../src/utils/request";
 import Section from "../../src/section";
 import IframeView from "../../src/managers/views/iframe";

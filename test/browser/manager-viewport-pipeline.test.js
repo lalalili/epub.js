@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import DefaultViewManager from "../../src/managers/default";
 
 function createTextRectView(rects, iframeLeft = 0) {

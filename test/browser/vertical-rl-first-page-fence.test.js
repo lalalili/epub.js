@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { expect, it } from "vite-plus/test";
 import DefaultViewManager from "../../src/managers/default";
 
 function firstPage({ pageIndex = 0, offset = 0 } = {}) {

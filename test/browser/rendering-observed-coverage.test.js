@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { assessObservedCoverage } from "../../src/rendering/observed-coverage";
 
 const rect = (left, right, top = 0, bottom = 20) => ({ left, right, top, bottom });

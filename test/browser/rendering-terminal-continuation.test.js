@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { cacheVerticalRlLogicalPageOffset, getCachedVerticalRlLogicalPageOffset, getVerticalRlLogicalPageOffsetCacheKey } from "../../src/rendering/logical-page";
 import {
 	aggregateVerticalRlTerminalTailState,

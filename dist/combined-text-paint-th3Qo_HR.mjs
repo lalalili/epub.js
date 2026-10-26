@@ -1,4 +1,4 @@
-//#region src/rendering/combined-text-paint.ts
+// src/rendering/combined-text-paint.ts
 var e = /* @__PURE__ */ new WeakMap();
 function t(t) {
 	let r = t.body;
@@ -22,7 +22,7 @@ function t(t) {
 	};
 }
 function n(e, t) {
-	e.style.willChange !== t.applied || e.style.getPropertyPriority("will-change") !== "important" || (t.value ? e.style.setProperty("will-change", t.value, t.priority) : e.style.removeProperty("will-change"), !t.hadStyle && e.getAttribute("style") === "" && e.removeAttribute("style"));
+	e.style.willChange === t.applied && e.style.getPropertyPriority("will-change") === "important" && (t.value ? e.style.setProperty("will-change", t.value, t.priority) : e.style.removeProperty("will-change"), !t.hadStyle && e.getAttribute("style") === "" && e.removeAttribute("style"));
 }
 function r(t, r) {
 	let i = t.defaultView;
@@ -49,7 +49,6 @@ function r(t, r) {
 	}
 	return e.set(t, a), s;
 }
-//#endregion
 export { r as n, t };
 
-//# sourceMappingURL=combined-text-paint-D3ZdtJcJ.mjs.map
+//# sourceMappingURL=combined-text-paint-th3Qo_HR.mjs.map

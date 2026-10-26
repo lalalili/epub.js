@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vite-plus/test";
 import umdBundle from "../../dist/epub.js?raw";
 import minifiedUmdBundle from "../../dist/epub.min.js?raw";
 

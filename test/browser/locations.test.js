@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import Locations from "../../src/locations";
 import EpubCFI from "../../src/epubcfi";
 import { parseMarkup } from "../../src/platform/parser";

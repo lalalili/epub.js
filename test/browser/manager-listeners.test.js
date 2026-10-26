@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
 import ContinuousViewManager from "../../src/managers/continuous/index";
 import DefaultViewManager from "../../src/managers/default/index";
 import Stage from "../../src/managers/helpers/stage";
