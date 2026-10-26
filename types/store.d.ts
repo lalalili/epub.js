@@ -11,82 +11,122 @@ export type StoreRequestResponse = RequestResponse | StoreData;
 export type StoreMarkupRequestType = "xml" | "opf" | "ncx" | "xhtml" | "html" | "htm";
 
 export interface StoreRequest {
-  (url: string, type: "binary", withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreData>;
-  (url: string, type: "blob", withCredentials?: boolean, headers?: StoreHeaders): Promise<Blob>;
-  (url: string, type: "json", withCredentials?: boolean, headers?: StoreHeaders): Promise<JsonValue>;
-  (url: string, type: StoreMarkupRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<Document | XMLDocument>;
-  (url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreRequestResponse>;
+    (
+        url: string,
+        type: "binary",
+        withCredentials?: boolean,
+        headers?: StoreHeaders,
+    ): Promise<StoreData>;
+    (url: string, type: "blob", withCredentials?: boolean, headers?: StoreHeaders): Promise<Blob>;
+    (
+        url: string,
+        type: "json",
+        withCredentials?: boolean,
+        headers?: StoreHeaders,
+    ): Promise<JsonValue>;
+    (
+        url: string,
+        type: StoreMarkupRequestType,
+        withCredentials?: boolean,
+        headers?: StoreHeaders,
+    ): Promise<Document | XMLDocument>;
+    (
+        url: string,
+        type?: StoreRequestType,
+        withCredentials?: boolean,
+        headers?: StoreHeaders,
+    ): Promise<StoreRequestResponse>;
 }
 
 export type StoreResolver = (href: string) => string;
 
 export interface StoreStorage {
-  getItem(key: string): Promise<StoreData | null | undefined>;
-  setItem(key: string, value: StoreData): Promise<StoreData>;
+    getItem(key: string): Promise<StoreData | null | undefined>;
+    setItem(key: string, value: StoreData): Promise<StoreData>;
 }
 
 export interface StoreResource {
-  href: string
+    href: string;
 }
 
 export interface StoreResources {
-  resources: Array<StoreResource>
+    resources: Array<StoreResource>;
 }
 
 export interface StoreUrlOptions {
-  base64?: boolean
+    base64?: boolean;
 }
 
 export default class Store {
-  constructor(name: string, requester?: StoreRequest, resolver?: StoreResolver);
+    constructor(name: string, requester?: StoreRequest, resolver?: StoreResolver);
 
-  urlCache: Record<string, string>;
-  storage?: StoreStorage;
-  name: string;
-  requester: StoreRequest;
-  resolver?: StoreResolver;
-  online: boolean;
-  _status?: (event?: Event) => void;
-  emit(eventName: string, ...args: unknown[]): void;
-  on(eventName: string, listener: (...args: unknown[]) => void): unknown;
-  off(eventName: string, listener: (...args: unknown[]) => void): unknown;
-  once(eventName: string, listener: (...args: unknown[]) => void): unknown;
+    urlCache: Record<string, string>;
+    storage?: StoreStorage;
+    name: string;
+    requester: StoreRequest;
+    resolver?: StoreResolver;
+    online: boolean;
+    _status?: (event?: Event) => void;
+    emit(eventName: string, ...args: unknown[]): void;
+    on(eventName: string, listener: (...args: unknown[]) => void): unknown;
+    off(eventName: string, listener: (...args: unknown[]) => void): unknown;
+    once(eventName: string, listener: (...args: unknown[]) => void): unknown;
 
-  add(resources: StoreResources, force?: boolean): Promise<Array<StoreData>>;
+    add(resources: StoreResources, force?: boolean): Promise<Array<StoreData>>;
 
-  put(url: string, withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreData>;
+    put(url: string, withCredentials?: boolean, headers?: StoreHeaders): Promise<StoreData>;
 
-  request(url: string, type: "blob", withCredentials?: boolean, headers?: StoreHeaders): Promise<Blob>;
-  request(url: string, type: "json", withCredentials?: boolean, headers?: StoreHeaders): Promise<JsonValue>;
-  request(url: string, type: StoreMarkupRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<Document | XMLDocument>;
-  request(url: string, type?: StoreRequestType, withCredentials?: boolean, headers?: StoreHeaders): Promise<RequestResponse>;
+    request(
+        url: string,
+        type: "blob",
+        withCredentials?: boolean,
+        headers?: StoreHeaders,
+    ): Promise<Blob>;
+    request(
+        url: string,
+        type: "json",
+        withCredentials?: boolean,
+        headers?: StoreHeaders,
+    ): Promise<JsonValue>;
+    request(
+        url: string,
+        type: StoreMarkupRequestType,
+        withCredentials?: boolean,
+        headers?: StoreHeaders,
+    ): Promise<Document | XMLDocument>;
+    request(
+        url: string,
+        type?: StoreRequestType,
+        withCredentials?: boolean,
+        headers?: StoreHeaders,
+    ): Promise<RequestResponse>;
 
-  retrieve(url: string, type: "blob"): Promise<Blob>;
-  retrieve(url: string, type: "json"): Promise<JsonValue>;
-  retrieve(url: string, type: StoreMarkupRequestType): Promise<Document | XMLDocument>;
-  retrieve(url: string, type?: StoreRequestType): Promise<RequestResponse>;
+    retrieve(url: string, type: "blob"): Promise<Blob>;
+    retrieve(url: string, type: "json"): Promise<JsonValue>;
+    retrieve(url: string, type: StoreMarkupRequestType): Promise<Document | XMLDocument>;
+    retrieve(url: string, type?: StoreRequestType): Promise<RequestResponse>;
 
-  handleResponse(response: string, type: "json"): JsonValue;
-  handleResponse(response: string, type: StoreMarkupRequestType): Document | XMLDocument;
-  handleResponse(response: RequestResponse, type?: StoreRequestType): RequestResponse;
+    handleResponse(response: string, type: "json"): JsonValue;
+    handleResponse(response: string, type: StoreMarkupRequestType): Document | XMLDocument;
+    handleResponse(response: RequestResponse, type?: StoreRequestType): RequestResponse;
 
-  getBlob(url: string, mimeType?: string): Promise<Blob | undefined>;
+    getBlob(url: string, mimeType?: string): Promise<Blob | undefined>;
 
-  getText(url: string, mimeType?: string): Promise<string | ArrayBuffer | null | undefined>;
+    getText(url: string, mimeType?: string): Promise<string | ArrayBuffer | null | undefined>;
 
-  getBase64(url: string, mimeType?: string): Promise<string | ArrayBuffer | null | undefined>;
+    getBase64(url: string, mimeType?: string): Promise<string | ArrayBuffer | null | undefined>;
 
-  createUrl(url: string, options?: StoreUrlOptions): Promise<string>;
+    createUrl(url: string, options?: StoreUrlOptions): Promise<string>;
 
-  revokeUrl(url: string): void;
+    revokeUrl(url: string): void;
 
-  destroy(): void;
+    destroy(): void;
 
-  checkRequirements(): void;
+    checkRequirements(): void;
 
-  addListeners(): void;
+    addListeners(): void;
 
-  removeListeners(): void;
+    removeListeners(): void;
 
-  status(event?: Event): void;
+    status(event?: Event): void;
 }

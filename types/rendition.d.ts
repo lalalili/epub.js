@@ -14,145 +14,169 @@ import { PageValue } from "./pagelist";
 import { PackagingMetadata } from "./packaging";
 
 export interface RenditionOptions {
-  width?: number | string | null,
-  height?: number | string | null,
-  ignoreClass?: string,
-  manager?: string | Function | object,
-  view?: string | Function | object,
-  flow?: string | null,
-  layout?: string | null,
-  spread?: string | boolean | null,
-  minSpreadWidth?: number,
-  stylesheet?: string | null,
-  resizeOnOrientationChange?: boolean,
-  script?: string | null,
-  infinite?: boolean,
-  overflow?: string,
-  snap?: boolean | object,
-  defaultDirection?: string,
-  allowScriptedContent?: boolean,
-  allowPopups?: boolean,
-  orientation?: string | null,
-  direction?: string,
-  globalLayoutProperties?: object
+    width?: number | string | null;
+    height?: number | string | null;
+    ignoreClass?: string;
+    manager?: string | Function | object;
+    view?: string | Function | object;
+    flow?: string | null;
+    layout?: string | null;
+    spread?: string | boolean | null;
+    minSpreadWidth?: number;
+    stylesheet?: string | null;
+    resizeOnOrientationChange?: boolean;
+    script?: string | null;
+    infinite?: boolean;
+    overflow?: string;
+    snap?: boolean | object;
+    defaultDirection?: string;
+    allowScriptedContent?: boolean;
+    allowPopups?: boolean;
+    orientation?: string | null;
+    direction?: string;
+    globalLayoutProperties?: object;
 }
 
 export interface LayoutProperties {
-  layout: string,
-  spread: string | boolean,
-  orientation: string,
-  flow: string,
-  viewport: string,
-  minSpreadWidth: number,
-  direction: string
+    layout: string;
+    spread: string | boolean;
+    orientation: string;
+    flow: string;
+    viewport: string;
+    minSpreadWidth: number;
+    direction: string;
 }
 
 export interface RenditionLocationPart {
-  index: number,
-  href: string,
-  cfi: string,
-  location?: number,
-  percentage?: number,
-  page?: PageValue,
-  displayed: {
-    page: number,
-    total: number
-  }
+    index: number;
+    href: string;
+    cfi: string;
+    location?: number;
+    percentage?: number;
+    page?: PageValue;
+    displayed: {
+        page: number;
+        total: number;
+    };
 }
 
 export type DisplayedLocation = RenditionLocationPart;
 
 export interface Location {
-  start?: RenditionLocationPart,
-	end?: RenditionLocationPart,
-  atStart?: boolean,
-  atEnd?: boolean
+    start?: RenditionLocationPart;
+    end?: RenditionLocationPart;
+    atStart?: boolean;
+    atEnd?: boolean;
 }
 
 export interface ManagerLocationItem {
-  index: number,
-  href: string,
-  mapping: {
-    start: string,
-    end: string
-  },
-  pages: number[],
-  totalPages: number
+    index: number;
+    href: string;
+    mapping: {
+        start: string;
+        end: string;
+    };
+    pages: number[];
+    totalPages: number;
 }
 
-export type RenditionViewsBridge = Array<View> | {
-  all?: () => Array<View>,
-  first?: () => View | undefined,
-  last?: () => View | undefined
-}
+export type RenditionViewsBridge =
+    | Array<View>
+    | {
+          all?: () => Array<View>;
+          first?: () => View | undefined;
+          last?: () => View | undefined;
+      };
 
 export interface RenditionManager {
-  container?: HTMLElement;
-  layout?: Layout;
-  views?: RenditionViewsBridge;
-  _layoutDirty?: boolean;
-  render(element: Element, size?: { width: number | string | null, height: number | string | null }): void;
-  display(section: Section, target?: string | number, options?: { persistResourceCorrelation?: unknown }): Promise<void>;
-  resize(width?: number | string, height?: number | string, epubcfi?: string): void;
-  resizeView?(view: View): void;
-  moveTo(offset: object): void;
-  clear(): void;
-  next(): Promise<void>;
-  prev(): Promise<void>;
-  currentLocation(): Array<ManagerLocationItem | null | undefined> | Promise<Array<ManagerLocationItem | null | undefined>>;
-  visible(): Array<View>;
-  getContents(): Contents[];
-  getPageAdvance?(): number;
-  getTotalPagesForCurrentView?(): number;
-  getCurrentPageIndex?(): number;
-  getNormalizedLogicalScrollLeft?(): number;
-  createSemanticWindowDescriptor?(location: ManagerLocationItem, sourceIdentity: { publicationIdentifier: string; publicationModified: string }): Record<string, unknown> | null;
-  restoreSemanticWindowDescriptor?(descriptor: Record<string, unknown>, sourceIdentity: { publicationIdentifier: string; publicationModified: string }, context?: { restoreInvocationId?: string | null; semanticWindowDescriptorFingerprint?: string | null }): { status: string; reason: string };
-  applyLayout(layout: Layout): void;
-  updateFlow(flow: string): void;
-  updateLayout(): void;
-  direction(dir?: string): void;
-  isRendered(): boolean;
-  destroy(): void;
-  on(type: string, listener: (...args: unknown[]) => void): unknown;
+    container?: HTMLElement;
+    layout?: Layout;
+    views?: RenditionViewsBridge;
+    _layoutDirty?: boolean;
+    render(
+        element: Element,
+        size?: { width: number | string | null; height: number | string | null },
+    ): void;
+    display(
+        section: Section,
+        target?: string | number,
+        options?: { persistResourceCorrelation?: unknown },
+    ): Promise<void>;
+    resize(width?: number | string, height?: number | string, epubcfi?: string): void;
+    resizeView?(view: View): void;
+    moveTo(offset: object): void;
+    clear(): void;
+    next(): Promise<void>;
+    prev(): Promise<void>;
+    currentLocation():
+        | Array<ManagerLocationItem | null | undefined>
+        | Promise<Array<ManagerLocationItem | null | undefined>>;
+    visible(): Array<View>;
+    getContents(): Contents[];
+    getPageAdvance?(): number;
+    getTotalPagesForCurrentView?(): number;
+    getCurrentPageIndex?(): number;
+    getNormalizedLogicalScrollLeft?(): number;
+    createSemanticWindowDescriptor?(
+        location: ManagerLocationItem,
+        sourceIdentity: { publicationIdentifier: string; publicationModified: string },
+    ): Record<string, unknown> | null;
+    restoreSemanticWindowDescriptor?(
+        descriptor: Record<string, unknown>,
+        sourceIdentity: { publicationIdentifier: string; publicationModified: string },
+        context?: {
+            restoreInvocationId?: string | null;
+            semanticWindowDescriptorFingerprint?: string | null;
+        },
+    ): { status: string; reason: string };
+    applyLayout(layout: Layout): void;
+    updateFlow(flow: string): void;
+    updateLayout(): void;
+    direction(dir?: string): void;
+    isRendered(): boolean;
+    destroy(): void;
+    on(type: string, listener: (...args: unknown[]) => void): unknown;
 }
 
 export interface RenditionManagerOptions {
-  view: RenditionViewConstructor;
-  queue: Queue;
-  request: Book["load"];
-  settings: RenditionOptions;
+    view: RenditionViewConstructor;
+    queue: Queue;
+    request: Book["load"];
+    settings: RenditionOptions;
 }
 
 export interface RenditionHooks {
-  display: Hook;
-  serialize: Hook;
-  content: Hook;
-  unloaded: Hook;
-  layout: Hook;
-  render: Hook;
-  show: Hook;
+    display: Hook;
+    serialize: Hook;
+    content: Hook;
+    unloaded: Hook;
+    layout: Hook;
+    render: Hook;
+    show: Hook;
 }
 
-export type RenditionManagerConstructor = new (options: RenditionManagerOptions) => RenditionManager;
+export type RenditionManagerConstructor = new (
+    options: RenditionManagerOptions,
+) => RenditionManager;
 export type RenditionViewConstructor = new (section: unknown, options?: unknown) => View;
 
 export interface RenditionVerticalRlPageDebug {
-  containerClientWidth: number | null,
-  containerScrollWidth: number | null,
-  containerScrollLeft: number | null,
-  iframeOffsetWidth: number | null,
-  iframeClientWidth: number | null,
-  normalizedLogicalScrollLeft: number | null,
-  physicalStart: number | null,
-  physicalEnd: number | null,
-  pageWidth: number | null,
-  effectivePageAdvance: number | null,
-  totalPages: number | null,
-  currentPageIndex: number | null
+    containerClientWidth: number | null;
+    containerScrollWidth: number | null;
+    containerScrollLeft: number | null;
+    iframeOffsetWidth: number | null;
+    iframeClientWidth: number | null;
+    normalizedLogicalScrollLeft: number | null;
+    physicalStart: number | null;
+    physicalEnd: number | null;
+    pageWidth: number | null;
+    effectivePageAdvance: number | null;
+    totalPages: number | null;
+    currentPageIndex: number | null;
 }
 
-export type RenditionVerticalRlDebugState = Partial<VerticalRlDebugMetrics> & RenditionVerticalRlPageDebug;
+export type RenditionVerticalRlDebugState = Partial<VerticalRlDebugMetrics> &
+    RenditionVerticalRlPageDebug;
 
 export default class Rendition {
     constructor(book: Book, options?: RenditionOptions);
@@ -189,11 +213,22 @@ export default class Rendition {
 
     direction(dir: string): void;
 
-    display(target?: string | number, options?: { persistResourceCorrelation?: unknown }): Promise<void>;
+    display(
+        target?: string | number,
+        options?: { persistResourceCorrelation?: unknown },
+    ): Promise<void>;
 
-    createSemanticWindowDescriptor(location: Location | null | undefined): Record<string, unknown> | null;
+    createSemanticWindowDescriptor(
+        location: Location | null | undefined,
+    ): Record<string, unknown> | null;
 
-    restoreSemanticWindowDescriptor(descriptor: Record<string, unknown>, context?: { restoreInvocationId?: string | null; semanticWindowDescriptorFingerprint?: string | null }): { status: string; reason: string };
+    restoreSemanticWindowDescriptor(
+        descriptor: Record<string, unknown>,
+        context?: {
+            restoreInvocationId?: string | null;
+            semanticWindowDescriptorFingerprint?: string | null;
+        },
+    ): { status: string; reason: string };
 
     flow(flow?: string | null): void;
 
@@ -225,7 +260,7 @@ export default class Rendition {
 
     reportLocation(): Promise<void>;
 
-    remeasure(options?: { preserveLocation?: boolean, waitForFonts?: boolean }): Promise<void>;
+    remeasure(options?: { preserveLocation?: boolean; waitForFonts?: boolean }): Promise<void>;
 
     requireManager(manager: string | Function | object): string | Function | object;
 
@@ -252,16 +287,19 @@ export default class Rendition {
 
     once(type: string, listener: (...args: unknown[]) => void): unknown;
 
-    private triggerMarkEvent(cfiRange: string, data: AnnotationData | undefined, contents: Contents): void;
+    private triggerMarkEvent(
+        cfiRange: string,
+        data: AnnotationData | undefined,
+        contents: Contents,
+    ): void;
 
     private triggerSelectedEvent(cfirange: string, contents: Contents): void;
 
     private triggerViewEvent(e: Event, contents: Contents): void;
 
-    private onResized(size: { width: number, height: number }): void;
+    private onResized(size: { width: number; height: number }): void;
 
     private afterDisplayed(view: View): void;
 
     private afterRemoved(view: View): void;
-
 }

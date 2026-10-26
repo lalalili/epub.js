@@ -2,15 +2,15 @@ import { describe, expect, it } from "vite-plus/test";
 import Navigation from "../../src/navigation";
 
 describe("Navigation", () => {
-	function parseNavigation(markup) {
-		var parser = new DOMParser();
-		var doc = parser.parseFromString(markup, "application/xhtml+xml");
+    function parseNavigation(markup) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(markup, "application/xhtml+xml");
 
-		return new Navigation(doc);
-	}
+        return new Navigation(doc);
+    }
 
-	it("gets nav items by href, bare id, and hash id", () => {
-		var navigation = parseNavigation(`<?xml version="1.0" encoding="UTF-8"?>
+    it("gets nav items by href, bare id, and hash id", () => {
+        var navigation = parseNavigation(`<?xml version="1.0" encoding="UTF-8"?>
 			<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
 				<body>
 					<nav epub:type="toc">
@@ -31,17 +31,17 @@ describe("Navigation", () => {
 				</body>
 			</html>`);
 
-		expect(navigation.get("Text/chapter1.xhtml").id).toBe("chapter-one");
-		expect(navigation.get("chapter-one").href).toBe("Text/chapter1.xhtml");
-		expect(navigation.get("#chapter-one").href).toBe("Text/chapter1.xhtml");
-		expect(navigation.get("#chapter-two-part-one").href).toBe("Text/chapter2.xhtml#part-1");
-		expect(navigation.get("missing")).toBeUndefined();
-		expect(navigation.get()).toBe(navigation.toc);
-		expect(navigation.length).toBe(3);
-	});
+        expect(navigation.get("Text/chapter1.xhtml").id).toBe("chapter-one");
+        expect(navigation.get("chapter-one").href).toBe("Text/chapter1.xhtml");
+        expect(navigation.get("#chapter-one").href).toBe("Text/chapter1.xhtml");
+        expect(navigation.get("#chapter-two-part-one").href).toBe("Text/chapter2.xhtml#part-1");
+        expect(navigation.get("missing")).toBeUndefined();
+        expect(navigation.get()).toBe(navigation.toc);
+        expect(navigation.length).toBe(3);
+    });
 
-	it("parses span-only EPUB 3 nav items and returns landmark lists", () => {
-		var navigation = parseNavigation(`<?xml version="1.0" encoding="UTF-8"?>
+    it("parses span-only EPUB 3 nav items and returns landmark lists", () => {
+        var navigation = parseNavigation(`<?xml version="1.0" encoding="UTF-8"?>
 			<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
 				<body>
 					<nav epub:type="toc">
@@ -57,22 +57,24 @@ describe("Navigation", () => {
 				</body>
 			</html>`);
 
-		expect(navigation.toc[0]).toEqual({
-			id: "frontmatter",
-			href: "",
-			label: "Frontmatter",
-			subitems: [],
-			parent: undefined
-		});
-		expect(navigation.landmark()).toEqual([{
-			href: "Text/toc.xhtml",
-			label: "Table of Contents",
-			type: "toc"
-		}]);
-	});
+        expect(navigation.toc[0]).toEqual({
+            id: "frontmatter",
+            href: "",
+            label: "Frontmatter",
+            subitems: [],
+            parent: undefined,
+        });
+        expect(navigation.landmark()).toEqual([
+            {
+                href: "Text/toc.xhtml",
+                label: "Table of Contents",
+                type: "toc",
+            },
+        ]);
+    });
 
-	it("parses landmarks from EPUB 3 nav documents", () => {
-		var navigation = parseNavigation(`<?xml version="1.0" encoding="UTF-8"?>
+    it("parses landmarks from EPUB 3 nav documents", () => {
+        var navigation = parseNavigation(`<?xml version="1.0" encoding="UTF-8"?>
 			<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
 				<body>
 					<nav epub:type="toc">
@@ -89,16 +91,16 @@ describe("Navigation", () => {
 				</body>
 			</html>`);
 
-		expect(navigation.landmark("cover")).toEqual({
-			href: "Text/cover.xhtml",
-			label: "Cover",
-			type: "cover"
-		});
-		expect(navigation.landmark("bodymatter").href).toBe("Text/chapter1.xhtml");
-	});
+        expect(navigation.landmark("cover")).toEqual({
+            href: "Text/cover.xhtml",
+            label: "Cover",
+            type: "cover",
+        });
+        expect(navigation.landmark("bodymatter").href).toBe("Text/chapter1.xhtml");
+    });
 
-	it("parses nested NCX nav points", () => {
-		var navigation = parseNavigation(`<?xml version="1.0" encoding="UTF-8"?>
+    it("parses nested NCX nav points", () => {
+        var navigation = parseNavigation(`<?xml version="1.0" encoding="UTF-8"?>
 			<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/">
 				<navMap>
 					<navPoint id="chapter-one" playOrder="1">
@@ -112,34 +114,34 @@ describe("Navigation", () => {
 				</navMap>
 			</ncx>`);
 
-		expect(navigation.length).toBe(2);
-		expect(navigation.get("chapter-one").label.trim()).toBe("Chapter 1");
-		expect(navigation.get("#chapter-one-part-one").parent).toBe("chapter-one");
-		expect(navigation.get("#chapter-one-part-one").href).toBe("Text/chapter1.xhtml#part-1");
-	});
+        expect(navigation.length).toBe(2);
+        expect(navigation.get("chapter-one").label.trim()).toBe("Chapter 1");
+        expect(navigation.get("#chapter-one-part-one").parent).toBe("chapter-one");
+        expect(navigation.get("#chapter-one-part-one").href).toBe("Text/chapter1.xhtml#part-1");
+    });
 
-	it("loads legacy JSON navigation trees and iterates top-level items", () => {
-		var navigation = new Navigation([
-			{
-				id: "chapter-one",
-				href: "Text/chapter1.xhtml",
-				title: "Chapter 1",
-				children: [
-					{
-						id: "chapter-one-part-one",
-						href: "Text/chapter1.xhtml#part-1",
-						title: "Part 1"
-					}
-				]
-			}
-		]);
-		var labels = [];
+    it("loads legacy JSON navigation trees and iterates top-level items", () => {
+        var navigation = new Navigation([
+            {
+                id: "chapter-one",
+                href: "Text/chapter1.xhtml",
+                title: "Chapter 1",
+                children: [
+                    {
+                        id: "chapter-one-part-one",
+                        href: "Text/chapter1.xhtml#part-1",
+                        title: "Part 1",
+                    },
+                ],
+            },
+        ]);
+        var labels = [];
 
-		navigation.forEach((item) => labels.push(item.label));
+        navigation.forEach((item) => labels.push(item.label));
 
-		expect(navigation.length).toBe(2);
-		expect(labels).toEqual(["Chapter 1"]);
-		expect(navigation.get("chapter-one-part-one").label).toBe("Part 1");
-		expect(navigation.get("Text/chapter1.xhtml#part-1").parent).toBeUndefined();
-	});
+        expect(navigation.length).toBe(2);
+        expect(labels).toEqual(["Chapter 1"]);
+        expect(navigation.get("chapter-one-part-one").label).toBe("Part 1");
+        expect(navigation.get("Text/chapter1.xhtml#part-1").parent).toBeUndefined();
+    });
 });

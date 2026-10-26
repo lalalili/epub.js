@@ -3,76 +3,76 @@ import { RangeObject } from "./compat/range";
 import { EpubCFIPair, MappingLayout } from "./mapping";
 
 export interface ViewportSettings {
-  width?: string | number,
-  height?: string | number,
-  scale?: string | number,
-  scalable?: string,
-  minimum?: string | number,
-  maximum?: string | number
+    width?: string | number;
+    height?: string | number;
+    scale?: string | number;
+    scalable?: string;
+    minimum?: string | number;
+    maximum?: string | number;
 }
 
 export interface ContentsSize {
-  width: number,
-  height: number
+    width: number;
+    height: number;
 }
 
 export interface VerticalRlMetricsCache {
-  key: string,
-  width: number
+    key: string;
+    width: number;
 }
 
 export interface VerticalRlPageMetrics {
-  rawWidth: number,
-  rawPaintWidth: number,
-  rawHeight: number,
-  pageWidth: number,
-  viewportPageWidth: number | null,
-  effectivePageAdvance: number | null,
-  linePitch: number | null,
-  lineWidth: number | null,
-  edgeGuardPx: number,
-  edgeGuard: number,
-  pageBoundaryShift: number,
-  sampleCount: number,
-  gapMad: number | null,
-  stable: boolean,
-  verticalFragmentPages: number,
-  totalPages: number,
-  snappedContentWidth: number
+    rawWidth: number;
+    rawPaintWidth: number;
+    rawHeight: number;
+    pageWidth: number;
+    viewportPageWidth: number | null;
+    effectivePageAdvance: number | null;
+    linePitch: number | null;
+    lineWidth: number | null;
+    edgeGuardPx: number;
+    edgeGuard: number;
+    pageBoundaryShift: number;
+    sampleCount: number;
+    gapMad: number | null;
+    stable: boolean;
+    verticalFragmentPages: number;
+    totalPages: number;
+    snappedContentWidth: number;
 }
 
 export interface VerticalRlDebugMetrics {
-  userAgent: string,
-  htmlWritingMode: string | null,
-  bodyWritingMode: string | null,
-  htmlDirection: string | null,
-  bodyDirection: string | null,
-  htmlOverflow: string | null,
-  bodyOverflow: string | null,
-  bodyRectLeft: number | null,
-  bodyRectRight: number | null,
-  bodyRectWidth: number | null,
-  rangeRectLeft: number | null,
-  rangeRectRight: number | null,
-  rangeRectWidth: number | null,
-  rawPaintWidth: number,
-  rawContentWidth: number,
-  rawContentHeight: number,
-  snappedContentWidth: number,
-  pageWidth: number,
-  effectivePageAdvance: number | null,
-  linePitch: number | null,
-  lineWidth: number | null,
-  edgeGuardPx: number,
-  sampleCount: number,
-  gapMad: number | null,
-  stable: boolean,
-  totalPages: number
+    userAgent: string;
+    htmlWritingMode: string | null;
+    bodyWritingMode: string | null;
+    htmlDirection: string | null;
+    bodyDirection: string | null;
+    htmlOverflow: string | null;
+    bodyOverflow: string | null;
+    bodyRectLeft: number | null;
+    bodyRectRight: number | null;
+    bodyRectWidth: number | null;
+    rangeRectLeft: number | null;
+    rangeRectRight: number | null;
+    rangeRectWidth: number | null;
+    rawPaintWidth: number;
+    rawContentWidth: number;
+    rawContentHeight: number;
+    snappedContentWidth: number;
+    pageWidth: number;
+    effectivePageAdvance: number | null;
+    linePitch: number | null;
+    lineWidth: number | null;
+    edgeGuardPx: number;
+    sampleCount: number;
+    gapMad: number | null;
+    stable: boolean;
+    totalPages: number;
 }
 
 export interface VerticalRlPageMetricsCache {
-  key: string,
-  metrics: VerticalRlPageMetrics
+    key: string;
+    metrics: VerticalRlPageMetrics;
 }
 
 interface EpubReadingSystem {
@@ -83,7 +83,13 @@ interface EpubReadingSystem {
 }
 
 export default class Contents {
-    constructor(doc: Document, content?: HTMLElement, cfiBase?: string, sectionIndex?: number, sectionHref?: string);
+    constructor(
+        doc: Document,
+        content?: HTMLElement,
+        cfiBase?: string,
+        sectionIndex?: number,
+        sectionHref?: string,
+    );
 
     epubcfi: EpubCFI;
     document: Document;
@@ -96,7 +102,11 @@ export default class Contents {
     sectionHref: string;
     _verticalRlMetricsCache: VerticalRlMetricsCache | null;
     _verticalRlPageMetricsCache: VerticalRlPageMetricsCache | null;
-    _verticalRlStableSnappedContentWidth?: { pageLength: number, totalPages: number, width: number } | null;
+    _verticalRlStableSnappedContentWidth?: {
+        pageLength: number;
+        totalPages: number;
+        width: number;
+    } | null;
     _forcedWritingMode: string;
     _layoutStyle?: string;
     called: number;
@@ -140,19 +150,28 @@ export default class Contents {
 
     isViewportFillingSingleMediaPage(viewportWidth: number): boolean;
 
-    locationOf(target: string | number | EpubCFI, ignoreClass?: string): { top: number, left: number };
+    locationOf(
+        target: string | number | EpubCFI,
+        ignoreClass?: string,
+    ): { top: number; left: number };
 
     map(layout: MappingLayout): EpubCFIPair[];
 
-    mapPage(cfiBase: string, layout: MappingLayout, start: number, end: number, dev?: boolean): EpubCFIPair | undefined;
+    mapPage(
+        cfiBase: string,
+        layout: MappingLayout,
+        start: number,
+        end: number,
+        dev?: boolean,
+    ): EpubCFIPair | undefined;
 
     measureVerticalRlRect(): {
-      left: number,
-      right: number,
-      top: number,
-      bottom: number,
-      rawWidth: number,
-      rawHeight: number
+        left: number;
+        right: number;
+        top: number;
+        bottom: number;
+        rawWidth: number;
+        rawHeight: number;
     };
 
     overflow(overflow?: string): string;

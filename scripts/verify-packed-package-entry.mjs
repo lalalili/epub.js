@@ -10,124 +10,126 @@ const tempRoot = mkdtempSync(path.join(os.tmpdir(), "epubjs-packed-entry-"));
 const packageRoot = path.join(tempRoot, "node_modules", packageJson.name);
 
 function assert(condition, message) {
-	if (!condition) {
-		throw new Error(message);
-	}
+    if (!condition) {
+        throw new Error(message);
+    }
 }
 
 function copyPackedFile(filePath) {
-	const source = path.join(root, filePath);
-	const target = path.join(packageRoot, filePath);
+    const source = path.join(root, filePath);
+    const target = path.join(packageRoot, filePath);
 
-	mkdirSync(path.dirname(target), { recursive: true });
-	copyFileSync(source, target);
+    mkdirSync(path.dirname(target), { recursive: true });
+    copyFileSync(source, target);
 }
 
 function parseNpmPackJson(stdout) {
-	const output = stdout.trim();
+    const output = stdout.trim();
 
-	try {
-		return JSON.parse(output);
-	} catch {
-		for (const jsonStart of findJsonArrayStarts(output)) {
-			const jsonEnd = findJsonArrayEnd(output, jsonStart);
+    try {
+        return JSON.parse(output);
+    } catch {
+        for (const jsonStart of findJsonArrayStarts(output)) {
+            const jsonEnd = findJsonArrayEnd(output, jsonStart);
 
-			if (jsonEnd === -1) {
-				continue;
-			}
+            if (jsonEnd === -1) {
+                continue;
+            }
 
-			try {
-				const candidate = JSON.parse(output.slice(jsonStart, jsonEnd + 1));
+            try {
+                const candidate = JSON.parse(output.slice(jsonStart, jsonEnd + 1));
 
-				if (Array.isArray(candidate)) {
-					return candidate;
-				}
-			} catch {
-				// Keep searching for the first parseable JSON array in noisy npm output.
-			}
-		}
+                if (Array.isArray(candidate)) {
+                    return candidate;
+                }
+            } catch {
+                // Keep searching for the first parseable JSON array in noisy npm output.
+            }
+        }
 
-		throw new Error("npm pack JSON payload was not found.");
-	}
+        throw new Error("npm pack JSON payload was not found.");
+    }
 }
 
 function findJsonArrayStarts(output) {
-	const starts = [];
+    const starts = [];
 
-	for (let index = 0; index < output.length; index += 1) {
-		if (output[index] === "[") {
-			starts.push(index);
-		}
-	}
+    for (let index = 0; index < output.length; index += 1) {
+        if (output[index] === "[") {
+            starts.push(index);
+        }
+    }
 
-	return starts;
+    return starts;
 }
 
 function findJsonArrayEnd(output, start) {
-	let depth = 0;
-	let inString = false;
-	let escaped = false;
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
 
-	for (let index = start; index < output.length; index += 1) {
-		const character = output[index];
+    for (let index = start; index < output.length; index += 1) {
+        const character = output[index];
 
-		if (inString) {
-			if (escaped) {
-				escaped = false;
-			} else if (character === "\\") {
-				escaped = true;
-			} else if (character === "\"") {
-				inString = false;
-			}
+        if (inString) {
+            if (escaped) {
+                escaped = false;
+            } else if (character === "\\") {
+                escaped = true;
+            } else if (character === '"') {
+                inString = false;
+            }
 
-			continue;
-		}
+            continue;
+        }
 
-		if (character === "\"") {
-			inString = true;
-		} else if (character === "[") {
-			depth += 1;
-		} else if (character === "]") {
-			depth -= 1;
+        if (character === '"') {
+            inString = true;
+        } else if (character === "[") {
+            depth += 1;
+        } else if (character === "]") {
+            depth -= 1;
 
-			if (depth === 0) {
-				return index;
-			}
-		}
-	}
+            if (depth === 0) {
+                return index;
+            }
+        }
+    }
 
-	return -1;
+    return -1;
 }
 
 const result = spawnSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], {
-	cwd: root,
-	encoding: "utf8",
-	maxBuffer: 30 * 1024 * 1024
+    cwd: root,
+    encoding: "utf8",
+    maxBuffer: 30 * 1024 * 1024,
 });
 
 if (result.error) {
-	console.error(result.error.message);
-	process.exit(1);
+    console.error(result.error.message);
+    process.exit(1);
 }
 
 if (result.status !== 0) {
-	console.error(result.stderr || result.stdout);
-	process.exit(result.status);
+    console.error(result.stderr || result.stdout);
+    process.exit(result.status);
 }
 
 try {
-	const packEntries = parseNpmPackJson(result.stdout);
-	const packedFiles = packEntries[0]?.files || [];
+    const packEntries = parseNpmPackJson(result.stdout);
+    const packedFiles = packEntries[0]?.files || [];
 
-	assert(packedFiles.length > 0, "npm pack dry-run must report files for package entry smoke");
+    assert(packedFiles.length > 0, "npm pack dry-run must report files for package entry smoke");
 
-	for (const file of packedFiles) {
-		copyPackedFile(file.path);
-	}
+    for (const file of packedFiles) {
+        copyPackedFile(file.path);
+    }
 
-	const consumerScript = path.join(tempRoot, "consumer.mjs");
+    const consumerScript = path.join(tempRoot, "consumer.mjs");
 
-	writeFileSync(consumerScript, `
+    writeFileSync(
+        consumerScript,
+        `
 import { createRequire } from "node:module";
 import epubDefault, { Book, Contents, EpubCFI, Layout, Rendition, parseSmilClock, parseSmilDocument, replaceBase, replaceCanonical, replaceLinks, replaceMeta, request, resolveSmilHref, substitute } from "epubjs";
 
@@ -184,25 +186,26 @@ assert(typeof resolveSmilHref === "function", "bare ESM named resolveSmilHref mu
 assert(typeof substitute === "function", "bare ESM named substitute must be exposed");
 
 assertSurface("bare CJS", cjsExports);
-`);
+`,
+    );
 
-	const consumerResult = spawnSync(process.execPath, [consumerScript], {
-		cwd: tempRoot,
-		encoding: "utf8",
-		maxBuffer: 30 * 1024 * 1024
-	});
+    const consumerResult = spawnSync(process.execPath, [consumerScript], {
+        cwd: tempRoot,
+        encoding: "utf8",
+        maxBuffer: 30 * 1024 * 1024,
+    });
 
-	if (consumerResult.error) {
-		console.error(consumerResult.error.message);
-		process.exit(1);
-	}
+    if (consumerResult.error) {
+        console.error(consumerResult.error.message);
+        process.exit(1);
+    }
 
-	if (consumerResult.status !== 0) {
-		console.error(consumerResult.stderr || consumerResult.stdout);
-		process.exit(consumerResult.status);
-	}
+    if (consumerResult.status !== 0) {
+        console.error(consumerResult.stderr || consumerResult.stdout);
+        process.exit(consumerResult.status);
+    }
 } finally {
-	rmSync(tempRoot, { recursive: true, force: true });
+    rmSync(tempRoot, { recursive: true, force: true });
 }
 
 console.log("Packed package entry consumer smoke verified.");

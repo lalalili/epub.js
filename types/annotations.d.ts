@@ -11,97 +11,128 @@ export type AnnotationMap = Record<string, Annotation>;
 export type SectionAnnotationMap = Record<number, string[]>;
 
 export interface AnnotationView {
-  index: number;
-  highlight(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): unknown;
-  mark(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback): unknown;
-  underline(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): unknown;
-  unhighlight(cfiRange: string): unknown;
-  unmark(cfiRange: string): unknown;
-  ununderline(cfiRange: string): unknown;
+    index: number;
+    highlight(
+        cfiRange: string,
+        data?: AnnotationData,
+        cb?: AnnotationCallback,
+        className?: string,
+        styles?: AnnotationStyles,
+    ): unknown;
+    mark(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback): unknown;
+    underline(
+        cfiRange: string,
+        data?: AnnotationData,
+        cb?: AnnotationCallback,
+        className?: string,
+        styles?: AnnotationStyles,
+    ): unknown;
+    unhighlight(cfiRange: string): unknown;
+    unmark(cfiRange: string): unknown;
+    ununderline(cfiRange: string): unknown;
 }
 
 export interface AnnotationsRendition {
-  hooks: {
-    render: {
-      register(callback: (view: AnnotationView) => void): void;
+    hooks: {
+        render: {
+            register(callback: (view: AnnotationView) => void): void;
+        };
+        unloaded: {
+            register(callback: (view: AnnotationView) => void): void;
+        };
     };
-    unloaded: {
-      register(callback: (view: AnnotationView) => void): void;
-    };
-  };
-  views(): AnnotationView[];
+    views(): AnnotationView[];
 }
 
 export interface AnnotationOptions {
-  type: AnnotationType;
-  cfiRange: string;
-  data?: AnnotationData;
-  sectionIndex: number;
-  cb?: AnnotationCallback;
-  className?: string;
-  styles?: AnnotationStyles;
+    type: AnnotationType;
+    cfiRange: string;
+    data?: AnnotationData;
+    sectionIndex: number;
+    cb?: AnnotationCallback;
+    className?: string;
+    styles?: AnnotationStyles;
 }
 
 export default class Annotations {
-  constructor(rendition: AnnotationsRendition);
+    constructor(rendition: AnnotationsRendition);
 
-  rendition: AnnotationsRendition;
-  highlights: Annotation[];
-  underlines: Annotation[];
-  marks: Annotation[];
-  _annotations: AnnotationMap;
-  _annotationsBySectionIndex: SectionAnnotationMap;
+    rendition: AnnotationsRendition;
+    highlights: Annotation[];
+    underlines: Annotation[];
+    marks: Annotation[];
+    _annotations: AnnotationMap;
+    _annotationsBySectionIndex: SectionAnnotationMap;
 
-  add(type: AnnotationType, cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): Annotation;
+    add(
+        type: AnnotationType,
+        cfiRange: string,
+        data?: AnnotationData,
+        cb?: AnnotationCallback,
+        className?: string,
+        styles?: AnnotationStyles,
+    ): Annotation;
 
-  remove(cfiRange: string, type: AnnotationType): void;
+    remove(cfiRange: string, type: AnnotationType): void;
 
-  _removeFromAnnotationBySectionIndex(sectionIndex: number, hash: string): void;
+    _removeFromAnnotationBySectionIndex(sectionIndex: number, hash: string): void;
 
-  _annotationsAt(index: number): string[];
+    _annotationsAt(index: number): string[];
 
-  highlight(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): Annotation;
+    highlight(
+        cfiRange: string,
+        data?: AnnotationData,
+        cb?: AnnotationCallback,
+        className?: string,
+        styles?: AnnotationStyles,
+    ): Annotation;
 
-  underline(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback, className?: string, styles?: AnnotationStyles): Annotation;
+    underline(
+        cfiRange: string,
+        data?: AnnotationData,
+        cb?: AnnotationCallback,
+        className?: string,
+        styles?: AnnotationStyles,
+    ): Annotation;
 
-  mark(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback): Annotation;
+    mark(cfiRange: string, data?: AnnotationData, cb?: AnnotationCallback): Annotation;
 
-  each(...args: unknown[]): void;
+    each(...args: unknown[]): void;
 
-  inject(view: AnnotationView): void;
+    inject(view: AnnotationView): void;
 
-  clear(view: AnnotationView): void;
+    clear(view: AnnotationView): void;
 
-  show(): void;
+    show(): void;
 
-  hide(): void;
+    hide(): void;
 }
 
 export class Annotation {
-  constructor(options: AnnotationOptions);
+    constructor(options: AnnotationOptions);
 
-  type: AnnotationType;
-  cfiRange: string;
-  data: AnnotationData | undefined;
-  sectionIndex: number;
-  mark: unknown;
-  cb: AnnotationCallback | undefined;
-  className: string | undefined;
-  styles: AnnotationStyles | undefined;
+    type: AnnotationType;
+    cfiRange: string;
+    data: AnnotationData | undefined;
+    sectionIndex: number;
+    mark: unknown;
+    cb: AnnotationCallback | undefined;
+    className: string | undefined;
+    styles: AnnotationStyles | undefined;
 
-  update(data: AnnotationData): void;
+    update(data: AnnotationData): void;
 
-  attach(view: AnnotationView): unknown;
+    attach(view: AnnotationView): unknown;
 
-  detach(view?: AnnotationView): unknown;
+    detach(view?: AnnotationView): unknown;
 
-  text(): void;
+    text(): void;
 
-  emit(type: string, ...args: unknown[]): void;
+    emit(type: string, ...args: unknown[]): void;
 
-  off(type: string, listener: (...args: unknown[]) => void): unknown;
+    off(type: string, listener: (...args: unknown[]) => void): unknown;
 
-  on(type: string, listener: (...args: unknown[]) => void): unknown;
+    on(type: string, listener: (...args: unknown[]) => void): unknown;
 
-  once(type: string, listener: (...args: unknown[]) => void): unknown;
+    once(type: string, listener: (...args: unknown[]) => void): unknown;
 }

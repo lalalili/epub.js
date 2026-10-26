@@ -1,59 +1,54 @@
 /**
  * Core Utilities and Helpers
  * @module Core
-*/
+ */
+import { requestAnimationFrame as platformRequestAnimationFrame } from "../platform/browser";
 import {
-	requestAnimationFrame as platformRequestAnimationFrame
-} from "../platform/browser";
-import {
-	isElement as coreIsElement,
-	isFloat as coreIsFloat,
-	isNumber as coreIsNumber,
-	type as coreType
+    isElement as coreIsElement,
+    isFloat as coreIsFloat,
+    isNumber as coreIsNumber,
+    type as coreType,
 } from "../core/types";
 import {
-	defaults as coreDefaults,
-	extend as coreExtend,
-	indexOfSorted as coreIndexOfSorted,
-	insert as coreInsert,
-	locationOf as coreLocationOf
+    defaults as coreDefaults,
+    extend as coreExtend,
+    indexOfSorted as coreIndexOfSorted,
+    insert as coreInsert,
+    locationOf as coreLocationOf,
 } from "../core/collections";
+import { defer as coreDefer, uuid as coreUuid } from "../core/async";
 import {
-	defer as coreDefer,
-	uuid as coreUuid
-} from "../core/async";
-import {
-	createBase64Url as platformCreateBase64Url,
-	blobToBase64 as platformBlobToBase64,
-	createBlob as platformCreateBlob,
-	createBlobUrl as platformCreateBlobUrl,
-	revokeBlobUrl as platformRevokeBlobUrl
+    createBase64Url as platformCreateBase64Url,
+    blobToBase64 as platformBlobToBase64,
+    createBlob as platformCreateBlob,
+    createBlobUrl as platformCreateBlobUrl,
+    revokeBlobUrl as platformRevokeBlobUrl,
 } from "../platform/blob";
 import type { BlobContent as PlatformBlobContent } from "../platform/blob";
 import {
-	borders as platformBorders,
-	bounds as platformBounds,
-	documentHeight as platformDocumentHeight,
-	nodeBounds as platformNodeBounds,
-	windowBounds as platformWindowBounds
+    borders as platformBorders,
+    bounds as platformBounds,
+    documentHeight as platformDocumentHeight,
+    nodeBounds as platformNodeBounds,
+    windowBounds as platformWindowBounds,
 } from "../platform/layout";
 import {
-	qs as platformQs,
-	qsa as platformQsa,
-	qsp as platformQsp,
-	querySelectorByType as platformQuerySelectorByType
+    qs as platformQs,
+    qsa as platformQsa,
+    qsp as platformQsp,
+    querySelectorByType as platformQuerySelectorByType,
 } from "../platform/dom";
 import {
-	filterChildren as platformFilterChildren,
-	findChildren as platformFindChildren,
-	getParentByTagName as platformGetParentByTagName,
-	indexOfElementNode as platformIndexOfElementNode,
-	indexOfNode as platformIndexOfNode,
-	indexOfTextNode as platformIndexOfTextNode,
-	parents as platformParents,
-	sprint as platformSprint,
-	treeWalker as platformTreeWalker,
-	walk as platformWalk
+    filterChildren as platformFilterChildren,
+    findChildren as platformFindChildren,
+    getParentByTagName as platformGetParentByTagName,
+    indexOfElementNode as platformIndexOfElementNode,
+    indexOfNode as platformIndexOfNode,
+    indexOfTextNode as platformIndexOfTextNode,
+    parents as platformParents,
+    sprint as platformSprint,
+    treeWalker as platformTreeWalker,
+    walk as platformWalk,
 } from "../platform/traversal";
 import { parseMarkup as platformParseMarkup } from "../platform/parser";
 import { prefixed as prefixedCssProperty } from "../compat/css";
@@ -72,22 +67,22 @@ export type AnimationFrameRequest = (callback: FrameRequestCallback) => number;
 export type BlobContent = PlatformBlobContent;
 
 export interface SizeBounds {
-	width: number;
-	height: number;
+    width: number;
+    height: number;
 }
 
 export interface RectBounds extends SizeBounds {
-	top: number;
-	left: number;
-	right: number;
-	bottom: number;
+    top: number;
+    left: number;
+    right: number;
+    bottom: number;
 }
 
 export interface Deferred<T = unknown> {
-	resolve: ((value: T | PromiseLike<T>) => void) | null;
-	reject: ((reason?: unknown) => void) | null;
-	id: string;
-	promise: Promise<T>;
+    resolve: ((value: T | PromiseLike<T>) => void) | null;
+    reject: ((reason?: unknown) => void) | null;
+    id: string;
+    promise: Promise<T>;
 }
 
 /**
@@ -106,7 +101,7 @@ const DOCUMENT_NODE = 9;
  * @memberof Core
  */
 export function uuid() {
-	return coreUuid();
+    return coreUuid();
 }
 
 /**
@@ -115,7 +110,7 @@ export function uuid() {
  * @memberof Core
  */
 export function documentHeight() {
-	return platformDocumentHeight();
+    return platformDocumentHeight();
 }
 
 /**
@@ -125,7 +120,7 @@ export function documentHeight() {
  * @memberof Core
  */
 export function isElement(obj: unknown): obj is Element {
-	return coreIsElement(obj);
+    return coreIsElement(obj);
 }
 
 /**
@@ -134,7 +129,7 @@ export function isElement(obj: unknown): obj is Element {
  * @memberof Core
  */
 export function isNumber(n: unknown): boolean {
-	return coreIsNumber(n);
+    return coreIsNumber(n);
 }
 
 /**
@@ -143,7 +138,7 @@ export function isNumber(n: unknown): boolean {
  * @memberof Core
  */
 export function isFloat(n: unknown): boolean {
-	return coreIsFloat(n);
+    return coreIsFloat(n);
 }
 
 /**
@@ -153,7 +148,7 @@ export function isFloat(n: unknown): boolean {
  * @memberof Core
  */
 export function prefixed(unprefixed: string): string {
-	return prefixedCssProperty(unprefixed);
+    return prefixedCssProperty(unprefixed);
 }
 
 /**
@@ -163,7 +158,7 @@ export function prefixed(unprefixed: string): string {
  * @memberof Core
  */
 export function defaults<T extends MutableRecord>(obj: T, ..._sources: MutableRecord[]): T {
-	return coreDefaults.apply(null, arguments);
+    return coreDefaults.apply(null, arguments);
 }
 
 /**
@@ -172,8 +167,11 @@ export function defaults<T extends MutableRecord>(obj: T, ..._sources: MutableRe
  * @returns {object}
  * @memberof Core
  */
-export function extend<T extends object>(target: T, ..._sources: Array<object | null | undefined>): T {
-	return coreExtend.apply(null, arguments);
+export function extend<T extends object>(
+    target: T,
+    ..._sources: Array<object | null | undefined>
+): T {
+    return coreExtend.apply(null, arguments);
 }
 
 /**
@@ -186,7 +184,7 @@ export function extend<T extends object>(target: T, ..._sources: Array<object | 
  * @memberof Core
  */
 export function insert<T>(item: T, array: T[], compareFunction?: CompareFunction<T>): number {
-	return coreInsert(item, array, compareFunction);
+    return coreInsert(item, array, compareFunction);
 }
 
 /**
@@ -200,13 +198,13 @@ export function insert<T>(item: T, array: T[], compareFunction?: CompareFunction
  * @memberof Core
  */
 export function locationOf<T>(
-	item: T,
-	array: T[],
-	compareFunction?: CompareFunction<T>,
-	_start?: number,
-	_end?: number
+    item: T,
+    array: T[],
+    compareFunction?: CompareFunction<T>,
+    _start?: number,
+    _end?: number,
 ): number {
-	return coreLocationOf(item, array, compareFunction, _start, _end);
+    return coreLocationOf(item, array, compareFunction, _start, _end);
 }
 
 /**
@@ -221,13 +219,13 @@ export function locationOf<T>(
  * @memberof Core
  */
 export function indexOfSorted<T>(
-	item: T,
-	array: T[],
-	compareFunction?: CompareFunction<T>,
-	_start?: number,
-	_end?: number
+    item: T,
+    array: T[],
+    compareFunction?: CompareFunction<T>,
+    _start?: number,
+    _end?: number,
 ): number {
-	return coreIndexOfSorted(item, array, compareFunction, _start, _end);
+    return coreIndexOfSorted(item, array, compareFunction, _start, _end);
 }
 /**
  * Find the bounds of an element
@@ -237,7 +235,7 @@ export function indexOfSorted<T>(
  * @memberof Core
  */
 export function bounds(el: Element): SizeBounds {
-	return platformBounds(el);
+    return platformBounds(el);
 }
 
 /**
@@ -248,7 +246,7 @@ export function bounds(el: Element): SizeBounds {
  * @memberof Core
  */
 export function borders(el: Element): SizeBounds {
-	return platformBorders(el);
+    return platformBorders(el);
 }
 
 /**
@@ -259,7 +257,7 @@ export function borders(el: Element): SizeBounds {
  * @memberof Core
  */
 export function nodeBounds(node: Node): DOMRect {
-	return platformNodeBounds(node);
+    return platformNodeBounds(node);
 }
 
 /**
@@ -268,7 +266,7 @@ export function nodeBounds(node: Node): DOMRect {
  * @memberof Core
  */
 export function windowBounds(): RectBounds {
-	return platformWindowBounds();
+    return platformWindowBounds();
 }
 
 /**
@@ -279,7 +277,7 @@ export function windowBounds(): RectBounds {
  * @memberof Core
  */
 export function indexOfNode(node: Node, typeId: number): number {
-	return platformIndexOfNode(node, typeId);
+    return platformIndexOfNode(node, typeId);
 }
 
 /**
@@ -289,7 +287,7 @@ export function indexOfNode(node: Node, typeId: number): number {
  * @memberof Core
  */
 export function indexOfTextNode(textNode: Node): number {
-	return platformIndexOfTextNode(textNode);
+    return platformIndexOfTextNode(textNode);
 }
 
 /**
@@ -299,7 +297,7 @@ export function indexOfTextNode(textNode: Node): number {
  * @memberof Core
  */
 export function indexOfElementNode(elementNode: Element): number {
-	return platformIndexOfElementNode(elementNode);
+    return platformIndexOfElementNode(elementNode);
 }
 
 /**
@@ -309,7 +307,7 @@ export function indexOfElementNode(elementNode: Element): number {
  * @memberof Core
  */
 export function isXml(ext: string): boolean {
-	return mimeIsXml(ext);
+    return mimeIsXml(ext);
 }
 
 /**
@@ -319,8 +317,8 @@ export function isXml(ext: string): boolean {
  * @returns {Blob}
  * @memberof Core
  */
-export function createBlob(content: BlobContent, mime: string): Blob{
-	return platformCreateBlob(content, mime);
+export function createBlob(content: BlobContent, mime: string): Blob {
+    return platformCreateBlob(content, mime);
 }
 
 /**
@@ -330,8 +328,8 @@ export function createBlob(content: BlobContent, mime: string): Blob{
  * @returns {string} url
  * @memberof Core
  */
-export function createBlobUrl(content: BlobContent, mime: string): string{
-	return platformCreateBlobUrl(content, mime);
+export function createBlobUrl(content: BlobContent, mime: string): string {
+    return platformCreateBlobUrl(content, mime);
 }
 
 /**
@@ -339,8 +337,8 @@ export function createBlobUrl(content: BlobContent, mime: string): string{
  * @param {string} url
  * @memberof Core
  */
-export function revokeBlobUrl(url: string): void{
-	return platformRevokeBlobUrl(url);
+export function revokeBlobUrl(url: string): void {
+    return platformRevokeBlobUrl(url);
 }
 
 /**
@@ -350,8 +348,8 @@ export function revokeBlobUrl(url: string): void{
  * @returns {string} url
  * @memberof Core
  */
-export function createBase64Url(content: string, mime: string): string{
-	return platformCreateBase64Url(content, mime);
+export function createBase64Url(content: string, mime: string): string {
+    return platformCreateBase64Url(content, mime);
 }
 
 /**
@@ -360,8 +358,8 @@ export function createBase64Url(content: string, mime: string): string{
  * @returns {string} type
  * @memberof Core
  */
-export function type(obj: unknown): string{
-	return coreType(obj);
+export function type(obj: unknown): string {
+    return coreType(obj);
 }
 
 /**
@@ -373,7 +371,7 @@ export function type(obj: unknown): string{
  * @memberof Core
  */
 export function parse(markup: string, mime: string, forceXMLDom?: boolean): Document {
-	return platformParseMarkup(markup, mime, forceXMLDom);
+    return platformParseMarkup(markup, mime, forceXMLDom);
 }
 
 /**
@@ -383,8 +381,11 @@ export function parse(markup: string, mime: string, forceXMLDom?: boolean): Docu
  * @returns {element} element
  * @memberof Core
  */
-export function qs(el: Element | Document | null | undefined, sel: string): Element | null | undefined {
-	return platformQs(el, sel);
+export function qs(
+    el: Element | Document | null | undefined,
+    sel: string,
+): Element | null | undefined {
+    return platformQs(el, sel);
 }
 
 /**
@@ -394,8 +395,11 @@ export function qs(el: Element | Document | null | undefined, sel: string): Elem
  * @returns {element[]} elements
  * @memberof Core
  */
-export function qsa(el: Element | Document, sel: string): NodeListOf<Element> | HTMLCollectionOf<Element> {
-	return platformQsa(el, sel);
+export function qsa(
+    el: Element | Document,
+    sel: string,
+): NodeListOf<Element> | HTMLCollectionOf<Element> {
+    return platformQsa(el, sel);
 }
 
 /**
@@ -406,8 +410,12 @@ export function qsa(el: Element | Document, sel: string): NodeListOf<Element> | 
  * @returns {element[]} elements
  * @memberof Core
  */
-export function qsp(el: Element | Document, sel: string, props: QueryProps): Element | null | undefined {
-	return platformQsp(el, sel, props);
+export function qsp(
+    el: Element | Document,
+    sel: string,
+    props: QueryProps,
+): Element | null | undefined {
+    return platformQsp(el, sel, props);
 }
 
 /**
@@ -417,7 +425,7 @@ export function qsp(el: Element | Document, sel: string, props: QueryProps): Ele
  * @param  {function} func function to run on each element
  */
 export function sprint(root: TraversalRoot, func: TextNodeCallback): void {
-	return platformSprint(root, func);
+    return platformSprint(root, func);
 }
 
 /**
@@ -427,8 +435,12 @@ export function sprint(root: TraversalRoot, func: TextNodeCallback): void {
  * @param  {function} func function to run on each element
  * @param  {function | object} filter function or object to filter with
  */
-export function treeWalker(root: TraversalRoot, func: NodeCallback, filter: TreeWalkerFilter): void {
-	return platformTreeWalker(root, func, filter);
+export function treeWalker(
+    root: TraversalRoot,
+    func: NodeCallback,
+    filter: TreeWalkerFilter,
+): void {
+    return platformTreeWalker(root, func, filter);
 }
 
 /**
@@ -436,8 +448,8 @@ export function treeWalker(root: TraversalRoot, func: NodeCallback, filter: Tree
  * @param {node} node
  * @param {callback} return false for continue,true for break inside callback
  */
-export function walk(node: Node, callback: NodeCallback): boolean | undefined{
-	return platformWalk(node, callback);
+export function walk(node: Node, callback: NodeCallback): boolean | undefined {
+    return platformWalk(node, callback);
 }
 
 /**
@@ -447,9 +459,8 @@ export function walk(node: Node, callback: NodeCallback): boolean | undefined{
  * @memberof Core
  */
 export function blob2base64(blob: Blob): Promise<string | ArrayBuffer | null> {
-	return platformBlobToBase64(blob);
+    return platformBlobToBase64(blob);
 }
-
 
 /**
  * Creates a new pending promise and provides methods to resolve or reject it.
@@ -457,7 +468,7 @@ export function blob2base64(blob: Blob): Promise<string | ArrayBuffer | null> {
  * @memberof Core
  */
 export function defer<T = unknown>(this: Deferred<T>): void {
-	coreDefer.call(this);
+    coreDefer.call(this);
 }
 
 /**
@@ -468,8 +479,12 @@ export function defer<T = unknown>(this: Deferred<T>): void {
  * @returns {element[]} elements
  * @memberof Core
  */
-export function querySelectorByType(html: Element | Document, element: string, type: string): Element | undefined{
-	return platformQuerySelectorByType(html, element, type);
+export function querySelectorByType(
+    html: Element | Document,
+    element: string,
+    type: string,
+): Element | undefined {
+    return platformQuerySelectorByType(html, element, type);
 }
 
 /**
@@ -479,7 +494,7 @@ export function querySelectorByType(html: Element | Document, element: string, t
  * @memberof Core
  */
 export function findChildren(el: Element): Element[] {
-	return platformFindChildren(el);
+    return platformFindChildren(el);
 }
 
 /**
@@ -489,7 +504,7 @@ export function findChildren(el: Element): Element[] {
  * @memberof Core
  */
 export function parents(node: Element): Element[] {
-	return platformParents(node);
+    return platformParents(node);
 }
 
 /**
@@ -500,8 +515,12 @@ export function parents(node: Element): Element[] {
  * @returns {element[]} children
  * @memberof Core
  */
-export function filterChildren(el: Element, nodeName: string, single?: boolean): Element | Element[] | undefined {
-	return platformFilterChildren(el, nodeName, single);
+export function filterChildren(
+    el: Element,
+    nodeName: string,
+    single?: boolean,
+): Element | Element[] | undefined {
+    return platformFilterChildren(el, nodeName, single);
 }
 
 /**
@@ -512,7 +531,7 @@ export function filterChildren(el: Element, nodeName: string, single?: boolean):
  * @memberof Core
  */
 export function getParentByTagName(node: Element | null, tagname: string): Element | undefined {
-	return platformGetParentByTagName(node, tagname);
+    return platformGetParentByTagName(node, tagname);
 }
 
 /**

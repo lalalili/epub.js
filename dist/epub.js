@@ -1193,9 +1193,9 @@
 				index = (num - 1) / 2;
 			}
 			return {
-				"type": stepType,
-				"index": index,
-				"id": id || null
+				type: stepType,
+				index,
+				id: id || null
 			};
 		}
 		parseTerminal(termialStr) {
@@ -1207,8 +1207,8 @@
 			} else characterOffset = parseInt(termialStr);
 			if (!isNumber$1(characterOffset)) characterOffset = null;
 			return {
-				"offset": characterOffset,
-				"assertion": textLocationAssertion
+				offset: characterOffset,
+				assertion: textLocationAssertion
 			};
 		}
 		getChapterComponent(cfiStr) {
@@ -1304,10 +1304,10 @@
 			var nodeType = node.nodeType === TEXT_NODE$1 ? "text" : "element";
 			var element = node;
 			return {
-				"id": element.id,
-				"tagName": element.tagName,
-				"type": nodeType,
-				"index": this.position(node)
+				id: element.id,
+				tagName: element.tagName,
+				type: nodeType,
+				index: this.position(node)
 			};
 		}
 		filteredStep(node, ignoreClass) {
@@ -1316,10 +1316,10 @@
 			if (!filteredNode) return;
 			nodeType = filteredNode.nodeType === TEXT_NODE$1 ? "text" : "element";
 			return {
-				"id": filteredNode.id,
-				"tagName": filteredNode.tagName,
-				"type": nodeType,
-				"index": this.filteredPosition(filteredNode, ignoreClass)
+				id: filteredNode.id,
+				tagName: filteredNode.tagName,
+				type: nodeType,
+				index: this.filteredPosition(filteredNode, ignoreClass)
 			};
 		}
 		pathTo(node, offset, ignoreClass) {
@@ -1341,8 +1341,8 @@
 			if (offset != null && offset >= 0) {
 				segment.terminal.offset = offset;
 				if (segment.steps[segment.steps.length - 1].type != "text") segment.steps.push({
-					"type": "text",
-					"index": 0
+					type: "text",
+					index: 0
 				});
 			}
 			return segment;
@@ -6762,12 +6762,12 @@
 	}
 	// src/utils/mime.ts
 	var table = {
-		"application": {
-			"ecmascript": ["es", "ecma"],
-			"javascript": "js",
-			"ogg": "ogx",
-			"pdf": "pdf",
-			"postscript": [
+		application: {
+			ecmascript: ["es", "ecma"],
+			javascript: "js",
+			ogg: "ogx",
+			pdf: "pdf",
+			postscript: [
 				"ps",
 				"ai",
 				"eps",
@@ -6777,16 +6777,16 @@
 				"eps3"
 			],
 			"rdf+xml": "rdf",
-			"smil": ["smi", "smil"],
+			smil: ["smi", "smil"],
 			"xhtml+xml": ["xhtml", "xht"],
-			"xml": [
+			xml: [
 				"xml",
 				"xsl",
 				"xsd",
 				"opf",
 				"ncx"
 			],
-			"zip": "zip",
+			zip: "zip",
 			"x-httpd-eruby": "rhtml",
 			"x-latex": "latex",
 			"x-maker": [
@@ -6804,15 +6804,15 @@
 			"epub+zip": "epub",
 			"font-tdpfr": "pfr",
 			"inkml+xml": ["ink", "inkml"],
-			"json": "json",
+			json: "json",
 			"jsonml+json": "jsonml",
 			"mathml+xml": "mathml",
 			"metalink+xml": "metalink",
-			"mp4": "mp4s",
+			mp4: "mp4s",
 			"omdoc+xml": "omdoc",
-			"oxps": "oxps",
+			oxps: "oxps",
 			"vnd.amazon.ebook": "azw",
-			"widget": "wgt",
+			widget: "wgt",
 			"x-dtbook+xml": "dtb",
 			"x-dtbresource+xml": "res",
 			"x-font-bdf": "bdf",
@@ -6842,15 +6842,15 @@
 			"x-compressed": "tgz",
 			"x-gzip": "gz"
 		},
-		"audio": {
-			"flac": "flac",
-			"midi": [
+		audio: {
+			flac: "flac",
+			midi: [
 				"mid",
 				"midi",
 				"kar",
 				"rmi"
 			],
-			"mpeg": [
+			mpeg: [
 				"mpga",
 				"mpega",
 				"mp2",
@@ -6860,8 +6860,8 @@
 				"m2a",
 				"m3a"
 			],
-			"mpegurl": "m3u",
-			"ogg": [
+			mpegurl: "m3u",
+			ogg: [
 				"oga",
 				"ogg",
 				"spx"
@@ -6873,47 +6873,47 @@
 			],
 			"x-ms-wma": "wma",
 			"x-wav": "wav",
-			"adpcm": "adp",
-			"mp4": "mp4a",
-			"webm": "weba",
+			adpcm: "adp",
+			mp4: "mp4a",
+			webm: "weba",
 			"x-aac": "aac",
 			"x-caf": "caf",
 			"x-matroska": "mka",
 			"x-pn-realaudio-plugin": "rmp",
-			"xm": "xm",
-			"mid": ["mid", "rmi"]
+			xm: "xm",
+			mid: ["mid", "rmi"]
 		},
-		"image": {
-			"gif": "gif",
-			"ief": "ief",
-			"jpeg": [
+		image: {
+			gif: "gif",
+			ief: "ief",
+			jpeg: [
 				"jpeg",
 				"jpg",
 				"jpe"
 			],
-			"pcx": "pcx",
-			"png": "png",
+			pcx: "pcx",
+			png: "png",
 			"svg+xml": ["svg", "svgz"],
-			"tiff": ["tiff", "tif"],
+			tiff: ["tiff", "tif"],
 			"x-icon": "ico",
-			"bmp": "bmp",
-			"webp": "webp",
+			bmp: "bmp",
+			webp: "webp",
 			"x-pict": ["pic", "pct"],
 			"x-tga": "tga",
 			"cis-cod": "cod"
 		},
-		"text": {
+		text: {
 			"cache-manifest": ["manifest", "appcache"],
-			"css": "css",
-			"csv": "csv",
-			"html": [
+			css: "css",
+			csv: "csv",
+			html: [
 				"html",
 				"htm",
 				"shtml",
 				"stm"
 			],
-			"mathml": "mml",
-			"plain": [
+			mathml: "mml",
+			plain: [
 				"txt",
 				"text",
 				"brf",
@@ -6924,12 +6924,12 @@
 				"in",
 				"bas"
 			],
-			"richtext": "rtx",
+			richtext: "rtx",
 			"tab-separated-values": "tsv",
 			"x-bibtex": "bib"
 		},
-		"video": {
-			"mpeg": [
+		video: {
+			mpeg: [
 				"mpeg",
 				"mpg",
 				"mpe",
@@ -6939,13 +6939,13 @@
 				"mpa",
 				"mpv2"
 			],
-			"mp4": [
+			mp4: [
 				"mp4",
 				"mp4v",
 				"mpg4"
 			],
-			"quicktime": ["qt", "mov"],
-			"ogg": "ogv",
+			quicktime: ["qt", "mov"],
+			ogg: "ogv",
 			"vnd.mpegurl": ["mxu", "m4u"],
 			"x-flv": "flv",
 			"x-la-asf": ["lsf", "lsx"],
@@ -6968,16 +6968,16 @@
 				"mks"
 			],
 			"3gpp2": "3g2",
-			"h261": "h261",
-			"h263": "h263",
-			"h264": "h264",
-			"jpeg": "jpgv",
-			"jpm": ["jpm", "jpgm"],
-			"mj2": ["mj2", "mjp2"],
+			h261: "h261",
+			h263: "h263",
+			h264: "h264",
+			jpeg: "jpgv",
+			jpm: ["jpm", "jpgm"],
+			mj2: ["mj2", "mjp2"],
 			"vnd.ms-playready.media.pyv": "pyv",
 			"vnd.uvvu.mp4": ["uvu", "uvvu"],
 			"vnd.vivo": "viv",
-			"webm": "webm",
+			webm: "webm",
 			"x-f4v": "f4v",
 			"x-m4v": "m4v",
 			"x-ms-vob": "vob",
@@ -7725,12 +7725,12 @@
 				deferred = new Defer$5();
 				promise = deferred.promise;
 				queued = {
-					"task": task,
-					"args": args,
-					"deferred": deferred,
-					"promise": promise
+					task,
+					args,
+					deferred,
+					promise
 				};
-			} else queued = { "promise": task };
+			} else queued = { promise: task };
 			this._q.push(queued);
 			if (this.paused == false && !this.running) this.run();
 			return queued.promise;
@@ -8369,13 +8369,13 @@
 			this.metadata = this.parseMetadata(metadataNode);
 			this.metadata.direction = spineNode.getAttribute("page-progression-direction");
 			return {
-				"metadata": this.metadata,
-				"spine": this.spine,
-				"manifest": this.manifest,
-				"navPath": this.navPath,
-				"ncxPath": this.ncxPath,
-				"coverPath": this.coverPath,
-				"spineNodeIndex": this.spineNodeIndex
+				metadata: this.metadata,
+				spine: this.spine,
+				manifest: this.manifest,
+				navPath: this.navPath,
+				ncxPath: this.ncxPath,
+				coverPath: this.coverPath,
+				spineNodeIndex: this.spineNodeIndex
 			};
 		}
 		/**
@@ -8416,13 +8416,13 @@
 				var id = item.getAttribute("id"), href = item.getAttribute("href") || "", type = item.getAttribute("media-type") || "", overlay = item.getAttribute("media-overlay") || "", fallback = item.getAttribute("fallback") || "", properties = item.getAttribute("properties") || "";
 				if (!id) return;
 				manifest[id] = {
-					"href": href,
-					"type": type,
-					"overlay": overlay,
-					"mediaOverlay": overlay,
-					"fallback": fallback,
-					"fallbackChain": [],
-					"properties": properties.length ? properties.split(" ") : []
+					href,
+					type,
+					overlay,
+					mediaOverlay: overlay,
+					fallback,
+					fallbackChain: [],
+					properties: properties.length ? properties.split(" ") : []
 				};
 			});
 			Object.keys(manifest).forEach(function(id) {
@@ -8451,11 +8451,11 @@
 				var props = item.getAttribute("properties") || "";
 				var propArray = props.length ? props.split(" ") : [];
 				var itemref = {
-					"id": item.getAttribute("id"),
-					"idref": idref,
-					"linear": item.getAttribute("linear") || "yes",
-					"properties": propArray,
-					"index": index
+					id: item.getAttribute("id"),
+					idref,
+					linear: item.getAttribute("linear") || "yes",
+					properties: propArray,
+					index
 				};
 				spine.push(itemref);
 			});
@@ -8482,7 +8482,7 @@
 		* @return {string}
 		*/
 		findNavPath(manifestNode) {
-			var node = qsp$1(manifestNode, "item", { "properties": "nav" });
+			var node = qsp$1(manifestNode, "item", { properties: "nav" });
 			return node ? node.getAttribute("href") : false;
 		}
 		/**
@@ -8512,9 +8512,9 @@
 		*/
 		findCoverPath(packageXml) {
 			qs$1(packageXml, "package").getAttribute("version");
-			var node = qsp$1(packageXml, "item", { "properties": "cover-image" });
+			var node = qsp$1(packageXml, "item", { properties: "cover-image" });
 			if (node) return node.getAttribute("href");
-			var metaCover = qsp$1(packageXml, "meta", { "name": "cover" });
+			var metaCover = qsp$1(packageXml, "meta", { name: "cover" });
 			if (metaCover) {
 				var coverId = metaCover.getAttribute("content");
 				var cover = packageXml.getElementById(coverId);
@@ -8544,7 +8544,7 @@
 		* @return {string} text
 		*/
 		getPropertyText(xml, property) {
-			var el = qsp$1(xml, "meta", { "property": property });
+			var el = qsp$1(xml, "meta", { property });
 			if (el && el.childNodes.length) return el.childNodes[0].nodeValue || "";
 			return "";
 		}
@@ -8573,14 +8573,14 @@
 				return item;
 			});
 			return {
-				"metadata": this.metadata,
-				"spine": this.spine,
-				"manifest": this.manifest,
-				"navPath": this.navPath,
-				"ncxPath": this.ncxPath,
-				"coverPath": this.coverPath,
-				"spineNodeIndex": this.spineNodeIndex,
-				"toc": this.toc
+				metadata: this.metadata,
+				spine: this.spine,
+				manifest: this.manifest,
+				navPath: this.navPath,
+				ncxPath: this.ncxPath,
+				coverPath: this.coverPath,
+				spineNodeIndex: this.spineNodeIndex,
+				toc: this.toc
 			};
 		}
 		destroy() {
@@ -8734,11 +8734,11 @@
 			let nested = filterChildren$1(item, "ol", true);
 			if (nested) subitems = this.parseNavList(nested, id);
 			return {
-				"id": id,
-				"href": src,
-				"label": text,
-				"subitems": subitems,
-				"parent": parent
+				id,
+				href: src,
+				label: text,
+				subitems,
+				parent
 			};
 		}
 		/**
@@ -8775,9 +8775,9 @@
 			if (!content) return;
 			let type = content.getAttributeNS("http://www.idpf.org/2007/ops", "type") || void 0;
 			return {
-				"href": content.getAttribute("href") || "",
-				"label": content.textContent || "",
-				"type": type
+				href: content.getAttribute("href") || "",
+				label: content.textContent || "",
+				type
 			};
 		}
 		/**
@@ -8815,11 +8815,11 @@
 			var id = item.getAttribute("id") || "", src = qs$1(item, "content").getAttribute("src") || "", navLabel = qs$1(item, "navLabel"), text = navLabel.textContent ? navLabel.textContent : "", subitems = [], parentNode = item.parentNode, parent;
 			if (parentNode && (parentNode.nodeName === "navPoint" || parentNode.nodeName.split(":").slice(-1)[0] === "navPoint")) parent = parentNode.getAttribute("id") || void 0;
 			return {
-				"id": id,
-				"href": src,
-				"label": text,
-				"subitems": subitems,
-				"parent": parent
+				id,
+				href: src,
+				label: text,
+				subitems,
+				parent
 			};
 		}
 		/**
@@ -8983,7 +8983,7 @@
 		createUrl(url) {
 			var parsedUrl = new Url(url);
 			var mimeType = mime_default.lookup(parsedUrl.filename);
-			if (this.settings.archive) return this.settings.archive.createUrl(url, { "base64": this.settings.replacements === "base64" });
+			if (this.settings.archive) return this.settings.archive.createUrl(url, { base64: this.settings.replacements === "base64" });
 			else if (this.settings.replacements === "base64") return this.settings.request(url, "blob").then((blob) => {
 				return blobToBase64(blob);
 			}).then((blob) => {
@@ -9196,8 +9196,8 @@
 		ncxItem(item) {
 			var pageText = qs$1(qs$1(item, "navLabel"), "text").textContent || "";
 			return {
-				"href": qs$1(item, "content").getAttribute("src") || "",
-				"page": pageText
+				href: qs$1(item, "content").getAttribute("src") || "",
+				page: pageText
 			};
 		}
 		/**
@@ -9213,14 +9213,14 @@
 				packageUrl = split[0];
 				cfi = split.length > 1 ? split[1] : false;
 				return {
-					"cfi": cfi,
-					"href": href,
-					"packageUrl": packageUrl,
-					"page": page
+					cfi,
+					href,
+					packageUrl,
+					page
 				};
 			} else return {
-				"href": href,
-				"page": page
+				href,
+				page
 			};
 		}
 		/**
@@ -9553,10 +9553,10 @@
 		_injected;
 		constructor(rendition) {
 			this.rendition = rendition;
-			this._themes = { "default": {
-				"rules": {},
-				"url": "",
-				"serialized": ""
+			this._themes = { default: {
+				rules: {},
+				url: "",
+				serialized: ""
 			} };
 			this._overrides = {};
 			this._current = "default";
@@ -9605,7 +9605,7 @@
 		* @param {string} css
 		*/
 		registerCss(name, css) {
-			this._themes[name] = { "serialized": css };
+			this._themes[name] = { serialized: css };
 			if (this._injected[name] || name == "default") this.update(name);
 		}
 		/**
@@ -9615,7 +9615,7 @@
 		*/
 		registerUrl(name, input) {
 			var url = new Url(input);
-			this._themes[name] = { "url": url.toString() };
+			this._themes[name] = { url: url.toString() };
 			if (this._injected[name] || name == "default") this.update(name);
 		}
 		/**
@@ -9624,7 +9624,7 @@
 		* @param {object} rules
 		*/
 		registerRules(name, rules) {
-			this._themes[name] = { "rules": rules };
+			this._themes[name] = { rules };
 			if (this._injected[name] || name == "default") this.update(name);
 		}
 		/**
@@ -11047,12 +11047,12 @@
 		viewport(options) {
 			var $viewport = this.document.querySelector("meta[name='viewport']");
 			var parsed = {
-				"width": void 0,
-				"height": void 0,
-				"scale": void 0,
-				"minimum": void 0,
-				"maximum": void 0,
-				"scalable": void 0
+				width: void 0,
+				height: void 0,
+				scale: void 0,
+				minimum: void 0,
+				maximum: void 0,
+				scalable: void 0
 			};
 			var newContent = [];
 			var settings = {};
@@ -11268,8 +11268,8 @@
 		locationOf(target, ignoreClass) {
 			var position;
 			var targetPos = {
-				"left": 0,
-				"top": 0
+				left: 0,
+				top: 0
 			};
 			if (!this.document) return targetPos;
 			if (this.epubcfi.isCfiString(target)) {
@@ -13044,8 +13044,8 @@
 		locationOf(target) {
 			var targetPos = this.contents.locationOf(target, this.settings.ignoreClass);
 			return {
-				"left": targetPos.left,
-				"top": targetPos.top
+				left: targetPos.left,
+				top: targetPos.top
 			};
 		}
 		onDisplayed(view) {}
@@ -13057,7 +13057,7 @@
 		highlight(cfiRange, data = {}, cb, className = "epubjs-hl", styles = {}) {
 			if (!this.contents) return;
 			const attributes = Object.assign({
-				"fill": "yellow",
+				fill: "yellow",
 				"fill-opacity": "0.3",
 				"mix-blend-mode": "multiply"
 			}, styles);
@@ -13070,9 +13070,9 @@
 			let m = new import_marks.Highlight(range, className, data, attributes);
 			let h = this.pane.addMark(m);
 			this.highlights[cfiRange] = {
-				"mark": h,
-				"element": h.element,
-				"listeners": [emitter, cb]
+				mark: h,
+				element: h.element,
+				listeners: [emitter, cb]
 			};
 			h.element.setAttribute("ref", className);
 			h.element.addEventListener("click", emitter);
@@ -13086,7 +13086,7 @@
 		underline(cfiRange, data = {}, cb, className = "epubjs-ul", styles = {}) {
 			if (!this.contents) return;
 			const attributes = Object.assign({
-				"stroke": "black",
+				stroke: "black",
 				"stroke-opacity": "0.3",
 				"mix-blend-mode": "multiply"
 			}, styles);
@@ -13099,9 +13099,9 @@
 			let m = new import_marks.Underline(range, className, data, attributes);
 			let h = this.pane.addMark(m);
 			this.underlines[cfiRange] = {
-				"mark": h,
-				"element": h.element,
-				"listeners": [emitter, cb]
+				mark: h,
+				element: h.element,
+				listeners: [emitter, cb]
 			};
 			h.element.setAttribute("ref", className);
 			h.element.addEventListener("click", emitter);
@@ -13145,9 +13145,9 @@
 			this.placeMark(mark, range);
 			this.element.appendChild(mark);
 			this.marks[cfiRange] = {
-				"element": mark,
-				"range": range,
-				"listeners": [emitter, cb]
+				element: mark,
+				range,
+				listeners: [emitter, cb]
 			};
 			return parent;
 		}
@@ -19412,8 +19412,8 @@
 		attachTo(element) {
 			return this.q.enqueue(function() {
 				this.manager.render(element, {
-					"width": this.settings.width,
-					"height": this.settings.height
+					width: this.settings.width,
+					height: this.settings.height
 				});
 				/**
 				* Emit that rendering has attached to an element
@@ -20006,7 +20006,7 @@
 			let height = (contents.content.offsetHeight - (parseFloat(computed.paddingTop) + parseFloat(computed.paddingBottom))) * .95;
 			let horizontalPadding = parseFloat(computed.paddingLeft) + parseFloat(computed.paddingRight);
 			contents.addStylesheetRules({
-				"img": {
+				img: {
 					"max-width": (this._layout.columnWidth ? this._layout.columnWidth - horizontalPadding + "px" : "100%") + "!important",
 					"max-height": height + "px!important",
 					"object-fit": "contain",
@@ -20014,7 +20014,7 @@
 					"break-inside": "avoid",
 					"box-sizing": "border-box"
 				},
-				"svg": {
+				svg: {
 					"max-width": (this._layout.columnWidth ? this._layout.columnWidth - horizontalPadding + "px" : "100%") + "!important",
 					"max-height": height + "px!important",
 					"page-break-inside": "avoid",
@@ -20138,7 +20138,7 @@
 		* @return {Promise} zipfile
 		*/
 		open(input, isBase64) {
-			return this.zip.loadAsync(input, { "base64": isBase64 });
+			return this.zip.loadAsync(input, { base64: isBase64 });
 		}
 		/**
 		* Load and Open an archive
@@ -20148,7 +20148,7 @@
 		*/
 		openUrl(zipUrl, isBase64) {
 			return request(zipUrl, "binary").then((data) => {
-				return this.zip.loadAsync(data, { "base64": isBase64 });
+				return this.zip.loadAsync(data, { base64: isBase64 });
 			});
 		}
 		request(url, type) {

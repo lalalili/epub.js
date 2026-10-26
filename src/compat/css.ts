@@ -9,22 +9,25 @@ import { getDocument } from "../platform/browser";
  * @returns {string} supported CSS property name
  */
 export function prefixed(unprefixed: string): string {
-	var doc = getDocument();
-	var vendors = ["Webkit", "webkit", "Moz", "O", "ms"];
-	var prefixes = ["-webkit-", "-webkit-", "-moz-", "-o-", "-ms-"];
-	var lower = unprefixed.toLowerCase();
-	var length = vendors.length;
-	var style = doc && doc.body ? doc.body.style as CSSStyleDeclaration & Record<string, string> : undefined;
+    var doc = getDocument();
+    var vendors = ["Webkit", "webkit", "Moz", "O", "ms"];
+    var prefixes = ["-webkit-", "-webkit-", "-moz-", "-o-", "-ms-"];
+    var lower = unprefixed.toLowerCase();
+    var length = vendors.length;
+    var style =
+        doc && doc.body
+            ? (doc.body.style as CSSStyleDeclaration & Record<string, string>)
+            : undefined;
 
-	if (!doc || !doc.body || typeof(style[lower]) != "undefined") {
-		return unprefixed;
-	}
+    if (!doc || !doc.body || typeof style[lower] != "undefined") {
+        return unprefixed;
+    }
 
-	for (var i = 0; i < length; i++) {
-		if (typeof(style[prefixes[i] + lower]) != "undefined") {
-			return prefixes[i] + lower;
-		}
-	}
+    for (var i = 0; i < length; i++) {
+        if (typeof style[prefixes[i] + lower] != "undefined") {
+            return prefixes[i] + lower;
+        }
+    }
 
-	return unprefixed;
+    return unprefixed;
 }

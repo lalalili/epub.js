@@ -2,90 +2,96 @@ import Hook from "./utils/hook";
 import { RequestHeaders, RequestType } from "./utils/request";
 
 export interface GlobalLayout {
-  layout: string,
-  spread: string,
-  orientation: string
+    layout: string;
+    spread: string;
+    orientation: string;
 }
 
 export interface LayoutSettings {
-  layout: string,
-  spread: string,
-  orientation: string
+    layout: string;
+    spread: string;
+    orientation: string;
 }
 
 export interface SpineItem {
-  idref: string,
-  linear?: string | boolean,
-  properties?: Array<string>,
-  index: number,
-  cfiBase: string,
-  href?: string,
-  url?: string,
-  canonical?: string,
-  mediaType?: string,
-  originalHref?: string,
-  originalMediaType?: string,
-  fallback?: string,
-  fallbackChain?: Array<string>,
-  next?: () => SpineItem | Section | undefined,
-  prev?: () => SpineItem | Section | undefined,
+    idref: string;
+    linear?: string | boolean;
+    properties?: Array<string>;
+    index: number;
+    cfiBase: string;
+    href?: string;
+    url?: string;
+    canonical?: string;
+    mediaType?: string;
+    originalHref?: string;
+    originalMediaType?: string;
+    fallback?: string;
+    fallbackChain?: Array<string>;
+    next?: () => SpineItem | Section | undefined;
+    prev?: () => SpineItem | Section | undefined;
 }
 
 export interface SectionHookSet {
-  serialize: Hook,
-  content: Hook
+    serialize: Hook;
+    content: Hook;
 }
 
 export interface SectionSearchResult {
-  cfi: string,
-  excerpt: string
+    cfi: string;
+    excerpt: string;
 }
 
-export type SectionRequest = (url: string, type?: RequestType | null, withCredentials?: boolean, headers?: RequestHeaders, signal?: AbortSignal) => Promise<Document>;
+export type SectionRequest = (
+    url: string,
+    type?: RequestType | null,
+    withCredentials?: boolean,
+    headers?: RequestHeaders,
+    signal?: AbortSignal,
+) => Promise<Document>;
 
 export default class Section {
-  constructor(item: SpineItem, hooks?: SectionHookSet);
+    constructor(item: SpineItem, hooks?: SectionHookSet);
 
-  idref?: string;
-  linear?: boolean;
-  properties?: Array<string>;
-  index?: number;
-  href?: string;
-  url?: string;
-  canonical?: string;
-  mediaType?: string;
-  originalHref?: string;
-  originalMediaType?: string;
-  fallback?: string;
-  fallbackChain?: Array<string>;
-  next?: () => SpineItem | Section | undefined;
-  prev?: () => SpineItem | Section | undefined;
-  cfiBase?: string;
+    idref?: string;
+    linear?: boolean;
+    properties?: Array<string>;
+    index?: number;
+    href?: string;
+    url?: string;
+    canonical?: string;
+    mediaType?: string;
+    originalHref?: string;
+    originalMediaType?: string;
+    fallback?: string;
+    fallbackChain?: Array<string>;
+    next?: () => SpineItem | Section | undefined;
+    prev?: () => SpineItem | Section | undefined;
+    cfiBase?: string;
 
-  document?: Document;
-  contents?: Element;
-  output?: string;
-  request?: SectionRequest;
+    document?: Document;
+    contents?: Element;
+    output?: string;
+    request?: SectionRequest;
 
-  hooks?: SectionHookSet;
+    hooks?: SectionHookSet;
 
-  load(_request?: SectionRequest, signal?: AbortSignal): Promise<Element>;
+    load(_request?: SectionRequest, signal?: AbortSignal): Promise<Element>;
 
-  render(_request?: SectionRequest, signal?: AbortSignal): Promise<string>;
+    render(_request?: SectionRequest, signal?: AbortSignal): Promise<string>;
 
-  find(_query: string): Array<SectionSearchResult>;
+    find(_query: string): Array<SectionSearchResult>;
 
-  search(_query: string, maxSeqEle?: number): Array<SectionSearchResult>;
+    search(_query: string, maxSeqEle?: number): Array<SectionSearchResult>;
 
-  reconcileLayoutSettings(globalLayout: GlobalLayout): LayoutSettings;
+    reconcileLayoutSettings(globalLayout: GlobalLayout): LayoutSettings;
 
-  cfiFromRange(_range: Range): string;
+    cfiFromRange(_range: Range): string;
 
-  cfiFromElement(el: Element): string;
+    cfiFromElement(el: Element): string;
 
-  unload(): void;
+    unload(): void;
 
-  destroy(): void;
+    destroy(): void;
 
-  private base(): void;
+    private base(): void;
 }

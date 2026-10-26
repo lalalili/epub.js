@@ -1,8 +1,8 @@
 export interface Deferred<T = unknown> {
-	resolve: ((value: T | PromiseLike<T>) => void) | null;
-	reject: ((reason?: unknown) => void) | null;
-	id: string;
-	promise: Promise<T>;
+    resolve: ((value: T | PromiseLike<T>) => void) | null;
+    reject: ((reason?: unknown) => void) | null;
+    id: string;
+    promise: Promise<T>;
 }
 
 /**
@@ -11,13 +11,13 @@ export interface Deferred<T = unknown> {
  * @returns {string} UUID string.
  */
 export function uuid(): string {
-	var d = new Date().getTime();
-	var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
-		var r = (d + Math.random() * 16) % 16 | 0;
-		d = Math.floor(d / 16);
-		return (c == "x" ? r : (r & 0x7 | 0x8)).toString(16);
-	});
-	return uuid;
+    var d = new Date().getTime();
+    var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+        var r = ((d + Math.random() * 16) % 16) | 0;
+        d = Math.floor(d / 16);
+        return (c == "x" ? r : (r & 0x7) | 0x8).toString(16);
+    });
+    return uuid;
 }
 
 /**
@@ -25,13 +25,13 @@ export function uuid(): string {
  * @constructor
  */
 export function defer<T = unknown>(this: Deferred<T>): void {
-	this.resolve = null;
-	this.reject = null;
-	this.id = uuid();
+    this.resolve = null;
+    this.reject = null;
+    this.id = uuid();
 
-	this.promise = new Promise<T>((resolve, reject) => {
-		this.resolve = resolve;
-		this.reject = reject;
-	});
-	Object.freeze(this);
+    this.promise = new Promise<T>((resolve, reject) => {
+        this.resolve = resolve;
+        this.reject = reject;
+    });
+    Object.freeze(this);
 }

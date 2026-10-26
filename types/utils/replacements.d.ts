@@ -1,9 +1,9 @@
 export type LinkCallback = (href: string) => void;
 
 export interface SectionLike {
-  canonical?: string;
-  idref?: string;
-  url?: string;
+    canonical?: string;
+    idref?: string;
+    url?: string;
 }
 
 export function replaceBase(doc?: Document, section?: SectionLike): void;

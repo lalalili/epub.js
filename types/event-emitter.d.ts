@@ -1,11 +1,11 @@
 declare module "event-emitter" {
-	type EventEmitterTarget = object;
+    type EventEmitterTarget = object;
 
-	type EventEmitter = {
-		(target?: EventEmitterTarget): EventEmitterTarget;
-	};
+    type EventEmitter = {
+        (target?: EventEmitterTarget): EventEmitterTarget;
+    };
 
-	const EventEmitter: EventEmitter;
+    const EventEmitter: EventEmitter;
 
-	export default EventEmitter;
+    export default EventEmitter;
 }

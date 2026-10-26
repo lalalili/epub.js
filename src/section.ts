@@ -7,85 +7,85 @@ import Request, { type RequestHeaders, type RequestType } from "./utils/request"
 import { DOMParser as XMLDOMSerializer } from "@xmldom/xmldom";
 
 export type SectionHookSet = {
-	serialize: Hook;
-	content: Hook;
+    serialize: Hook;
+    content: Hook;
 };
 
 export interface SpineItem {
-	idref: string;
-	linear?: string | boolean;
-	properties?: string[];
-	index: number;
-	href?: string;
-	url?: string;
-	canonical?: string;
-	mediaType?: string;
-	originalHref?: string;
-	originalMediaType?: string;
-	fallback?: string;
-	fallbackChain?: string[];
-	next?: () => SpineItem | Section | undefined;
-	prev?: () => SpineItem | Section | undefined;
-	cfiBase: string;
+    idref: string;
+    linear?: string | boolean;
+    properties?: string[];
+    index: number;
+    href?: string;
+    url?: string;
+    canonical?: string;
+    mediaType?: string;
+    originalHref?: string;
+    originalMediaType?: string;
+    fallback?: string;
+    fallbackChain?: string[];
+    next?: () => SpineItem | Section | undefined;
+    prev?: () => SpineItem | Section | undefined;
+    cfiBase: string;
 }
 
 export interface GlobalLayout {
-	layout: string;
-	spread: string;
-	orientation: string;
+    layout: string;
+    spread: string;
+    orientation: string;
 }
 
 export type LayoutSettings = GlobalLayout;
 
 export interface SectionSearchResult {
-	cfi: string;
-	excerpt: string;
+    cfi: string;
+    excerpt: string;
 }
 
 export type SectionRequest = (
-	url: string,
-	type?: RequestType | null,
-	withCredentials?: boolean,
-	headers?: RequestHeaders,
-	signal?: AbortSignal
+    url: string,
+    type?: RequestType | null,
+    withCredentials?: boolean,
+    headers?: RequestHeaders,
+    signal?: AbortSignal,
 ) => Promise<Document>;
 type SerializerConstructor = new () => {
-	serializeToString(input: Node): string;
+    serializeToString(input: Node): string;
 };
 type DeferConstructor = new <T = unknown>() => {
-	promise: Promise<T>;
-	resolve(value?: T): void;
-	reject(error?: unknown): void;
+    promise: Promise<T>;
+    resolve(value?: T): void;
+    reject(error?: unknown): void;
 };
 type ElementDeferConstructor = new () => {
-	promise: Promise<Element | undefined>;
-	resolve(value?: Element): void;
-	reject(error?: unknown): void;
+    promise: Promise<Element | undefined>;
+    resolve(value?: Element): void;
+    reject(error?: unknown): void;
 };
 type StringDeferConstructor = new () => {
-	promise: Promise<string | undefined>;
-	resolve(value?: string): void;
-	reject(error?: unknown): void;
+    promise: Promise<string | undefined>;
+    resolve(value?: string): void;
+    reject(error?: unknown): void;
 };
 type HookConstructor = new (context?: unknown) => Hook;
 type PersistDocumentSource = {
-	readInvocationId: string;
-	producerReadInvocationId: string;
-	chunkId: string;
-	manifestVersion: string | number | null;
-	keyVersionFingerprint: string | null;
-	href: string | null;
-	sourceOwnerId: string | null;
+    readInvocationId: string;
+    producerReadInvocationId: string;
+    chunkId: string;
+    manifestVersion: string | number | null;
+    keyVersionFingerprint: string | null;
+    href: string | null;
+    sourceOwnerId: string | null;
 };
 type PersistReuseConsumption = {
-	consumptionId: string;
-	operationId: string;
-	sourceContentId: string;
-	sourceReadInvocationId: string;
-	producerReadInvocationId: string;
-	sourceOwnerId: string;
+    consumptionId: string;
+    operationId: string;
+    sourceContentId: string;
+    sourceReadInvocationId: string;
+    producerReadInvocationId: string;
+    sourceOwnerId: string;
 };
-const persistDocumentSourceKey = Symbol.for('epub.persist.documentSource.v1');
+const persistDocumentSourceKey = Symbol.for("epub.persist.documentSource.v1");
 let nextPersistContentId = 0;
 let nextPersistReuseId = 0;
 
@@ -97,386 +97,418 @@ let nextPersistReuseId = 0;
  * @param {object} hooks hooks for serialize and content
  */
 class Section {
-	idref?: string;
-	linear?: boolean;
-	properties?: string[];
-	index?: number;
-	href?: string;
-	url?: string;
-	canonical?: string;
-	mediaType?: string;
-	originalHref?: string;
-	originalMediaType?: string;
-	fallback?: string;
-	fallbackChain?: string[];
-	next?: () => SpineItem | Section | undefined;
-	prev?: () => SpineItem | Section | undefined;
-	cfiBase?: string;
-	hooks?: SectionHookSet;
-	document?: Document;
-	contents?: Element;
-	output?: string;
-	request?: SectionRequest;
-	private persistDocumentSource?: PersistDocumentSource;
-	private persistSourceContentId?: string;
-	private persistReuseByOperation = new Map<string, PersistReuseConsumption>();
+    idref?: string;
+    linear?: boolean;
+    properties?: string[];
+    index?: number;
+    href?: string;
+    url?: string;
+    canonical?: string;
+    mediaType?: string;
+    originalHref?: string;
+    originalMediaType?: string;
+    fallback?: string;
+    fallbackChain?: string[];
+    next?: () => SpineItem | Section | undefined;
+    prev?: () => SpineItem | Section | undefined;
+    cfiBase?: string;
+    hooks?: SectionHookSet;
+    document?: Document;
+    contents?: Element;
+    output?: string;
+    request?: SectionRequest;
+    private persistDocumentSource?: PersistDocumentSource;
+    private persistSourceContentId?: string;
+    private persistReuseByOperation = new Map<string, PersistReuseConsumption>();
 
-	getPersistReuseConsumption(operationId: string): PersistReuseConsumption | null {
-		return this.persistReuseByOperation.get(operationId) ?? null;
-	}
+    getPersistReuseConsumption(operationId: string): PersistReuseConsumption | null {
+        return this.persistReuseByOperation.get(operationId) ?? null;
+    }
 
-	constructor(item: SpineItem, hooks?: SectionHookSet){
-		this.idref = item.idref;
-		this.linear = item.linear === "yes";
-		this.properties = item.properties || [];
-		this.index = item.index;
-		this.href = item.href;
-		this.url = item.url;
-		this.canonical = item.canonical;
-		this.mediaType = item.mediaType;
-		this.originalHref = item.originalHref;
-		this.originalMediaType = item.originalMediaType;
-		this.fallback = item.fallback;
-		this.fallbackChain = item.fallbackChain;
-		this.next = item.next;
-		this.prev = item.prev;
+    constructor(item: SpineItem, hooks?: SectionHookSet) {
+        this.idref = item.idref;
+        this.linear = item.linear === "yes";
+        this.properties = item.properties || [];
+        this.index = item.index;
+        this.href = item.href;
+        this.url = item.url;
+        this.canonical = item.canonical;
+        this.mediaType = item.mediaType;
+        this.originalHref = item.originalHref;
+        this.originalMediaType = item.originalMediaType;
+        this.fallback = item.fallback;
+        this.fallbackChain = item.fallbackChain;
+        this.next = item.next;
+        this.prev = item.prev;
 
-		this.cfiBase = item.cfiBase;
+        this.cfiBase = item.cfiBase;
 
-		if (hooks) {
-			this.hooks = hooks;
-		} else {
-			this.hooks = {
-				serialize: new (Hook as HookConstructor)(this),
-				content: new (Hook as HookConstructor)(this)
-			};
-		}
+        if (hooks) {
+            this.hooks = hooks;
+        } else {
+            this.hooks = {
+                serialize: new (Hook as HookConstructor)(this),
+                content: new (Hook as HookConstructor)(this),
+            };
+        }
 
-		this.document = undefined;
-		this.contents = undefined;
-		this.output = undefined;
-	}
+        this.document = undefined;
+        this.contents = undefined;
+        this.output = undefined;
+    }
 
-	/**
-	 * Load the section from its url
-	 * @param  {method} [_request] a request method to use for loading
-	 * @return {document} a promise with the xml document
-	 */
-	load(_request?: SectionRequest, signal?: AbortSignal): Promise<Element> {
-		var request = _request || this.request || Request;
-		var loading = new (defer as unknown as ElementDeferConstructor)();
-		var loaded = loading.promise;
+    /**
+     * Load the section from its url
+     * @param  {method} [_request] a request method to use for loading
+     * @return {document} a promise with the xml document
+     */
+    load(_request?: SectionRequest, signal?: AbortSignal): Promise<Element> {
+        var request = _request || this.request || Request;
+        var loading = new (defer as unknown as ElementDeferConstructor)();
+        var loaded = loading.promise;
 
-		if(this.contents) {
-			const correlation = (request as SectionRequest & { persistResourceCorrelation?: Record<string, unknown> }).persistResourceCorrelation;
-			if (this.persistDocumentSource && this.persistSourceContentId &&
-				typeof correlation?.navigationOperationId === 'string' &&
-				typeof correlation?.parentActionId === 'string' &&
-				typeof correlation?.parentInvocationId === 'string') {
-				if (typeof this.persistDocumentSource.sourceOwnerId !== 'string') {
-					loading.resolve(this.contents);
-					return loaded as Promise<Element>;
-				}
-				const consumption: PersistReuseConsumption = {
-					consumptionId: `document-reuse-${++nextPersistReuseId}`,
-					operationId: correlation.navigationOperationId,
-					sourceContentId: this.persistSourceContentId,
-					sourceReadInvocationId: this.persistDocumentSource.readInvocationId,
-					producerReadInvocationId: this.persistDocumentSource.producerReadInvocationId,
-					sourceOwnerId: this.persistDocumentSource.sourceOwnerId,
-				};
-				this.persistReuseByOperation.set(consumption.operationId, consumption);
-				while (this.persistReuseByOperation.size > 8) this.persistReuseByOperation.delete(this.persistReuseByOperation.keys().next().value!);
-				try {
-					(globalThis as typeof globalThis & { __PERSIST_RENDERER_BOUNDARY__?: { provenance?: (event: string, detail: object) => void } })
-						.__PERSIST_RENDERER_BOUNDARY__?.provenance?.('document-reuse-consumed', {
-							schemaVersion: 1, consumptionKind: 'section-document-reuse',
-							...consumption, parentActionId: correlation.parentActionId,
-							parentInvocationId: correlation.parentInvocationId,
-							sectionHref: this.href ?? null, sectionIdref: this.idref ?? null,
-							chunkId: this.persistDocumentSource.chunkId,
-							manifestVersion: this.persistDocumentSource.manifestVersion,
-							keyVersionFingerprint: this.persistDocumentSource.keyVersionFingerprint,
-							sourceHref: this.persistDocumentSource.href,
-						});
-				} catch {
-					// Observation failure cannot alter Section.load's result.
-				}
-			}
-			loading.resolve(this.contents);
-		} else {
-			request(this.url!, undefined, undefined, undefined, signal)
-				.then((xml: Document) => {
-					// var directory = new Url(this.url).directory;
+        if (this.contents) {
+            const correlation = (
+                request as SectionRequest & { persistResourceCorrelation?: Record<string, unknown> }
+            ).persistResourceCorrelation;
+            if (
+                this.persistDocumentSource &&
+                this.persistSourceContentId &&
+                typeof correlation?.navigationOperationId === "string" &&
+                typeof correlation?.parentActionId === "string" &&
+                typeof correlation?.parentInvocationId === "string"
+            ) {
+                if (typeof this.persistDocumentSource.sourceOwnerId !== "string") {
+                    loading.resolve(this.contents);
+                    return loaded as Promise<Element>;
+                }
+                const consumption: PersistReuseConsumption = {
+                    consumptionId: `document-reuse-${++nextPersistReuseId}`,
+                    operationId: correlation.navigationOperationId,
+                    sourceContentId: this.persistSourceContentId,
+                    sourceReadInvocationId: this.persistDocumentSource.readInvocationId,
+                    producerReadInvocationId: this.persistDocumentSource.producerReadInvocationId,
+                    sourceOwnerId: this.persistDocumentSource.sourceOwnerId,
+                };
+                this.persistReuseByOperation.set(consumption.operationId, consumption);
+                while (this.persistReuseByOperation.size > 8)
+                    this.persistReuseByOperation.delete(
+                        this.persistReuseByOperation.keys().next().value!,
+                    );
+                try {
+                    (
+                        globalThis as typeof globalThis & {
+                            __PERSIST_RENDERER_BOUNDARY__?: {
+                                provenance?: (event: string, detail: object) => void;
+                            };
+                        }
+                    ).__PERSIST_RENDERER_BOUNDARY__?.provenance?.("document-reuse-consumed", {
+                        schemaVersion: 1,
+                        consumptionKind: "section-document-reuse",
+                        ...consumption,
+                        parentActionId: correlation.parentActionId,
+                        parentInvocationId: correlation.parentInvocationId,
+                        sectionHref: this.href ?? null,
+                        sectionIdref: this.idref ?? null,
+                        chunkId: this.persistDocumentSource.chunkId,
+                        manifestVersion: this.persistDocumentSource.manifestVersion,
+                        keyVersionFingerprint: this.persistDocumentSource.keyVersionFingerprint,
+                        sourceHref: this.persistDocumentSource.href,
+                    });
+                } catch {
+                    // Observation failure cannot alter Section.load's result.
+                }
+            }
+            loading.resolve(this.contents);
+        } else {
+            request(this.url!, undefined, undefined, undefined, signal)
+                .then((xml: Document) => {
+                    // var directory = new Url(this.url).directory;
 
-					this.document = xml;
-					this.contents = xml.documentElement;
-					const source = (xml as Document & { [persistDocumentSourceKey]?: PersistDocumentSource })[persistDocumentSourceKey];
-					this.persistDocumentSource = source?.producerReadInvocationId ? { ...source } : undefined;
-					this.persistSourceContentId = this.persistDocumentSource ? `section-content-${++nextPersistContentId}` : undefined;
+                    this.document = xml;
+                    this.contents = xml.documentElement;
+                    const source = (
+                        xml as Document & { [persistDocumentSourceKey]?: PersistDocumentSource }
+                    )[persistDocumentSourceKey];
+                    this.persistDocumentSource = source?.producerReadInvocationId
+                        ? { ...source }
+                        : undefined;
+                    this.persistSourceContentId = this.persistDocumentSource
+                        ? `section-content-${++nextPersistContentId}`
+                        : undefined;
 
-					return this.hooks!.content.trigger(this.document, this);
-				})
-				.then(() => {
-					loading.resolve(this.contents);
-				})
-				.catch((error: Error) => {
-					loading.reject(error);
-				});
-		}
+                    return this.hooks!.content.trigger(this.document, this);
+                })
+                .then(() => {
+                    loading.resolve(this.contents);
+                })
+                .catch((error: Error) => {
+                    loading.reject(error);
+                });
+        }
 
-		return loaded as Promise<Element>;
-	}
+        return loaded as Promise<Element>;
+    }
 
-	/**
-	 * Adds a base tag for resolving urls in the section
-	 * @private
-	 */
-	base(): void {
-		return replaceBase(this.document, this);
-	}
+    /**
+     * Adds a base tag for resolving urls in the section
+     * @private
+     */
+    base(): void {
+        return replaceBase(this.document, this);
+    }
 
-	/**
-	 * Render the contents of a section
-	 * @param  {method} [_request] a request method to use for loading
-	 * @return {string} output a serialized XML Document
-	 */
-	render(_request?: SectionRequest, signal?: AbortSignal): Promise<string> {
-		var rendering = new (defer as unknown as StringDeferConstructor)();
-		var rendered = rendering.promise;
-		this.output; // TODO: better way to return this from hooks?
+    /**
+     * Render the contents of a section
+     * @param  {method} [_request] a request method to use for loading
+     * @return {string} output a serialized XML Document
+     */
+    render(_request?: SectionRequest, signal?: AbortSignal): Promise<string> {
+        var rendering = new (defer as unknown as StringDeferConstructor)();
+        var rendered = rendering.promise;
+        this.output; // TODO: better way to return this from hooks?
 
-		this.load(_request, signal).
-			then((contents) => {
-				var userAgent = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
-				var isIE = userAgent.indexOf('Trident') >= 0;
-				var Serializer: SerializerConstructor;
-				if (typeof XMLSerializer === "undefined" || isIE) {
-					Serializer = XMLDOMSerializer as unknown as SerializerConstructor;
-				} else {
-					Serializer = XMLSerializer;
-				}
-				var serializer = new Serializer();
-				this.output = serializer.serializeToString(contents);
-				return this.output;
-			}).
-			then(() => {
-				return this.hooks!.serialize.trigger(this.output, this);
-			}).
-			then(() => {
-				rendering.resolve(this.output);
-			})
-			.catch((error: Error) => {
-				rendering.reject(error);
-			});
+        this.load(_request, signal)
+            .then((contents) => {
+                var userAgent = (typeof navigator !== "undefined" && navigator.userAgent) || "";
+                var isIE = userAgent.indexOf("Trident") >= 0;
+                var Serializer: SerializerConstructor;
+                if (typeof XMLSerializer === "undefined" || isIE) {
+                    Serializer = XMLDOMSerializer as unknown as SerializerConstructor;
+                } else {
+                    Serializer = XMLSerializer;
+                }
+                var serializer = new Serializer();
+                this.output = serializer.serializeToString(contents);
+                return this.output;
+            })
+            .then(() => {
+                return this.hooks!.serialize.trigger(this.output, this);
+            })
+            .then(() => {
+                rendering.resolve(this.output);
+            })
+            .catch((error: Error) => {
+                rendering.reject(error);
+            });
 
-		return rendered as Promise<string>;
-	}
+        return rendered as Promise<string>;
+    }
 
-	/**
-	 * Find a string in a section
-	 * @param  {string} _query The query string to find
-	 * @return {object[]} A list of matches, with form {cfi, excerpt}
-	 */
-	find(_query: string): SectionSearchResult[] {
-		var section = this;
-		var matches: SectionSearchResult[] = [];
-		var query = _query.toLowerCase();
-		var find = function(node: Text){
-			var text = node.textContent!.toLowerCase();
-			var range = section.document!.createRange();
-			var cfi;
-			var pos;
-			var last = -1;
-			var excerpt;
-			var limit = 150;
+    /**
+     * Find a string in a section
+     * @param  {string} _query The query string to find
+     * @return {object[]} A list of matches, with form {cfi, excerpt}
+     */
+    find(_query: string): SectionSearchResult[] {
+        var section = this;
+        var matches: SectionSearchResult[] = [];
+        var query = _query.toLowerCase();
+        var find = function (node: Text) {
+            var text = node.textContent!.toLowerCase();
+            var range = section.document!.createRange();
+            var cfi;
+            var pos;
+            var last = -1;
+            var excerpt;
+            var limit = 150;
 
-			while (pos != -1) {
-				// Search for the query
-				pos = text.indexOf(query, last + 1);
+            while (pos != -1) {
+                // Search for the query
+                pos = text.indexOf(query, last + 1);
 
-				if (pos != -1) {
-					// We found it! Generate a CFI
-					range = section.document.createRange();
-					range.setStart(node, pos);
-					range.setEnd(node, pos + query.length);
+                if (pos != -1) {
+                    // We found it! Generate a CFI
+                    range = section.document.createRange();
+                    range.setStart(node, pos);
+                    range.setEnd(node, pos + query.length);
 
-					cfi = section.cfiFromRange(range);
+                    cfi = section.cfiFromRange(range);
 
-					// Generate the excerpt
-					if (node.textContent.length < limit) {
-						excerpt = node.textContent;
-					}
-					else {
-						excerpt = node.textContent.substring(pos - limit/2, pos + limit/2);
-						excerpt = "..." + excerpt + "...";
-					}
+                    // Generate the excerpt
+                    if (node.textContent.length < limit) {
+                        excerpt = node.textContent;
+                    } else {
+                        excerpt = node.textContent.substring(pos - limit / 2, pos + limit / 2);
+                        excerpt = "..." + excerpt + "...";
+                    }
 
-					// Add the CFI to the matches list
-					matches.push({
-						cfi: cfi,
-						excerpt: excerpt
-					});
-				}
+                    // Add the CFI to the matches list
+                    matches.push({
+                        cfi: cfi,
+                        excerpt: excerpt,
+                    });
+                }
 
-				last = pos;
-			}
-		};
+                last = pos;
+            }
+        };
 
-		sprint(section.document!, function(node) {
-			find(node as Text);
-		});
+        sprint(section.document!, function (node) {
+            find(node as Text);
+        });
 
-		return matches;
-	}
+        return matches;
+    }
 
+    /**
+     * Search a string in multiple sequential Element of the section. If the document.createTreeWalker api is missed(eg: IE8), use `find` as a fallback.
+     * @param  {string} _query The query string to search
+     * @param  {int} maxSeqEle The maximum number of Element that are combined for search, default value is 5.
+     * @return {object[]} A list of matches, with form {cfi, excerpt}
+     */
+    search(_query: string, maxSeqEle = 5): SectionSearchResult[] {
+        if (typeof document.createTreeWalker == "undefined") {
+            return this.find(_query);
+        }
+        let matches: SectionSearchResult[] = [];
+        const excerptLimit = 150;
+        const section = this;
+        const query = _query.toLowerCase();
+        const search = function (nodeList: Text[]) {
+            const textWithCase = nodeList.reduce((acc, current) => {
+                return acc + current.textContent;
+            }, "");
+            const text = textWithCase.toLowerCase();
+            const pos = text.indexOf(query);
+            if (pos != -1) {
+                const startNodeIndex = 0,
+                    endPos = pos + query.length;
+                let endNodeIndex = 0,
+                    l = 0;
+                if (pos < nodeList[startNodeIndex].length) {
+                    let cfi;
+                    while (endNodeIndex < nodeList.length - 1) {
+                        l += nodeList[endNodeIndex].length;
+                        if (endPos <= l) {
+                            break;
+                        }
+                        endNodeIndex += 1;
+                    }
 
-	/**
-	 * Search a string in multiple sequential Element of the section. If the document.createTreeWalker api is missed(eg: IE8), use `find` as a fallback.
-	 * @param  {string} _query The query string to search
-	 * @param  {int} maxSeqEle The maximum number of Element that are combined for search, default value is 5.
-	 * @return {object[]} A list of matches, with form {cfi, excerpt}
-	 */
-	search(_query: string, maxSeqEle = 5): SectionSearchResult[] {
-		if (typeof(document.createTreeWalker) == "undefined") {
-			return this.find(_query);
-		}
-		let matches: SectionSearchResult[] = [];
-		const excerptLimit = 150;
-		const section = this;
-		const query = _query.toLowerCase();
-		const search = function(nodeList: Text[]){
-			const textWithCase =  nodeList.reduce((acc ,current)=>{
-				return acc + current.textContent;
-			},"");
-			const text = textWithCase.toLowerCase();
-			const pos = text.indexOf(query);
-			if (pos != -1){
-				const startNodeIndex = 0 , endPos = pos + query.length;
-				let endNodeIndex = 0 , l = 0;
-				if (pos < nodeList[startNodeIndex].length){
-					let cfi;
-					while( endNodeIndex < nodeList.length - 1 ){
-						l += nodeList[endNodeIndex].length;
-						if ( endPos <= l){
-							break;
-						}
-						endNodeIndex += 1;
-					}
+                    let startNode = nodeList[startNodeIndex],
+                        endNode = nodeList[endNodeIndex];
+                    let range = section.document!.createRange();
+                    range.setStart(startNode, pos);
+                    let beforeEndLengthCount = nodeList
+                        .slice(0, endNodeIndex)
+                        .reduce((acc, current) => {
+                            return acc + current.textContent.length;
+                        }, 0);
+                    range.setEnd(
+                        endNode,
+                        beforeEndLengthCount > endPos ? endPos : endPos - beforeEndLengthCount,
+                    );
+                    cfi = section.cfiFromRange(range);
 
-					let startNode = nodeList[startNodeIndex] , endNode = nodeList[endNodeIndex];
-					let range = section.document!.createRange();
-					range.setStart(startNode,pos);
-					let beforeEndLengthCount =  nodeList.slice(0, endNodeIndex).reduce((acc,current)=>{return acc+current.textContent.length;},0) ;
-					range.setEnd(endNode, beforeEndLengthCount > endPos ? endPos : endPos - beforeEndLengthCount );
-					cfi = section.cfiFromRange(range);
+                    let excerpt = nodeList.slice(0, endNodeIndex + 1).reduce((acc, current) => {
+                        return acc + current.textContent;
+                    }, "");
+                    if (excerpt.length > excerptLimit) {
+                        excerpt = excerpt.substring(pos - excerptLimit / 2, pos + excerptLimit / 2);
+                        excerpt = "..." + excerpt + "...";
+                    }
+                    matches.push({
+                        cfi: cfi,
+                        excerpt: excerpt,
+                    });
+                }
+            }
+        };
 
-					let excerpt = nodeList.slice(0, endNodeIndex+1).reduce((acc,current)=>{return acc+current.textContent ;},"");
-					if (excerpt.length > excerptLimit){
-						excerpt = excerpt.substring(pos - excerptLimit/2, pos + excerptLimit/2);
-						excerpt = "..." + excerpt + "...";
-					}
-					matches.push({
-						cfi: cfi,
-						excerpt: excerpt
-					});
-				}
-			}
-		};
+        const treeWalker = document.createTreeWalker(section.document!, NodeFilter.SHOW_TEXT, null);
+        let node: Node | null;
+        let nodeList: Text[] = [];
+        while ((node = treeWalker.nextNode())) {
+            nodeList.push(node as Text);
+            if (nodeList.length == maxSeqEle) {
+                search(nodeList.slice(0, maxSeqEle));
+                nodeList = nodeList.slice(1, maxSeqEle);
+            }
+        }
+        if (nodeList.length > 0) {
+            search(nodeList);
+        }
+        return matches;
+    }
 
-		const treeWalker = document.createTreeWalker(section.document!, NodeFilter.SHOW_TEXT, null);
-		let node: Node | null;
-		let nodeList: Text[] = [];
-		while ((node = treeWalker.nextNode())) {
-			nodeList.push(node as Text);
-			if (nodeList.length == maxSeqEle){
-				search(nodeList.slice(0 , maxSeqEle));
-				nodeList = nodeList.slice(1, maxSeqEle);
-			}
-		}
-		if (nodeList.length > 0){
-			search(nodeList);
-		}
-		return matches;
-	}
+    /**
+     * Reconciles the current chapters layout properties with
+     * the global layout properties.
+     * @param {object} globalLayout  The global layout settings object, chapter properties string
+     * @return {object} layoutProperties Object with layout properties
+     */
+    reconcileLayoutSettings(globalLayout: GlobalLayout): LayoutSettings {
+        //-- Get the global defaults
+        var settings: LayoutSettings = {
+            layout: globalLayout.layout,
+            spread: globalLayout.spread,
+            orientation: globalLayout.orientation,
+        };
 
-	/**
-	* Reconciles the current chapters layout properties with
-	* the global layout properties.
-	* @param {object} globalLayout  The global layout settings object, chapter properties string
-	* @return {object} layoutProperties Object with layout properties
-	*/
-	reconcileLayoutSettings(globalLayout: GlobalLayout): LayoutSettings {
-		//-- Get the global defaults
-		var settings: LayoutSettings = {
-			layout : globalLayout.layout,
-			spread : globalLayout.spread,
-			orientation : globalLayout.orientation
-		};
+        //-- Get the chapter's display type
+        this.properties.forEach(function (prop) {
+            var rendition = prop.replace("rendition:", "");
+            var split = rendition.indexOf("-");
+            var property: keyof LayoutSettings, value;
 
-		//-- Get the chapter's display type
-		this.properties.forEach(function(prop){
-			var rendition = prop.replace("rendition:", "");
-			var split = rendition.indexOf("-");
-			var property: keyof LayoutSettings, value;
+            if (split != -1) {
+                property = rendition.slice(0, split) as keyof LayoutSettings;
+                value = rendition.slice(split + 1);
 
-			if(split != -1){
-				property = rendition.slice(0, split) as keyof LayoutSettings;
-				value = rendition.slice(split+1);
+                settings[property] = value;
+            }
+        });
+        return settings;
+    }
 
-				settings[property] = value;
-			}
-		});
-		return settings;
-	}
+    /**
+     * Get a CFI from a Range in the Section
+     * @param  {range} _range
+     * @return {string} cfi an EpubCFI string
+     */
+    cfiFromRange(_range: Range): string {
+        return new EpubCFI(_range, this.cfiBase).toString();
+    }
 
-	/**
-	 * Get a CFI from a Range in the Section
-	 * @param  {range} _range
-	 * @return {string} cfi an EpubCFI string
-	 */
-	cfiFromRange(_range: Range): string {
-		return new EpubCFI(_range, this.cfiBase).toString();
-	}
+    /**
+     * Get a CFI from an Element in the Section
+     * @param  {element} el
+     * @return {string} cfi an EpubCFI string
+     */
+    cfiFromElement(el: Element): string {
+        return new EpubCFI(el, this.cfiBase).toString();
+    }
 
-	/**
-	 * Get a CFI from an Element in the Section
-	 * @param  {element} el
-	 * @return {string} cfi an EpubCFI string
-	 */
-	cfiFromElement(el: Element): string {
-		return new EpubCFI(el, this.cfiBase).toString();
-	}
+    /**
+     * Unload the section document
+     */
+    unload(): void {
+        this.document = undefined;
+        this.contents = undefined;
+        this.output = undefined;
+        this.persistDocumentSource = undefined;
+        this.persistSourceContentId = undefined;
+        this.persistReuseByOperation.clear();
+    }
 
-	/**
-	 * Unload the section document
-	 */
-	unload(): void {
-		this.document = undefined;
-		this.contents = undefined;
-		this.output = undefined;
-		this.persistDocumentSource = undefined;
-		this.persistSourceContentId = undefined;
-		this.persistReuseByOperation.clear();
-	}
+    destroy(): void {
+        this.unload();
+        this.hooks!.serialize.clear();
+        this.hooks!.content.clear();
 
-	destroy(): void {
-		this.unload();
-		this.hooks!.serialize.clear();
-		this.hooks!.content.clear();
+        this.hooks = undefined;
+        this.idref = undefined;
+        this.linear = undefined;
+        this.properties = undefined;
+        this.index = undefined;
+        this.href = undefined;
+        this.url = undefined;
+        this.next = undefined;
+        this.prev = undefined;
 
-		this.hooks = undefined;
-		this.idref = undefined;
-		this.linear = undefined;
-		this.properties = undefined;
-		this.index = undefined;
-		this.href = undefined;
-		this.url = undefined;
-		this.next = undefined;
-		this.prev = undefined;
-
-		this.cfiBase = undefined;
-	}
+        this.cfiBase = undefined;
+    }
 }
 
 export default Section;

@@ -25,176 +25,190 @@ import DefaultViewManager, { type ResizeSettleTraceEntry } from "./managers/defa
 import ContinuousViewManager from "./managers/continuous/index";
 
 export interface RenditionOptions {
-	width?: number | string | null;
-	height?: number | string | null;
-	ignoreClass?: string;
-	manager?: string | Function | object;
-	view?: string | Function | object;
-	flow?: string | null;
-	layout?: string | null;
-	spread?: string | boolean | null;
-	minSpreadWidth?: number;
-	stylesheet?: string | null;
-	resizeOnOrientationChange?: boolean;
-	script?: string | null;
-	snap?: boolean | object;
-	defaultDirection?: string;
-	allowScriptedContent?: boolean;
-	allowPopups?: boolean;
-	orientation?: string | null;
-	direction?: string;
-	resizeSettleTrace?: boolean;
-	globalLayoutProperties?: LayoutProperties;
+    width?: number | string | null;
+    height?: number | string | null;
+    ignoreClass?: string;
+    manager?: string | Function | object;
+    view?: string | Function | object;
+    flow?: string | null;
+    layout?: string | null;
+    spread?: string | boolean | null;
+    minSpreadWidth?: number;
+    stylesheet?: string | null;
+    resizeOnOrientationChange?: boolean;
+    script?: string | null;
+    snap?: boolean | object;
+    defaultDirection?: string;
+    allowScriptedContent?: boolean;
+    allowPopups?: boolean;
+    orientation?: string | null;
+    direction?: string;
+    resizeSettleTrace?: boolean;
+    globalLayoutProperties?: LayoutProperties;
 }
 
 export interface LayoutProperties {
-	layout: string;
-	spread: string | boolean;
-	orientation: string;
-	flow: string;
-	viewport: string;
-	minSpreadWidth: number;
-	direction: string;
+    layout: string;
+    spread: string | boolean;
+    orientation: string;
+    flow: string;
+    viewport: string;
+    minSpreadWidth: number;
+    direction: string;
 }
 
 export interface RenditionLocationPart {
-	index: number;
-	href: string;
-	cfi: string;
-	displayed: {
-		page: number;
-		total: number;
-	};
-	location?: number;
-	percentage?: number;
-	page?: PageValue;
+    index: number;
+    href: string;
+    cfi: string;
+    displayed: {
+        page: number;
+        total: number;
+    };
+    location?: number;
+    percentage?: number;
+    page?: PageValue;
 }
 
 export type DisplayedLocation = RenditionLocationPart;
 
 export interface Location {
-	start?: RenditionLocationPart;
-	end?: RenditionLocationPart;
-	atStart?: boolean;
-	atEnd?: boolean;
+    start?: RenditionLocationPart;
+    end?: RenditionLocationPart;
+    atStart?: boolean;
+    atEnd?: boolean;
 }
 
 export interface ManagerLocationItem {
-	index: number;
-	href: string;
-	mapping: {
-		start: string;
-		end: string;
-	};
-	pages: number[];
-	totalPages: number;
+    index: number;
+    href: string;
+    mapping: {
+        start: string;
+        end: string;
+    };
+    pages: number[];
+    totalPages: number;
 }
 type ManagerLocationResult = Array<ManagerLocationItem | null | undefined>;
 
-export type RenditionViewsBridge = IframeView[] | {
-	all?: () => IframeView[];
-	first?: () => IframeView | undefined;
-	last?: () => IframeView | undefined;
-};
+export type RenditionViewsBridge =
+    | IframeView[]
+    | {
+          all?: () => IframeView[];
+          first?: () => IframeView | undefined;
+          last?: () => IframeView | undefined;
+      };
 
 export interface RenditionManager {
-	container?: HTMLElement;
-	layout?: Layout;
-	settings?: RenditionOptions;
-	views?: RenditionViewsBridge;
-	_layoutDirty?: boolean;
-	render(element: Element, size?: { width: number | string | null; height: number | string | null }): void;
-	display(section: Section, target?: string | number, options?: { persistResourceCorrelation?: unknown }): Promise<void>;
-	resize(width?: number | string, height?: number | string, epubcfi?: string): void;
-	resizeView?(view: IframeView): void;
-	moveTo(offset: object): void;
-	clear(): void;
-	next(): Promise<void>;
-	prev(): Promise<void>;
-	currentLocation(): ManagerLocationResult | Promise<ManagerLocationResult>;
-	visible(): IframeView[];
-	getContents(): Contents[];
-	getPageAdvance?(): number;
-	getTotalPagesForCurrentView?(): number;
-	getCurrentPageIndex?(): number;
-	getNormalizedLogicalScrollLeft?(): number;
-	createSemanticWindowDescriptor?(
-		location: ManagerLocationItem,
-		sourceIdentity: { publicationIdentifier: string; publicationModified: string }
-	): Record<string, unknown> | null;
-	restoreSemanticWindowDescriptor?(
-		descriptor: Record<string, unknown>,
-		sourceIdentity: { publicationIdentifier: string; publicationModified: string },
-		restoreContext?: {
-		restoreInvocationId?: string | null;
-		semanticWindowDescriptorFingerprint?: string | null;
-	}
-	): { status: string; reason: string };
-	recordResizeSettleTrace?(event: string, detail?: Record<string, unknown>): void;
-	getResizeSettleTrace?(): ResizeSettleTraceEntry[];
-	clearResizeSettleTrace?(): void;
-	applyLayout(layout: Layout): void;
-	updateFlow(flow: string): void;
-	updateLayout(): void;
-	direction(dir?: string): void;
-	isRendered(): boolean;
-	destroy(): void;
-	on(type: string, listener: (...args: unknown[]) => void): unknown;
+    container?: HTMLElement;
+    layout?: Layout;
+    settings?: RenditionOptions;
+    views?: RenditionViewsBridge;
+    _layoutDirty?: boolean;
+    render(
+        element: Element,
+        size?: { width: number | string | null; height: number | string | null },
+    ): void;
+    display(
+        section: Section,
+        target?: string | number,
+        options?: { persistResourceCorrelation?: unknown },
+    ): Promise<void>;
+    resize(width?: number | string, height?: number | string, epubcfi?: string): void;
+    resizeView?(view: IframeView): void;
+    moveTo(offset: object): void;
+    clear(): void;
+    next(): Promise<void>;
+    prev(): Promise<void>;
+    currentLocation(): ManagerLocationResult | Promise<ManagerLocationResult>;
+    visible(): IframeView[];
+    getContents(): Contents[];
+    getPageAdvance?(): number;
+    getTotalPagesForCurrentView?(): number;
+    getCurrentPageIndex?(): number;
+    getNormalizedLogicalScrollLeft?(): number;
+    createSemanticWindowDescriptor?(
+        location: ManagerLocationItem,
+        sourceIdentity: { publicationIdentifier: string; publicationModified: string },
+    ): Record<string, unknown> | null;
+    restoreSemanticWindowDescriptor?(
+        descriptor: Record<string, unknown>,
+        sourceIdentity: { publicationIdentifier: string; publicationModified: string },
+        restoreContext?: {
+            restoreInvocationId?: string | null;
+            semanticWindowDescriptorFingerprint?: string | null;
+        },
+    ): { status: string; reason: string };
+    recordResizeSettleTrace?(event: string, detail?: Record<string, unknown>): void;
+    getResizeSettleTrace?(): ResizeSettleTraceEntry[];
+    clearResizeSettleTrace?(): void;
+    applyLayout(layout: Layout): void;
+    updateFlow(flow: string): void;
+    updateLayout(): void;
+    direction(dir?: string): void;
+    isRendered(): boolean;
+    destroy(): void;
+    on(type: string, listener: (...args: unknown[]) => void): unknown;
 }
 
 export interface RenditionManagerOptions {
-	view: RenditionViewConstructor;
-	queue: Queue;
-	request: Book["load"];
-	settings: RenditionOptions;
+    view: RenditionViewConstructor;
+    queue: Queue;
+    request: Book["load"];
+    settings: RenditionOptions;
 }
 
 export interface RenditionHooks {
-	display: Hook;
-	serialize: Hook;
-	content: Hook;
-	unloaded: Hook;
-	layout: Hook;
-	render: Hook;
-	show: Hook;
+    display: Hook;
+    serialize: Hook;
+    content: Hook;
+    unloaded: Hook;
+    layout: Hook;
+    render: Hook;
+    show: Hook;
 }
 
-export type RenditionManagerConstructor = new (options: RenditionManagerOptions) => RenditionManager;
+export type RenditionManagerConstructor = new (
+    options: RenditionManagerOptions,
+) => RenditionManager;
 export type RenditionViewConstructor = typeof IframeView;
 
 export interface RenditionVerticalRlPageDebug {
-	containerClientWidth: number | null;
-	containerScrollWidth: number | null;
-	containerScrollLeft: number | null;
-	iframeOffsetWidth: number | null;
-	iframeClientWidth: number | null;
-	normalizedLogicalScrollLeft: number | null;
-	physicalStart: number | null;
-	physicalEnd: number | null;
-	pageWidth: number | null;
-	effectivePageAdvance: number | null;
-	totalPages: number | null;
-	currentPageIndex: number | null;
+    containerClientWidth: number | null;
+    containerScrollWidth: number | null;
+    containerScrollLeft: number | null;
+    iframeOffsetWidth: number | null;
+    iframeClientWidth: number | null;
+    normalizedLogicalScrollLeft: number | null;
+    physicalStart: number | null;
+    physicalEnd: number | null;
+    pageWidth: number | null;
+    effectivePageAdvance: number | null;
+    totalPages: number | null;
+    currentPageIndex: number | null;
 }
-export type RenditionVerticalRlDebugState = Partial<VerticalRlDebugMetrics> & RenditionVerticalRlPageDebug;
+export type RenditionVerticalRlDebugState = Partial<VerticalRlDebugMetrics> &
+    RenditionVerticalRlPageDebug;
 type DeferConstructor = new <T = unknown>() => CoreDeferred<T>;
 
 const Defer = defer as unknown as DeferConstructor;
 
-function isManagerLocationPromise(location: ManagerLocationResult | Promise<ManagerLocationResult>): location is Promise<ManagerLocationResult> {
-	return typeof (location as Promise<ManagerLocationResult>).then === "function";
+function isManagerLocationPromise(
+    location: ManagerLocationResult | Promise<ManagerLocationResult>,
+): location is Promise<ManagerLocationResult> {
+    return typeof (location as Promise<ManagerLocationResult>).then === "function";
 }
 
 function firstOrLastRenditionView(views?: RenditionViewsBridge): IframeView | undefined {
-	if (!views) {
-		return;
-	}
+    if (!views) {
+        return;
+    }
 
-	if (Array.isArray(views)) {
-		return views[0] || views[views.length - 1];
-	}
+    if (Array.isArray(views)) {
+        return views[0] || views[views.length - 1];
+    }
 
-	return (views.first && views.first()) || (views.last && views.last());
+    return (views.first && views.first()) || (views.last && views.last());
 }
 
 /**
@@ -221,384 +235,399 @@ function firstOrLastRenditionView(views?: RenditionViewsBridge): IframeView | un
  * @param {boolean} [options.allowPopups=false] enable opening popup in content
  */
 class Rendition {
-	settings: RenditionOptions;
-	book: Book;
-	hooks: RenditionHooks;
-	manager?: RenditionManager;
-	ViewManager?: RenditionManagerConstructor;
-	View?: RenditionViewConstructor;
-	q: Queue;
-	_layout?: Layout;
-	themes?: Themes;
-	annotations?: Annotations;
-	epubcfi?: EpubCFI;
-	location?: Location;
-	starting?: CoreDeferred<void>;
-	started?: Promise<void>;
-	displaying?: CoreDeferred<Section | undefined>;
-	private preferredSingleFixedPageCfi?: string;
-	private displayingResizeTarget = false;
+    settings: RenditionOptions;
+    book: Book;
+    hooks: RenditionHooks;
+    manager?: RenditionManager;
+    ViewManager?: RenditionManagerConstructor;
+    View?: RenditionViewConstructor;
+    q: Queue;
+    _layout?: Layout;
+    themes?: Themes;
+    annotations?: Annotations;
+    epubcfi?: EpubCFI;
+    location?: Location;
+    starting?: CoreDeferred<void>;
+    started?: Promise<void>;
+    displaying?: CoreDeferred<Section | undefined>;
+    private preferredSingleFixedPageCfi?: string;
+    private displayingResizeTarget = false;
 
-	constructor(book: Book, options?: RenditionOptions) {
+    constructor(book: Book, options?: RenditionOptions) {
+        this.settings = extend(this.settings || {}, {
+            width: null,
+            height: null,
+            ignoreClass: "",
+            manager: "default",
+            view: "iframe",
+            flow: null,
+            layout: null,
+            spread: null,
+            minSpreadWidth: 800,
+            stylesheet: null,
+            resizeOnOrientationChange: true,
+            script: null,
+            snap: false,
+            defaultDirection: "ltr",
+            allowScriptedContent: false,
+            allowPopups: false,
+        });
 
-		this.settings = extend(this.settings || {}, {
-			width: null,
-			height: null,
-			ignoreClass: "",
-			manager: "default",
-			view: "iframe",
-			flow: null,
-			layout: null,
-			spread: null,
-			minSpreadWidth: 800,
-			stylesheet: null,
-			resizeOnOrientationChange: true,
-			script: null,
-			snap: false,
-			defaultDirection: "ltr",
-			allowScriptedContent: false,
-			allowPopups: false
-		});
+        extend(this.settings, options);
 
-		extend(this.settings, options);
+        if (typeof this.settings.manager === "object") {
+            this.manager = this.settings.manager as RenditionManager;
+        }
 
-		if (typeof(this.settings.manager) === "object") {
-			this.manager = this.settings.manager as RenditionManager;
-		}
+        this.book = book;
 
-		this.book = book;
+        /**
+         * Adds Hook methods to the Rendition prototype
+         * @member {object} hooks
+         * @property {Hook} hooks.content
+         * @memberof Rendition
+         */
+        this.hooks = {
+            display: new Hook(this),
+            serialize: new Hook(this),
+            content: new Hook(this),
+            unloaded: new Hook(this),
+            layout: new Hook(this),
+            render: new Hook(this),
+            show: new Hook(this),
+        };
 
-		/**
-		 * Adds Hook methods to the Rendition prototype
-		 * @member {object} hooks
-		 * @property {Hook} hooks.content
-		 * @memberof Rendition
-		 */
-		this.hooks = {
-			display: new Hook(this),
-			serialize: new Hook(this),
-			content: new Hook(this),
-			unloaded: new Hook(this),
-			layout: new Hook(this),
-			render: new Hook(this),
-			show: new Hook(this)
-		};
+        this.hooks.content.register(this.handleLinks.bind(this));
+        this.hooks.content.register(this.passEvents.bind(this));
+        this.hooks.content.register(this.adjustImages.bind(this));
 
-		this.hooks.content.register(this.handleLinks.bind(this));
-		this.hooks.content.register(this.passEvents.bind(this));
-		this.hooks.content.register(this.adjustImages.bind(this));
+        this.book.spine.hooks.content.register(this.injectIdentifier.bind(this));
 
-		this.book.spine.hooks.content.register(this.injectIdentifier.bind(this));
+        if (this.settings.stylesheet) {
+            this.book.spine.hooks.content.register(this.injectStylesheet.bind(this));
+        }
 
-		if (this.settings.stylesheet) {
-			this.book.spine.hooks.content.register(this.injectStylesheet.bind(this));
-		}
+        if (this.settings.script) {
+            this.book.spine.hooks.content.register(this.injectScript.bind(this));
+        }
 
-		if (this.settings.script) {
-			this.book.spine.hooks.content.register(this.injectScript.bind(this));
-		}
+        /**
+         * @member {Themes} themes
+         * @memberof Rendition
+         */
+        this.themes = new Themes(this as ThemesRendition);
 
-		/**
-		 * @member {Themes} themes
-		 * @memberof Rendition
-		 */
-		this.themes = new Themes(this as ThemesRendition);
+        /**
+         * @member {Annotations} annotations
+         * @memberof Rendition
+         */
+        this.annotations = new Annotations(this as AnnotationsRendition);
 
-		/**
-		 * @member {Annotations} annotations
-		 * @memberof Rendition
-		 */
-		this.annotations = new Annotations(this as AnnotationsRendition);
+        this.epubcfi = new EpubCFI();
 
-		this.epubcfi = new EpubCFI();
+        this.q = new Queue(this);
 
-		this.q = new Queue(this);
+        /**
+         * A Rendered Location Range
+         * @typedef location
+         * @type {Object}
+         * @property {object} start
+         * @property {string} start.index
+         * @property {string} start.href
+         * @property {object} start.displayed
+         * @property {EpubCFI} start.cfi
+         * @property {number} start.location
+         * @property {number} start.percentage
+         * @property {number} start.displayed.page
+         * @property {number} start.displayed.total
+         * @property {object} end
+         * @property {string} end.index
+         * @property {string} end.href
+         * @property {object} end.displayed
+         * @property {EpubCFI} end.cfi
+         * @property {number} end.location
+         * @property {number} end.percentage
+         * @property {number} end.displayed.page
+         * @property {number} end.displayed.total
+         * @property {boolean} atStart
+         * @property {boolean} atEnd
+         * @memberof Rendition
+         */
+        this.location = undefined;
 
-		/**
-		 * A Rendered Location Range
-		 * @typedef location
-		 * @type {Object}
-		 * @property {object} start
-		 * @property {string} start.index
-		 * @property {string} start.href
-		 * @property {object} start.displayed
-		 * @property {EpubCFI} start.cfi
-		 * @property {number} start.location
-		 * @property {number} start.percentage
-		 * @property {number} start.displayed.page
-		 * @property {number} start.displayed.total
-		 * @property {object} end
-		 * @property {string} end.index
-		 * @property {string} end.href
-		 * @property {object} end.displayed
-		 * @property {EpubCFI} end.cfi
-		 * @property {number} end.location
-		 * @property {number} end.percentage
-		 * @property {number} end.displayed.page
-		 * @property {number} end.displayed.total
-		 * @property {boolean} atStart
-		 * @property {boolean} atEnd
-		 * @memberof Rendition
-		 */
-		this.location = undefined;
+        // Hold queue until book is opened
+        this.q.enqueue(this.book.opened);
 
-		// Hold queue until book is opened
-		this.q.enqueue(this.book.opened);
+        this.starting = new Defer<void>();
+        /**
+         * @member {promise} started returns after the rendition has started
+         * @memberof Rendition
+         */
+        this.started = this.starting.promise;
 
-		this.starting = new Defer<void>();
-		/**
-		 * @member {promise} started returns after the rendition has started
-		 * @memberof Rendition
-		 */
-		this.started = this.starting.promise;
+        // Block the queue until rendering is started
+        this.q.enqueue(this.start);
+    }
 
-		// Block the queue until rendering is started
-		this.q.enqueue(this.start);
-	}
+    /**
+     * Set the manager function
+     * @param {function} manager
+     */
+    setManager(manager: Function): void {
+        this.manager = manager as unknown as RenditionManager;
+    }
 
-	/**
-	 * Set the manager function
-	 * @param {function} manager
-	 */
-	setManager(manager: Function): void {
-		this.manager = manager as unknown as RenditionManager;
-	}
+    /**
+     * Require the manager from passed string, or as a class function
+     * @param  {string|object} manager [description]
+     * @return {method}
+     */
+    requireManager(manager: string | Function | object): string | Function | object {
+        var viewManager;
 
-	/**
-	 * Require the manager from passed string, or as a class function
-	 * @param  {string|object} manager [description]
-	 * @return {method}
-	 */
-	requireManager(manager: string | Function | object): string | Function | object {
-		var viewManager;
+        // If manager is a string, try to load from imported managers
+        if (typeof manager === "string" && manager === "default") {
+            viewManager = DefaultViewManager;
+        } else if (typeof manager === "string" && manager === "continuous") {
+            viewManager = ContinuousViewManager;
+        } else {
+            // otherwise, assume we were passed a class function
+            viewManager = manager;
+        }
 
-		// If manager is a string, try to load from imported managers
-		if (typeof manager === "string" && manager === "default") {
-			viewManager = DefaultViewManager;
-		} else if (typeof manager === "string" && manager === "continuous") {
-			viewManager = ContinuousViewManager;
-		} else {
-			// otherwise, assume we were passed a class function
-			viewManager = manager;
-		}
+        return viewManager;
+    }
 
-		return viewManager;
-	}
+    /**
+     * Require the view from passed string, or as a class function
+     * @param  {string|object} view
+     * @return {view}
+     */
+    requireView(view: string | Function | object): string | Function | object {
+        var View;
 
-	/**
-	 * Require the view from passed string, or as a class function
-	 * @param  {string|object} view
-	 * @return {view}
-	 */
-	requireView(view: string | Function | object): string | Function | object {
-		var View;
+        // If view is a string, try to load from imported views,
+        if (typeof view == "string" && view === "iframe") {
+            View = IframeView;
+        } else {
+            // otherwise, assume we were passed a class function
+            View = view;
+        }
 
-		// If view is a string, try to load from imported views,
-		if (typeof view == "string" && view === "iframe") {
-			View = IframeView;
-		} else {
-			// otherwise, assume we were passed a class function
-			View = view;
-		}
+        return View;
+    }
 
-		return View;
-	}
+    /**
+     * Start the rendering
+     * @return {Promise} rendering has started
+     */
+    start(): void {
+        if (
+            !this.settings.layout &&
+            (this.book.package.metadata.layout === "pre-paginated" ||
+                this.book.displayOptions.fixedLayout === "true")
+        ) {
+            this.settings.layout = "pre-paginated";
+        }
+        switch (this.book.package.metadata.spread) {
+            case "none":
+                this.settings.spread = "none";
+                break;
+            case "both":
+                this.settings.spread = true;
+                break;
+        }
 
-	/**
-	 * Start the rendering
-	 * @return {Promise} rendering has started
-	 */
-	start(): void {
-		if (!this.settings.layout && (this.book.package.metadata.layout === "pre-paginated" || this.book.displayOptions.fixedLayout === "true")) {
-			this.settings.layout = "pre-paginated";
-		}
-		switch(this.book.package.metadata.spread) {
-		case "none":
-			this.settings.spread = "none";
-			break;
-		case "both":
-			this.settings.spread = true;
-			break;
-		}
+        if (!this.manager) {
+            this.ViewManager = this.requireManager(
+                this.settings.manager,
+            ) as RenditionManagerConstructor;
+            this.View = this.requireView(this.settings.view) as RenditionViewConstructor;
+            const bookLoad = this.book.load.bind(this.book) as Book["load"] & {
+                withPersistCorrelation?: (
+                    correlation: unknown,
+                ) => Book["load"] & { persistResourceCorrelation?: unknown };
+            };
+            const bookRequest = this.book.request as typeof this.book.request & {
+                withPersistCorrelation?: (correlation: unknown) => typeof this.book.request;
+            };
+            if (!this.book.archived && typeof bookRequest?.withPersistCorrelation === "function") {
+                bookLoad.withPersistCorrelation = (correlation: unknown) => {
+                    const correlatedRequest = bookRequest.withPersistCorrelation!(correlation);
+                    const correlatedLoad = ((path: string, type?: string | null) =>
+                        correlatedRequest(
+                            this.book.resolve(path) as string,
+                            type || null,
+                            this.book.settings.requestCredentials,
+                            this.book.settings.requestHeaders,
+                        )) as Book["load"] & { persistResourceCorrelation?: unknown };
+                    correlatedLoad.persistResourceCorrelation = correlation;
+                    return correlatedLoad;
+                };
+            }
 
-		if(!this.manager) {
-			this.ViewManager = this.requireManager(this.settings.manager) as RenditionManagerConstructor;
-			this.View = this.requireView(this.settings.view) as RenditionViewConstructor;
-			const bookLoad = this.book.load.bind(this.book) as Book["load"] & {
-				withPersistCorrelation?: (correlation: unknown) => Book["load"] & { persistResourceCorrelation?: unknown };
-			};
-			const bookRequest = this.book.request as typeof this.book.request & {
-				withPersistCorrelation?: (correlation: unknown) => typeof this.book.request;
-			};
-			if (!this.book.archived && typeof bookRequest?.withPersistCorrelation === "function") {
-				bookLoad.withPersistCorrelation = (correlation: unknown) => {
-					const correlatedRequest = bookRequest.withPersistCorrelation!(correlation);
-					const correlatedLoad = ((path: string, type?: string | null) =>
-						correlatedRequest(
-							this.book.resolve(path) as string,
-							type || null,
-							this.book.settings.requestCredentials,
-							this.book.settings.requestHeaders,
-						)) as Book["load"] & { persistResourceCorrelation?: unknown };
-					correlatedLoad.persistResourceCorrelation = correlation;
-					return correlatedLoad;
-				};
-			}
+            this.manager = new this.ViewManager({
+                view: this.View,
+                queue: this.q,
+                request: bookLoad,
+                settings: this.settings,
+            });
+        }
 
-			this.manager = new this.ViewManager({
-				view: this.View,
-				queue: this.q,
-				request: bookLoad,
-				settings: this.settings
-			});
-		}
+        this.direction(this.book.package.metadata.direction || this.settings.defaultDirection);
 
-		this.direction(this.book.package.metadata.direction || this.settings.defaultDirection);
+        // Parse metadata to get layout props
+        this.settings.globalLayoutProperties = this.determineLayoutProperties(
+            this.book.package.metadata,
+        );
+        if (this.manager.settings) {
+            this.manager.settings.globalLayoutProperties = this.settings.globalLayoutProperties;
+        }
 
-		// Parse metadata to get layout props
-		this.settings.globalLayoutProperties = this.determineLayoutProperties(this.book.package.metadata);
-		if (this.manager.settings) {
-			this.manager.settings.globalLayoutProperties = this.settings.globalLayoutProperties;
-		}
+        this.flow(this.settings.globalLayoutProperties.flow);
 
-		this.flow(this.settings.globalLayoutProperties.flow);
+        this.layout(this.settings.globalLayoutProperties);
 
-		this.layout(this.settings.globalLayoutProperties);
+        // Listen for displayed views
+        this.manager.on(EVENTS.MANAGERS.ADDED, this.afterDisplayed.bind(this));
+        this.manager.on(EVENTS.MANAGERS.REMOVED, this.afterRemoved.bind(this));
 
-		// Listen for displayed views
-		this.manager.on(EVENTS.MANAGERS.ADDED, this.afterDisplayed.bind(this));
-		this.manager.on(EVENTS.MANAGERS.REMOVED, this.afterRemoved.bind(this));
+        // Listen for resizing
+        this.manager.on(EVENTS.MANAGERS.RESIZED, this.onResized.bind(this));
 
-		// Listen for resizing
-		this.manager.on(EVENTS.MANAGERS.RESIZED, this.onResized.bind(this));
+        // Listen for rotation
+        this.manager.on(EVENTS.MANAGERS.ORIENTATION_CHANGE, this.onOrientationChange.bind(this));
 
-		// Listen for rotation
-		this.manager.on(EVENTS.MANAGERS.ORIENTATION_CHANGE, this.onOrientationChange.bind(this));
+        // Listen for scroll changes
+        this.manager.on(EVENTS.MANAGERS.SCROLLED, this.reportLocation.bind(this));
 
-		// Listen for scroll changes
-		this.manager.on(EVENTS.MANAGERS.SCROLLED, this.reportLocation.bind(this));
+        /**
+         * Emit that rendering has started
+         * @event started
+         * @memberof Rendition
+         */
+        this.emit(EVENTS.RENDITION.STARTED);
 
-		/**
-		 * Emit that rendering has started
-		 * @event started
-		 * @memberof Rendition
-		 */
-		this.emit(EVENTS.RENDITION.STARTED);
+        // Start processing queue
+        this.starting.resolve();
+    }
 
-		// Start processing queue
-		this.starting.resolve();
-	}
+    /**
+     * Call to attach the container to an element in the dom
+     * Container must be attached before rendering can begin
+     * @param  {element} element to attach to
+     * @return {Promise}
+     */
+    attachTo(element: Element | string): Promise<void> {
+        return this.q.enqueue(
+            function () {
+                // Start rendering
+                this.manager.render(element, {
+                    width: this.settings.width,
+                    height: this.settings.height,
+                });
 
-	/**
-	 * Call to attach the container to an element in the dom
-	 * Container must be attached before rendering can begin
-	 * @param  {element} element to attach to
-	 * @return {Promise}
-	 */
-	attachTo(element: Element | string): Promise<void> {
+                /**
+                 * Emit that rendering has attached to an element
+                 * @event attached
+                 * @memberof Rendition
+                 */
+                this.emit(EVENTS.RENDITION.ATTACHED);
+            }.bind(this),
+        ) as Promise<void>;
+    }
 
-		return this.q.enqueue(function () {
+    /**
+     * Display a point in the book
+     * The request will be added to the rendering Queue,
+     * so it will wait until book is opened, rendering started
+     * and all other rendering tasks have finished to be called.
+     * @param  {string} target Url or EpubCFI
+     * @return {Promise}
+     */
+    display(
+        target?: string | number,
+        options?: { persistResourceCorrelation?: unknown },
+    ): Promise<void> {
+        if (!this.displayingResizeTarget) {
+            this.preferredSingleFixedPageCfi = undefined;
+        }
+        if (this.displaying) {
+            this.displaying.resolve!(undefined);
+        }
+        return this.q.enqueue(this._display, target, options) as Promise<void>;
+    }
 
-			// Start rendering
-			this.manager.render(element, {
-				"width"  : this.settings.width,
-				"height" : this.settings.height
-			});
+    /**
+     * Tells the manager what to display immediately
+     * @private
+     * @param  {string} target Url or EpubCFI
+     * @return {Promise}
+     */
+    _display(
+        target?: string | number,
+        options?: { persistResourceCorrelation?: unknown },
+    ): Promise<Section | undefined> | undefined {
+        if (!this.book) {
+            return;
+        }
+        var displaying = new Defer<Section | undefined>();
+        var displayed = displaying.promise;
+        var section: Section | null;
 
-			/**
-			 * Emit that rendering has attached to an element
-			 * @event attached
-			 * @memberof Rendition
-			 */
-			this.emit(EVENTS.RENDITION.ATTACHED);
+        this.displaying = displaying;
 
-		}.bind(this)) as Promise<void>;
+        // Check if this is a book percentage
+        if (this.book.locations.length() && isFloat(target)) {
+            target = this.book.locations.cfiFromPercentage(parseFloat(String(target)));
+        }
 
-	}
+        section = this.book.spine.get(target);
 
-	/**
-	 * Display a point in the book
-	 * The request will be added to the rendering Queue,
-	 * so it will wait until book is opened, rendering started
-	 * and all other rendering tasks have finished to be called.
-	 * @param  {string} target Url or EpubCFI
-	 * @return {Promise}
-	 */
-	display(target?: string | number, options?: { persistResourceCorrelation?: unknown }): Promise<void> {
-		if (!this.displayingResizeTarget) {
-			this.preferredSingleFixedPageCfi = undefined;
-		}
-		if (this.displaying) {
-			this.displaying.resolve!(undefined);
-		}
-		return this.q.enqueue(this._display, target, options) as Promise<void>;
-	}
+        if (!section) {
+            displaying.reject!(new Error("No Section Found"));
+            return displayed;
+        }
 
-	/**
-	 * Tells the manager what to display immediately
-	 * @private
-	 * @param  {string} target Url or EpubCFI
-	 * @return {Promise}
-	 */
-	_display(target?: string | number, options?: { persistResourceCorrelation?: unknown }): Promise<Section | undefined> | undefined {
-		if (!this.book) {
-			return;
-		}
-		var displaying = new Defer<Section | undefined>();
-		var displayed = displaying.promise;
-		var section: Section | null;
+        this.manager.display(section, target, options).then(
+            () => {
+                displaying.resolve!(section);
+                this.displaying = undefined;
 
-		this.displaying = displaying;
+                /**
+                 * Emit that a section has been displayed
+                 * @event displayed
+                 * @param {Section} section
+                 * @memberof Rendition
+                 */
+                this.emit(EVENTS.RENDITION.DISPLAYED, section);
+                this.reportLocation();
+            },
+            (err: unknown) => {
+                this.displaying = undefined;
 
-		// Check if this is a book percentage
-		if (this.book.locations.length() && isFloat(target)) {
-			target = this.book.locations.cfiFromPercentage(parseFloat(String(target)));
-		}
+                /**
+                 * Emit that has been an error displaying
+                 * @event displayError
+                 * @param {Section} section
+                 * @memberof Rendition
+                 */
+                this.emit(EVENTS.RENDITION.DISPLAY_ERROR, err);
 
-		section = this.book.spine.get(target);
+                // 沒有這行，display() 回傳的 promise 會永久懸置：呼叫端既等不到
+                // 成功也等不到失敗，翻頁交易無法收尾。實際案例是遮罩計算的堆疊
+                // 溢位（v0.3.93.145 修）——例外拋在 manager 的 fulfillment
+                // handler 內，消費端的 pageTurnInFlight 因此一直為 true、閱讀器
+                // locator 凍結，且症狀完全看不出源頭是一個被吞掉的例外。
+                // 上方「No Section Found」那條路徑本來就 reject，此處對齊。
+                displaying.reject!(err);
+            },
+        );
 
-		if(!section){
-			displaying.reject!(new Error("No Section Found"));
-			return displayed;
-		}
+        return displayed;
+    }
 
-		this.manager.display(section, target, options)
-			.then(() => {
-				displaying.resolve!(section);
-				this.displaying = undefined;
-
-				/**
-				 * Emit that a section has been displayed
-				 * @event displayed
-				 * @param {Section} section
-				 * @memberof Rendition
-				 */
-				this.emit(EVENTS.RENDITION.DISPLAYED, section);
-				this.reportLocation();
-			}, (err: unknown) => {
-				this.displaying = undefined;
-
-				/**
-				 * Emit that has been an error displaying
-				 * @event displayError
-				 * @param {Section} section
-				 * @memberof Rendition
-				 */
-				this.emit(EVENTS.RENDITION.DISPLAY_ERROR, err);
-
-				// 沒有這行，display() 回傳的 promise 會永久懸置：呼叫端既等不到
-				// 成功也等不到失敗，翻頁交易無法收尾。實際案例是遮罩計算的堆疊
-				// 溢位（v0.3.93.145 修）——例外拋在 manager 的 fulfillment
-				// handler 內，消費端的 pageTurnInFlight 因此一直為 true、閱讀器
-				// locator 凍結，且症狀完全看不出源頭是一個被吞掉的例外。
-				// 上方「No Section Found」那條路徑本來就 reject，此處對齊。
-				displaying.reject!(err);
-			});
-
-		return displayed;
-	}
-
-	/*
+    /*
 	render(view, show) {
 
 		// view.onLayout = this.layout.format.bind(this.layout);
@@ -643,904 +672,973 @@ class Rendition {
 	}
 	*/
 
-	/**
-	 * Report what section has been displayed
-	 * @private
-	 * @param  {*} view
-	 */
-	afterDisplayed(view: IframeView): void {
-
-		view.on(EVENTS.VIEWS.MARK_CLICKED, (cfiRange: string, data: AnnotationData | undefined) => this.triggerMarkEvent(cfiRange, data, view.contents));
-
-		this.hooks.render.trigger(view, this)
-			.then(() => {
-				if (view.contents) {
-					this.hooks.content.trigger(view.contents, this).then(() => {
-						if (
-							this._layout.name !== "pre-paginated" &&
-							view.contents.writingMode() === "vertical-rl" &&
-							view.contents.document.querySelector("img")
-						) {
-							view.expand();
-						}
-						/**
-						 * Emit that a section has been rendered
-						 * @event rendered
-						 * @param {Section} section
-						 * @param {View} view
-						 * @memberof Rendition
-						 */
-						this.emit(EVENTS.RENDITION.RENDERED, view.section, view);
-					});
-				} else {
-					this.emit(EVENTS.RENDITION.RENDERED, view.section, view);
-				}
-			});
-
-	}
-
-	/**
-	 * Report what has been removed
-	 * @private
-	 * @param  {*} view
-	 */
-	afterRemoved(view: IframeView): void {
-		this.hooks.unloaded.trigger(view, this).then(() => {
-			/**
-			 * Emit that a section has been removed
-			 * @event removed
-			 * @param {Section} section
-			 * @param {View} view
-			 * @memberof Rendition
-			 */
-			this.emit(EVENTS.RENDITION.REMOVED, view.section, view);
-		});
-	}
-
-	/**
-	 * Report resize events and display the last seen location
-	 * @private
-	 */
-	onResized(size: { width: number; height: number }, epubcfi?: string): void {
-
-		/**
-		 * Emit that the rendition has been resized
-		 * @event resized
-		 * @param {number} width
-		 * @param {height} height
-		 * @param {string} epubcfi (optional)
-		 * @memberof Rendition
-		 */
-		this.emit(EVENTS.RENDITION.RESIZED, {
-			width: size.width,
-			height: size.height
-		}, epubcfi);
-
-		const currentStart = this.location?.start;
-		const currentSection = currentStart?.href ? this.book?.spine?.get(currentStart.href) : null;
-		if (this.manager?.layout?.name === "pre-paginated" && this.manager.layout.divisor === 2 &&
-			currentSection?.properties?.includes("page-spread-right") && currentStart?.cfi) {
-			this.preferredSingleFixedPageCfi = currentStart.cfi;
-		}
-		const restoreSingleFixedPage = this.manager?.layout?.name === "pre-paginated" &&
-			this.manager.layout.divisor === 1 && this.preferredSingleFixedPageCfi;
-		let resolvedCfi = restoreSingleFixedPage || epubcfi || (this.location && this.location.start
-			? this.location.start.cfi
-			: null);
-		if (restoreSingleFixedPage) {
-			this.preferredSingleFixedPageCfi = undefined;
-		}
-		this.manager?.recordResizeSettleTrace?.("rendition:resize-resolved", {
-			inputCfi: epubcfi || null,
-			locationCfi: this.location && this.location.start ? this.location.start.cfi : null,
-			resolvedCfi
-		});
-
-		if (resolvedCfi) {
-			this.displayingResizeTarget = true;
-			try {
-				this.display(resolvedCfi);
-			} finally {
-				this.displayingResizeTarget = false;
-			}
-		}
-
-	}
-
-	/**
-	 * Report orientation events and display the last seen location
-	 * @private
-	 */
-	onOrientationChange(orientation: string): void {
-		/**
-		 * Emit that the rendition has been rotated
-		 * @event orientationchange
-		 * @param {string} orientation
-		 * @memberof Rendition
-		 */
-		this.emit(EVENTS.RENDITION.ORIENTATION_CHANGE, orientation);
-	}
-
-	/**
-	 * Move the Rendition to a specific offset
-	 * Usually you would be better off calling display()
-	 * @param {object} offset
-	 */
-	moveTo(offset: object): void {
-		this.manager.moveTo(offset);
-	}
-
-	/**
-	 * Trigger a resize of the views
-	 * @param {number} [width]
-	 * @param {number} [height]
-	 * @param {string} [epubcfi] (optional)
-	 */
-	resize(width?: number | string, height?: number | string, epubcfi?: string): void {
-		if (width) {
-			this.settings.width = width;
-		}
-		if (height) {
-			this.settings.height = height;
-		}
-		this.manager.resize(width, height, epubcfi);
-	}
-
-	debugResizeSettleTrace({ clear = false }: { clear?: boolean } = {}): ResizeSettleTraceEntry[] {
-		let trace = this.manager && this.manager.getResizeSettleTrace
-			? this.manager.getResizeSettleTrace()
-			: [];
-		if (clear && this.manager && this.manager.clearResizeSettleTrace) {
-			this.manager.clearResizeSettleTrace();
-		}
-		return trace;
-	}
-
-	/**
-	 * Clear all rendered views
-	 */
-	clear(): void {
-		this.manager.clear();
-	}
-
-	/**
-	 * Go to the next "page" in the rendition
-	 * @return {Promise}
-	 */
-	next(options?: { persistResourceCorrelation?: unknown }): Promise<void> {
-		this.preferredSingleFixedPageCfi = undefined;
-		return this.q.enqueue(this.manager.next.bind(this.manager), options)
-			.then(this.reportLocation.bind(this));
-	}
-
-	/**
-	 * Go to the previous "page" in the rendition
-	 * @return {Promise}
-	 */
-	prev(): Promise<void> {
-		this.preferredSingleFixedPageCfi = undefined;
-		return this.q.enqueue(this.manager.prev.bind(this.manager))
-			.then(this.reportLocation.bind(this));
-	}
-
-	debugVerticalRlPage(): RenditionVerticalRlDebugState {
-		const manager = this.manager;
-		const view = firstOrLastRenditionView(manager && manager.views);
-		const contents = view && view.contents;
-		const container = manager && manager.container;
-		const pageWidth = manager && manager.layout ? manager.layout.pageWidth : null;
-		const metrics = contents && contents.debugVerticalRlMetrics
-			? contents.debugVerticalRlMetrics(pageWidth)
-			: {};
-		const pageAdvance = manager && manager.getPageAdvance ? manager.getPageAdvance() : pageWidth;
-		const totalPages = manager && manager.getTotalPagesForCurrentView
-			? manager.getTotalPagesForCurrentView()
-			: null;
-		const currentPageIndex = manager && manager.getCurrentPageIndex
-			? manager.getCurrentPageIndex()
-			: null;
-		const normalizedLogicalScrollLeft = manager && manager.getNormalizedLogicalScrollLeft
-			? manager.getNormalizedLogicalScrollLeft()
-			: null;
-		const visiblePageWidth = manager && manager.layout
-			? (manager.layout.pageWidth || manager.layout.width || pageAdvance)
-			: pageAdvance;
-		const contentWidth = view && view.width ? view.width() : null;
-		const maxPhysicalStart = Number.isFinite(contentWidth) && Number.isFinite(visiblePageWidth)
-			? Math.max(0, contentWidth - visiblePageWidth)
-			: null;
-		const physicalStart = (
-			Number.isFinite(maxPhysicalStart) &&
-			Number.isFinite(currentPageIndex) &&
-			Number.isFinite(pageAdvance)
-		)
-			? Math.max(0, Math.min(maxPhysicalStart, maxPhysicalStart - (currentPageIndex * pageAdvance)))
-			: null;
-		const physicalEnd = (
-			Number.isFinite(contentWidth) &&
-			Number.isFinite(physicalStart) &&
-			Number.isFinite(visiblePageWidth)
-		)
-			? Math.min(contentWidth, physicalStart + visiblePageWidth)
-			: null;
-		const result: RenditionVerticalRlDebugState = Object.assign({}, metrics, {
-			containerClientWidth: container ? container.clientWidth : null,
-			containerScrollWidth: container ? container.scrollWidth : null,
-			containerScrollLeft: container ? container.scrollLeft : null,
-			iframeOffsetWidth: view && view.iframe ? view.iframe.offsetWidth : null,
-			iframeClientWidth: view && view.iframe ? view.iframe.clientWidth : null,
-			normalizedLogicalScrollLeft,
-			physicalStart,
-			physicalEnd,
-			pageWidth,
-			effectivePageAdvance: pageAdvance,
-			totalPages,
-			currentPageIndex
-		});
-
-		if (typeof console !== "undefined" && console.debug) {
-			console.debug("[epubjs:vertical-rl-page]", result);
-		}
-
-		return result;
-	}
-
-	remeasure({ preserveLocation = true, waitForFonts = true }: { preserveLocation?: boolean; waitForFonts?: boolean } = {}): Promise<void> {
-		let savedCfi = preserveLocation && this.location && this.location.start
-			? this.location.start.cfi
-			: null;
-		const manager = this.manager;
-		const view = firstOrLastRenditionView(manager && manager.views);
-		const doc = view && view.contents && view.contents.document;
-		const fontsReady = waitForFonts && doc && doc.fonts && doc.fonts.ready
-			? doc.fonts.ready.catch(function(){})
-			: Promise.resolve();
-
-		return fontsReady
-			.then(function(){
-				if (manager && typeof manager.updateLayout === "function") {
-					manager._layoutDirty = true;
-					manager.updateLayout();
-				}
-			})
-			.then(function(){
-				if (savedCfi) {
-					return this.display(savedCfi);
-				}
-				return this.reportLocation();
-			}.bind(this));
-	}
-
-	//-- http://www.idpf.org/epub/301/spec/epub-publications.html#meta-properties-rendering
-	/**
-	 * Determine the Layout properties from metadata and settings
-	 * @private
-	 * @param  {object} metadata
-	 * @return {object} properties
-	 */
-	determineLayoutProperties(metadata: PackagingMetadata): LayoutProperties {
-		var properties;
-		var layout = this.settings.layout || metadata.layout || "reflowable";
-		var spread = this.settings.spread || metadata.spread || "auto";
-		var orientation = this.settings.orientation || metadata.orientation || "auto";
-		var flow = this.settings.flow || metadata.flow || "auto";
-		var viewport = metadata.viewport || "";
-		var minSpreadWidth = this.settings.minSpreadWidth || (typeof metadata.minSpreadWidth === "number" ? metadata.minSpreadWidth : 800);
-		var direction = this.settings.direction || metadata.direction || "ltr";
-
-		if ((Number(this.settings.width) === 0 || Number(this.settings.width) > 0) &&
-				(Number(this.settings.height) === 0 || Number(this.settings.height) > 0)) {
-			// viewport = "width="+this.settings.width+", height="+this.settings.height+"";
-		}
-
-		properties = {
-			layout : layout,
-			spread : spread,
-			orientation : orientation,
-			flow : flow,
-			viewport : viewport,
-			minSpreadWidth : minSpreadWidth,
-			direction: direction
-		};
-
-		return properties;
-	}
-
-	/**
-	 * Adjust the flow of the rendition to paginated or scrolled
-	 * (scrolled-continuous vs scrolled-doc are handled by different view managers)
-	 * @param  {string} flow
-	 */
-	flow(flow?: string | null): void {
-		var _flow = flow;
-		if (flow === "scrolled" ||
-				flow === "scrolled-doc" ||
-				flow === "scrolled-continuous") {
-			_flow = "scrolled";
-		}
-
-		if (flow === "auto" || flow === "paginated") {
-			_flow = "paginated";
-		}
-
-		this.settings.flow = flow;
-
-		if (this._layout) {
-			this._layout.flow(_flow);
-		}
-
-		if (this.manager && this._layout) {
-			this.manager.applyLayout(this._layout);
-		}
-
-		if (this.manager) {
-			this.manager.updateFlow(_flow);
-		}
-
-		if (this.manager && this.manager.isRendered() && this.location) {
-			this.manager.clear();
-			this.display(this.location.start.cfi);
-		}
-	}
-
-	/**
-	 * Adjust the layout of the rendition to reflowable or pre-paginated
-	 * @param  {object} settings
-	 */
-	layout(settings?: LayoutProperties | Record<string, unknown>): Layout | undefined {
-		if (settings) {
-			const layoutSettings = settings as LayoutSettings;
-			this._layout = new Layout({ ...layoutSettings });
-			this._layout.spread(layoutSettings.spread, this.settings.minSpreadWidth);
-
-			// this.mapping = new Mapping(this._layout.props);
-
-			this._layout.on(EVENTS.LAYOUT.UPDATED, (props: LayoutProps, changed: Partial<LayoutProps>) => {
-				this.emit(EVENTS.RENDITION.LAYOUT, props, changed);
-			});
-		}
-
-		if (this.manager && this._layout) {
-			this.manager.applyLayout(this._layout);
-		}
-
-		return this._layout;
-	}
-
-	/**
-	 * Adjust if the rendition uses spreads
-	 * @param  {string} spread none | auto (TODO: implement landscape, portrait, both)
-	 * @param  {int} [min] min width to use spreads at
-	 */
-	spread(spread: string | boolean, min?: number): void {
-
-		this.settings.spread = spread;
-
-		if (min) {
-			this.settings.minSpreadWidth = min;
-		}
-
-		if (this._layout) {
-			this._layout.settings.spread = spread;
-			this._layout.spread(spread, min);
-		}
-		if (this.manager?.settings) {
-			this.manager.settings.spread = spread;
-		}
-
-		if (this.manager && this.manager.isRendered()) {
-			this.manager.updateLayout();
-		}
-	}
-
-	/**
-	 * Adjust the direction of the rendition
-	 * @param  {string} dir
-	 */
-	direction(dir?: string): void {
-
-		this.settings.direction = dir || "ltr";
-
-		if (this.manager) {
-			this.manager.direction(this.settings.direction);
-		}
-
-		if (this.manager && this.manager.isRendered() && this.location) {
-			this.manager.clear();
-			this.display(this.location.start.cfi);
-		}
-	}
-
-	/**
-	 * Report the current location
-	 * @fires relocated
-	 * @fires locationChanged
-	 */
-	reportLocation(): Promise<void> {
-		return this.q.enqueue(function reportedLocation(){
-			requestAnimationFrame(function reportedLocationAfterRAF() {
-				// P-AITEHUB-0008: Guard against destroyed manager (rendition torn down before rAF fires)
-				if (!this.manager) return;
-				var location: ManagerLocationResult | Promise<ManagerLocationResult> | undefined;
-				try {
-					location = this.manager.currentLocation();
-				} catch (err) {
-					return; // manager may have been destroyed; silently ignore
-				}
-				if (location && isManagerLocationPromise(location)) {
-					location.then(function(result: ManagerLocationResult) {
-						let located = this.located(result);
-
-						if (!located || !located.start || !located.end) {
-							return;
-						}
-
-						this.location = located;
-
-						this.emit(EVENTS.RENDITION.LOCATION_CHANGED, {
-							index: this.location.start.index,
-							href: this.location.start.href,
-							start: this.location.start.cfi,
-							end: this.location.end.cfi,
-							percentage: this.location.start.percentage
-						});
-
-						this.emit(EVENTS.RENDITION.RELOCATED, this.location);
-					}.bind(this));
-				} else if (location && !isManagerLocationPromise(location)) {
-					let located = this.located(location);
-
-					if (!located || !located.start || !located.end) {
-						return;
-					}
-
-					this.location = located;
-
-					/**
-					 * @event locationChanged
-					 * @deprecated
-					 * @type {object}
-					 * @property {number} index
-					 * @property {string} href
-					 * @property {EpubCFI} start
-					 * @property {EpubCFI} end
-					 * @property {number} percentage
-					 * @memberof Rendition
-					 */
-					this.emit(EVENTS.RENDITION.LOCATION_CHANGED, {
-						index: this.location.start.index,
-						href: this.location.start.href,
-						start: this.location.start.cfi,
-						end: this.location.end.cfi,
-						percentage: this.location.start.percentage
-					});
-
-					/**
-					 * @event relocated
-					 * @type {displayedLocation}
-					 * @memberof Rendition
-					 */
-					this.emit(EVENTS.RENDITION.RELOCATED, this.location);
-				}
-			}.bind(this));
-		}.bind(this)).then(function(): void {
-			return undefined;
-		});
-	}
-
-	/**
-	 * Get the Current Location object
-	 * @return {displayedLocation | promise} location (may be a promise)
-	 */
-	currentLocation(): Location | Promise<Location> | undefined {
-		let boundaryToken: unknown;
-		try { boundaryToken = globalThis.__PERSIST_RENDERER_BOUNDARY__?.enter("rendition:current-location"); } catch (_) {}
-		const finishBoundary = (kind: "returned" | "threw"): void => {
-			try { globalThis.__PERSIST_RENDERER_BOUNDARY__?.[kind]?.(boundaryToken); } catch (_) {}
-		};
-		try {
-		var location: ManagerLocationResult | Promise<ManagerLocationResult> | undefined = this.manager.currentLocation();
-		if (location && isManagerLocationPromise(location)) {
-			let resultPromise = location.then((result: ManagerLocationResult): Location => {
-				let located = this.located(result);
-				return located;
-			});
-			finishBoundary("returned");
-			return resultPromise;
-		} else if (location && !isManagerLocationPromise(location)) {
-			let located = this.located(location);
-			finishBoundary("returned");
-			return located;
-		}
-		finishBoundary("returned");
-		} catch (error) {
-			finishBoundary("threw");
-			throw error;
-		}
-	}
-
-	private semanticWindowSourceIdentity(): { publicationIdentifier: string; publicationModified: string } {
-		const metadata = this.book.packaging?.metadata || this.book.package?.metadata || {};
-		return {
-			publicationIdentifier: String(metadata.identifier || "").trim(),
-			publicationModified: String(metadata.modified_date || "").trim()
-		};
-	}
-
-	createSemanticWindowDescriptor(location: Location | null | undefined): Record<string, unknown> | null {
-		if (!location?.start?.href || !location.start.cfi || !location?.end?.cfi || !this.manager.createSemanticWindowDescriptor) {
-			return null;
-		}
-		const sourceIdentity = this.semanticWindowSourceIdentity();
-		if (!sourceIdentity.publicationIdentifier || !sourceIdentity.publicationModified) {
-			return null;
-		}
-		return this.manager.createSemanticWindowDescriptor({
-			index: location.start.index,
-			href: location.start.href,
-			mapping: { start: location.start.cfi, end: location.end.cfi },
-			pages: [location.start.displayed.page],
-			totalPages: location.start.displayed.total
-		}, sourceIdentity);
-	}
-
-	restoreSemanticWindowDescriptor(
-		descriptor: Record<string, unknown>,
-		restoreContext: {
-		restoreInvocationId?: string | null;
-		semanticWindowDescriptorFingerprint?: string | null;
-	} = {},
-	): { status: string; reason: string } {
-		if (!this.manager.restoreSemanticWindowDescriptor) {
-			return { status: "not-applicable", reason: "manager-unsupported" };
-		}
-		return this.manager.restoreSemanticWindowDescriptor(
-			descriptor,
-			this.semanticWindowSourceIdentity(),
-			restoreContext,
-		);
-	}
-
-	/**
-	 * Creates a Rendition#locationRange from location
-	 * passed by the Manager
-	 * @returns {displayedLocation}
-	 * @private
-	 */
-	located(location: Array<ManagerLocationItem | null | undefined>): Location {
-		if (!location || !location.length) {
-			return {};
-		}
-		let validLocations = location.filter(function(item): item is ManagerLocationItem {
-			return item &&
-				item.mapping &&
-				item.mapping.start &&
-				item.mapping.end &&
-				Array.isArray(item.pages);
-		});
-
-		if (!validLocations.length) {
-			return {};
-		}
-
-		let start = validLocations[0];
-		let end = validLocations[validLocations.length-1];
-
-		let located: Location = {
-			start: {
-				index: start.index,
-				href: start.href,
-				cfi: start.mapping.start,
-				displayed: {
-					page: start.pages[0] || 1,
-					total: start.totalPages
-				}
-			},
-			end: {
-				index: end.index,
-				href: end.href,
-				cfi: end.mapping.end,
-				displayed: {
-					page: end.pages[end.pages.length-1] || 1,
-					total: end.totalPages
-				}
-			}
-		};
-
-		let locationStart = this.book.locations.locationFromCfi(start.mapping.start);
-		let locationEnd = this.book.locations.locationFromCfi(end.mapping.end);
-
-		if (locationStart != null) {
-			located.start.location = locationStart;
-			located.start.percentage = this.book.locations.percentageFromLocation(locationStart);
-		}
-		if (locationEnd != null) {
-			located.end.location = locationEnd;
-			located.end.percentage = this.book.locations.percentageFromLocation(locationEnd);
-		}
-
-		let pageStart = this.book.pageList.pageFromCfi(start.mapping.start);
-		let pageEnd = this.book.pageList.pageFromCfi(end.mapping.end);
-
-		if (pageStart != -1) {
-			located.start.page = pageStart;
-		}
-		if (pageEnd != -1) {
-			located.end.page = pageEnd;
-		}
-
-		if (end.index === this.book.spine.last().index &&
-				located.end.displayed.page >= located.end.displayed.total) {
-			located.atEnd = true;
-		}
-
-		if (start.index === this.book.spine.first().index &&
-				located.start.displayed.page === 1) {
-			located.atStart = true;
-		}
-
-		return located;
-	}
-
-	/**
-	 * Remove and Clean Up the Rendition
-	 */
-	destroy(): void {
-		// Clear the queue
-		// this.q.clear();
-		// this.q = undefined;
-
-		this.manager && this.manager.destroy();
-
-		this.book = undefined as unknown as Book;
-
-		// this.views = null;
-
-		// this.hooks.display.clear();
-		// this.hooks.serialize.clear();
-		// this.hooks.content.clear();
-		// this.hooks.layout.clear();
-		// this.hooks.render.clear();
-		// this.hooks.show.clear();
-		// this.hooks = {};
-
-		// this.themes.destroy();
-		// this.themes = undefined;
-
-		// this.epubcfi = undefined;
-
-		// this.starting = undefined;
-		// this.started = undefined;
-
-
-	}
-
-	/**
-	 * Pass the events from a view's Contents
-	 * @private
-	 * @param  {Contents} view contents
-	 */
-	passEvents(contents: Contents): void {
-		DOM_EVENTS.forEach((e) => {
-			contents.on(e, (ev: Event) => this.triggerViewEvent(ev, contents));
-		});
-
-		contents.on(EVENTS.CONTENTS.SELECTED, (e: string) => this.triggerSelectedEvent(e, contents));
-	}
-
-	/**
-	 * Emit events passed by a view
-	 * @private
-	 * @param  {event} e
-	 */
-	triggerViewEvent(e: Event, contents: Contents): void {
-		this.emit(e.type, e, contents);
-	}
-
-	/**
-	 * Emit a selection event's CFI Range passed from a a view
-	 * @private
-	 * @param  {string} cfirange
-	 */
-	triggerSelectedEvent(cfirange: string, contents: Contents): void {
-		/**
-		 * Emit that a text selection has occurred
-		 * @event selected
-		 * @param {string} cfirange
-		 * @param {Contents} contents
-		 * @memberof Rendition
-		 */
-		this.emit(EVENTS.RENDITION.SELECTED, cfirange, contents);
-	}
-
-	/**
-	 * Emit a markClicked event with the cfiRange and data from a mark
-	 * @private
-	 * @param  {EpubCFI} cfirange
-	 */
-	triggerMarkEvent(cfiRange: string, data: AnnotationData | undefined, contents: Contents): void {
-		/**
-		 * Emit that a mark was clicked
-		 * @event markClicked
-		 * @param {EpubCFI} cfirange
-		 * @param {object} data
-		 * @param {Contents} contents
-		 * @memberof Rendition
-		 */
-		this.emit(EVENTS.RENDITION.MARK_CLICKED, cfiRange, data, contents);
-	}
-
-	/**
-	 * Get a Range from a Visible CFI
-	 * @param  {string} cfi EpubCfi String
-	 * @param  {string} ignoreClass
-	 * @return {range}
-	 */
-	getRange(cfi: string, ignoreClass?: string): Range | undefined {
-		var _cfi = new EpubCFI(cfi);
-		var found = this.manager.visible().filter(function (view: IframeView) {
-			if(_cfi.spinePos === view.index) return true;
-		});
-
-		// Should only every return 1 item
-		if (found.length) {
-			return found[0].contents.range(_cfi, ignoreClass) as Range | undefined;
-		}
-	}
-
-	/**
-	 * Hook to adjust images to fit in columns
-	 * @param  {Contents} contents
-	 * @private
-	 */
-	adjustImages(contents: Contents): Promise<void> {
-
-		if (this._layout.name === "pre-paginated") {
-			return new Promise<void>(function(resolve){
-				resolve();
-			});
-		}
-
-		let computed = contents.window.getComputedStyle(contents.content, null);
-		let height = (contents.content.offsetHeight - (parseFloat(computed.paddingTop) + parseFloat(computed.paddingBottom))) * .95;
-		let horizontalPadding = parseFloat(computed.paddingLeft) + parseFloat(computed.paddingRight);
-
-		contents.addStylesheetRules({
-			"img" : {
-				"max-width": (this._layout.columnWidth ? (this._layout.columnWidth - horizontalPadding) + "px" : "100%") + "!important",
-				"max-height": height + "px" + "!important",
-				"object-fit": "contain",
-				"page-break-inside": "avoid",
-				"break-inside": "avoid",
-				"box-sizing": "border-box"
-			},
-			"svg" : {
-				"max-width": (this._layout.columnWidth ? (this._layout.columnWidth - horizontalPadding) + "px" : "100%") + "!important",
-				"max-height": height + "px" + "!important",
-				"page-break-inside": "avoid",
-				"break-inside": "avoid"
-			}
-		});
-
-		return new Promise<void>(function(resolve) {
-			// Wait to apply
-			setTimeout(function() {
-				resolve();
-			}, 1);
-		});
-	}
-
-	/**
-	 * Get the Contents object of each rendered view
-	 * @returns {Contents[]}
-	 */
-	getContents (): Contents[] {
-		return this.manager ? this.manager.getContents() : [];
-	}
-
-	/**
-	 * Get the views member from the manager
-	 * @returns {Views}
-	 */
-	views (): IframeView[] {
-		let views = this.manager ? this.manager.views : undefined;
-		if (Array.isArray(views)) {
-			return views;
-		}
-		if (views && typeof views.all === "function") {
-			return views.all();
-		}
-		return [];
-	}
-
-	/**
-	 * Hook to handle link clicks in rendered content
-	 * @param  {Contents} contents
-	 * @private
-	 */
-	handleLinks(contents: Contents): void {
-		if (contents) {
-			contents.on(EVENTS.CONTENTS.LINK_CLICKED, (href: string) => {
-				let relative = this.resolveLinkHref(href, contents);
-				this.display(relative);
-			});
-		}
-	}
-
-	resolveLinkHref(href: string, contents?: { sectionHref?: string }): string {
-		if (!href) {
-			return href;
-		}
-
-		if (href.indexOf("#") === 0 && contents && contents.sectionHref) {
-			return contents.sectionHref + href;
-		}
-
-		if (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.indexOf("/") === 0) {
-			return this.book.path.relative(href);
-		}
-
-		return href;
-	}
-
-	/**
-	 * Hook to handle injecting stylesheet before
-	 * a Section is serialized
-	 * @param  {document} doc
-	 * @param  {Section} section
-	 * @private
-	 */
-	injectStylesheet(doc: Document, _section: Section): void {
-		let style = doc.createElement("link");
-		style.setAttribute("type", "text/css");
-		style.setAttribute("rel", "stylesheet");
-		style.setAttribute("href", this.settings.stylesheet);
-		doc.getElementsByTagName("head")[0].appendChild(style);
-	}
-
-	/**
-	 * Hook to handle injecting scripts before
-	 * a Section is serialized
-	 * @param  {document} doc
-	 * @param  {Section} section
-	 * @private
-	 */
-	injectScript(doc: Document, _section: Section): void {
-		let script = doc.createElement("script");
-		script.setAttribute("type", "text/javascript");
-		script.setAttribute("src", this.settings.script);
-		script.textContent = " "; // Needed to prevent self closing tag
-		doc.getElementsByTagName("head")[0].appendChild(script);
-	}
-
-	/**
-	 * Hook to handle the document identifier before
-	 * a Section is serialized
-	 * @param  {document} doc
-	 * @param  {Section} section
-	 * @private
-	 */
-	injectIdentifier(doc: Document, _section: Section): void {
-		let ident = this.book.packaging?.metadata?.identifier;
-		if (!this.book.packaging?.metadata) {
-			return;
-		}
-
-		let meta = doc.createElement("meta");
-		meta.setAttribute("name", "dc.relation.ispartof");
-		if (ident) {
-			meta.setAttribute("content", ident);
-		}
-		doc.getElementsByTagName("head")[0].appendChild(meta);
-	}
-
+    /**
+     * Report what section has been displayed
+     * @private
+     * @param  {*} view
+     */
+    afterDisplayed(view: IframeView): void {
+        view.on(EVENTS.VIEWS.MARK_CLICKED, (cfiRange: string, data: AnnotationData | undefined) =>
+            this.triggerMarkEvent(cfiRange, data, view.contents),
+        );
+
+        this.hooks.render.trigger(view, this).then(() => {
+            if (view.contents) {
+                this.hooks.content.trigger(view.contents, this).then(() => {
+                    if (
+                        this._layout.name !== "pre-paginated" &&
+                        view.contents.writingMode() === "vertical-rl" &&
+                        view.contents.document.querySelector("img")
+                    ) {
+                        view.expand();
+                    }
+                    /**
+                     * Emit that a section has been rendered
+                     * @event rendered
+                     * @param {Section} section
+                     * @param {View} view
+                     * @memberof Rendition
+                     */
+                    this.emit(EVENTS.RENDITION.RENDERED, view.section, view);
+                });
+            } else {
+                this.emit(EVENTS.RENDITION.RENDERED, view.section, view);
+            }
+        });
+    }
+
+    /**
+     * Report what has been removed
+     * @private
+     * @param  {*} view
+     */
+    afterRemoved(view: IframeView): void {
+        this.hooks.unloaded.trigger(view, this).then(() => {
+            /**
+             * Emit that a section has been removed
+             * @event removed
+             * @param {Section} section
+             * @param {View} view
+             * @memberof Rendition
+             */
+            this.emit(EVENTS.RENDITION.REMOVED, view.section, view);
+        });
+    }
+
+    /**
+     * Report resize events and display the last seen location
+     * @private
+     */
+    onResized(size: { width: number; height: number }, epubcfi?: string): void {
+        /**
+         * Emit that the rendition has been resized
+         * @event resized
+         * @param {number} width
+         * @param {height} height
+         * @param {string} epubcfi (optional)
+         * @memberof Rendition
+         */
+        this.emit(
+            EVENTS.RENDITION.RESIZED,
+            {
+                width: size.width,
+                height: size.height,
+            },
+            epubcfi,
+        );
+
+        const currentStart = this.location?.start;
+        const currentSection = currentStart?.href ? this.book?.spine?.get(currentStart.href) : null;
+        if (
+            this.manager?.layout?.name === "pre-paginated" &&
+            this.manager.layout.divisor === 2 &&
+            currentSection?.properties?.includes("page-spread-right") &&
+            currentStart?.cfi
+        ) {
+            this.preferredSingleFixedPageCfi = currentStart.cfi;
+        }
+        const restoreSingleFixedPage =
+            this.manager?.layout?.name === "pre-paginated" &&
+            this.manager.layout.divisor === 1 &&
+            this.preferredSingleFixedPageCfi;
+        let resolvedCfi =
+            restoreSingleFixedPage ||
+            epubcfi ||
+            (this.location && this.location.start ? this.location.start.cfi : null);
+        if (restoreSingleFixedPage) {
+            this.preferredSingleFixedPageCfi = undefined;
+        }
+        this.manager?.recordResizeSettleTrace?.("rendition:resize-resolved", {
+            inputCfi: epubcfi || null,
+            locationCfi: this.location && this.location.start ? this.location.start.cfi : null,
+            resolvedCfi,
+        });
+
+        if (resolvedCfi) {
+            this.displayingResizeTarget = true;
+            try {
+                this.display(resolvedCfi);
+            } finally {
+                this.displayingResizeTarget = false;
+            }
+        }
+    }
+
+    /**
+     * Report orientation events and display the last seen location
+     * @private
+     */
+    onOrientationChange(orientation: string): void {
+        /**
+         * Emit that the rendition has been rotated
+         * @event orientationchange
+         * @param {string} orientation
+         * @memberof Rendition
+         */
+        this.emit(EVENTS.RENDITION.ORIENTATION_CHANGE, orientation);
+    }
+
+    /**
+     * Move the Rendition to a specific offset
+     * Usually you would be better off calling display()
+     * @param {object} offset
+     */
+    moveTo(offset: object): void {
+        this.manager.moveTo(offset);
+    }
+
+    /**
+     * Trigger a resize of the views
+     * @param {number} [width]
+     * @param {number} [height]
+     * @param {string} [epubcfi] (optional)
+     */
+    resize(width?: number | string, height?: number | string, epubcfi?: string): void {
+        if (width) {
+            this.settings.width = width;
+        }
+        if (height) {
+            this.settings.height = height;
+        }
+        this.manager.resize(width, height, epubcfi);
+    }
+
+    debugResizeSettleTrace({ clear = false }: { clear?: boolean } = {}): ResizeSettleTraceEntry[] {
+        let trace =
+            this.manager && this.manager.getResizeSettleTrace
+                ? this.manager.getResizeSettleTrace()
+                : [];
+        if (clear && this.manager && this.manager.clearResizeSettleTrace) {
+            this.manager.clearResizeSettleTrace();
+        }
+        return trace;
+    }
+
+    /**
+     * Clear all rendered views
+     */
+    clear(): void {
+        this.manager.clear();
+    }
+
+    /**
+     * Go to the next "page" in the rendition
+     * @return {Promise}
+     */
+    next(options?: { persistResourceCorrelation?: unknown }): Promise<void> {
+        this.preferredSingleFixedPageCfi = undefined;
+        return this.q
+            .enqueue(this.manager.next.bind(this.manager), options)
+            .then(this.reportLocation.bind(this));
+    }
+
+    /**
+     * Go to the previous "page" in the rendition
+     * @return {Promise}
+     */
+    prev(): Promise<void> {
+        this.preferredSingleFixedPageCfi = undefined;
+        return this.q
+            .enqueue(this.manager.prev.bind(this.manager))
+            .then(this.reportLocation.bind(this));
+    }
+
+    debugVerticalRlPage(): RenditionVerticalRlDebugState {
+        const manager = this.manager;
+        const view = firstOrLastRenditionView(manager && manager.views);
+        const contents = view && view.contents;
+        const container = manager && manager.container;
+        const pageWidth = manager && manager.layout ? manager.layout.pageWidth : null;
+        const metrics =
+            contents && contents.debugVerticalRlMetrics
+                ? contents.debugVerticalRlMetrics(pageWidth)
+                : {};
+        const pageAdvance =
+            manager && manager.getPageAdvance ? manager.getPageAdvance() : pageWidth;
+        const totalPages =
+            manager && manager.getTotalPagesForCurrentView
+                ? manager.getTotalPagesForCurrentView()
+                : null;
+        const currentPageIndex =
+            manager && manager.getCurrentPageIndex ? manager.getCurrentPageIndex() : null;
+        const normalizedLogicalScrollLeft =
+            manager && manager.getNormalizedLogicalScrollLeft
+                ? manager.getNormalizedLogicalScrollLeft()
+                : null;
+        const visiblePageWidth =
+            manager && manager.layout
+                ? manager.layout.pageWidth || manager.layout.width || pageAdvance
+                : pageAdvance;
+        const contentWidth = view && view.width ? view.width() : null;
+        const maxPhysicalStart =
+            Number.isFinite(contentWidth) && Number.isFinite(visiblePageWidth)
+                ? Math.max(0, contentWidth - visiblePageWidth)
+                : null;
+        const physicalStart =
+            Number.isFinite(maxPhysicalStart) &&
+            Number.isFinite(currentPageIndex) &&
+            Number.isFinite(pageAdvance)
+                ? Math.max(
+                      0,
+                      Math.min(maxPhysicalStart, maxPhysicalStart - currentPageIndex * pageAdvance),
+                  )
+                : null;
+        const physicalEnd =
+            Number.isFinite(contentWidth) &&
+            Number.isFinite(physicalStart) &&
+            Number.isFinite(visiblePageWidth)
+                ? Math.min(contentWidth, physicalStart + visiblePageWidth)
+                : null;
+        const result: RenditionVerticalRlDebugState = Object.assign({}, metrics, {
+            containerClientWidth: container ? container.clientWidth : null,
+            containerScrollWidth: container ? container.scrollWidth : null,
+            containerScrollLeft: container ? container.scrollLeft : null,
+            iframeOffsetWidth: view && view.iframe ? view.iframe.offsetWidth : null,
+            iframeClientWidth: view && view.iframe ? view.iframe.clientWidth : null,
+            normalizedLogicalScrollLeft,
+            physicalStart,
+            physicalEnd,
+            pageWidth,
+            effectivePageAdvance: pageAdvance,
+            totalPages,
+            currentPageIndex,
+        });
+
+        if (typeof console !== "undefined" && console.debug) {
+            console.debug("[epubjs:vertical-rl-page]", result);
+        }
+
+        return result;
+    }
+
+    remeasure({
+        preserveLocation = true,
+        waitForFonts = true,
+    }: { preserveLocation?: boolean; waitForFonts?: boolean } = {}): Promise<void> {
+        let savedCfi =
+            preserveLocation && this.location && this.location.start
+                ? this.location.start.cfi
+                : null;
+        const manager = this.manager;
+        const view = firstOrLastRenditionView(manager && manager.views);
+        const doc = view && view.contents && view.contents.document;
+        const fontsReady =
+            waitForFonts && doc && doc.fonts && doc.fonts.ready
+                ? doc.fonts.ready.catch(function () {})
+                : Promise.resolve();
+
+        return fontsReady
+            .then(function () {
+                if (manager && typeof manager.updateLayout === "function") {
+                    manager._layoutDirty = true;
+                    manager.updateLayout();
+                }
+            })
+            .then(
+                function () {
+                    if (savedCfi) {
+                        return this.display(savedCfi);
+                    }
+                    return this.reportLocation();
+                }.bind(this),
+            );
+    }
+
+    //-- http://www.idpf.org/epub/301/spec/epub-publications.html#meta-properties-rendering
+    /**
+     * Determine the Layout properties from metadata and settings
+     * @private
+     * @param  {object} metadata
+     * @return {object} properties
+     */
+    determineLayoutProperties(metadata: PackagingMetadata): LayoutProperties {
+        var properties;
+        var layout = this.settings.layout || metadata.layout || "reflowable";
+        var spread = this.settings.spread || metadata.spread || "auto";
+        var orientation = this.settings.orientation || metadata.orientation || "auto";
+        var flow = this.settings.flow || metadata.flow || "auto";
+        var viewport = metadata.viewport || "";
+        var minSpreadWidth =
+            this.settings.minSpreadWidth ||
+            (typeof metadata.minSpreadWidth === "number" ? metadata.minSpreadWidth : 800);
+        var direction = this.settings.direction || metadata.direction || "ltr";
+
+        if (
+            (Number(this.settings.width) === 0 || Number(this.settings.width) > 0) &&
+            (Number(this.settings.height) === 0 || Number(this.settings.height) > 0)
+        ) {
+            // viewport = "width="+this.settings.width+", height="+this.settings.height+"";
+        }
+
+        properties = {
+            layout: layout,
+            spread: spread,
+            orientation: orientation,
+            flow: flow,
+            viewport: viewport,
+            minSpreadWidth: minSpreadWidth,
+            direction: direction,
+        };
+
+        return properties;
+    }
+
+    /**
+     * Adjust the flow of the rendition to paginated or scrolled
+     * (scrolled-continuous vs scrolled-doc are handled by different view managers)
+     * @param  {string} flow
+     */
+    flow(flow?: string | null): void {
+        var _flow = flow;
+        if (flow === "scrolled" || flow === "scrolled-doc" || flow === "scrolled-continuous") {
+            _flow = "scrolled";
+        }
+
+        if (flow === "auto" || flow === "paginated") {
+            _flow = "paginated";
+        }
+
+        this.settings.flow = flow;
+
+        if (this._layout) {
+            this._layout.flow(_flow);
+        }
+
+        if (this.manager && this._layout) {
+            this.manager.applyLayout(this._layout);
+        }
+
+        if (this.manager) {
+            this.manager.updateFlow(_flow);
+        }
+
+        if (this.manager && this.manager.isRendered() && this.location) {
+            this.manager.clear();
+            this.display(this.location.start.cfi);
+        }
+    }
+
+    /**
+     * Adjust the layout of the rendition to reflowable or pre-paginated
+     * @param  {object} settings
+     */
+    layout(settings?: LayoutProperties | Record<string, unknown>): Layout | undefined {
+        if (settings) {
+            const layoutSettings = settings as LayoutSettings;
+            this._layout = new Layout({ ...layoutSettings });
+            this._layout.spread(layoutSettings.spread, this.settings.minSpreadWidth);
+
+            // this.mapping = new Mapping(this._layout.props);
+
+            this._layout.on(
+                EVENTS.LAYOUT.UPDATED,
+                (props: LayoutProps, changed: Partial<LayoutProps>) => {
+                    this.emit(EVENTS.RENDITION.LAYOUT, props, changed);
+                },
+            );
+        }
+
+        if (this.manager && this._layout) {
+            this.manager.applyLayout(this._layout);
+        }
+
+        return this._layout;
+    }
+
+    /**
+     * Adjust if the rendition uses spreads
+     * @param  {string} spread none | auto (TODO: implement landscape, portrait, both)
+     * @param  {int} [min] min width to use spreads at
+     */
+    spread(spread: string | boolean, min?: number): void {
+        this.settings.spread = spread;
+
+        if (min) {
+            this.settings.minSpreadWidth = min;
+        }
+
+        if (this._layout) {
+            this._layout.settings.spread = spread;
+            this._layout.spread(spread, min);
+        }
+        if (this.manager?.settings) {
+            this.manager.settings.spread = spread;
+        }
+
+        if (this.manager && this.manager.isRendered()) {
+            this.manager.updateLayout();
+        }
+    }
+
+    /**
+     * Adjust the direction of the rendition
+     * @param  {string} dir
+     */
+    direction(dir?: string): void {
+        this.settings.direction = dir || "ltr";
+
+        if (this.manager) {
+            this.manager.direction(this.settings.direction);
+        }
+
+        if (this.manager && this.manager.isRendered() && this.location) {
+            this.manager.clear();
+            this.display(this.location.start.cfi);
+        }
+    }
+
+    /**
+     * Report the current location
+     * @fires relocated
+     * @fires locationChanged
+     */
+    reportLocation(): Promise<void> {
+        return this.q
+            .enqueue(
+                function reportedLocation() {
+                    requestAnimationFrame(
+                        function reportedLocationAfterRAF() {
+                            // P-AITEHUB-0008: Guard against destroyed manager (rendition torn down before rAF fires)
+                            if (!this.manager) return;
+                            var location:
+                                | ManagerLocationResult
+                                | Promise<ManagerLocationResult>
+                                | undefined;
+                            try {
+                                location = this.manager.currentLocation();
+                            } catch (err) {
+                                return; // manager may have been destroyed; silently ignore
+                            }
+                            if (location && isManagerLocationPromise(location)) {
+                                location.then(
+                                    function (result: ManagerLocationResult) {
+                                        let located = this.located(result);
+
+                                        if (!located || !located.start || !located.end) {
+                                            return;
+                                        }
+
+                                        this.location = located;
+
+                                        this.emit(EVENTS.RENDITION.LOCATION_CHANGED, {
+                                            index: this.location.start.index,
+                                            href: this.location.start.href,
+                                            start: this.location.start.cfi,
+                                            end: this.location.end.cfi,
+                                            percentage: this.location.start.percentage,
+                                        });
+
+                                        this.emit(EVENTS.RENDITION.RELOCATED, this.location);
+                                    }.bind(this),
+                                );
+                            } else if (location && !isManagerLocationPromise(location)) {
+                                let located = this.located(location);
+
+                                if (!located || !located.start || !located.end) {
+                                    return;
+                                }
+
+                                this.location = located;
+
+                                /**
+                                 * @event locationChanged
+                                 * @deprecated
+                                 * @type {object}
+                                 * @property {number} index
+                                 * @property {string} href
+                                 * @property {EpubCFI} start
+                                 * @property {EpubCFI} end
+                                 * @property {number} percentage
+                                 * @memberof Rendition
+                                 */
+                                this.emit(EVENTS.RENDITION.LOCATION_CHANGED, {
+                                    index: this.location.start.index,
+                                    href: this.location.start.href,
+                                    start: this.location.start.cfi,
+                                    end: this.location.end.cfi,
+                                    percentage: this.location.start.percentage,
+                                });
+
+                                /**
+                                 * @event relocated
+                                 * @type {displayedLocation}
+                                 * @memberof Rendition
+                                 */
+                                this.emit(EVENTS.RENDITION.RELOCATED, this.location);
+                            }
+                        }.bind(this),
+                    );
+                }.bind(this),
+            )
+            .then(function (): void {
+                return undefined;
+            });
+    }
+
+    /**
+     * Get the Current Location object
+     * @return {displayedLocation | promise} location (may be a promise)
+     */
+    currentLocation(): Location | Promise<Location> | undefined {
+        let boundaryToken: unknown;
+        try {
+            boundaryToken = globalThis.__PERSIST_RENDERER_BOUNDARY__?.enter(
+                "rendition:current-location",
+            );
+        } catch (_) {}
+        const finishBoundary = (kind: "returned" | "threw"): void => {
+            try {
+                globalThis.__PERSIST_RENDERER_BOUNDARY__?.[kind]?.(boundaryToken);
+            } catch (_) {}
+        };
+        try {
+            var location: ManagerLocationResult | Promise<ManagerLocationResult> | undefined =
+                this.manager.currentLocation();
+            if (location && isManagerLocationPromise(location)) {
+                let resultPromise = location.then((result: ManagerLocationResult): Location => {
+                    let located = this.located(result);
+                    return located;
+                });
+                finishBoundary("returned");
+                return resultPromise;
+            } else if (location && !isManagerLocationPromise(location)) {
+                let located = this.located(location);
+                finishBoundary("returned");
+                return located;
+            }
+            finishBoundary("returned");
+        } catch (error) {
+            finishBoundary("threw");
+            throw error;
+        }
+    }
+
+    private semanticWindowSourceIdentity(): {
+        publicationIdentifier: string;
+        publicationModified: string;
+    } {
+        const metadata = this.book.packaging?.metadata || this.book.package?.metadata || {};
+        return {
+            publicationIdentifier: String(metadata.identifier || "").trim(),
+            publicationModified: String(metadata.modified_date || "").trim(),
+        };
+    }
+
+    createSemanticWindowDescriptor(
+        location: Location | null | undefined,
+    ): Record<string, unknown> | null {
+        if (
+            !location?.start?.href ||
+            !location.start.cfi ||
+            !location?.end?.cfi ||
+            !this.manager.createSemanticWindowDescriptor
+        ) {
+            return null;
+        }
+        const sourceIdentity = this.semanticWindowSourceIdentity();
+        if (!sourceIdentity.publicationIdentifier || !sourceIdentity.publicationModified) {
+            return null;
+        }
+        return this.manager.createSemanticWindowDescriptor(
+            {
+                index: location.start.index,
+                href: location.start.href,
+                mapping: { start: location.start.cfi, end: location.end.cfi },
+                pages: [location.start.displayed.page],
+                totalPages: location.start.displayed.total,
+            },
+            sourceIdentity,
+        );
+    }
+
+    restoreSemanticWindowDescriptor(
+        descriptor: Record<string, unknown>,
+        restoreContext: {
+            restoreInvocationId?: string | null;
+            semanticWindowDescriptorFingerprint?: string | null;
+        } = {},
+    ): { status: string; reason: string } {
+        if (!this.manager.restoreSemanticWindowDescriptor) {
+            return { status: "not-applicable", reason: "manager-unsupported" };
+        }
+        return this.manager.restoreSemanticWindowDescriptor(
+            descriptor,
+            this.semanticWindowSourceIdentity(),
+            restoreContext,
+        );
+    }
+
+    /**
+     * Creates a Rendition#locationRange from location
+     * passed by the Manager
+     * @returns {displayedLocation}
+     * @private
+     */
+    located(location: Array<ManagerLocationItem | null | undefined>): Location {
+        if (!location || !location.length) {
+            return {};
+        }
+        let validLocations = location.filter(function (item): item is ManagerLocationItem {
+            return (
+                item &&
+                item.mapping &&
+                item.mapping.start &&
+                item.mapping.end &&
+                Array.isArray(item.pages)
+            );
+        });
+
+        if (!validLocations.length) {
+            return {};
+        }
+
+        let start = validLocations[0];
+        let end = validLocations[validLocations.length - 1];
+
+        let located: Location = {
+            start: {
+                index: start.index,
+                href: start.href,
+                cfi: start.mapping.start,
+                displayed: {
+                    page: start.pages[0] || 1,
+                    total: start.totalPages,
+                },
+            },
+            end: {
+                index: end.index,
+                href: end.href,
+                cfi: end.mapping.end,
+                displayed: {
+                    page: end.pages[end.pages.length - 1] || 1,
+                    total: end.totalPages,
+                },
+            },
+        };
+
+        let locationStart = this.book.locations.locationFromCfi(start.mapping.start);
+        let locationEnd = this.book.locations.locationFromCfi(end.mapping.end);
+
+        if (locationStart != null) {
+            located.start.location = locationStart;
+            located.start.percentage = this.book.locations.percentageFromLocation(locationStart);
+        }
+        if (locationEnd != null) {
+            located.end.location = locationEnd;
+            located.end.percentage = this.book.locations.percentageFromLocation(locationEnd);
+        }
+
+        let pageStart = this.book.pageList.pageFromCfi(start.mapping.start);
+        let pageEnd = this.book.pageList.pageFromCfi(end.mapping.end);
+
+        if (pageStart != -1) {
+            located.start.page = pageStart;
+        }
+        if (pageEnd != -1) {
+            located.end.page = pageEnd;
+        }
+
+        if (
+            end.index === this.book.spine.last().index &&
+            located.end.displayed.page >= located.end.displayed.total
+        ) {
+            located.atEnd = true;
+        }
+
+        if (start.index === this.book.spine.first().index && located.start.displayed.page === 1) {
+            located.atStart = true;
+        }
+
+        return located;
+    }
+
+    /**
+     * Remove and Clean Up the Rendition
+     */
+    destroy(): void {
+        // Clear the queue
+        // this.q.clear();
+        // this.q = undefined;
+
+        this.manager && this.manager.destroy();
+
+        this.book = undefined as unknown as Book;
+
+        // this.views = null;
+
+        // this.hooks.display.clear();
+        // this.hooks.serialize.clear();
+        // this.hooks.content.clear();
+        // this.hooks.layout.clear();
+        // this.hooks.render.clear();
+        // this.hooks.show.clear();
+        // this.hooks = {};
+
+        // this.themes.destroy();
+        // this.themes = undefined;
+
+        // this.epubcfi = undefined;
+
+        // this.starting = undefined;
+        // this.started = undefined;
+    }
+
+    /**
+     * Pass the events from a view's Contents
+     * @private
+     * @param  {Contents} view contents
+     */
+    passEvents(contents: Contents): void {
+        DOM_EVENTS.forEach((e) => {
+            contents.on(e, (ev: Event) => this.triggerViewEvent(ev, contents));
+        });
+
+        contents.on(EVENTS.CONTENTS.SELECTED, (e: string) =>
+            this.triggerSelectedEvent(e, contents),
+        );
+    }
+
+    /**
+     * Emit events passed by a view
+     * @private
+     * @param  {event} e
+     */
+    triggerViewEvent(e: Event, contents: Contents): void {
+        this.emit(e.type, e, contents);
+    }
+
+    /**
+     * Emit a selection event's CFI Range passed from a a view
+     * @private
+     * @param  {string} cfirange
+     */
+    triggerSelectedEvent(cfirange: string, contents: Contents): void {
+        /**
+         * Emit that a text selection has occurred
+         * @event selected
+         * @param {string} cfirange
+         * @param {Contents} contents
+         * @memberof Rendition
+         */
+        this.emit(EVENTS.RENDITION.SELECTED, cfirange, contents);
+    }
+
+    /**
+     * Emit a markClicked event with the cfiRange and data from a mark
+     * @private
+     * @param  {EpubCFI} cfirange
+     */
+    triggerMarkEvent(cfiRange: string, data: AnnotationData | undefined, contents: Contents): void {
+        /**
+         * Emit that a mark was clicked
+         * @event markClicked
+         * @param {EpubCFI} cfirange
+         * @param {object} data
+         * @param {Contents} contents
+         * @memberof Rendition
+         */
+        this.emit(EVENTS.RENDITION.MARK_CLICKED, cfiRange, data, contents);
+    }
+
+    /**
+     * Get a Range from a Visible CFI
+     * @param  {string} cfi EpubCfi String
+     * @param  {string} ignoreClass
+     * @return {range}
+     */
+    getRange(cfi: string, ignoreClass?: string): Range | undefined {
+        var _cfi = new EpubCFI(cfi);
+        var found = this.manager.visible().filter(function (view: IframeView) {
+            if (_cfi.spinePos === view.index) return true;
+        });
+
+        // Should only every return 1 item
+        if (found.length) {
+            return found[0].contents.range(_cfi, ignoreClass) as Range | undefined;
+        }
+    }
+
+    /**
+     * Hook to adjust images to fit in columns
+     * @param  {Contents} contents
+     * @private
+     */
+    adjustImages(contents: Contents): Promise<void> {
+        if (this._layout.name === "pre-paginated") {
+            return new Promise<void>(function (resolve) {
+                resolve();
+            });
+        }
+
+        let computed = contents.window.getComputedStyle(contents.content, null);
+        let height =
+            (contents.content.offsetHeight -
+                (parseFloat(computed.paddingTop) + parseFloat(computed.paddingBottom))) *
+            0.95;
+        let horizontalPadding =
+            parseFloat(computed.paddingLeft) + parseFloat(computed.paddingRight);
+
+        contents.addStylesheetRules({
+            img: {
+                "max-width":
+                    (this._layout.columnWidth
+                        ? this._layout.columnWidth - horizontalPadding + "px"
+                        : "100%") + "!important",
+                "max-height": height + "px" + "!important",
+                "object-fit": "contain",
+                "page-break-inside": "avoid",
+                "break-inside": "avoid",
+                "box-sizing": "border-box",
+            },
+            svg: {
+                "max-width":
+                    (this._layout.columnWidth
+                        ? this._layout.columnWidth - horizontalPadding + "px"
+                        : "100%") + "!important",
+                "max-height": height + "px" + "!important",
+                "page-break-inside": "avoid",
+                "break-inside": "avoid",
+            },
+        });
+
+        return new Promise<void>(function (resolve) {
+            // Wait to apply
+            setTimeout(function () {
+                resolve();
+            }, 1);
+        });
+    }
+
+    /**
+     * Get the Contents object of each rendered view
+     * @returns {Contents[]}
+     */
+    getContents(): Contents[] {
+        return this.manager ? this.manager.getContents() : [];
+    }
+
+    /**
+     * Get the views member from the manager
+     * @returns {Views}
+     */
+    views(): IframeView[] {
+        let views = this.manager ? this.manager.views : undefined;
+        if (Array.isArray(views)) {
+            return views;
+        }
+        if (views && typeof views.all === "function") {
+            return views.all();
+        }
+        return [];
+    }
+
+    /**
+     * Hook to handle link clicks in rendered content
+     * @param  {Contents} contents
+     * @private
+     */
+    handleLinks(contents: Contents): void {
+        if (contents) {
+            contents.on(EVENTS.CONTENTS.LINK_CLICKED, (href: string) => {
+                let relative = this.resolveLinkHref(href, contents);
+                this.display(relative);
+            });
+        }
+    }
+
+    resolveLinkHref(href: string, contents?: { sectionHref?: string }): string {
+        if (!href) {
+            return href;
+        }
+
+        if (href.indexOf("#") === 0 && contents && contents.sectionHref) {
+            return contents.sectionHref + href;
+        }
+
+        if (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.indexOf("/") === 0) {
+            return this.book.path.relative(href);
+        }
+
+        return href;
+    }
+
+    /**
+     * Hook to handle injecting stylesheet before
+     * a Section is serialized
+     * @param  {document} doc
+     * @param  {Section} section
+     * @private
+     */
+    injectStylesheet(doc: Document, _section: Section): void {
+        let style = doc.createElement("link");
+        style.setAttribute("type", "text/css");
+        style.setAttribute("rel", "stylesheet");
+        style.setAttribute("href", this.settings.stylesheet);
+        doc.getElementsByTagName("head")[0].appendChild(style);
+    }
+
+    /**
+     * Hook to handle injecting scripts before
+     * a Section is serialized
+     * @param  {document} doc
+     * @param  {Section} section
+     * @private
+     */
+    injectScript(doc: Document, _section: Section): void {
+        let script = doc.createElement("script");
+        script.setAttribute("type", "text/javascript");
+        script.setAttribute("src", this.settings.script);
+        script.textContent = " "; // Needed to prevent self closing tag
+        doc.getElementsByTagName("head")[0].appendChild(script);
+    }
+
+    /**
+     * Hook to handle the document identifier before
+     * a Section is serialized
+     * @param  {document} doc
+     * @param  {Section} section
+     * @private
+     */
+    injectIdentifier(doc: Document, _section: Section): void {
+        let ident = this.book.packaging?.metadata?.identifier;
+        if (!this.book.packaging?.metadata) {
+            return;
+        }
+
+        let meta = doc.createElement("meta");
+        meta.setAttribute("name", "dc.relation.ispartof");
+        if (ident) {
+            meta.setAttribute("content", ident);
+        }
+        doc.getElementsByTagName("head")[0].appendChild(meta);
+    }
 }
 
 interface Rendition {
-	emit(type: string, ...args: unknown[]): void;
-	on(type: string, listener: (...args: unknown[]) => void): unknown;
-	off(type: string, listener: (...args: unknown[]) => void): unknown;
-	once(type: string, listener: (...args: unknown[]) => void): unknown;
+    emit(type: string, ...args: unknown[]): void;
+    on(type: string, listener: (...args: unknown[]) => void): unknown;
+    off(type: string, listener: (...args: unknown[]) => void): unknown;
+    once(type: string, listener: (...args: unknown[]) => void): unknown;
 }
 
 //-- Enable binding events to Renderer

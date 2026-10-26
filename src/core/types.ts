@@ -4,7 +4,7 @@
  * @returns {boolean} True when the object is an element node.
  */
 export function isElement(obj: unknown): obj is Element {
-	return !!(obj && typeof obj === "object" && "nodeType" in obj && obj.nodeType === 1);
+    return !!(obj && typeof obj === "object" && "nodeType" in obj && obj.nodeType === 1);
 }
 
 /**
@@ -13,7 +13,7 @@ export function isElement(obj: unknown): obj is Element {
  * @returns {boolean} True when the value is numeric.
  */
 export function isNumber(n: unknown): boolean {
-	return !isNaN(parseFloat(String(n))) && isFinite(Number(n));
+    return !isNaN(parseFloat(String(n))) && isFinite(Number(n));
 }
 
 /**
@@ -22,17 +22,17 @@ export function isNumber(n: unknown): boolean {
  * @returns {boolean} True when the value is numeric and has a decimal value.
  */
 export function isFloat(n: unknown): boolean {
-	var f = parseFloat(String(n));
+    var f = parseFloat(String(n));
 
-	if (isNumber(n) === false) {
-		return false;
-	}
+    if (isNumber(n) === false) {
+        return false;
+    }
 
-	if (typeof n === "string" && n.indexOf(".") > -1) {
-		return true;
-	}
+    if (typeof n === "string" && n.indexOf(".") > -1) {
+        return true;
+    }
 
-	return Math.floor(f) !== f;
+    return Math.floor(f) !== f;
 }
 
 /**
@@ -41,5 +41,5 @@ export function isFloat(n: unknown): boolean {
  * @returns {string} Object type name.
  */
 export function type(obj: unknown): string {
-	return Object.prototype.toString.call(obj).slice(8, -1);
+    return Object.prototype.toString.call(obj).slice(8, -1);
 }

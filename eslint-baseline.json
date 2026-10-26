@@ -1,956 +1,956 @@
 {
-  "version": 2,
-  "note": "Explicit pre-existing warning inventory, not lint-clean qualification. No errors are accepted. New, moved, duplicated or resolved diagnostics fail the comparison; remove resolved entries after review. Promise, type migration and pagination warnings require behavior-specific evidence before edits.",
-  "warnings": [
-    {
-      "filename": "src/annotations.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "highlight is overridden by string in this union type."
-    },
-    {
-      "filename": "src/annotations.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "mark is overridden by string in this union type."
-    },
-    {
-      "filename": "src/annotations.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "underline is overridden by string in this union type."
-    },
-    {
-      "filename": "src/annotations.ts",
-      "code": "typescript(no-unsafe-declaration-merging)",
-      "message": "Unsafe declaration merging between classes and interfaces."
-    },
-    {
-      "filename": "src/archive.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter 'e' is caught but never used."
-    },
-    {
-      "filename": "src/archive.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'encoding' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/archive.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/archive.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/archive.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/book.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/book.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/book.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/book.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/book.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/book.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/book.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/book.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/book.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/book.ts",
-      "code": "typescript(no-base-to-string)",
-      "message": "'url' may use Object's default stringification format ('[object Object]') when stringified."
-    },
-    {
-      "filename": "src/book.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/book.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/book.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/book.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/book.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/book.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/book.ts",
-      "code": "typescript(no-this-alias)",
-      "message": "Unexpected aliasing of 'this' to local variable."
-    },
-    {
-      "filename": "src/book.ts",
-      "code": "typescript(no-unsafe-declaration-merging)",
-      "message": "Unsafe declaration merging between classes and interfaces."
-    },
-    {
-      "filename": "src/contents.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/contents.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter 'e' is caught but never used."
-    },
-    {
-      "filename": "src/contents.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter 'e' is caught but never used."
-    },
-    {
-      "filename": "src/contents.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter 'e' is caught but never used."
-    },
-    {
-      "filename": "src/contents.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter 'e' is caught but never used."
-    },
-    {
-      "filename": "src/contents.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter 'e' is caught but never used."
-    },
-    {
-      "filename": "src/contents.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter 'e' is caught but never used."
-    },
-    {
-      "filename": "src/contents.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/contents.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/contents.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'mutations' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/contents.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'reject' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/contents.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'reject' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/contents.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/contents.ts",
-      "code": "typescript(no-unsafe-declaration-merging)",
-      "message": "Unsafe declaration merging between classes and interfaces."
-    },
-    {
-      "filename": "src/core/types.ts",
-      "code": "typescript(no-base-to-string)",
-      "message": "'n' will use Object's default stringification format ('[object Object]') when stringified."
-    },
-    {
-      "filename": "src/core/types.ts",
-      "code": "typescript(no-base-to-string)",
-      "message": "'n' will use Object's default stringification format ('[object Object]') when stringified."
-    },
-    {
-      "filename": "src/epub.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Identifier 'ContinuousViewManager' is imported but never used."
-    },
-    {
-      "filename": "src/epub.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Identifier 'DefaultViewManager' is imported but never used."
-    },
-    {
-      "filename": "src/epub.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Identifier 'IframeView' is imported but never used."
-    },
-    {
-      "filename": "src/epubcfi.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter '_e' is caught but never used."
-    },
-    {
-      "filename": "src/epubcfi.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter 'e' is caught but never used."
-    },
-    {
-      "filename": "src/epubcfi.ts",
-      "code": "typescript(no-this-alias)",
-      "message": "Unexpected aliasing of 'this' to local variable."
-    },
-    {
-      "filename": "src/layout.ts",
-      "code": "typescript(no-unsafe-declaration-merging)",
-      "message": "Unsafe declaration merging between classes and interfaces."
-    },
-    {
-      "filename": "src/locations.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter 'error' is caught but never used."
-    },
-    {
-      "filename": "src/locations.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Type alias 'LocationIndex' is declared but never used."
-    },
-    {
-      "filename": "src/locations.ts",
-      "code": "typescript(no-unsafe-declaration-merging)",
-      "message": "Unsafe declaration merging between classes and interfaces."
-    },
-    {
-      "filename": "src/locations.ts",
-      "code": "typescript(unbound-method)",
-      "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
-    },
-    {
-      "filename": "src/managers/continuous/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'bounds' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/continuous/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'bounds' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/continuous/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/continuous/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'err' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/continuous/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'stage' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/continuous/index.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/managers/continuous/index.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/managers/continuous/index.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/managers/continuous/index.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/managers/continuous/index.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/managers/continuous/index.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter '_' is caught but never used."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter '_' is caught but never used."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter '_' is caught but never used."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter '_' is caught but never used."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter '_' is caught but never used."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter '_' is caught but never used."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter '_' is caught but never used."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter '_error' is caught but never used."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter 'error' is caught but never used."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter 'error' is caught but never used."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter 'error' is caught but never used."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter 'error' is caught but never used."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Variable 'left' is declared but never used. Unused variables should start with a '_'."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/managers/default/index.ts",
-      "code": "typescript(unbound-method)",
-      "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
-    },
-    {
-      "filename": "src/managers/helpers/snap.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/managers/helpers/snap.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/managers/helpers/snap.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/helpers/snap.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/helpers/snap.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/helpers/snap.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/managers/helpers/snap.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/managers/helpers/stage.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "horizontal is overridden by string in this union type."
-    },
-    {
-      "filename": "src/managers/helpers/stage.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "vertical is overridden by string in this union type."
-    },
-    {
-      "filename": "src/managers/views/iframe.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/managers/views/iframe.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/managers/views/iframe.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/managers/views/iframe.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/views/iframe.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/views/iframe.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/views/iframe.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'force' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/views/iframe.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'layoutFunc' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/views/iframe.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'reject' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/views/iframe.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'show' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/views/iframe.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'view' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/views/iframe.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'view' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/views/iframe.ts",
-      "code": "typescript(no-base-to-string)",
-      "message": "'data[key]' will use Object's default stringification format ('[object Object]') when stringified."
-    },
-    {
-      "filename": "src/managers/views/iframe.ts",
-      "code": "typescript(no-this-alias)",
-      "message": "Unexpected aliasing of 'this' to local variable."
-    },
-    {
-      "filename": "src/managers/views/iframe.ts",
-      "code": "typescript(no-unsafe-declaration-merging)",
-      "message": "Unsafe declaration merging between classes and interfaces."
-    },
-    {
-      "filename": "src/managers/views/inline.ts",
-      "code": "eslint(no-unassigned-vars)",
-      "message": "'textHeight' is always 'undefined' because it's never assigned."
-    },
-    {
-      "filename": "src/managers/views/inline.ts",
-      "code": "eslint(no-unassigned-vars)",
-      "message": "'textWidth' is always 'undefined' because it's never assigned."
-    },
-    {
-      "filename": "src/managers/views/inline.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/managers/views/inline.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/views/inline.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'force' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/views/inline.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'layoutFunc' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/views/inline.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'min' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/views/inline.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'min' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/views/inline.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'view' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/views/inline.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'view' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/managers/views/inline.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/managers/views/inline.ts",
-      "code": "typescript(no-unsafe-declaration-merging)",
-      "message": "Unsafe declaration merging between classes and interfaces."
-    },
-    {
-      "filename": "src/mapping.ts",
-      "code": "typescript(unbound-method)",
-      "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
-    },
-    {
-      "filename": "src/mapping.ts",
-      "code": "typescript(unbound-method)",
-      "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
-    },
-    {
-      "filename": "src/packaging.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'index' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/packaging.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'manifest' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/pagelist.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "-1 is overridden by number in this union type."
-    },
-    {
-      "filename": "src/pagelist.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "-1 is overridden by number in this union type."
-    },
-    {
-      "filename": "src/pagelist.ts",
-      "code": "typescript(unbound-method)",
-      "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
-    },
-    {
-      "filename": "src/pagelist.ts",
-      "code": "typescript(unbound-method)",
-      "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
-    },
-    {
-      "filename": "src/platform/browser.ts",
-      "code": "typescript(unbound-method)",
-      "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
-    },
-    {
-      "filename": "src/rendering/terminal-continuation.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter '_' is caught but never used."
-    },
-    {
-      "filename": "src/rendition.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/rendition.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter '_' is caught but never used."
-    },
-    {
-      "filename": "src/rendition.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter '_' is caught but never used."
-    },
-    {
-      "filename": "src/rendition.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter 'err' is caught but never used."
-    },
-    {
-      "filename": "src/rendition.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/rendition.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/rendition.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/rendition.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/rendition.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/rendition.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/rendition.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/rendition.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/rendition.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/rendition.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/rendition.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/rendition.ts",
-      "code": "typescript(no-unsafe-declaration-merging)",
-      "message": "Unsafe declaration merging between classes and interfaces."
-    },
-    {
-      "filename": "src/rendition.ts",
-      "code": "typescript(unbound-method)",
-      "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
-    },
-    {
-      "filename": "src/rendition.ts",
-      "code": "typescript(unbound-method)",
-      "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
-    },
-    {
-      "filename": "src/resources.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'err' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/resources.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "base64 is overridden by string in this union type."
-    },
-    {
-      "filename": "src/resources.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "blob is overridden by string in this union type."
-    },
-    {
-      "filename": "src/resources.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "none is overridden by string in this union type."
-    },
-    {
-      "filename": "src/section.ts",
-      "code": "eslint(no-unused-expressions)",
-      "message": "Expected expression to be used"
-    },
-    {
-      "filename": "src/section.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Type alias 'DeferConstructor' is declared but never used."
-    },
-    {
-      "filename": "src/section.ts",
-      "code": "typescript(no-this-alias)",
-      "message": "Unexpected aliasing of 'this' to local variable."
-    },
-    {
-      "filename": "src/section.ts",
-      "code": "typescript(no-this-alias)",
-      "message": "Unexpected aliasing of 'this' to local variable."
-    },
-    {
-      "filename": "src/store.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter 'e' is caught but never used."
-    },
-    {
-      "filename": "src/store.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'event' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/store.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/store.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/store.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/store.ts",
-      "code": "typescript(no-unsafe-declaration-merging)",
-      "message": "Unsafe declaration merging between classes and interfaces."
-    },
-    {
-      "filename": "src/themes.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/utils/core.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'obj' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/utils/core.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'target' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/utils/core.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Variable 'COMMENT_NODE' is declared but never used. Unused variables should start with a '_'."
-    },
-    {
-      "filename": "src/utils/core.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Variable 'DOCUMENT_NODE' is declared but never used. Unused variables should start with a '_'."
-    },
-    {
-      "filename": "src/utils/hook.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'items' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/utils/hook.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Parameter 'items' is declared but never used. Unused parameters should start with a '_'."
-    },
-    {
-      "filename": "src/utils/path-posix.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Variable 'hasRoot' is declared but never used. Unused variables should start with a '_'."
-    },
-    {
-      "filename": "src/utils/queue.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/utils/queue.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/utils/queue.ts",
-      "code": "typescript(no-floating-promises)",
-      "message": "Promises must be awaited, add void operator to ignore."
-    },
-    {
-      "filename": "src/utils/replacements.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter 'error' is caught but never used."
-    },
-    {
-      "filename": "src/utils/request.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "binary is overridden by string in this union type."
-    },
-    {
-      "filename": "src/utils/request.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "blob is overridden by string in this union type."
-    },
-    {
-      "filename": "src/utils/request.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "htm is overridden by string in this union type."
-    },
-    {
-      "filename": "src/utils/request.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "html is overridden by string in this union type."
-    },
-    {
-      "filename": "src/utils/request.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "json is overridden by string in this union type."
-    },
-    {
-      "filename": "src/utils/request.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "ncx is overridden by string in this union type."
-    },
-    {
-      "filename": "src/utils/request.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "opf is overridden by string in this union type."
-    },
-    {
-      "filename": "src/utils/request.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "text is overridden by string in this union type."
-    },
-    {
-      "filename": "src/utils/request.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "xhtml is overridden by string in this union type."
-    },
-    {
-      "filename": "src/utils/request.ts",
-      "code": "typescript(no-redundant-type-constituents)",
-      "message": "xml is overridden by string in this union type."
-    },
-    {
-      "filename": "src/utils/timing.ts",
-      "code": "typescript(no-this-alias)",
-      "message": "Unexpected aliasing of 'this' to local variable."
-    },
-    {
-      "filename": "src/utils/url.ts",
-      "code": "eslint(no-unused-vars)",
-      "message": "Catch parameter 'e' is caught but never used."
-    }
-  ]
+    "version": 2,
+    "note": "Explicit pre-existing warning inventory, not lint-clean qualification. No errors are accepted. New, moved, duplicated or resolved diagnostics fail the comparison; remove resolved entries after review. Promise, type migration and pagination warnings require behavior-specific evidence before edits.",
+    "warnings": [
+        {
+            "filename": "src/annotations.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "highlight is overridden by string in this union type."
+        },
+        {
+            "filename": "src/annotations.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "mark is overridden by string in this union type."
+        },
+        {
+            "filename": "src/annotations.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "underline is overridden by string in this union type."
+        },
+        {
+            "filename": "src/annotations.ts",
+            "code": "typescript(no-unsafe-declaration-merging)",
+            "message": "Unsafe declaration merging between classes and interfaces."
+        },
+        {
+            "filename": "src/archive.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter 'e' is caught but never used."
+        },
+        {
+            "filename": "src/archive.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'encoding' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/archive.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/archive.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/archive.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "typescript(no-base-to-string)",
+            "message": "'url' may use Object's default stringification format ('[object Object]') when stringified."
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "typescript(no-this-alias)",
+            "message": "Unexpected aliasing of 'this' to local variable."
+        },
+        {
+            "filename": "src/book.ts",
+            "code": "typescript(no-unsafe-declaration-merging)",
+            "message": "Unsafe declaration merging between classes and interfaces."
+        },
+        {
+            "filename": "src/contents.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/contents.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter 'e' is caught but never used."
+        },
+        {
+            "filename": "src/contents.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter 'e' is caught but never used."
+        },
+        {
+            "filename": "src/contents.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter 'e' is caught but never used."
+        },
+        {
+            "filename": "src/contents.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter 'e' is caught but never used."
+        },
+        {
+            "filename": "src/contents.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter 'e' is caught but never used."
+        },
+        {
+            "filename": "src/contents.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter 'e' is caught but never used."
+        },
+        {
+            "filename": "src/contents.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/contents.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/contents.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'mutations' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/contents.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'reject' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/contents.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'reject' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/contents.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/contents.ts",
+            "code": "typescript(no-unsafe-declaration-merging)",
+            "message": "Unsafe declaration merging between classes and interfaces."
+        },
+        {
+            "filename": "src/core/types.ts",
+            "code": "typescript(no-base-to-string)",
+            "message": "'n' will use Object's default stringification format ('[object Object]') when stringified."
+        },
+        {
+            "filename": "src/core/types.ts",
+            "code": "typescript(no-base-to-string)",
+            "message": "'n' will use Object's default stringification format ('[object Object]') when stringified."
+        },
+        {
+            "filename": "src/epub.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Identifier 'ContinuousViewManager' is imported but never used."
+        },
+        {
+            "filename": "src/epub.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Identifier 'DefaultViewManager' is imported but never used."
+        },
+        {
+            "filename": "src/epub.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Identifier 'IframeView' is imported but never used."
+        },
+        {
+            "filename": "src/epubcfi.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter '_e' is caught but never used."
+        },
+        {
+            "filename": "src/epubcfi.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter 'e' is caught but never used."
+        },
+        {
+            "filename": "src/epubcfi.ts",
+            "code": "typescript(no-this-alias)",
+            "message": "Unexpected aliasing of 'this' to local variable."
+        },
+        {
+            "filename": "src/layout.ts",
+            "code": "typescript(no-unsafe-declaration-merging)",
+            "message": "Unsafe declaration merging between classes and interfaces."
+        },
+        {
+            "filename": "src/locations.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter 'error' is caught but never used."
+        },
+        {
+            "filename": "src/locations.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Type alias 'LocationIndex' is declared but never used."
+        },
+        {
+            "filename": "src/locations.ts",
+            "code": "typescript(no-unsafe-declaration-merging)",
+            "message": "Unsafe declaration merging between classes and interfaces."
+        },
+        {
+            "filename": "src/locations.ts",
+            "code": "typescript(unbound-method)",
+            "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        {
+            "filename": "src/managers/continuous/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'bounds' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/continuous/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'bounds' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/continuous/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/continuous/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'err' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/continuous/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'stage' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/continuous/index.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/continuous/index.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/continuous/index.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/continuous/index.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/continuous/index.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/continuous/index.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter '_' is caught but never used."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter '_' is caught but never used."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter '_' is caught but never used."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter '_' is caught but never used."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter '_' is caught but never used."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter '_' is caught but never used."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter '_' is caught but never used."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter '_error' is caught but never used."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter 'error' is caught but never used."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter 'error' is caught but never used."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter 'error' is caught but never used."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter 'error' is caught but never used."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Variable 'left' is declared but never used. Unused variables should start with a '_'."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/default/index.ts",
+            "code": "typescript(unbound-method)",
+            "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        {
+            "filename": "src/managers/helpers/snap.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/managers/helpers/snap.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/managers/helpers/snap.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/helpers/snap.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/helpers/snap.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/helpers/snap.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/helpers/snap.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/helpers/stage.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "horizontal is overridden by string in this union type."
+        },
+        {
+            "filename": "src/managers/helpers/stage.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "vertical is overridden by string in this union type."
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'force' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'layoutFunc' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'reject' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'show' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'view' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'view' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "typescript(no-base-to-string)",
+            "message": "'data[key]' will use Object's default stringification format ('[object Object]') when stringified."
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "typescript(no-this-alias)",
+            "message": "Unexpected aliasing of 'this' to local variable."
+        },
+        {
+            "filename": "src/managers/views/iframe.ts",
+            "code": "typescript(no-unsafe-declaration-merging)",
+            "message": "Unsafe declaration merging between classes and interfaces."
+        },
+        {
+            "filename": "src/managers/views/inline.ts",
+            "code": "eslint(no-unassigned-vars)",
+            "message": "'textHeight' is always 'undefined' because it's never assigned."
+        },
+        {
+            "filename": "src/managers/views/inline.ts",
+            "code": "eslint(no-unassigned-vars)",
+            "message": "'textWidth' is always 'undefined' because it's never assigned."
+        },
+        {
+            "filename": "src/managers/views/inline.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/managers/views/inline.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'e' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/views/inline.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'force' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/views/inline.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'layoutFunc' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/views/inline.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'min' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/views/inline.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'min' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/views/inline.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'view' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/views/inline.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'view' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/managers/views/inline.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/managers/views/inline.ts",
+            "code": "typescript(no-unsafe-declaration-merging)",
+            "message": "Unsafe declaration merging between classes and interfaces."
+        },
+        {
+            "filename": "src/mapping.ts",
+            "code": "typescript(unbound-method)",
+            "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        {
+            "filename": "src/mapping.ts",
+            "code": "typescript(unbound-method)",
+            "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        {
+            "filename": "src/packaging.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'index' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/packaging.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'manifest' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/pagelist.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "-1 is overridden by number in this union type."
+        },
+        {
+            "filename": "src/pagelist.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "-1 is overridden by number in this union type."
+        },
+        {
+            "filename": "src/pagelist.ts",
+            "code": "typescript(unbound-method)",
+            "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        {
+            "filename": "src/pagelist.ts",
+            "code": "typescript(unbound-method)",
+            "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        {
+            "filename": "src/platform/browser.ts",
+            "code": "typescript(unbound-method)",
+            "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        {
+            "filename": "src/rendering/terminal-continuation.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter '_' is caught but never used."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter '_' is caught but never used."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter '_' is caught but never used."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter 'err' is caught but never used."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(no-unsafe-declaration-merging)",
+            "message": "Unsafe declaration merging between classes and interfaces."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(unbound-method)",
+            "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        {
+            "filename": "src/rendition.ts",
+            "code": "typescript(unbound-method)",
+            "message": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        {
+            "filename": "src/resources.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'err' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/resources.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "base64 is overridden by string in this union type."
+        },
+        {
+            "filename": "src/resources.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "blob is overridden by string in this union type."
+        },
+        {
+            "filename": "src/resources.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "none is overridden by string in this union type."
+        },
+        {
+            "filename": "src/section.ts",
+            "code": "eslint(no-unused-expressions)",
+            "message": "Expected expression to be used"
+        },
+        {
+            "filename": "src/section.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Type alias 'DeferConstructor' is declared but never used."
+        },
+        {
+            "filename": "src/section.ts",
+            "code": "typescript(no-this-alias)",
+            "message": "Unexpected aliasing of 'this' to local variable."
+        },
+        {
+            "filename": "src/section.ts",
+            "code": "typescript(no-this-alias)",
+            "message": "Unexpected aliasing of 'this' to local variable."
+        },
+        {
+            "filename": "src/store.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter 'e' is caught but never used."
+        },
+        {
+            "filename": "src/store.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'event' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/store.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/store.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/store.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/store.ts",
+            "code": "typescript(no-unsafe-declaration-merging)",
+            "message": "Unsafe declaration merging between classes and interfaces."
+        },
+        {
+            "filename": "src/themes.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/utils/core.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'obj' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/utils/core.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'target' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/utils/core.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Variable 'COMMENT_NODE' is declared but never used. Unused variables should start with a '_'."
+        },
+        {
+            "filename": "src/utils/core.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Variable 'DOCUMENT_NODE' is declared but never used. Unused variables should start with a '_'."
+        },
+        {
+            "filename": "src/utils/hook.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'items' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/utils/hook.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Parameter 'items' is declared but never used. Unused parameters should start with a '_'."
+        },
+        {
+            "filename": "src/utils/path-posix.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Variable 'hasRoot' is declared but never used. Unused variables should start with a '_'."
+        },
+        {
+            "filename": "src/utils/queue.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/utils/queue.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/utils/queue.ts",
+            "code": "typescript(no-floating-promises)",
+            "message": "Promises must be awaited, add void operator to ignore."
+        },
+        {
+            "filename": "src/utils/replacements.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter 'error' is caught but never used."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "binary is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "blob is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "htm is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "html is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "json is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "ncx is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "opf is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "text is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "xhtml is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/request.ts",
+            "code": "typescript(no-redundant-type-constituents)",
+            "message": "xml is overridden by string in this union type."
+        },
+        {
+            "filename": "src/utils/timing.ts",
+            "code": "typescript(no-this-alias)",
+            "message": "Unexpected aliasing of 'this' to local variable."
+        },
+        {
+            "filename": "src/utils/url.ts",
+            "code": "eslint(no-unused-vars)",
+            "message": "Catch parameter 'e' is caught but never used."
+        }
+    ]
 }

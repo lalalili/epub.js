@@ -2,13 +2,13 @@ import { DOMParser as XMLDOMParser } from "@xmldom/xmldom";
 import { getWindow } from "./browser";
 
 interface ParserConstructor {
-	new(): {
-		parseFromString(markup: string, mime: string): Document;
-	};
+    new (): {
+        parseFromString(markup: string, mime: string): Document;
+    };
 }
 
 interface ParserWindow extends Window {
-	DOMParser?: ParserConstructor;
+    DOMParser?: ParserConstructor;
 }
 
 /**
@@ -17,19 +17,19 @@ interface ParserWindow extends Window {
  * @returns {Function} Parser constructor.
  */
 export function getParserConstructor(forceXMLDom?: boolean): ParserConstructor {
-	var win;
+    var win;
 
-	if (forceXMLDom) {
-		return XMLDOMParser as unknown as ParserConstructor;
-	}
+    if (forceXMLDom) {
+        return XMLDOMParser as unknown as ParserConstructor;
+    }
 
-	if (typeof DOMParser !== "undefined") {
-		return DOMParser as ParserConstructor;
-	}
+    if (typeof DOMParser !== "undefined") {
+        return DOMParser as ParserConstructor;
+    }
 
-	win = getWindow() as ParserWindow | undefined;
+    win = getWindow() as ParserWindow | undefined;
 
-	return win && win.DOMParser ? win.DOMParser : XMLDOMParser as unknown as ParserConstructor;
+    return win && win.DOMParser ? win.DOMParser : (XMLDOMParser as unknown as ParserConstructor);
 }
 
 /**
@@ -38,11 +38,11 @@ export function getParserConstructor(forceXMLDom?: boolean): ParserConstructor {
  * @returns {string} Markup without a leading BOM.
  */
 export function stripByteOrderMark(markup: string): string {
-	if (markup && markup.charCodeAt(0) === 0xFEFF) {
-		return markup.slice(1);
-	}
+    if (markup && markup.charCodeAt(0) === 0xfeff) {
+        return markup.slice(1);
+    }
 
-	return markup;
+    return markup;
 }
 
 /**
@@ -53,7 +53,7 @@ export function stripByteOrderMark(markup: string): string {
  * @returns {Document} Parsed document.
  */
 export function parseMarkup(markup: string, mime: string, forceXMLDom?: boolean): Document {
-	var Parser = getParserConstructor(forceXMLDom);
+    var Parser = getParserConstructor(forceXMLDom);
 
-	return new Parser().parseFromString(stripByteOrderMark(markup), mime);
+    return new Parser().parseFromString(stripByteOrderMark(markup), mime);
 }

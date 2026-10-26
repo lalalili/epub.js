@@ -6,12 +6,12 @@ type NodeCallback = (node: Node) => boolean | void;
 type TextNodeCallback = (node: Text) => void;
 type TreeWalkerFilter = number | NodeFilter;
 export type VisibleTextClientRect = {
-	left: number;
-	right: number;
-	top: number;
-	bottom: number;
-	width: number;
-	height: number;
+    left: number;
+    right: number;
+    top: number;
+    bottom: number;
+    width: number;
+    height: number;
 };
 
 /**
@@ -21,17 +21,21 @@ export type VisibleTextClientRect = {
  * @returns {void}
  */
 export function sprint(root: TraversalRoot, func: TextNodeCallback): void {
-	var doc = (root.ownerDocument || root) as Document;
+    var doc = (root.ownerDocument || root) as Document;
 
-	if (typeof(doc.createTreeWalker) !== "undefined") {
-		treeWalker(root, func as NodeCallback, NodeFilter.SHOW_TEXT);
-	} else {
-		walk(root, function(node) {
-			if (node && node.nodeType === 3) {
-				func(node as Text);
-			}
-		}, true);
-	}
+    if (typeof doc.createTreeWalker !== "undefined") {
+        treeWalker(root, func as NodeCallback, NodeFilter.SHOW_TEXT);
+    } else {
+        walk(
+            root,
+            function (node) {
+                if (node && node.nodeType === 3) {
+                    func(node as Text);
+                }
+            },
+            true,
+        );
+    }
 }
 
 /**
@@ -41,145 +45,182 @@ export function sprint(root: TraversalRoot, func: TextNodeCallback): void {
  * @param {Function | object} filter TreeWalker filter.
  * @returns {void}
  */
-export function treeWalker(root: TraversalRoot, func: NodeCallback, filter: TreeWalkerFilter): void {
-	var walker = document.createTreeWalker(root, filter as number, null);
-	var node;
+export function treeWalker(
+    root: TraversalRoot,
+    func: NodeCallback,
+    filter: TreeWalkerFilter,
+): void {
+    var walker = document.createTreeWalker(root, filter as number, null);
+    var node;
 
-	while ((node = walker.nextNode())) {
-		func(node);
-	}
+    while ((node = walker.nextNode())) {
+        func(node);
+    }
 }
 
-export function createVisibleTextWalker(doc: Document, win: Window, root: HTMLElement, options: { minimumTextLength?: number } = {}): TreeWalker | null {
-	if (!doc || !win || !root || typeof doc.createTreeWalker !== "function") {
-		return null;
-	}
+export function createVisibleTextWalker(
+    doc: Document,
+    win: Window,
+    root: HTMLElement,
+    options: { minimumTextLength?: number } = {},
+): TreeWalker | null {
+    if (!doc || !win || !root || typeof doc.createTreeWalker !== "function") {
+        return null;
+    }
 
-	const minimumTextLength = Math.max(1, Math.floor(Number(options.minimumTextLength) || 2));
-	return doc.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-		acceptNode(node: Text) {
-			let text = String(node.nodeValue || "").replace(/\s+/g, "");
-			if (text.length < minimumTextLength) {
-				return NodeFilter.FILTER_REJECT;
-			}
+    const minimumTextLength = Math.max(1, Math.floor(Number(options.minimumTextLength) || 2));
+    return doc.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+        acceptNode(node: Text) {
+            let text = String(node.nodeValue || "").replace(/\s+/g, "");
+            if (text.length < minimumTextLength) {
+                return NodeFilter.FILTER_REJECT;
+            }
 
-			let parent = node.parentElement;
-			if (!parent) {
-				return NodeFilter.FILTER_REJECT;
-			}
+            let parent = node.parentElement;
+            if (!parent) {
+                return NodeFilter.FILTER_REJECT;
+            }
 
-			let style = win.getComputedStyle(parent);
-			if (style.display === "none" || style.visibility === "hidden") {
-				return NodeFilter.FILTER_REJECT;
-			}
+            let style = win.getComputedStyle(parent);
+            if (style.display === "none" || style.visibility === "hidden") {
+                return NodeFilter.FILTER_REJECT;
+            }
 
-			return NodeFilter.FILTER_ACCEPT;
-		}
-	});
+            return NodeFilter.FILTER_ACCEPT;
+        },
+    });
 }
 
 export function collectVisibleTextClientRects(
-	doc: Document,
-	win: Window,
-	root: HTMLElement,
-	options: { limit?: number; countInvalidRects?: boolean; minimumTextLength?: number;
-		horizontalBounds?: { left: number; right: number }; supplementTruncatedPrefix?: boolean } = {}
+    doc: Document,
+    win: Window,
+    root: HTMLElement,
+    options: {
+        limit?: number;
+        countInvalidRects?: boolean;
+        minimumTextLength?: number;
+        horizontalBounds?: { left: number; right: number };
+        supplementTruncatedPrefix?: boolean;
+    } = {},
 ): VisibleTextClientRect[] | null {
-	return collectVisibleTextClientRectsWithMeasurements(doc, win, root, options);
+    return collectVisibleTextClientRectsWithMeasurements(doc, win, root, options);
 }
 
 function collectVisibleTextClientRectsWithMeasurements(
-	doc: Document,
-	win: Window,
-	root: HTMLElement,
-	options: NonNullable<Parameters<typeof collectVisibleTextClientRects>[3]>,
-	readRects?: (node: Node) => VisibleTextClientRect[]
+    doc: Document,
+    win: Window,
+    root: HTMLElement,
+    options: NonNullable<Parameters<typeof collectVisibleTextClientRects>[3]>,
+    readRects?: (node: Node) => VisibleTextClientRect[],
 ): VisibleTextClientRect[] | null {
-	const bounds = options.horizontalBounds;
-	if (bounds && options.supplementTruncatedPrefix) {
-		// Both scans are synchronous and perform no layout writes. Keep raw
-		// measurements only for this call, before applying each scan's own limit.
-		const measurements = new WeakMap<Node, VisibleTextClientRect[]>();
-		const measure = (node: Node) => {
-			let rects = measurements.get(node);
-			if (!rects) {
-				rects = readVisibleTextNodeRects(doc, node);
-				measurements.set(node, rects);
-			}
-			return rects;
-		};
-		const prefix = collectVisibleTextClientRectsWithMeasurements(doc, win, root, {
-			...options, horizontalBounds: undefined, supplementTruncatedPrefix: false
-		}, measure);
-		const limit = Math.max(0, Number(options.limit) || 1000);
-		if (!prefix || prefix.length < limit) return prefix;
-		const nearby = collectVisibleTextClientRectsWithMeasurements(doc, win, root, {
-			...options, supplementTruncatedPrefix: false
-		}, measure);
-		if (!nearby) return null;
-		const unique = new Map<string, VisibleTextClientRect>();
-		for (const rect of [...prefix, ...nearby]) {
-			unique.set(JSON.stringify(rect), rect);
-		}
-		return [...unique.values()];
-	}
-	if (bounds && (!Number.isFinite(bounds.left) || !Number.isFinite(bounds.right) || bounds.left >= bounds.right)) {
-		return null;
-	}
-	const walker = createVisibleTextWalker(doc, win, root, options);
-	if (!walker) {
-		return null;
-	}
+    const bounds = options.horizontalBounds;
+    if (bounds && options.supplementTruncatedPrefix) {
+        // Both scans are synchronous and perform no layout writes. Keep raw
+        // measurements only for this call, before applying each scan's own limit.
+        const measurements = new WeakMap<Node, VisibleTextClientRect[]>();
+        const measure = (node: Node) => {
+            let rects = measurements.get(node);
+            if (!rects) {
+                rects = readVisibleTextNodeRects(doc, node);
+                measurements.set(node, rects);
+            }
+            return rects;
+        };
+        const prefix = collectVisibleTextClientRectsWithMeasurements(
+            doc,
+            win,
+            root,
+            {
+                ...options,
+                horizontalBounds: undefined,
+                supplementTruncatedPrefix: false,
+            },
+            measure,
+        );
+        const limit = Math.max(0, Number(options.limit) || 1000);
+        if (!prefix || prefix.length < limit) return prefix;
+        const nearby = collectVisibleTextClientRectsWithMeasurements(
+            doc,
+            win,
+            root,
+            {
+                ...options,
+                supplementTruncatedPrefix: false,
+            },
+            measure,
+        );
+        if (!nearby) return null;
+        const unique = new Map<string, VisibleTextClientRect>();
+        for (const rect of [...prefix, ...nearby]) {
+            unique.set(JSON.stringify(rect), rect);
+        }
+        return [...unique.values()];
+    }
+    if (
+        bounds &&
+        (!Number.isFinite(bounds.left) ||
+            !Number.isFinite(bounds.right) ||
+            bounds.left >= bounds.right)
+    ) {
+        return null;
+    }
+    const walker = createVisibleTextWalker(doc, win, root, options);
+    if (!walker) {
+        return null;
+    }
 
-	const limit = Math.max(0, Number(options.limit) || 1000);
-	const countInvalidRects = Boolean(options.countInvalidRects);
-	const rects: VisibleTextClientRect[] = [];
-	let inspected = 0;
-	let node: Node | null;
+    const limit = Math.max(0, Number(options.limit) || 1000);
+    const countInvalidRects = Boolean(options.countInvalidRects);
+    const rects: VisibleTextClientRect[] = [];
+    let inspected = 0;
+    let node: Node | null;
 
-	while ((node = walker.nextNode()) && inspected < limit) {
-		for (const rect of readRects ? readRects(node) : readVisibleTextNodeRects(doc, node)) {
-			if (bounds && (rect.right <= bounds.left || rect.left >= bounds.right)) {
-				continue;
-			}
-			const isValidRect = rect.width > 0 && rect.height > 0;
+    while ((node = walker.nextNode()) && inspected < limit) {
+        for (const rect of readRects ? readRects(node) : readVisibleTextNodeRects(doc, node)) {
+            if (bounds && (rect.right <= bounds.left || rect.left >= bounds.right)) {
+                continue;
+            }
+            const isValidRect = rect.width > 0 && rect.height > 0;
 
-			if (countInvalidRects || isValidRect) {
-				inspected += 1;
-			}
+            if (countInvalidRects || isValidRect) {
+                inspected += 1;
+            }
 
-			if (isValidRect) {
-				rects.push({
-					left: rect.left,
-					right: rect.right,
-					top: rect.top,
-					bottom: rect.bottom,
-					width: rect.width,
-					height: rect.height
-				});
-			}
+            if (isValidRect) {
+                rects.push({
+                    left: rect.left,
+                    right: rect.right,
+                    top: rect.top,
+                    bottom: rect.bottom,
+                    width: rect.width,
+                    height: rect.height,
+                });
+            }
 
-			if (inspected >= limit) {
-				break;
-			}
-		}
+            if (inspected >= limit) {
+                break;
+            }
+        }
+    }
 
-	}
-
-	return rects;
+    return rects;
 }
 
 function readVisibleTextNodeRects(doc: Document, node: Node): VisibleTextClientRect[] {
-	const range = doc.createRange();
-	try {
-		range.selectNodeContents(node);
-		return Array.from(range.getClientRects(), rect => ({
-			left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom,
-			width: rect.width, height: rect.height
-		}));
-	} finally {
-		range.detach?.();
-	}
+    const range = doc.createRange();
+    try {
+        range.selectNodeContents(node);
+        return Array.from(range.getClientRects(), (rect) => ({
+            left: rect.left,
+            right: rect.right,
+            top: rect.top,
+            bottom: rect.bottom,
+            width: rect.width,
+            height: rect.height,
+        }));
+    } finally {
+        range.detach?.();
+    }
 }
 
 /**
@@ -189,22 +230,22 @@ function readVisibleTextNodeRects(doc: Document, node: Node): VisibleTextClientR
  * @returns {boolean | undefined} True when walking was stopped.
  */
 export function walk(node: Node, callback: NodeCallback, _ignore?: boolean): boolean | undefined {
-	var walked;
+    var walked;
 
-	if (callback(node)) {
-		return true;
-	}
+    if (callback(node)) {
+        return true;
+    }
 
-	node = node.firstChild as Node;
-	if (node) {
-		do {
-			walked = walk(node, callback);
-			if (walked) {
-				return true;
-			}
-			node = node.nextSibling as Node;
-		} while(node);
-	}
+    node = node.firstChild as Node;
+    if (node) {
+        do {
+            walked = walk(node, callback);
+            if (walked) {
+                return true;
+            }
+            node = node.nextSibling as Node;
+        } while (node);
+    }
 }
 
 /**
@@ -213,17 +254,17 @@ export function walk(node: Node, callback: NodeCallback, _ignore?: boolean): boo
  * @returns {Element[]} Element children.
  */
 export function findChildren(el: Element): Element[] {
-	var result: Element[] = [];
-	var childNodes = el.childNodes;
+    var result: Element[] = [];
+    var childNodes = el.childNodes;
 
-	for (var i = 0; i < childNodes.length; i++) {
-		let node = childNodes[i];
-		if (node.nodeType === 1) {
-			result.push(node as Element);
-		}
-	}
+    for (var i = 0; i < childNodes.length; i++) {
+        let node = childNodes[i];
+        if (node.nodeType === 1) {
+            result.push(node as Element);
+        }
+    }
 
-	return result;
+    return result;
 }
 
 /**
@@ -232,13 +273,13 @@ export function findChildren(el: Element): Element[] {
  * @returns {Element[]} Parent chain.
  */
 export function parents(node: Element): Element[] {
-	var nodes = [node];
+    var nodes = [node];
 
-	for (; node; node = node.parentNode as Element) {
-		nodes.unshift(node);
-	}
+    for (; node; node = node.parentNode as Element) {
+        nodes.unshift(node);
+    }
 
-	return nodes;
+    return nodes;
 }
 
 /**
@@ -248,24 +289,28 @@ export function parents(node: Element): Element[] {
  * @param {boolean} [single] Return first match only.
  * @returns {Element | Element[] | undefined} Matching child or children.
  */
-export function filterChildren(el: Element, nodeName: string, single?: boolean): Element | Element[] | undefined {
-	var result: Element[] = [];
-	var childNodes = el.childNodes;
+export function filterChildren(
+    el: Element,
+    nodeName: string,
+    single?: boolean,
+): Element | Element[] | undefined {
+    var result: Element[] = [];
+    var childNodes = el.childNodes;
 
-	for (var i = 0; i < childNodes.length; i++) {
-		let node = childNodes[i];
-		if (node.nodeType === 1 && node.nodeName.toLowerCase() === nodeName) {
-			if (single) {
-				return node as Element;
-			} else {
-				result.push(node as Element);
-			}
-		}
-	}
+    for (var i = 0; i < childNodes.length; i++) {
+        let node = childNodes[i];
+        if (node.nodeType === 1 && node.nodeName.toLowerCase() === nodeName) {
+            if (single) {
+                return node as Element;
+            } else {
+                result.push(node as Element);
+            }
+        }
+    }
 
-	if (!single) {
-		return result;
-	}
+    if (!single) {
+        return result;
+    }
 }
 
 /**
@@ -275,19 +320,19 @@ export function filterChildren(el: Element, nodeName: string, single?: boolean):
  * @returns {Element | undefined} Matching parent.
  */
 export function getParentByTagName(node: Element | null, tagname: string): Element | undefined {
-	var parent;
+    var parent;
 
-	if (node === null || tagname === "") {
-		return;
-	}
+    if (node === null || tagname === "") {
+        return;
+    }
 
-	parent = node.parentNode as Element;
-	while (parent.nodeType === 1) {
-		if (parent.tagName.toLowerCase() === tagname) {
-			return parent;
-		}
-		parent = parent.parentNode as Element;
-	}
+    parent = node.parentNode as Element;
+    while (parent.nodeType === 1) {
+        if (parent.tagName.toLowerCase() === tagname) {
+            return parent;
+        }
+        parent = parent.parentNode as Element;
+    }
 }
 
 /**
@@ -297,21 +342,21 @@ export function getParentByTagName(node: Element | null, tagname: string): Eleme
  * @returns {number} Index in parent or -1.
  */
 export function indexOfNode(node: Node, typeId: number): number {
-	var parent = node.parentNode as ParentNode;
-	var children = parent.childNodes;
-	var sib;
-	var index = -1;
-	for (var i = 0; i < children.length; i++) {
-		sib = children[i];
-		if (sib.nodeType === typeId) {
-			index++;
-		}
-		if (sib == node) {
-			break;
-		}
-	}
+    var parent = node.parentNode as ParentNode;
+    var children = parent.childNodes;
+    var sib;
+    var index = -1;
+    for (var i = 0; i < children.length; i++) {
+        sib = children[i];
+        if (sib.nodeType === typeId) {
+            index++;
+        }
+        if (sib == node) {
+            break;
+        }
+    }
 
-	return index;
+    return index;
 }
 
 /**
@@ -320,7 +365,7 @@ export function indexOfNode(node: Node, typeId: number): number {
  * @returns {number} Index in parent.
  */
 export function indexOfTextNode(textNode: Node): number {
-	return indexOfNode(textNode, TEXT_NODE);
+    return indexOfNode(textNode, TEXT_NODE);
 }
 
 /**
@@ -329,5 +374,5 @@ export function indexOfTextNode(textNode: Node): number {
  * @returns {number} Index in parent.
  */
 export function indexOfElementNode(elementNode: Element): number {
-	return indexOfNode(elementNode, ELEMENT_NODE);
+    return indexOfNode(elementNode, ELEMENT_NODE);
 }

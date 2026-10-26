@@ -3,72 +3,86 @@ import type { VerticalRlLogicalPageOffsetCache } from "./logical-page";
 export type VerticalRlTerminalTailState = "reached" | "unreached" | "unknown";
 
 export type VerticalRlTerminalTailTransaction = {
-	before: VerticalRlTerminalTailState;
-	after: VerticalRlTerminalTailState;
-	sameTerminalOwner: boolean;
-	sameOwnerDocument: boolean;
-	ownerStillConnected: boolean;
+    before: VerticalRlTerminalTailState;
+    after: VerticalRlTerminalTailState;
+    sameTerminalOwner: boolean;
+    sameOwnerDocument: boolean;
+    ownerStillConnected: boolean;
 };
 
 export type VerticalRlTerminalContinuationState = {
-	layoutKey: string;
-	continuationCount: number;
-	offsetCache: VerticalRlLogicalPageOffsetCache | null;
-	terminalRightBoundaries?: Record<number, number>;
-	appliedLeftMasks?: Record<string, number> | null;
+    layoutKey: string;
+    continuationCount: number;
+    offsetCache: VerticalRlLogicalPageOffsetCache | null;
+    terminalRightBoundaries?: Record<number, number>;
+    appliedLeftMasks?: Record<string, number> | null;
 };
 
 type TerminalContinuationObservationContext = {
-	owner?: object | null;
-	section?: object | null;
-	view?: object | null;
-	document?: Document | null;
+    owner?: object | null;
+    section?: object | null;
+    view?: object | null;
+    document?: Document | null;
 };
 
 const emitTerminalContinuationObservation = (
-	event: string,
-	owner: object | null | undefined,
-	values: Record<string, unknown>
+    event: string,
+    owner: object | null | undefined,
+    values: Record<string, unknown>,
 ): void => {
-	try {
-		(globalThis as typeof globalThis & {
-			__PERSIST_TOPOLOGY__?: { emit?: (event: string, owner: object | null, values: Record<string, unknown>) => unknown };
-		}).__PERSIST_TOPOLOGY__?.emit?.(event, owner ?? null, values);
-	} catch (_) {
-		// Diagnostics must never alter pagination behavior.
-	}
+    try {
+        (
+            globalThis as typeof globalThis & {
+                __PERSIST_TOPOLOGY__?: {
+                    emit?: (
+                        event: string,
+                        owner: object | null,
+                        values: Record<string, unknown>,
+                    ) => unknown;
+                };
+            }
+        ).__PERSIST_TOPOLOGY__?.emit?.(event, owner ?? null, values);
+    } catch (_) {
+        // Diagnostics must never alter pagination behavior.
+    }
 };
 
 /** Geometry identity is independent of the dynamically promoted logical count. */
 export function resolveVerticalRlTerminalContinuation(
-	previous: VerticalRlTerminalContinuationState | undefined,
-	layoutKey: string | null
+    previous: VerticalRlTerminalContinuationState | undefined,
+    layoutKey: string | null,
 ): VerticalRlTerminalContinuationState | null {
-	if (!layoutKey) {
-		return null;
-	}
-	return previous?.layoutKey === layoutKey ? previous : {
-		layoutKey,
-		continuationCount: 0,
-		offsetCache: null
-	};
+    if (!layoutKey) {
+        return null;
+    }
+    return previous?.layoutKey === layoutKey
+        ? previous
+        : {
+              layoutKey,
+              continuationCount: 0,
+              offsetCache: null,
+          };
 }
 
 export function resolveVerticalRlTerminalContinuationWithObservation(
-	previous: VerticalRlTerminalContinuationState | undefined,
-	layoutKey: string | null,
-	context: TerminalContinuationObservationContext = {}
+    previous: VerticalRlTerminalContinuationState | undefined,
+    layoutKey: string | null,
+    context: TerminalContinuationObservationContext = {},
 ): VerticalRlTerminalContinuationState | null {
-	const state = resolveVerticalRlTerminalContinuation(previous, layoutKey);
-	emitTerminalContinuationObservation("terminal-continuation-layout", context.owner, {
-		...context,
-		layoutKey,
-		continuationCountBefore: previous?.continuationCount,
-		continuationCountAfter: state?.continuationCount,
-		accepted: state === previous,
-		reason: !layoutKey ? "layout-unavailable" : state === previous ? "layout-reused" : "layout-reset"
-	});
-	return state;
+    const state = resolveVerticalRlTerminalContinuation(previous, layoutKey);
+    emitTerminalContinuationObservation("terminal-continuation-layout", context.owner, {
+        ...context,
+        layoutKey,
+        continuationCountBefore: previous?.continuationCount,
+        continuationCountAfter: state?.continuationCount,
+        accepted: state === previous,
+        reason: !layoutKey
+            ? "layout-unavailable"
+            : state === previous
+              ? "layout-reused"
+              : "layout-reset",
+    });
+    return state;
 }
 
 /**
@@ -78,20 +92,25 @@ export function resolveVerticalRlTerminalContinuationWithObservation(
  * resolution. Callers only need to resolve the DOM tail after this returns true.
  */
 export function isVerticalRlTerminalContinuationGeometryCandidate(
-	state: VerticalRlTerminalContinuationState,
-	basePageCount: number,
-	targetIndex: number,
-	logicalOffset: number,
-	maxLogicalScroll: number,
-	snapTolerance: number
+    state: VerticalRlTerminalContinuationState,
+    basePageCount: number,
+    targetIndex: number,
+    logicalOffset: number,
+    maxLogicalScroll: number,
+    snapTolerance: number,
 ): boolean {
-	return Number.isInteger(basePageCount) && basePageCount > 0 &&
-		Number.isInteger(targetIndex) &&
-		Number.isFinite(logicalOffset) && logicalOffset >= 0 &&
-		Number.isFinite(maxLogicalScroll) &&
-		Number.isFinite(snapTolerance) && snapTolerance >= 0 &&
-		targetIndex === basePageCount + state.continuationCount - 1 &&
-		maxLogicalScroll - logicalOffset > snapTolerance;
+    return (
+        Number.isInteger(basePageCount) &&
+        basePageCount > 0 &&
+        Number.isInteger(targetIndex) &&
+        Number.isFinite(logicalOffset) &&
+        logicalOffset >= 0 &&
+        Number.isFinite(maxLogicalScroll) &&
+        Number.isFinite(snapTolerance) &&
+        snapTolerance >= 0 &&
+        targetIndex === basePageCount + state.continuationCount - 1 &&
+        maxLogicalScroll - logicalOffset > snapTolerance
+    );
 }
 
 /**
@@ -99,84 +118,104 @@ export function isVerticalRlTerminalContinuationGeometryCandidate(
  * standalone reached signal.
  */
 export function aggregateVerticalRlTerminalTailState({
-	before,
-	after,
-	sameTerminalOwner,
-	sameOwnerDocument,
-	ownerStillConnected
+    before,
+    after,
+    sameTerminalOwner,
+    sameOwnerDocument,
+    ownerStillConnected,
 }: VerticalRlTerminalTailTransaction): VerticalRlTerminalTailState {
-	if (after === "reached") {
-		return "reached";
-	}
+    if (after === "reached") {
+        return "reached";
+    }
 
-	if (before === "reached" && sameTerminalOwner && sameOwnerDocument && ownerStillConnected) {
-		return "reached";
-	}
+    if (before === "reached" && sameTerminalOwner && sameOwnerDocument && ownerStillConnected) {
+        return "reached";
+    }
 
-	if (before === "unreached" && after === "unreached") {
-		return "unreached";
-	}
+    if (before === "unreached" && after === "unreached") {
+        return "unreached";
+    }
 
-	return "unknown";
+    return "unknown";
 }
 
 /** Reserve another reachable index instead of replacing an early terminal window. */
 export function promoteVerticalRlTerminalContinuation(
-	state: VerticalRlTerminalContinuationState,
-	basePageCount: number,
-	targetIndex: number,
-	logicalOffset: number,
-	maxLogicalScroll: number,
-	snapTolerance: number,
-	terminalTailState: VerticalRlTerminalTailState = "unknown"
+    state: VerticalRlTerminalContinuationState,
+    basePageCount: number,
+    targetIndex: number,
+    logicalOffset: number,
+    maxLogicalScroll: number,
+    snapTolerance: number,
+    terminalTailState: VerticalRlTerminalTailState = "unknown",
 ): boolean {
-	if (!isVerticalRlTerminalContinuationGeometryCandidate(
-		state,
-		basePageCount,
-		targetIndex,
-		logicalOffset,
-		maxLogicalScroll,
-		snapTolerance
-	) || terminalTailState === "reached") {
-		return false;
-	}
-	state.continuationCount += 1;
-	// The former terminal page had no next-page exclusion allowance. Its
-	// zero mask plus Reader displacement is not a proved ordinary-page fence.
-	// Re-measure that page while retaining every earlier fence and offset.
-	if (state.appliedLeftMasks) {
-		delete state.appliedLeftMasks[String(targetIndex)];
-	}
-	return true;
+    if (
+        !isVerticalRlTerminalContinuationGeometryCandidate(
+            state,
+            basePageCount,
+            targetIndex,
+            logicalOffset,
+            maxLogicalScroll,
+            snapTolerance,
+        ) ||
+        terminalTailState === "reached"
+    ) {
+        return false;
+    }
+    state.continuationCount += 1;
+    // The former terminal page had no next-page exclusion allowance. Its
+    // zero mask plus Reader displacement is not a proved ordinary-page fence.
+    // Re-measure that page while retaining every earlier fence and offset.
+    if (state.appliedLeftMasks) {
+        delete state.appliedLeftMasks[String(targetIndex)];
+    }
+    return true;
 }
 
 export function promoteVerticalRlTerminalContinuationWithObservation(
-	state: VerticalRlTerminalContinuationState,
-	basePageCount: number,
-	targetIndex: number,
-	logicalOffset: number,
-	maxLogicalScroll: number,
-	snapTolerance: number,
-	context: TerminalContinuationObservationContext = {}
+    state: VerticalRlTerminalContinuationState,
+    basePageCount: number,
+    targetIndex: number,
+    logicalOffset: number,
+    maxLogicalScroll: number,
+    snapTolerance: number,
+    context: TerminalContinuationObservationContext = {},
 ): boolean {
-	const continuationCountBefore = state.continuationCount;
-	const promotionResult = promoteVerticalRlTerminalContinuation(
-		state, basePageCount, targetIndex, logicalOffset, maxLogicalScroll, snapTolerance
-	);
-	const validInputs = Number.isInteger(basePageCount) && basePageCount > 0 &&
-		Number.isInteger(targetIndex) && Number.isFinite(logicalOffset) && logicalOffset >= 0 &&
-		Number.isFinite(maxLogicalScroll) && Number.isFinite(snapTolerance) && snapTolerance >= 0;
-	const targetMatches = targetIndex === basePageCount + continuationCountBefore - 1;
-	emitTerminalContinuationObservation("terminal-continuation-promotion", context.owner, {
-		...context,
-		layoutKey: state.layoutKey,
-		basePageCount,
-		targetIndex,
-		continuationCountBefore,
-		continuationCountAfter: state.continuationCount,
-		maxScroll: maxLogicalScroll,
-		promotionResult,
-		reason: promotionResult ? "promoted" : !validInputs ? "invalid-input" : !targetMatches ? "target-mismatch" : "within-snap-tolerance"
-	});
-	return promotionResult;
+    const continuationCountBefore = state.continuationCount;
+    const promotionResult = promoteVerticalRlTerminalContinuation(
+        state,
+        basePageCount,
+        targetIndex,
+        logicalOffset,
+        maxLogicalScroll,
+        snapTolerance,
+    );
+    const validInputs =
+        Number.isInteger(basePageCount) &&
+        basePageCount > 0 &&
+        Number.isInteger(targetIndex) &&
+        Number.isFinite(logicalOffset) &&
+        logicalOffset >= 0 &&
+        Number.isFinite(maxLogicalScroll) &&
+        Number.isFinite(snapTolerance) &&
+        snapTolerance >= 0;
+    const targetMatches = targetIndex === basePageCount + continuationCountBefore - 1;
+    emitTerminalContinuationObservation("terminal-continuation-promotion", context.owner, {
+        ...context,
+        layoutKey: state.layoutKey,
+        basePageCount,
+        targetIndex,
+        continuationCountBefore,
+        continuationCountAfter: state.continuationCount,
+        maxScroll: maxLogicalScroll,
+        promotionResult,
+        reason: promotionResult
+            ? "promoted"
+            : !validInputs
+              ? "invalid-input"
+              : !targetMatches
+                ? "target-mismatch"
+                : "within-snap-tolerance",
+    });
+    return promotionResult;
 }
