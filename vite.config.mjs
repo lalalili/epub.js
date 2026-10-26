@@ -8,9 +8,7 @@ export default defineConfig({
         ignorePatterns: ["dist/**", "lib/**", "documentation/**", "books/**", "test/fixtures/**"],
     },
     lint: {
-        jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
         rules: {
-            "vite-plus/prefer-vite-plus-imports": "error",
             // The existing non-strict TypeScript contract cannot run this rule.
             "typescript/no-useless-default-assignment": "off",
         },

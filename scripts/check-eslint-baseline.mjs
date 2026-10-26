@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { assertVitePlusImports } from "./check-vite-plus-imports.mjs";
 
 export function readLintReport(result) {
     if (result.error || result.status !== 0) {
@@ -25,6 +26,7 @@ export function readLintReport(result) {
 
 export function runLint() {
     const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+    assertVitePlusImports(root, ["src"]);
     const report = readLintReport(
         spawnSync("pnpm", ["exec", "vp", "lint", "src", "--format", "json", "--threads", "2"], {
             cwd: root,
@@ -32,7 +34,7 @@ export function runLint() {
             env: {
                 ...process.env,
                 OXC_THREADS: "2",
-                    GOMAXPROCS: "2",
+                GOMAXPROCS: "2",
                 RAYON_NUM_THREADS: "2",
                 UV_THREADPOOL_SIZE: "2",
             },
@@ -64,7 +66,11 @@ export function runLint() {
     console.log(
         `Recorded legacy warnings: ${warnings}. Strict zero-warning qualification: ${warnings === 0 ? "passed" : "not passed"}.`,
     );
-    return errors === 0 && unmatched.length === 0 ? 0 : 1;
+    return errors === 0 &&
+        unmatched.length === 0 &&
+        (!process.argv.includes("--strict") || warnings === 0)
+        ? 0
+        : 1;
 }
 
 export function compareWarnings(report, baseline) {
