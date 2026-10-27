@@ -7997,7 +7997,7 @@ function jn(e, t) {
 }
 function Mn(e, t, n = {}) {
 	let r = jn(e, t);
-	return An("terminal-continuation-layout", n.owner, {
+	return r && n.view && (r.observedViews && !r.observedViews.has(n.view) && (r.hasRecreatedView = !0), (r.observedViews ??= /* @__PURE__ */ new WeakSet()).add(n.view)), An("terminal-continuation-layout", n.owner, {
 		...n,
 		layoutKey: t,
 		continuationCountBefore: e?.continuationCount,
@@ -9953,7 +9953,7 @@ var Ti = class {
 		let a = this.getRecordedVerticalRlAppliedLeftMask(n);
 		if (a === null || !Number.isFinite(a)) return null;
 		let o = this._verticalRlPreservedPageBoundary, s = o?.pageIndex === n && o.layoutKey === t.layoutKey && Number.isFinite(o.sourceLeftBoundary);
-		if (t.continuationCount <= 0 && !s && (a <= 0 || n !== 0 || r !== 0)) return null;
+		if (t.continuationCount <= 0 && !s && !(t.hasRecreatedView && a > 0) && (a <= 0 || n !== 0 || r !== 0)) return null;
 		let c = a - this.getVerticalRlAppliedContentShift();
 		return c >= 0 && c <= e ? c : null;
 	}

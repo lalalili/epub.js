@@ -2864,6 +2864,7 @@ class DefaultViewManager {
         }
         // An ordinary chapter may restore a proved source cut. Its first forward
         // observation must still allow Reader measurement to settle the mask.
+        // Recreated same-layout views retain positive learned interior fences too.
         // A recreated first page also owns its proved cut at the exact learned origin.
         const preserved = this._verticalRlPreservedPageBoundary;
         const hasPreservedSourceBoundary =
@@ -2873,6 +2874,7 @@ class DefaultViewManager {
         if (
             state.continuationCount <= 0 &&
             !hasPreservedSourceBoundary &&
+            !(state.hasRecreatedView && fence > 0) &&
             (fence <= 0 || pageIndex !== 0 || recordedOffset !== 0)
         ) {
             return null;

@@ -16,6 +16,8 @@ export type VerticalRlTerminalContinuationState = {
     offsetCache: VerticalRlLogicalPageOffsetCache | null;
     terminalRightBoundaries?: Record<number, number>;
     appliedLeftMasks?: Record<string, number> | null;
+    observedViews?: WeakSet<object>;
+    hasRecreatedView?: boolean;
 };
 
 type TerminalContinuationObservationContext = {
@@ -70,6 +72,12 @@ export function resolveVerticalRlTerminalContinuationWithObservation(
     context: TerminalContinuationObservationContext = {},
 ): VerticalRlTerminalContinuationState | null {
     const state = resolveVerticalRlTerminalContinuation(previous, layoutKey);
+    if (state && context.view) {
+        if (state.observedViews && !state.observedViews.has(context.view)) {
+            state.hasRecreatedView = true;
+        }
+        (state.observedViews ??= new WeakSet()).add(context.view);
+    }
     emitTerminalContinuationObservation("terminal-continuation-layout", context.owner, {
         ...context,
         layoutKey,
