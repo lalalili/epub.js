@@ -7745,7 +7745,12 @@
 				inwait = this._q.shift();
 				task = inwait?.task;
 				if (task) {
-					result = task.apply(this.context, inwait.args);
+					try {
+						result = task.apply(this.context, inwait.args);
+					} catch (error) {
+						inwait.deferred?.reject?.call(this.context, error);
+						return Promise.resolve();
+					}
 					if (result && typeof result["then"] === "function") return result.then(function() {
 						inwait.deferred?.resolve?.apply(this.context, arguments);
 					}.bind(this), function() {
@@ -7776,7 +7781,9 @@
 			}
 			this.tick.call(window, () => {
 				if (this._q.length) this.dequeue().then(function() {
-					this.run();
+					return this.run();
+				}.bind(this), function() {
+					return this.run();
 				}.bind(this));
 				else {
 					this.defered.resolve?.(void 0);
@@ -7796,6 +7803,9 @@
 				this.running = this.dequeue().then(function() {
 					this.running = void 0;
 					return this.flush();
+				}.bind(this), function(error) {
+					this.running = void 0;
+					throw error;
 				}.bind(this));
 				return this.running;
 			}
@@ -13746,6 +13756,13 @@
 	}
 	function resolveVerticalRlTerminalContinuationWithObservation(previous, layoutKey, context = {}) {
 		const state = resolveVerticalRlTerminalContinuation(previous, layoutKey);
+		if (state && context.view) {
+			if (state.observedViews && !state.observedViews.has(context.view)) {
+				state.hasRecreatedView = true;
+				(state.recreatedViewMasks ??= /* @__PURE__ */ new WeakMap()).set(context.view, { ...state.appliedLeftMasks });
+			}
+			(state.observedViews ??= /* @__PURE__ */ new WeakSet()).add(context.view);
+		}
 		emitTerminalContinuationObservation("terminal-continuation-layout", context.owner, {
 			...context,
 			layoutKey,
@@ -16228,7 +16245,8 @@
 			let advance = this.getPageAdvance() || 0;
 			let visibleWidth = this.layout.pageWidth || this.layout.width || advance || this.container.clientWidth || 0;
 			let currentOffset = this.getNormalizedLogicalScrollLeft();
-			let currentMaskWidths = this.container.dataset?.epubVrlEdgeMaskLeft !== void 0 ? this.getVerticalRlAppliedEdgeMaskWidths() : this.getVerticalRlRenderedEdgeMaskWidths();
+			const recordedZeroMask = this.getRecordedVerticalRlAppliedLeftMask(this.getCurrentPageIndex()) === 0;
+			let currentMaskWidths = this.container.dataset?.epubVrlEdgeMaskLeft !== void 0 || recordedZeroMask || this.getVerticalRlProvenLeftMaskAllowance() === 0 ? this.getVerticalRlAppliedEdgeMaskWidths() : this.getVerticalRlRenderedEdgeMaskWidths();
 			return getVerticalRlCurrentEffectiveLeftBoundary(contentWidth, currentOffset, visibleWidth, (Number(currentMaskWidths && currentMaskWidths.left) || 0) + this.getVerticalRlAppliedContentShift());
 		}
 		getVerticalRlCurrentEffectiveRightBoundary() {
@@ -16792,7 +16810,11 @@
 			const fence = this.getRecordedVerticalRlAppliedLeftMask(pageIndex);
 			if (fence === null || !Number.isFinite(fence)) return null;
 			const preserved = this._verticalRlPreservedPageBoundary;
-			if (state.continuationCount <= 0 && (fence <= 0 || (pageIndex !== 0 || recordedOffset !== 0) && (preserved?.pageIndex !== pageIndex || preserved.layoutKey !== state.layoutKey || !Number.isFinite(preserved.sourceLeftBoundary)))) return null;
+			const hasPreservedSourceBoundary = preserved?.pageIndex === pageIndex && preserved.layoutKey === state.layoutKey && Number.isFinite(preserved.sourceLeftBoundary);
+			const view = this.views && (this.views.first() || this.views.last());
+			const recreatedFence = view ? state.recreatedViewMasks?.get(view)?.[String(pageIndex)] : void 0;
+			const hasRecreatedPageFence = state.hasRecreatedView && Number.isFinite(recreatedFence) && recreatedFence > 0;
+			if (state.continuationCount <= 0 && !hasPreservedSourceBoundary && !(hasRecreatedPageFence && fence > 0) && (fence <= 0 || pageIndex !== 0 || recordedOffset !== 0)) return null;
 			const physicalMask = fence - this.getVerticalRlAppliedContentShift();
 			return physicalMask >= 0 && physicalMask <= maxMask ? physicalMask : null;
 		}
@@ -17687,7 +17709,7 @@
 			let semanticWindowLogicalOffset = hasSemanticWindowLogicalOffset ? semanticWindowLogicalOffsetInput : 0;
 			const terminalLayout = this.getVerticalRlTerminalLayout();
 			const recordedLeftExtent = options.preserveCachedBoundary && this._verticalRlAppliedLeftMaskLedgerKey === logicalOffsetCacheKey ? this.getRecordedVerticalRlAppliedLeftMask(targetIndex) : null;
-			const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey) ?? (targetIndex === 0 && Number(recordedLeftExtent) > 0 ? 0 : null);
+			const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey) ?? (targetIndex === 0 && recordedLeftExtent !== null && Number.isFinite(recordedLeftExtent) && recordedLeftExtent >= 0 ? 0 : null);
 			const preserveContinuationOffset = recordedOffset !== null && Boolean(terminalLayout?.continuationCount) && targetIndex >= this.getBaseGeometryPageCount() - 1 && targetIndex < totalPages - 1;
 			let cachedLogicalOffset = hasSemanticWindowLogicalOffset ? Math.max(0, Math.min(maxScroll, semanticWindowLogicalOffset)) : ignoreCachedLogicalOffset && !preserveContinuationOffset ? null : recordedOffset;
 			if (this.isRtlVerticalPaginated() && targetIndex > 0) {

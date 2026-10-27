@@ -1,5 +1,6 @@
 import { expect, it } from "vite-plus/test";
 import DefaultViewManager from "../../src/managers/default";
+import { resolveVerticalRlTerminalContinuationWithObservation } from "../../src/rendering/terminal-continuation";
 
 function firstPage({ pageIndex = 0, offset = 0 } = {}) {
     const manager = Object.create(DefaultViewManager.prototype);
@@ -72,13 +73,22 @@ it("preserves the committed 24px source cut when reverse entry has no cached fir
     expect(manager.getCachedVerticalRlLogicalPageOffset(0, "same-source-layout")).toBe(0);
 });
 
-it.each([{ sameLayout: false }, { recorded: NaN }, { preserve: false }])(
-    "does not restore an unproved first-page source cut %j",
-    (options) => {
-        const manager = returningPage(options);
-        expect(manager._verticalRlPreservedPageBoundary?.sourceLeftBoundary).toBeUndefined();
-    },
-);
+it("preserves a proved zero source cut when reverse entry has no cached first-page offset", () => {
+    const manager = returningPage({ recorded: 0 });
+    expect(manager._verticalRlPreservedPageBoundary?.sourceLeftBoundary).toBe(8448);
+    expect(manager.getCachedVerticalRlLogicalPageOffset(0, "same-source-layout")).toBe(0);
+});
+
+it.each([
+    { sameLayout: false },
+    { recorded: NaN },
+    { recorded: null },
+    { recorded: -1 },
+    { preserve: false },
+])("does not restore an unproved first-page source cut %j", (options) => {
+    const manager = returningPage(options);
+    expect(manager._verticalRlPreservedPageBoundary?.sourceLeftBoundary).toBeUndefined();
+});
 
 function recreatedFirstPage({ offset = 0, cached = 0, sameLayout = true, fence = 24 } = {}) {
     const manager = firstPage({ offset });
@@ -110,4 +120,115 @@ it.each([
     expect(
         recreatedFirstPage(options).getVerticalRlCommittedLeftMaskForCurrentOffset(96),
     ).toBeNull();
+});
+
+function recreatedInteriorPage({
+    recreated = true,
+    sameLayout = true,
+    offset = 2579,
+    cached = 2579,
+    fence = 20,
+} = {}) {
+    const manager = firstPage({ pageIndex: 3, offset });
+    manager.getTotalPagesForCurrentView = () => 5;
+    const view = manager.views.first();
+    const state = resolveVerticalRlTerminalContinuationWithObservation(
+        undefined,
+        "same-source-layout",
+        { view: recreated ? {} : view },
+    );
+    state.appliedLeftMasks = { 3: fence };
+    if (recreated) {
+        resolveVerticalRlTerminalContinuationWithObservation(state, state.layoutKey, { view });
+    }
+    manager._verticalRlActiveTerminalLayout = state;
+    manager._verticalRlAppliedLeftMaskLedgerKey = sameLayout
+        ? "same-source-layout"
+        : "other-layout";
+    manager._verticalRlAppliedLeftMaskLedger = { 3: fence };
+    manager._verticalRlLogicalPageOffsetCache =
+        cached === null
+            ? null
+            : {
+                  key: "same-source-layout",
+                  offsets: { 3: cached },
+              };
+    manager.getVerticalRlAppliedContentShift = () => 0;
+    return manager;
+}
+
+it("retains the learned 20px interior source fence when its same-layout view is recreated at offset 2579", () => {
+    expect(recreatedInteriorPage().getVerticalRlCommittedLeftMaskForCurrentOffset(217)).toBe(20);
+});
+
+it.each([
+    { recreated: false },
+    { sameLayout: false },
+    { offset: 2580 },
+    { cached: null },
+    { fence: 0 },
+    { fence: 218 },
+])(
+    "does not freeze an interior source fence without valid recreated-view evidence %j",
+    (options) => {
+        expect(
+            recreatedInteriorPage(options).getVerticalRlCommittedLeftMaskForCurrentOffset(217),
+        ).toBeNull();
+    },
+);
+
+it("marks recreation only for a different View of the same layout", () => {
+    const first = {};
+    const second = {};
+    const state = resolveVerticalRlTerminalContinuationWithObservation(undefined, "layout", {
+        view: first,
+    });
+    expect(state.hasRecreatedView).not.toBe(true);
+    expect(
+        resolveVerticalRlTerminalContinuationWithObservation(state, "layout", { view: first }),
+    ).toBe(state);
+    expect(state.hasRecreatedView).not.toBe(true);
+    expect(
+        resolveVerticalRlTerminalContinuationWithObservation(state, "layout", { view: second }),
+    ).toBe(state);
+    expect(state.hasRecreatedView).toBe(true);
+    const changed = resolveVerticalRlTerminalContinuationWithObservation(state, "new-layout", {
+        view: second,
+    });
+    expect(changed).not.toBe(state);
+    expect(changed.hasRecreatedView).not.toBe(true);
+});
+
+it("lets a recreated View settle an interior page not learned before recreation", () => {
+    const manager = firstPage({ pageIndex: 14, offset: 5224 });
+    manager.getTotalPagesForCurrentView = () => 36;
+    manager.getVerticalRlAppliedContentShift = () => 0;
+    const state = resolveVerticalRlTerminalContinuationWithObservation(
+        undefined,
+        "same-source-layout",
+        { view: {} },
+    );
+    state.appliedLeftMasks = { 3: 40 };
+    resolveVerticalRlTerminalContinuationWithObservation(state, "same-source-layout", {
+        view: manager.views.first(),
+    });
+    manager._verticalRlActiveTerminalLayout = state;
+    manager._verticalRlAppliedLeftMaskLedgerKey = state.layoutKey;
+    manager._verticalRlAppliedLeftMaskLedger = state.appliedLeftMasks;
+    manager._verticalRlLogicalPageOffsetCache = {
+        key: state.layoutKey,
+        offsets: { 14: 5224 },
+    };
+
+    manager.recordVerticalRlAppliedLeftMask(23);
+    expect(state.hasRecreatedView).toBe(true);
+    expect(manager.getVerticalRlCommittedLeftMaskForCurrentOffset(96)).toBeNull();
+    manager.recordVerticalRlAppliedLeftMask(40);
+    expect(manager.getRecordedVerticalRlAppliedLeftMask(14)).toBe(40);
+    const nextView = {};
+    resolveVerticalRlTerminalContinuationWithObservation(state, state.layoutKey, {
+        view: nextView,
+    });
+    manager.views = { first: () => nextView, last: () => nextView };
+    expect(manager.getVerticalRlCommittedLeftMaskForCurrentOffset(96)).toBe(40);
 });

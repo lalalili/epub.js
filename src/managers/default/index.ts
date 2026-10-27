@@ -1732,8 +1732,15 @@ class DefaultViewManager {
             this.container.clientWidth ||
             0;
         let currentOffset = this.getNormalizedLogicalScrollLeft();
+        // Applying a zero mask removes its dataset and overlay. Preserve that
+        // painted observation instead of reviving a computed exclusion zone.
+        const recordedZeroMask =
+            this.getRecordedVerticalRlAppliedLeftMask(this.getCurrentPageIndex()) === 0;
+        // A final page can prove no left exclusion before its zero ledger exists.
         let currentMaskWidths =
-            this.container.dataset?.epubVrlEdgeMaskLeft !== undefined
+            this.container.dataset?.epubVrlEdgeMaskLeft !== undefined ||
+            recordedZeroMask ||
+            this.getVerticalRlProvenLeftMaskAllowance() === 0
                 ? this.getVerticalRlAppliedEdgeMaskWidths()
                 : this.getVerticalRlRenderedEdgeMaskWidths();
         let currentLeftMask =
@@ -2857,15 +2864,24 @@ class DefaultViewManager {
         }
         // An ordinary chapter may restore a proved source cut. Its first forward
         // observation must still allow Reader measurement to settle the mask.
+        // Recreated same-layout views retain positive learned interior fences too.
         // A recreated first page also owns its proved cut at the exact learned origin.
         const preserved = this._verticalRlPreservedPageBoundary;
+        const hasPreservedSourceBoundary =
+            preserved?.pageIndex === pageIndex &&
+            preserved.layoutKey === state.layoutKey &&
+            Number.isFinite(preserved.sourceLeftBoundary);
+        const view = this.views && (this.views.first() || this.views.last());
+        const recreatedFence = view
+            ? state.recreatedViewMasks?.get(view)?.[String(pageIndex)]
+            : undefined;
+        const hasRecreatedPageFence =
+            state.hasRecreatedView && Number.isFinite(recreatedFence) && recreatedFence! > 0;
         if (
             state.continuationCount <= 0 &&
-            (fence <= 0 ||
-                ((pageIndex !== 0 || recordedOffset !== 0) &&
-                    (preserved?.pageIndex !== pageIndex ||
-                        preserved.layoutKey !== state.layoutKey ||
-                        !Number.isFinite(preserved.sourceLeftBoundary))))
+            !hasPreservedSourceBoundary &&
+            !(hasRecreatedPageFence && fence > 0) &&
+            (fence <= 0 || pageIndex !== 0 || recordedOffset !== 0)
         ) {
             return null;
         }
@@ -4507,7 +4523,7 @@ class DefaultViewManager {
             ? semanticWindowLogicalOffsetInput
             : 0;
         const terminalLayout = this.getVerticalRlTerminalLayout();
-        // A first page may have a painted source cut without a learned offset.
+        // A first page may have a committed source cut (including zero) without a learned offset.
         // Resolve its origin only on reverse entry, after Reader has committed
         // that cut in the same layout; never seed the initial measurement cache.
         const recordedLeftExtent =
@@ -4517,7 +4533,12 @@ class DefaultViewManager {
                 : null;
         const recordedOffset =
             this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey) ??
-            (targetIndex === 0 && Number(recordedLeftExtent) > 0 ? 0 : null);
+            (targetIndex === 0 &&
+            recordedLeftExtent !== null &&
+            Number.isFinite(recordedLeftExtent) &&
+            recordedLeftExtent >= 0
+                ? 0
+                : null);
         const preserveContinuationOffset =
             recordedOffset !== null &&
             Boolean(terminalLayout?.continuationCount) &&
