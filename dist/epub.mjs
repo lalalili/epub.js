@@ -7997,7 +7997,7 @@ function jn(e, t) {
 }
 function Mn(e, t, n = {}) {
 	let r = jn(e, t);
-	return r && n.view && (r.observedViews && !r.observedViews.has(n.view) && (r.hasRecreatedView = !0), (r.observedViews ??= /* @__PURE__ */ new WeakSet()).add(n.view)), An("terminal-continuation-layout", n.owner, {
+	return r && n.view && (r.observedViews && !r.observedViews.has(n.view) && (r.hasRecreatedView = !0, (r.recreatedViewMasks ??= /* @__PURE__ */ new WeakMap()).set(n.view, { ...r.appliedLeftMasks })), (r.observedViews ??= /* @__PURE__ */ new WeakSet()).add(n.view)), An("terminal-continuation-layout", n.owner, {
 		...n,
 		layoutKey: t,
 		continuationCountBefore: e?.continuationCount,
@@ -9952,10 +9952,10 @@ var Ti = class {
 		if (r === null || !Number.isFinite(i) || r !== i && Math.fround(r) !== Math.fround(i)) return null;
 		let a = this.getRecordedVerticalRlAppliedLeftMask(n);
 		if (a === null || !Number.isFinite(a)) return null;
-		let o = this._verticalRlPreservedPageBoundary, s = o?.pageIndex === n && o.layoutKey === t.layoutKey && Number.isFinite(o.sourceLeftBoundary);
-		if (t.continuationCount <= 0 && !s && !(t.hasRecreatedView && a > 0) && (a <= 0 || n !== 0 || r !== 0)) return null;
-		let c = a - this.getVerticalRlAppliedContentShift();
-		return c >= 0 && c <= e ? c : null;
+		let o = this._verticalRlPreservedPageBoundary, s = o?.pageIndex === n && o.layoutKey === t.layoutKey && Number.isFinite(o.sourceLeftBoundary), c = this.views && (this.views.first() || this.views.last()), l = c ? t.recreatedViewMasks?.get(c)?.[String(n)] : void 0, u = t.hasRecreatedView && Number.isFinite(l) && l > 0;
+		if (t.continuationCount <= 0 && !s && !(u && a > 0) && (a <= 0 || n !== 0 || r !== 0)) return null;
+		let d = a - this.getVerticalRlAppliedContentShift();
+		return d >= 0 && d <= e ? d : null;
 	}
 	syncVerticalRlViewportClip() {
 		if (!this.container || !this.container.style) return;

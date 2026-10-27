@@ -13757,7 +13757,10 @@
 	function resolveVerticalRlTerminalContinuationWithObservation(previous, layoutKey, context = {}) {
 		const state = resolveVerticalRlTerminalContinuation(previous, layoutKey);
 		if (state && context.view) {
-			if (state.observedViews && !state.observedViews.has(context.view)) state.hasRecreatedView = true;
+			if (state.observedViews && !state.observedViews.has(context.view)) {
+				state.hasRecreatedView = true;
+				(state.recreatedViewMasks ??= /* @__PURE__ */ new WeakMap()).set(context.view, { ...state.appliedLeftMasks });
+			}
 			(state.observedViews ??= /* @__PURE__ */ new WeakSet()).add(context.view);
 		}
 		emitTerminalContinuationObservation("terminal-continuation-layout", context.owner, {
@@ -16808,7 +16811,10 @@
 			if (fence === null || !Number.isFinite(fence)) return null;
 			const preserved = this._verticalRlPreservedPageBoundary;
 			const hasPreservedSourceBoundary = preserved?.pageIndex === pageIndex && preserved.layoutKey === state.layoutKey && Number.isFinite(preserved.sourceLeftBoundary);
-			if (state.continuationCount <= 0 && !hasPreservedSourceBoundary && !(state.hasRecreatedView && fence > 0) && (fence <= 0 || pageIndex !== 0 || recordedOffset !== 0)) return null;
+			const view = this.views && (this.views.first() || this.views.last());
+			const recreatedFence = view ? state.recreatedViewMasks?.get(view)?.[String(pageIndex)] : void 0;
+			const hasRecreatedPageFence = state.hasRecreatedView && Number.isFinite(recreatedFence) && recreatedFence > 0;
+			if (state.continuationCount <= 0 && !hasPreservedSourceBoundary && !(hasRecreatedPageFence && fence > 0) && (fence <= 0 || pageIndex !== 0 || recordedOffset !== 0)) return null;
 			const physicalMask = fence - this.getVerticalRlAppliedContentShift();
 			return physicalMask >= 0 && physicalMask <= maxMask ? physicalMask : null;
 		}

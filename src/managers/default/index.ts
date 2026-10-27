@@ -2871,10 +2871,16 @@ class DefaultViewManager {
             preserved?.pageIndex === pageIndex &&
             preserved.layoutKey === state.layoutKey &&
             Number.isFinite(preserved.sourceLeftBoundary);
+        const view = this.views && (this.views.first() || this.views.last());
+        const recreatedFence = view
+            ? state.recreatedViewMasks?.get(view)?.[String(pageIndex)]
+            : undefined;
+        const hasRecreatedPageFence =
+            state.hasRecreatedView && Number.isFinite(recreatedFence) && recreatedFence! > 0;
         if (
             state.continuationCount <= 0 &&
             !hasPreservedSourceBoundary &&
-            !(state.hasRecreatedView && fence > 0) &&
+            !(hasRecreatedPageFence && fence > 0) &&
             (fence <= 0 || pageIndex !== 0 || recordedOffset !== 0)
         ) {
             return null;

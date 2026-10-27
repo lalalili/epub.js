@@ -131,11 +131,17 @@ function recreatedInteriorPage({
 } = {}) {
     const manager = firstPage({ pageIndex: 3, offset });
     manager.getTotalPagesForCurrentView = () => 5;
-    manager._verticalRlActiveTerminalLayout = {
-        layoutKey: "same-source-layout",
-        continuationCount: 0,
-        hasRecreatedView: recreated,
-    };
+    const view = manager.views.first();
+    const state = resolveVerticalRlTerminalContinuationWithObservation(
+        undefined,
+        "same-source-layout",
+        { view: recreated ? {} : view },
+    );
+    state.appliedLeftMasks = { 3: fence };
+    if (recreated) {
+        resolveVerticalRlTerminalContinuationWithObservation(state, state.layoutKey, { view });
+    }
+    manager._verticalRlActiveTerminalLayout = state;
     manager._verticalRlAppliedLeftMaskLedgerKey = sameLayout
         ? "same-source-layout"
         : "other-layout";
@@ -191,4 +197,38 @@ it("marks recreation only for a different View of the same layout", () => {
     });
     expect(changed).not.toBe(state);
     expect(changed.hasRecreatedView).not.toBe(true);
+});
+
+it("lets a recreated View settle an interior page not learned before recreation", () => {
+    const manager = firstPage({ pageIndex: 14, offset: 5224 });
+    manager.getTotalPagesForCurrentView = () => 36;
+    manager.getVerticalRlAppliedContentShift = () => 0;
+    const state = resolveVerticalRlTerminalContinuationWithObservation(
+        undefined,
+        "same-source-layout",
+        { view: {} },
+    );
+    state.appliedLeftMasks = { 3: 40 };
+    resolveVerticalRlTerminalContinuationWithObservation(state, "same-source-layout", {
+        view: manager.views.first(),
+    });
+    manager._verticalRlActiveTerminalLayout = state;
+    manager._verticalRlAppliedLeftMaskLedgerKey = state.layoutKey;
+    manager._verticalRlAppliedLeftMaskLedger = state.appliedLeftMasks;
+    manager._verticalRlLogicalPageOffsetCache = {
+        key: state.layoutKey,
+        offsets: { 14: 5224 },
+    };
+
+    manager.recordVerticalRlAppliedLeftMask(23);
+    expect(state.hasRecreatedView).toBe(true);
+    expect(manager.getVerticalRlCommittedLeftMaskForCurrentOffset(96)).toBeNull();
+    manager.recordVerticalRlAppliedLeftMask(40);
+    expect(manager.getRecordedVerticalRlAppliedLeftMask(14)).toBe(40);
+    const nextView = {};
+    resolveVerticalRlTerminalContinuationWithObservation(state, state.layoutKey, {
+        view: nextView,
+    });
+    manager.views = { first: () => nextView, last: () => nextView };
+    expect(manager.getVerticalRlCommittedLeftMaskForCurrentOffset(96)).toBe(40);
 });
