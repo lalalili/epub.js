@@ -2452,8 +2452,12 @@ class DefaultViewManager {
 		// observation must still allow Reader measurement to settle the mask.
 		// A recreated first page also owns its proved cut at the exact learned origin.
 		const preserved = this._verticalRlPreservedPageBoundary;
+		const view = this.views && (this.views.first() || this.views.last());
+		const recreatedFence = view ? state.recreatedViewMasks?.get(view)?.[String(pageIndex)] : undefined;
+		const hasRecreatedPageFence = state.hasRecreatedView && Number.isFinite(recreatedFence) && recreatedFence! > 0;
 		if (state.continuationCount <= 0 && (fence <= 0 ||
 			((pageIndex !== 0 || recordedOffset !== 0) &&
+			!hasRecreatedPageFence &&
 			(preserved?.pageIndex !== pageIndex || preserved.layoutKey !== state.layoutKey ||
 			!Number.isFinite(preserved.sourceLeftBoundary))))) {
 			return null;
@@ -3833,7 +3837,8 @@ class DefaultViewManager {
 			this._verticalRlAppliedLeftMaskLedgerKey === logicalOffsetCacheKey
 			? this.getRecordedVerticalRlAppliedLeftMask(targetIndex) : null;
 		const recordedOffset = this.getCachedVerticalRlLogicalPageOffset(targetIndex, logicalOffsetCacheKey) ??
-			(targetIndex === 0 && Number(recordedLeftExtent) > 0 ? 0 : null);
+			(targetIndex === 0 && recordedLeftExtent !== null &&
+				Number.isFinite(recordedLeftExtent) && recordedLeftExtent >= 0 ? 0 : null);
 		const preserveContinuationOffset = recordedOffset !== null &&
 			Boolean(terminalLayout?.continuationCount) &&
 			targetIndex >= this.getBaseGeometryPageCount() - 1 && targetIndex < totalPages - 1;
