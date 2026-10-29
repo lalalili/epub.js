@@ -7986,7 +7986,7 @@ function jn(e, t) {
 }
 function Mn(e, t, n = {}) {
 	let r = jn(e, t);
-	return An("terminal-continuation-layout", n.owner, {
+	return r && n.view && (r.observedViews && !r.observedViews.has(n.view) && (r.hasRecreatedView = !0, (r.recreatedViewMasks ??= /* @__PURE__ */ new WeakMap()).set(n.view, { ...r.appliedLeftMasks })), (r.observedViews ??= /* @__PURE__ */ new WeakSet()).add(n.view)), An("terminal-continuation-layout", n.owner, {
 		...n,
 		layoutKey: t,
 		continuationCountBefore: e?.continuationCount,
@@ -9941,10 +9941,10 @@ var Ti = class {
 		if (r === null || !Number.isFinite(i) || r !== i && Math.fround(r) !== Math.fround(i)) return null;
 		let a = this.getRecordedVerticalRlAppliedLeftMask(n);
 		if (a === null || !Number.isFinite(a)) return null;
-		let o = this._verticalRlPreservedPageBoundary;
-		if (t.continuationCount <= 0 && (a <= 0 || (n !== 0 || r !== 0) && (o?.pageIndex !== n || o.layoutKey !== t.layoutKey || !Number.isFinite(o.sourceLeftBoundary)))) return null;
-		let s = a - this.getVerticalRlAppliedContentShift();
-		return s >= 0 && s <= e ? s : null;
+		let o = this._verticalRlPreservedPageBoundary, s = this.views && (this.views.first() || this.views.last()), c = s ? t.recreatedViewMasks?.get(s)?.[String(n)] : void 0, l = t.hasRecreatedView && Number.isFinite(c) && c > 0;
+		if (t.continuationCount <= 0 && (a <= 0 || (n !== 0 || r !== 0) && !l && (o?.pageIndex !== n || o.layoutKey !== t.layoutKey || !Number.isFinite(o.sourceLeftBoundary)))) return null;
+		let u = a - this.getVerticalRlAppliedContentShift();
+		return u >= 0 && u <= e ? u : null;
 	}
 	syncVerticalRlViewportClip() {
 		if (!this.container || !this.container.style) return;
@@ -10543,7 +10543,7 @@ var Ti = class {
 			containerScrollWidth: this.container && this.container.scrollWidth,
 			iframeWidth: c()
 		});
-		let h = null, g = this.getVerticalRlLogicalPageOffsetCacheKey(u, m), _ = !!(t && t.ignoreCachedLogicalOffset), v = t && t.semanticWindowLogicalOffset, y = typeof v == "number" && Number.isFinite(v), b = y ? v : 0, x = this.getVerticalRlTerminalLayout(), S = t.preserveCachedBoundary && this._verticalRlAppliedLeftMaskLedgerKey === g ? this.getRecordedVerticalRlAppliedLeftMask(p) : null, C = this.getCachedVerticalRlLogicalPageOffset(p, g) ?? (p === 0 && Number(S) > 0 ? 0 : null), w = C !== null && !!x?.continuationCount && p >= this.getBaseGeometryPageCount() - 1 && p < u - 1, T = y ? Math.max(0, Math.min(m, b)) : _ && !w ? null : C;
+		let h = null, g = this.getVerticalRlLogicalPageOffsetCacheKey(u, m), _ = !!(t && t.ignoreCachedLogicalOffset), v = t && t.semanticWindowLogicalOffset, y = typeof v == "number" && Number.isFinite(v), b = y ? v : 0, x = this.getVerticalRlTerminalLayout(), S = t.preserveCachedBoundary && this._verticalRlAppliedLeftMaskLedgerKey === g ? this.getRecordedVerticalRlAppliedLeftMask(p) : null, C = this.getCachedVerticalRlLogicalPageOffset(p, g) ?? (p === 0 && S !== null && Number.isFinite(S) && S >= 0 ? 0 : null), w = C !== null && !!x?.continuationCount && p >= this.getBaseGeometryPageCount() - 1 && p < u - 1, T = y ? Math.max(0, Math.min(m, b)) : _ && !w ? null : C;
 		if (this.isRtlVerticalPaginated() && p > 0) {
 			let e = Number(t && t.sequentialRightBoundary);
 			if (Number.isFinite(e) && e > 0) h = zr(p, e, 0, 0, 0, 0, 0, 0);
