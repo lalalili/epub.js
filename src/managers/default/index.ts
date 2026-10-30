@@ -758,11 +758,14 @@ class DefaultViewManager {
     addEventListeners() {
         var scroller;
 
-        this._onUnload = function (_e: Event) {
+        this._onUnload = function (event: Event) {
+            if ((event as PageTransitionEvent).persisted) {
+                return;
+            }
             this.destroy();
         }.bind(this);
 
-        window.addEventListener("unload", this._onUnload);
+        window.addEventListener("pagehide", this._onUnload);
 
         if (!this.settings.fullsize) {
             scroller = this.container;
@@ -786,7 +789,7 @@ class DefaultViewManager {
         scroller.removeEventListener("scroll", this._onScroll);
         this._onScroll = undefined;
 
-        window.removeEventListener("unload", this._onUnload);
+        window.removeEventListener("pagehide", this._onUnload);
         this._onUnload = undefined;
     }
 

@@ -9213,11 +9213,11 @@ var Ti = class {
 	addEventListeners() {
 		var e;
 		this._onUnload = function(e) {
-			this.destroy();
-		}.bind(this), window.addEventListener("unload", this._onUnload), e = this.settings.fullsize ? window : this.container, this._onScroll = this.onScroll.bind(this), e.addEventListener("scroll", this._onScroll);
+			e.persisted || this.destroy();
+		}.bind(this), window.addEventListener("pagehide", this._onUnload), e = this.settings.fullsize ? window : this.container, this._onScroll = this.onScroll.bind(this), e.addEventListener("scroll", this._onScroll);
 	}
 	removeEventListeners() {
-		(this.settings.fullsize ? window : this.container).removeEventListener("scroll", this._onScroll), this._onScroll = void 0, window.removeEventListener("unload", this._onUnload), this._onUnload = void 0;
+		(this.settings.fullsize ? window : this.container).removeEventListener("scroll", this._onScroll), this._onScroll = void 0, window.removeEventListener("pagehide", this._onUnload), this._onUnload = void 0;
 	}
 	destroy() {
 		this._combinedTextPaintFrame !== void 0 && (cancelAnimationFrame(this._combinedTextPaintFrame), this._combinedTextPaintFrame = void 0), clearTimeout(this.orientationTimeout), clearTimeout(this.resizeTimeout), clearTimeout(this.afterScrolled), clearTimeout(this._verticalRlBoundarySnapAfterScroll), this._verticalRlBoundarySnapAfterScrollPending = !1, this._verticalRlBoundarySnapRetryToken = (this._verticalRlBoundarySnapRetryToken || 0) + 1, this.clear(), this.removeEventListeners(), this.removeVerticalRlViewportClip(), this.stage.destroy(), this.rendered = !1;
@@ -11384,8 +11384,8 @@ var Li = P, Ri = class extends Mi {
 	}
 	addEventListeners(e) {
 		this._onUnload = function(e) {
-			this.ignore = !0, this.destroy();
-		}.bind(this), window.addEventListener("unload", this._onUnload), this.addScrollListeners(), this.isPaginated && this.settings.snap && (this.snapper = new Ii(this, this.settings.snap && typeof this.settings.snap == "object" && this.settings.snap));
+			e.persisted || (this.ignore = !0, this.destroy());
+		}.bind(this), window.addEventListener("pagehide", this._onUnload), this.addScrollListeners(), this.isPaginated && this.settings.snap && (this.snapper = new Ii(this, this.settings.snap && typeof this.settings.snap == "object" && this.settings.snap));
 	}
 	addScrollListeners() {
 		var e;
@@ -11394,7 +11394,7 @@ var Li = P, Ri = class extends Mi {
 		this.prevScrollTop = t, this.prevScrollLeft = n, this._onScroll = this.onScroll.bind(this), e.addEventListener("scroll", this._onScroll), this._scrolled = Ci(this.scrolled.bind(this), 30), this.didScroll = !1;
 	}
 	removeEventListeners() {
-		(this.settings.fullsize ? window : this.container).removeEventListener("scroll", this._onScroll), this._onScroll = void 0, window.removeEventListener("unload", this._onUnload), this._onUnload = void 0;
+		(this.settings.fullsize ? window : this.container).removeEventListener("scroll", this._onScroll), this._onScroll = void 0, window.removeEventListener("pagehide", this._onUnload), this._onUnload = void 0;
 	}
 	onScroll() {
 		let { top: e, left: t } = this.syncScrollPosition();

@@ -162,18 +162,18 @@ describe("Manager listener cleanup", () => {
         expect(directionChanges).toEqual(["rtl"]);
     });
 
-    it("removes the same DefaultViewManager unload listener it added", () => {
+    it("preserves DefaultViewManager in bfcache and removes its pagehide listener", () => {
         let addedUnloadListener;
         let removedUnloadListener;
         let manager = Object.create(DefaultViewManager.prototype);
 
         window.addEventListener = function (type, listener) {
-            if (type === "unload") {
+            if (type === "pagehide") {
                 addedUnloadListener = listener;
             }
         };
         window.removeEventListener = function (type, listener) {
-            if (type === "unload") {
+            if (type === "pagehide") {
                 removedUnloadListener = listener;
             }
         };
@@ -189,6 +189,12 @@ describe("Manager listener cleanup", () => {
 
         expect(typeof addedUnloadListener).toBe("function");
         expect(removedUnloadListener).toBe(addedUnloadListener);
+        let destroyed = 0;
+        manager.destroy = () => destroyed++;
+        addedUnloadListener({ persisted: true });
+        expect(destroyed).toBe(0);
+        addedUnloadListener({ persisted: false });
+        expect(destroyed).toBe(1);
     });
 
     it("normalizes numeric DefaultViewManager display targets through direct helpers", () => {
@@ -279,18 +285,18 @@ describe("Manager listener cleanup", () => {
         }
     });
 
-    it("removes the same ContinuousViewManager unload listener it added", () => {
+    it("preserves ContinuousViewManager in bfcache and removes its pagehide listener", () => {
         let addedUnloadListener;
         let removedUnloadListener;
         let manager = Object.create(ContinuousViewManager.prototype);
 
         window.addEventListener = function (type, listener) {
-            if (type === "unload") {
+            if (type === "pagehide") {
                 addedUnloadListener = listener;
             }
         };
         window.removeEventListener = function (type, listener) {
-            if (type === "unload") {
+            if (type === "pagehide") {
                 removedUnloadListener = listener;
             }
         };
@@ -314,6 +320,14 @@ describe("Manager listener cleanup", () => {
 
         expect(typeof addedUnloadListener).toBe("function");
         expect(removedUnloadListener).toBe(addedUnloadListener);
+        let destroyed = 0;
+        manager.destroy = () => destroyed++;
+        addedUnloadListener({ persisted: true });
+        expect(destroyed).toBe(0);
+        expect(manager.ignore).not.toBe(true);
+        addedUnloadListener({ persisted: false });
+        expect(destroyed).toBe(1);
+        expect(manager.ignore).toBe(true);
     });
 
     it("removes Stage orientationchange listener with the same event name it added", () => {

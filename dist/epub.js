@@ -15688,10 +15688,11 @@
 		}
 		addEventListeners() {
 			var scroller;
-			this._onUnload = function(_e) {
+			this._onUnload = function(event) {
+				if (event.persisted) return;
 				this.destroy();
 			}.bind(this);
-			window.addEventListener("unload", this._onUnload);
+			window.addEventListener("pagehide", this._onUnload);
 			if (!this.settings.fullsize) scroller = this.container;
 			else scroller = window;
 			this._onScroll = this.onScroll.bind(this);
@@ -15703,7 +15704,7 @@
 			else scroller = window;
 			scroller.removeEventListener("scroll", this._onScroll);
 			this._onScroll = void 0;
-			window.removeEventListener("unload", this._onUnload);
+			window.removeEventListener("pagehide", this._onUnload);
 			this._onUnload = void 0;
 		}
 		destroy() {
@@ -19090,11 +19091,12 @@
 			}
 		}
 		addEventListeners(_stage) {
-			this._onUnload = function(_e) {
+			this._onUnload = function(event) {
+				if (event.persisted) return;
 				this.ignore = true;
 				this.destroy();
 			}.bind(this);
-			window.addEventListener("unload", this._onUnload);
+			window.addEventListener("pagehide", this._onUnload);
 			this.addScrollListeners();
 			if (this.isPaginated && this.settings.snap) this.snapper = new Snap(this, this.settings.snap && typeof this.settings.snap === "object" && this.settings.snap);
 		}
@@ -19119,7 +19121,7 @@
 			else scroller = window;
 			scroller.removeEventListener("scroll", this._onScroll);
 			this._onScroll = void 0;
-			window.removeEventListener("unload", this._onUnload);
+			window.removeEventListener("pagehide", this._onUnload);
 			this._onUnload = void 0;
 		}
 		onScroll() {

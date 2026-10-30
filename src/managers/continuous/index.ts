@@ -509,13 +509,16 @@ class ContinuousViewManager extends DefaultViewManager {
     }
 
     addEventListeners(_stage?: unknown) {
-        this._onUnload = function (_e: Event) {
+        this._onUnload = function (event: Event) {
+            if ((event as PageTransitionEvent).persisted) {
+                return;
+            }
             this.ignore = true;
             // this.scrollTo(0,0);
             this.destroy();
         }.bind(this);
 
-        window.addEventListener("unload", this._onUnload);
+        window.addEventListener("pagehide", this._onUnload);
 
         this.addScrollListeners();
 
@@ -565,7 +568,7 @@ class ContinuousViewManager extends DefaultViewManager {
         scroller.removeEventListener("scroll", this._onScroll);
         this._onScroll = undefined;
 
-        window.removeEventListener("unload", this._onUnload);
+        window.removeEventListener("pagehide", this._onUnload);
         this._onUnload = undefined;
     }
 
