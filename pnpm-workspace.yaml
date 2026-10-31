@@ -13,6 +13,8 @@ catalog:
   vite-plus: 1.4.0
 
 overrides:
+  glob@13: 14.0.2
+  minimatch@10: 11.0.1
   vite@*: "catalog:"
   vitest: 5.0.5
   brace-expansion: ^5.0.12
@@ -27,3 +29,6 @@ peerDependencyRules:
     - vite
   allowedVersions:
     vite: "*"
+
+patchedDependencies:
+  typedoc@0.28.19: patches/typedoc@0.28.19.patch

@@ -186,6 +186,11 @@ This legacy inventory is not a zero-warning qualification: use
 require focused runtime evidence before behavior changes. Run
 `pnpm run test:lint-gate` to verify failure handling and inventory comparisons.
 
+The unused ESLint 8 dependency is no longer installed; Vite Plus owns the lint gate.
+Security overrides require minimatch 11 and glob 14. TypeDoc 0.28.19 has a scoped
+pnpm patch that replaces its removed `matchOne` call with the public partial
+`match` API; keep the patch when installing the frozen dependency graph.
+
 Use `pnpm run fmt:check` for authored code and configuration. Generated assets,
 documentation and book fixtures are excluded; `pnpm run fmt` applies formatting.
 
