@@ -1072,11 +1072,11 @@
 	var DOCUMENT_NODE = 9;
 	/**
 	* Parsing and creation of EpubCFIs: http://www.idpf.org/epub/linking/cfi/epub-cfi.html
-
+	
 	* Implements:
 	* - Character Offset: epubcfi(/6/4[chap01ref]!/4[body01]/10[para05]/2/1:3)
 	* - Simple Ranges : epubcfi(/6/4[chap01ref]!/4[body01]/10[para05],/2/1:1,/3:4)
-
+	
 	* Does Not Implement:
 	* - Temporal Offset (~)
 	* - Spatial Offset (@)
@@ -16236,7 +16236,10 @@
 			let advance = this.getPageAdvance() || 0;
 			let visibleWidth = this.layout.pageWidth || this.layout.width || advance || this.container.clientWidth || 0;
 			let currentOffset = this.getNormalizedLogicalScrollLeft();
-			let currentMaskWidths = this.container.dataset?.epubVrlEdgeMaskLeft !== void 0 ? this.getVerticalRlAppliedEdgeMaskWidths() : this.getVerticalRlRenderedEdgeMaskWidths();
+			const pageIndex = this.getCurrentPageIndex();
+			const layoutKey = this.getVerticalRlLogicalPageOffsetCacheKey(this.getTotalPagesForCurrentView(), this.getMaxLogicalScrollLeft());
+			const recordedZeroMask = layoutKey !== null && this._verticalRlAppliedLeftMaskLedgerKey === layoutKey && this.getCachedVerticalRlLogicalPageOffset(pageIndex, layoutKey) === currentOffset && this.getRecordedVerticalRlAppliedLeftMask(pageIndex) === 0;
+			let currentMaskWidths = this.container.dataset?.epubVrlEdgeMaskLeft !== void 0 || recordedZeroMask ? this.getVerticalRlAppliedEdgeMaskWidths() : this.getVerticalRlRenderedEdgeMaskWidths();
 			return getVerticalRlCurrentEffectiveLeftBoundary(contentWidth, currentOffset, visibleWidth, (Number(currentMaskWidths && currentMaskWidths.left) || 0) + this.getVerticalRlAppliedContentShift());
 		}
 		getVerticalRlCurrentEffectiveRightBoundary() {
@@ -16803,7 +16806,8 @@
 			const view = this.views && (this.views.first() || this.views.last());
 			const recreatedFence = view ? state.recreatedViewMasks?.get(view)?.[String(pageIndex)] : void 0;
 			const hasRecreatedPageFence = state.hasRecreatedView && Number.isFinite(recreatedFence) && recreatedFence > 0;
-			if (state.continuationCount <= 0 && (fence <= 0 || (pageIndex !== 0 || recordedOffset !== 0) && !hasRecreatedPageFence && (preserved?.pageIndex !== pageIndex || preserved.layoutKey !== state.layoutKey || !Number.isFinite(preserved.sourceLeftBoundary)))) return null;
+			const hasPreservedSourceFence = preserved?.pageIndex === pageIndex && preserved.layoutKey === state.layoutKey && Number.isFinite(preserved.sourceLeftBoundary);
+			if (state.continuationCount <= 0 && (fence < 0 || fence === 0 && !hasPreservedSourceFence || (pageIndex !== 0 || recordedOffset !== 0) && !hasRecreatedPageFence && !hasPreservedSourceFence)) return null;
 			const physicalMask = fence - this.getVerticalRlAppliedContentShift();
 			return physicalMask >= 0 && physicalMask <= maxMask ? physicalMask : null;
 		}

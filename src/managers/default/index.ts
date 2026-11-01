@@ -1735,8 +1735,18 @@ class DefaultViewManager {
             this.container.clientWidth ||
             0;
         let currentOffset = this.getNormalizedLogicalScrollLeft();
+        const pageIndex = this.getCurrentPageIndex();
+        const layoutKey = this.getVerticalRlLogicalPageOffsetCacheKey(
+            this.getTotalPagesForCurrentView(),
+            this.getMaxLogicalScrollLeft(),
+        );
+        const recordedZeroMask =
+            layoutKey !== null &&
+            this._verticalRlAppliedLeftMaskLedgerKey === layoutKey &&
+            this.getCachedVerticalRlLogicalPageOffset(pageIndex, layoutKey) === currentOffset &&
+            this.getRecordedVerticalRlAppliedLeftMask(pageIndex) === 0;
         let currentMaskWidths =
-            this.container.dataset?.epubVrlEdgeMaskLeft !== undefined
+            this.container.dataset?.epubVrlEdgeMaskLeft !== undefined || recordedZeroMask
                 ? this.getVerticalRlAppliedEdgeMaskWidths()
                 : this.getVerticalRlRenderedEdgeMaskWidths();
         let currentLeftMask =
@@ -2868,14 +2878,17 @@ class DefaultViewManager {
             : undefined;
         const hasRecreatedPageFence =
             state.hasRecreatedView && Number.isFinite(recreatedFence) && recreatedFence! > 0;
+        const hasPreservedSourceFence =
+            preserved?.pageIndex === pageIndex &&
+            preserved.layoutKey === state.layoutKey &&
+            Number.isFinite(preserved.sourceLeftBoundary);
         if (
             state.continuationCount <= 0 &&
-            (fence <= 0 ||
+            (fence < 0 ||
+                (fence === 0 && !hasPreservedSourceFence) ||
                 ((pageIndex !== 0 || recordedOffset !== 0) &&
                     !hasRecreatedPageFence &&
-                    (preserved?.pageIndex !== pageIndex ||
-                        preserved.layoutKey !== state.layoutKey ||
-                        !Number.isFinite(preserved.sourceLeftBoundary))))
+                    !hasPreservedSourceFence))
         ) {
             return null;
         }
