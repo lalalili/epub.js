@@ -2,6 +2,11 @@
 
 This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
+## [0.3.93.167] - 2026-11-02
+
+- Preserve the original enqueue rejection for synchronous throws and rejected promise tasks while allowing the scheduler to continue. Release failed-flush running state so later work can run; do not alter pagination or geometry.
+- Verification: three failure regressions reproduce before the change; nine Queue browser checks and three compiled CommonJS recovery checks pass afterward. Full Chromium suite:1141 passed, one existing skip. Typecheck, compilation, builds, contracts and both dependency audits pass. The106 recorded lint warnings remain; this does not grant new true-book or native qualification.
+
 ## Unreleased
 
 ### Release candidate: vertical-rl source boundaries and centered terminal media

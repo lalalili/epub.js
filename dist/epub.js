@@ -7745,7 +7745,12 @@
 				inwait = this._q.shift();
 				task = inwait?.task;
 				if (task) {
-					result = task.apply(this.context, inwait.args);
+					try {
+						result = task.apply(this.context, inwait.args);
+					} catch (error) {
+						inwait.deferred?.reject?.call(this.context, error);
+						return Promise.resolve();
+					}
 					if (result && typeof result["then"] === "function") return result.then(function() {
 						inwait.deferred?.resolve?.apply(this.context, arguments);
 					}.bind(this), function() {
@@ -7776,7 +7781,9 @@
 			}
 			this.tick.call(window, () => {
 				if (this._q.length) this.dequeue().then(function() {
-					this.run();
+					return this.run();
+				}.bind(this), function() {
+					return this.run();
 				}.bind(this));
 				else {
 					this.defered.resolve?.(void 0);
@@ -7796,6 +7803,9 @@
 				this.running = this.dequeue().then(function() {
 					this.running = void 0;
 					return this.flush();
+				}.bind(this), function(error) {
+					this.running = void 0;
+					throw error;
 				}.bind(this));
 				return this.running;
 			}

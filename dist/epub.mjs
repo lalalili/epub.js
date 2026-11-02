@@ -4891,11 +4891,18 @@ var $e = Symbol.for("epub.persist.documentSource.v1"), et = 0, tt = 0, nt = clas
 	dequeue() {
 		var e, t, n;
 		if (this._q.length && !this.paused) {
-			if (e = this._q.shift(), t = e?.task, t) return n = t.apply(this.context, e.args), n && typeof n.then == "function" ? n.then(function() {
-				e.deferred?.resolve?.apply(this.context, arguments);
-			}.bind(this), function() {
-				e.deferred?.reject?.apply(this.context, arguments);
-			}.bind(this)) : (e.deferred?.resolve?.call(this.context, n), e.promise);
+			if (e = this._q.shift(), t = e?.task, t) {
+				try {
+					n = t.apply(this.context, e.args);
+				} catch (t) {
+					return e.deferred?.reject?.call(this.context, t), Promise.resolve();
+				}
+				return n && typeof n.then == "function" ? n.then(function() {
+					e.deferred?.resolve?.apply(this.context, arguments);
+				}.bind(this), function() {
+					e.deferred?.reject?.apply(this.context, arguments);
+				}.bind(this)) : (e.deferred?.resolve?.call(this.context, n), e.promise);
+			}
 			if (e.promise) return e.promise;
 		} else {
 			let e = new it();
@@ -4908,7 +4915,9 @@ var $e = Symbol.for("epub.persist.documentSource.v1"), et = 0, tt = 0, nt = clas
 	run() {
 		return this.running || (this.running = !0, this.defered = new it()), this.tick.call(window, () => {
 			this._q.length ? this.dequeue().then(function() {
-				this.run();
+				return this.run();
+			}.bind(this), function() {
+				return this.run();
 			}.bind(this)) : (this.defered.resolve?.(void 0), this.running = void 0);
 		}), this.paused == 1 && (this.paused = !1), this.defered.promise;
 	}
@@ -4916,6 +4925,8 @@ var $e = Symbol.for("epub.persist.documentSource.v1"), et = 0, tt = 0, nt = clas
 		if (this.running) return this.running;
 		if (this._q.length) return this.running = this.dequeue().then(function() {
 			return this.running = void 0, this.flush();
+		}.bind(this), function(e) {
+			throw this.running = void 0, e;
 		}.bind(this)), this.running;
 	}
 	clear() {
