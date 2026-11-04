@@ -176,8 +176,21 @@ class Mapping {
     findRanges(view: MappingView): RangePair[] {
         var columns: RangePair[] = [];
         var scrollWidth = view.contents.scrollWidth();
-        var spreads = Math.ceil(scrollWidth / this.layout.spreadWidth);
-        var count = spreads * this.layout.divisor;
+        var spreadWidth = this.layout.spreadWidth;
+        var divisor = this.layout.divisor;
+
+        // 防護：版面尚未計算（寬度為 0）或寬度非有限時，spreads 會是 Infinity／NaN，
+        // 使下方迴圈無限執行。這類已損壞的輸入回傳空結果（與 scrollWidth 為 0 時一致）。
+        if (
+            !(Number.isFinite(scrollWidth) && scrollWidth > 0) ||
+            !(Number.isFinite(spreadWidth) && spreadWidth > 0) ||
+            !(Number.isFinite(divisor) && divisor > 0)
+        ) {
+            return columns;
+        }
+
+        var spreads = Math.ceil(scrollWidth / spreadWidth);
+        var count = spreads * divisor;
         var columnWidth = this.layout.columnWidth;
         var gap = this.layout.gap;
         var start, end;
