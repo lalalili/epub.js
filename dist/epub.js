@@ -10192,7 +10192,10 @@
 		findRanges(view) {
 			var columns = [];
 			var scrollWidth = view.contents.scrollWidth();
-			var count = Math.ceil(scrollWidth / this.layout.spreadWidth) * this.layout.divisor;
+			var spreadWidth = this.layout.spreadWidth;
+			var divisor = this.layout.divisor;
+			if (!(Number.isFinite(scrollWidth) && scrollWidth > 0) || !(Number.isFinite(spreadWidth) && spreadWidth > 0) || !(Number.isFinite(divisor) && divisor > 0)) return columns;
+			var count = Math.ceil(scrollWidth / spreadWidth) * divisor;
 			var columnWidth = this.layout.columnWidth;
 			var gap = this.layout.gap;
 			var start, end;

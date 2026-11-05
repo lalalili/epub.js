@@ -6007,9 +6007,11 @@ var kt = class {
 		}
 	}
 	findRanges(e) {
-		for (var t = [], n = e.contents.scrollWidth(), r = Math.ceil(n / this.layout.spreadWidth) * this.layout.divisor, i = this.layout.columnWidth, a = this.layout.gap, o, s, c = 0; c < r; c++) o = (i + a) * c, s = i * (c + 1) + a * c, t.push({
-			start: this.findStart(e.document.body, o, s),
-			end: this.findEnd(e.document.body, o, s)
+		var t = [], n = e.contents.scrollWidth(), r = this.layout.spreadWidth, i = this.layout.divisor;
+		if (!(Number.isFinite(n) && n > 0) || !(Number.isFinite(r) && r > 0) || !(Number.isFinite(i) && i > 0)) return t;
+		for (var a = Math.ceil(n / r) * i, o = this.layout.columnWidth, s = this.layout.gap, c, l, u = 0; u < a; u++) c = (o + s) * u, l = o * (u + 1) + s * u, t.push({
+			start: this.findStart(e.document.body, c, l),
+			end: this.findEnd(e.document.body, c, l)
 		});
 		return t;
 	}
