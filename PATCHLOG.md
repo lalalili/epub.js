@@ -2,6 +2,15 @@
 
 This file tracks `lalalili/epub.js` fork patches for internal maintenance.
 
+## [0.3.93.168] - 2026-11-06
+
+- Guard `Mapping.findRanges()` against non-finite or non-positive scroll width, spread width and divisor by returning an empty result. This prevents the zero-spread-width infinite loop without changing valid-width page ranges or the `Mapping.page()` path.
+- Add characterization coverage for CFI parsing/comparison, layout page counts, mapping ranges, locations and fractional snapping. These tests record current behavior, including suspected defects; they do not promote those behaviors to desired contracts or implement the separately analyzed word-splitting/page-count changes.
+- Use an embedded deterministic test font for the vertical-rl block-media fixture while retaining its geometry and assertions. The empty-glyph font controls advances; it does not establish visible-glyph or real-book qualification.
+- Regenerate the tracked ESM, CommonJS, UMD and minified distributions and source maps so tarball consumers receive the Mapping guard already merged in source.
+- Verification: the isolated Node 26.12.1 / pnpm 12.15.0 release gate passed 104 Chromium test files, 1243 tests and one existing skip; full and production dependency audits reported no known vulnerabilities. Actual ESM/CommonJS `Contents.map()` entries returned empty results for zero, NaN, infinite and negative spread widths, and all three source maps matched `src/mapping.ts` exactly. Main `cb13b584` passed browser/typecheck and release checks on Node 22.23.4, 24.22.1 and 26.12.1. These Engine checks do not qualify a new Reader version, CPTW consumer, Android/iOS build or deployment.
+- Rollback: keep or restore consumers to `v0.3.93.167`; no data migration is needed. For a source rollback, revert the Mapping guard and regenerate its distributions. Never rewrite an existing release tag.
+
 ## [0.3.93.167] - 2026-11-02
 
 - Preserve the original enqueue rejection for synchronous throws and rejected promise tasks while allowing the scheduler to continue. Release failed-flush running state so later work can run; do not alter pagination or geometry.
